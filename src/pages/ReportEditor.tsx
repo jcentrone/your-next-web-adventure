@@ -171,12 +171,19 @@ const ReportEditor: React.FC = () => {
                 return (
                   <button
                     key={s.key}
-                    className={`w-full justify-between text-left text-sm rounded-md px-3 py-2 border ${active === sec.id ? "bg-accent" : "bg-background"}`}
+                    className={`w-full flex items-center justify-between text-left text-sm rounded-md px-3 py-2 border ${active === sec.id ? "bg-accent" : "bg-background"}`}
                     onClick={() => setActive(sec.id)}
                     aria-current={active === sec.id}
                   >
-                    <span>{s.name}</span>
-                    <span className="text-muted-foreground">{count}</span>
+                    <span className="truncate">{s.name}</span>
+                    {count > 0 && (
+                      <span
+                        className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-secondary text-secondary-foreground text-[10px] shrink-0"
+                        aria-label={`${count} observations`}
+                      >
+                        {count}
+                      </span>
+                    )}
                   </button>
                 );
               })}
