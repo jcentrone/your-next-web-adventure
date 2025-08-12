@@ -1,6 +1,6 @@
 export const PREVIEW_TEMPLATES = {
   classic: {
-    container: "px-8 py-10 bg-white text-gray-900",
+    container: "m-8 px-8 py-10 bg-white text-gray-900",
     cover: "flex flex-col items-center justify-center h-screen bg-gray-100 text-center",
     coverTitle: "text-5xl font-bold mb-4",
     coverSubtitle: "text-lg text-gray-500",
