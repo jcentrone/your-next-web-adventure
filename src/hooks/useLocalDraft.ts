@@ -76,6 +76,7 @@ export function createReport(meta: {
     address: meta.address,
     inspectionDate: meta.inspectionDate,
     status: "Draft",
+    finalComments: "",
     sections,
   };
   saveReport(report);

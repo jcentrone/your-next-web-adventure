@@ -8,7 +8,9 @@ export type SectionKey =
   | "electrical"
   | "fireplace"
   | "attic"
-  | "interior";
+  | "interior"
+  | "finalize";
+
 
 export const SOP_SECTIONS: { key: SectionKey; name: string }[] = [
   { key: "roof", name: "Roof" },
@@ -21,4 +23,6 @@ export const SOP_SECTIONS: { key: SectionKey; name: string }[] = [
   { key: "fireplace", name: "Fireplace" },
   { key: "attic", name: "Attic & Ventilation" },
   { key: "interior", name: "Doors / Windows / Interior" },
+  { key: "finalize", name: "Finalize" },
 ];
+

@@ -82,7 +82,7 @@ interface Props {
   onInsert: (tpl: {
     title: string;
     narrative: string;
-    severity: "Minor" | "Moderate" | "Major";
+    severity: "Info" | "Minor" | "Moderate" | "Major";
     recommendation?: string;
     mediaGuidance?: string;
     defectId?: string | null;
@@ -104,7 +104,7 @@ React.useEffect(() => {
     const { data, error } = await supabase
       .from("defects")
       .select("id,title,description,recommendation,media_guidance,severity,section_key,is_active")
-      .eq("section_key", sectionKey)
+      .eq("section_key", sectionKey as any)
       .eq("is_active", true)
       .order("title");
     if (error) {
@@ -162,6 +162,23 @@ React.useEffect(() => {
               onChange={(e) => setQ(e.target.value)}
               aria-label="Search defects"
             />
+            <Button
+              className="mt-2 w-full"
+              variant="secondary"
+              onClick={() => {
+                onInsert({
+                  title: "New observation",
+                  narrative: "",
+                  severity: "Info",
+                  recommendation: "",
+                  mediaGuidance: "",
+                  defectId: null,
+                });
+                onOpenChange(false);
+              }}
+            >
+              Insert blank observation
+            </Button>
             <div className="mt-3 max-h-80 overflow-auto rounded border divide-y">
               {list.length === 0 && (
                 <div className="p-3 text-sm text-muted-foreground">No defects found for this section.</div>
@@ -223,6 +240,7 @@ React.useEffect(() => {
                         mediaGuidance: selected.media_guidance,
                         defectId: toId(selected),
                       });
+                      onOpenChange(false);
                     }}
                   >
                     Insert into section

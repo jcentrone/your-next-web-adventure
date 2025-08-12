@@ -29,8 +29,20 @@ const ReportEditor: React.FC = () => {
       nav("/reports");
       return;
     }
-    setReport(r);
-    setActive(r.sections[0]?.id ?? null);
+    // normalize: ensure finalize section and finalComments exist
+    const rr: Report = {
+      ...r,
+      finalComments: (r as any).finalComments ?? "",
+      sections: [...r.sections],
+    } as Report;
+    const existingKeys = new Set(rr.sections.map((s) => s.key));
+    SOP_SECTIONS.forEach((s) => {
+      if (!existingKeys.has(s.key as SectionKey)) {
+        rr.sections.push({ id: `${rr.id}-sec-${s.key}`, key: s.key as SectionKey, title: s.name, findings: [] } as any);
+      }
+    });
+    setReport(rr);
+    setActive(rr.sections[0]?.id ?? null);
   }, [id, nav]);
 
   useAutosave({
@@ -175,117 +187,131 @@ const ReportEditor: React.FC = () => {
           <header className="flex flex-wrap items-center gap-3 mb-4">
             <h1 className="text-xl font-semibold flex-1">{activeSection.title}</h1>
             <Button variant="outline" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
-            <Button onClick={finalize} disabled={report.status === "Final"}>
-              {report.status === "Final" ? "Finalized" : "Finalize"}
-            </Button>
-            <Button variant="secondary" onClick={() => setPickerOpen(true)}>Add from Library</Button>
-            <Button onClick={addFinding}>Add Observation</Button>
+            <Button onClick={() => setPickerOpen(true)}>Add Observation</Button>
           </header>
 
-          <section className="mb-4 rounded-md border p-3">
-            <details>
-              <summary className="text-sm font-medium">What to inspect (InterNACHI)</summary>
-              <ul className="mt-2 list-disc pl-5 text-sm">
-                {(SOP_GUIDANCE[activeSection.key] || []).map((item, idx) => (
-                  <li key={idx}>{item}</li>
-                ))}
-              </ul>
-            </details>
-          </section>
+          {activeSection.key !== "finalize" ? (
+            <>
+              <section className="mb-4 rounded-md border p-3">
+                <details>
+                  <summary className="text-sm font-medium">What to inspect (InterNACHI)</summary>
+                  <ul className="mt-2 list-disc pl-5 text-sm">
+                    {(SOP_GUIDANCE[activeSection.key] || []).map((item, idx) => (
+                      <li key={idx}>{item}</li>
+                    ))}
+                  </ul>
+                </details>
+              </section>
 
-          <div className="space-y-4">
-            {activeSection.findings.length === 0 && (
-              <p className="text-sm text-muted-foreground">No observations yet.</p>
-            )}
-            {activeSection.findings.map((f) => (
-              <article key={f.id} className="rounded-lg border p-4">
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={f.title}
-                    onChange={(e) => updateFinding(f.id, { title: e.target.value })}
-                    aria-label="Finding title"
-                  />
-                  <select
-                    className="border rounded-md h-10 px-2 text-sm"
-                    value={f.severity}
-                    onChange={(e) => updateFinding(f.id, { severity: e.target.value as Severity })}
-                    aria-label="Severity"
-                  >
-                    {SEVERITIES.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={f.includeInSummary}
-                      onChange={(e) => updateFinding(f.id, { includeInSummary: e.target.checked })}
-                    />
-                    Summary
-                  </label>
-                </div>
-                <div className="mt-3">
-                  <Textarea
-                    placeholder="Narrative"
-                    value={f.narrative || ""}
-                    onChange={(e) => updateFinding(f.id, { narrative: e.target.value })}
-                  />
-                </div>
-                <div className="mt-3">
-                  <Textarea
-                    placeholder="Recommendation"
-                    value={f.recommendation || ""}
-                    onChange={(e) => updateFinding(f.id, { recommendation: e.target.value })}
-                  />
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept="image/*,video/*,audio/*"
-                    multiple
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-                      const media: Media[] = files.map((file) => {
-                        const mtype: Media["type"] =
-                          file.type.startsWith("video") ? "video" : file.type.startsWith("audio") ? "audio" : "image";
-                        return {
-                          id: crypto.randomUUID(),
-                          type: mtype,
-                          url: URL.createObjectURL(file),
-                          caption: file.name,
-                        };
-                      });
-                      updateFinding(f.id, { media: [...f.media, ...media] });
-                    }}
-                  />
-                </div>
-                {f.mediaGuidance && (
-                  <p className="text-xs text-muted-foreground mt-2">Media guidance: {f.mediaGuidance}</p>
+              <div className="space-y-4">
+                {activeSection.findings.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No observations yet.</p>
                 )}
-                {f.media.length > 0 && (
-                  <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {f.media.map((m) => (
-                      <figure key={m.id} className="rounded border p-2">
-                        {m.type === "image" ? (
-                          <img src={m.url} alt={m.caption || "inspection media"} loading="lazy" className="w-full h-32 object-cover rounded" />
-                        ) : m.type === "video" ? (
-                          <video src={m.url} controls className="w-full h-32 object-cover rounded" />
-                        ) : (
-                          <audio src={m.url} controls />
-                        )}
-                        <figcaption className="mt-1 text-xs text-muted-foreground truncate">{m.caption}</figcaption>
-                      </figure>
-                    ))}
-                  </div>
-                )}
-                <div className="mt-4 flex items-center gap-2">
-                  <Button variant="outline" onClick={() => moveFinding(f.id, -1)}>Move Up</Button>
-                  <Button variant="outline" onClick={() => moveFinding(f.id, 1)}>Move Down</Button>
-                  <Button variant="destructive" onClick={() => removeFinding(f.id)}>Remove</Button>
-                </div>
-              </article>
-            ))}
-          </div>
+                {activeSection.findings.map((f) => (
+                  <article key={f.id} className="rounded-lg border p-4">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={f.title}
+                        onChange={(e) => updateFinding(f.id, { title: e.target.value })}
+                        aria-label="Finding title"
+                      />
+                      <select
+                        className="border rounded-md h-10 px-2 text-sm"
+                        value={f.severity}
+                        onChange={(e) => updateFinding(f.id, { severity: e.target.value as Severity })}
+                        aria-label="Severity"
+                      >
+                        {SEVERITIES.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={f.includeInSummary}
+                          onChange={(e) => updateFinding(f.id, { includeInSummary: e.target.checked })}
+                        />
+                        Summary
+                      </label>
+                    </div>
+                    <div className="mt-3">
+                      <Textarea
+                        placeholder="Narrative"
+                        value={f.narrative || ""}
+                        onChange={(e) => updateFinding(f.id, { narrative: e.target.value })}
+                      />
+                    </div>
+                    <div className="mt-3">
+                      <Textarea
+                        placeholder="Recommendation"
+                        value={f.recommendation || ""}
+                        onChange={(e) => updateFinding(f.id, { recommendation: e.target.value })}
+                      />
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <input
+                        type="file"
+                        accept="image/*,video/*,audio/*"
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          const media: Media[] = files.map((file) => {
+                            const mtype: Media["type"] =
+                              file.type.startsWith("video") ? "video" : file.type.startsWith("audio") ? "audio" : "image";
+                            return {
+                              id: crypto.randomUUID(),
+                              type: mtype,
+                              url: URL.createObjectURL(file),
+                              caption: file.name,
+                            };
+                          });
+                          updateFinding(f.id, { media: [...f.media, ...media] });
+                        }}
+                      />
+                    </div>
+                    {f.mediaGuidance && (
+                      <p className="text-xs text-muted-foreground mt-2">Media guidance: {f.mediaGuidance}</p>
+                    )}
+                    {f.media.length > 0 && (
+                      <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {f.media.map((m) => (
+                          <figure key={m.id} className="rounded border p-2">
+                            {m.type === "image" ? (
+                              <img src={m.url} alt={m.caption || "inspection media"} loading="lazy" className="w-full h-32 object-cover rounded" />
+                            ) : m.type === "video" ? (
+                              <video src={m.url} controls className="w-full h-32 object-cover rounded" />
+                            ) : (
+                              <audio src={m.url} controls />
+                            )}
+                            <figcaption className="mt-1 text-xs text-muted-foreground truncate">{m.caption}</figcaption>
+                          </figure>
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-4 flex items-center gap-2">
+                      <Button variant="outline" onClick={() => moveFinding(f.id, -1)}>Move Up</Button>
+                      <Button variant="outline" onClick={() => moveFinding(f.id, 1)}>Move Down</Button>
+                      <Button variant="destructive" onClick={() => removeFinding(f.id)}>Remove</Button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
+          ) : (
+            <section className="rounded-md border p-3 space-y-3">
+              <div className="text-sm font-medium">Additional comments</div>
+              <Textarea
+                placeholder="Any final notes, disclaimers, or delivery comments..."
+                value={(report as any).finalComments || ""}
+                onChange={(e) => setReport((prev) => (prev ? ({ ...prev, finalComments: e.target.value } as Report) : prev))}
+              />
+              <div className="flex gap-2">
+                <Button onClick={finalize} disabled={report.status === "Final"}>
+                  {report.status === "Final" ? "Finalized" : "Finalize"}
+                </Button>
+              </div>
+            </section>
+          )}
 
           <DefectPicker
             open={pickerOpen}

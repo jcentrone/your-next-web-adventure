@@ -44,6 +44,7 @@ export const ReportSchema = z.object({
   address: z.string().min(1, "Address is required"),
   inspectionDate: z.string(), // ISO
   status: z.enum(["Draft", "Final"]).default("Draft"),
+  finalComments: z.string().optional().default(""),
   sections: z.array(SectionSchema),
 });
 export type Report = z.infer<typeof ReportSchema>;
