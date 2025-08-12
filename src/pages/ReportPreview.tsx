@@ -158,9 +158,10 @@ const ReportPreview: React.FC = () => {
   const summary = report.sections.flatMap((s) =>
     s.findings.filter((f) => f.includeInSummary || f.severity === "Safety" || f.severity === "Major" || f.severity === "Moderate")
   );
-  const sortedSummary = [...summary].sort(
-    (a, b) => severityOrder.indexOf(a.severity as any) - severityOrder.indexOf(b.severity as any)
-  );
+  const severityCounts = summary.reduce((acc, finding) => {
+  acc[finding.severity] = (acc[finding.severity] || 0) + 1;
+  return acc;
+}, {} as Record<string, number>);
 
   return (
     <>
@@ -201,21 +202,26 @@ const ReportPreview: React.FC = () => {
         </section>
 
         {/* Summary */}
-        {sortedSummary.length > 0 && (
-          <section className="mb-10 page-break">
-            <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
-            <ul className="space-y-2">
-              {sortedSummary.map((f) => (
-                <li key={f.id} className="flex items-start gap-2">
-                  <SeverityBadge severity={f.severity} classes={tpl.severityBadge as any} />
-                  <span>
-                    <strong>[{f.severity}]</strong> {f.title}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+{Object.keys(severityCounts).length > 0 && (
+  <section className="mb-10 page-break">
+    <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
+    <ul className="space-y-2">
+      {orderedSeverities.map(severity => (
+        <li key={severity} className="flex items-center gap-2">
+          <span
+            className={`px-2 py-1 rounded ${tpl.severityBadge[severity] || ''}`}
+          >
+            {severity}
+          </span>
+          <span>
+            <strong>{severity}</strong>: {severityCounts[severity]} finding
+            {severityCounts[severity] > 1 ? 's' : ''}
+          </span>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
 
         {/* Sections */}
         {report.sections.map((sec) => (
