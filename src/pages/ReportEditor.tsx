@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ZoomIn, Trash2, Upload } from "lucide-react";
+import { ZoomIn, Trash2, Upload, ChevronDown, ChevronRight } from "lucide-react";
 import { loadReport as loadLocalReport, saveReport as saveLocalReport } from "@/hooks/useLocalDraft";
 import { useAutosave } from "@/hooks/useAutosave";
 import { SectionKey, SOP_SECTIONS } from "@/constants/sop";
@@ -30,6 +30,7 @@ const ReportEditor: React.FC = () => {
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
   const [zoomImage, setZoomImage] = React.useState<{ url: string; caption?: string } | null>(null);
+  const [collapsed, setCollapsed] = React.useState<Record<string, boolean>>({});
 
   React.useEffect(() => {
     if (!id) return;
@@ -295,119 +296,128 @@ const ReportEditor: React.FC = () => {
                           <option key={s} value={s}>{s}</option>
                         ))}
                       </select>
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={f.includeInSummary}
-                          onChange={(e) => updateFinding(f.id, { includeInSummary: e.target.checked })}
-                        />
-                        Summary
-                      </label>
-                    </div>
-                    <div className="mt-3">
-                      <Textarea
-                        placeholder="Narrative"
-                        value={f.narrative || ""}
-                        onChange={(e) => updateFinding(f.id, { narrative: e.target.value })}
-                      />
-                    </div>
-                    <div className="mt-3">
-                      <Textarea
-                        placeholder="Recommendation"
-                        value={f.recommendation || ""}
-                        onChange={(e) => updateFinding(f.id, { recommendation: e.target.value })}
-                      />
-                    </div>
-                    <div className="mt-3 flex items-center gap-2">
-                      <input
-                        id={`file-${f.id}`}
-                        type="file"
-                        accept="image/*,video/*,audio/*"
-                        multiple
-                        className="sr-only"
-                        onChange={async (e) => {
-                          const files = Array.from(e.target.files || []);
-                          if (files.length === 0) return;
-
-                          if (user) {
-                            // Upload to Supabase Storage, store supabase:// URLs in report data
-                            try {
-                              const uploaded = await uploadFindingFiles({
-                                userId: user.id,
-                                reportId: report.id,
-                                findingId: f.id,
-                                files,
-                              });
-                              updateFinding(f.id, { media: [...f.media, ...uploaded] });
-                              toast({ title: "Media uploaded", description: `${uploaded.length} file(s) added.` });
-                            } catch (err) {
-                              console.error(err);
-                              toast({ title: "Upload failed", description: "Could not upload media.", variant: "destructive" });
-                            }
-                          } else {
-                            // Local-only (unauthenticated): use object URLs
-                            const media: Media[] = files.map((file) => {
-                              const mtype: Media["type"] =
-                                file.type.startsWith("video") ? "video" : file.type.startsWith("audio") ? "audio" : "image";
-                              return {
-                                id: crypto.randomUUID(),
-                                type: mtype,
-                                url: URL.createObjectURL(file),
-                                caption: file.name,
-                              };
-                            });
-                            updateFinding(f.id, { media: [...f.media, ...media] });
-                          }
-
-                          // clear input so the same file can be re-selected if needed
-                          e.currentTarget.value = "";
-                        }}
-                      />
-                      <Button variant="secondary" asChild>
-                        <label htmlFor={`file-${f.id}`} className="cursor-pointer inline-flex items-center gap-2">
-                          <Upload className="h-4 w-4" />
-                          Add media
-                        </label>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setCollapsed((prev) => ({ ...prev, [f.id]: !prev[f.id] }))}
+                        aria-label={collapsed[f.id] ? "Expand" : "Collapse"}
+                        title={collapsed[f.id] ? "Expand" : "Collapse"}
+                      >
+                        {collapsed[f.id] ? (
+                          <ChevronRight className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
                       </Button>
-                      <span className="text-xs text-muted-foreground">Images, videos, or audio</span>
                     </div>
-                    {f.mediaGuidance && (
-                      <p className="text-xs text-muted-foreground mt-2">Media guidance: {f.mediaGuidance}</p>
+                    {!collapsed[f.id] && (
+                      <>
+                        <div className="mt-3">
+                          <Textarea
+                            placeholder="Narrative"
+                            value={f.narrative || ""}
+                            onChange={(e) => updateFinding(f.id, { narrative: e.target.value })}
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <Textarea
+                            placeholder="Recommendation"
+                            value={f.recommendation || ""}
+                            onChange={(e) => updateFinding(f.id, { recommendation: e.target.value })}
+                          />
+                        </div>
+                        <div className="mt-3 flex items-center gap-2">
+                          <input
+                            id={`file-${f.id}`}
+                            type="file"
+                            accept="image/*,video/*,audio/*"
+                            multiple
+                            className="sr-only"
+                            onChange={async (e) => {
+                              const files = Array.from(e.target.files || []);
+                              if (files.length === 0) return;
+
+                              if (user) {
+                                // Upload to Supabase Storage, store supabase:// URLs in report data
+                                try {
+                                  const uploaded = await uploadFindingFiles({
+                                    userId: user.id,
+                                    reportId: report.id,
+                                    findingId: f.id,
+                                    files,
+                                  });
+                                  updateFinding(f.id, { media: [...f.media, ...uploaded] });
+                                  toast({ title: "Media uploaded", description: `${uploaded.length} file(s) added.` });
+                                } catch (err) {
+                                  console.error(err);
+                                  toast({ title: "Upload failed", description: "Could not upload media.", variant: "destructive" });
+                                }
+                              } else {
+                                // Local-only (unauthenticated): use object URLs
+                                const media: Media[] = files.map((file) => {
+                                  const mtype: Media["type"] =
+                                    file.type.startsWith("video") ? "video" : file.type.startsWith("audio") ? "audio" : "image";
+                                  return {
+                                    id: crypto.randomUUID(),
+                                    type: mtype,
+                                    url: URL.createObjectURL(file),
+                                    caption: file.name,
+                                  };
+                                });
+                                updateFinding(f.id, { media: [...f.media, ...media] });
+                              }
+
+                              // clear input so the same file can be re-selected if needed
+                              e.currentTarget.value = "";
+                            }}
+                          />
+                          <Button variant="secondary" asChild>
+                            <label htmlFor={`file-${f.id}`} className="cursor-pointer inline-flex items-center gap-2">
+                              <Upload className="h-4 w-4" />
+                              Add media
+                            </label>
+                          </Button>
+                          <span className="text-xs text-muted-foreground">Images, videos, or audio</span>
+                        </div>
+                        {f.mediaGuidance && (
+                          <p className="text-xs text-muted-foreground mt-2">Media guidance: {f.mediaGuidance}</p>
+                        )}
+                        {f.media.length > 0 && (
+                          <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {f.media.map((m) => {
+                              const resolvedUrl = mediaUrlMap[m.id] || m.url;
+                              return (
+                                <figure key={m.id} className="group relative rounded border p-2">
+                                  {m.type === "image" ? (
+                                    <div className="relative">
+                                      <img src={resolvedUrl} alt={m.caption || "inspection media"} loading="lazy" className="w-full h-32 object-cover rounded" />
+                                      <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/70 opacity-0 group-hover:opacity-100 transition-opacity rounded">
+                                        <Button size="sm" variant="outline" onClick={() => setZoomImage({ url: resolvedUrl, caption: m.caption })}>
+                                          <ZoomIn className="h-4 w-4 mr-1" /> Zoom
+                                        </Button>
+                                        <Button size="sm" variant="destructive" onClick={() => updateFinding(f.id, { media: f.media.filter((x) => x.id !== m.id) })}>
+                                          <Trash2 className="h-4 w-4 mr-1" /> Remove
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ) : m.type === "video" ? (
+                                    <video src={resolvedUrl} controls className="w-full h-32 object-cover rounded" />
+                                  ) : (
+                                    <audio src={resolvedUrl} controls />
+                                  )}
+                                  <figcaption className="mt-1 text-xs text-muted-foreground truncate">{m.caption}</figcaption>
+                                </figure>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <div className="mt-4 flex items-center gap-2">
+                          <Button variant="outline" onClick={() => moveFinding(f.id, -1)}>Move Up</Button>
+                          <Button variant="outline" onClick={() => moveFinding(f.id, 1)}>Move Down</Button>
+                          <Button variant="destructive" onClick={() => removeFinding(f.id)}>Remove</Button>
+                        </div>
+                      </>
                     )}
-                    {f.media.length > 0 && (
-                      <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {f.media.map((m) => {
-                          const resolvedUrl = mediaUrlMap[m.id] || m.url;
-                          return (
-                            <figure key={m.id} className="group relative rounded border p-2">
-                              {m.type === "image" ? (
-                                <div className="relative">
-                                  <img src={resolvedUrl} alt={m.caption || "inspection media"} loading="lazy" className="w-full h-32 object-cover rounded" />
-                                  <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/70 opacity-0 group-hover:opacity-100 transition-opacity rounded">
-                                    <Button size="sm" variant="outline" onClick={() => setZoomImage({ url: resolvedUrl, caption: m.caption })}>
-                                      <ZoomIn className="h-4 w-4 mr-1" /> Zoom
-                                    </Button>
-                                    <Button size="sm" variant="destructive" onClick={() => updateFinding(f.id, { media: f.media.filter((x) => x.id !== m.id) })}>
-                                      <Trash2 className="h-4 w-4 mr-1" /> Remove
-                                    </Button>
-                                  </div>
-                                </div>
-                              ) : m.type === "video" ? (
-                                <video src={resolvedUrl} controls className="w-full h-32 object-cover rounded" />
-                              ) : (
-                                <audio src={resolvedUrl} controls />
-                              )}
-                              <figcaption className="mt-1 text-xs text-muted-foreground truncate">{m.caption}</figcaption>
-                            </figure>
-                          );
-                        })}
-                      </div>
-                    )}
-                    <div className="mt-4 flex items-center gap-2">
-                      <Button variant="outline" onClick={() => moveFinding(f.id, -1)}>Move Up</Button>
-                      <Button variant="outline" onClick={() => moveFinding(f.id, 1)}>Move Down</Button>
-                      <Button variant="destructive" onClick={() => removeFinding(f.id)}>Remove</Button>
-                    </div>
                   </article>
                 ))}
               </div>
