@@ -42,6 +42,7 @@ const ReportEditor: React.FC = () => {
   const [aiDialogFindingId, setAiDialogFindingId] = React.useState<string | null>(null);
   const [aiLoading, setAiLoading] = React.useState(false);
   const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>("");
+  const [showDetails, setShowDetails] = React.useState(false);
 
   React.useEffect(() => {
     if (!id) return;
@@ -370,6 +371,13 @@ const ReportEditor: React.FC = () => {
           <div className="rounded-lg border p-3">
             <h2 className="font-medium mb-3">Sections</h2>
             <nav className="space-y-1">
+              <button
+                className={`w-full flex items-center justify-between text-left text-sm rounded-md px-3 py-2 border ${showDetails ? "bg-accent" : "bg-background"}`}
+                onClick={() => setShowDetails(true)}
+                aria-current={showDetails}
+              >
+                <span className="truncate">Report Details</span>
+              </button>
               {SOP_SECTIONS.map((s) => {
                 const sec = report.sections.find((x) => x.key === s.key)!;
                 const count = sec.findings.length;
@@ -377,7 +385,7 @@ const ReportEditor: React.FC = () => {
                   <button
                     key={s.key}
                     className={`w-full flex items-center justify-between text-left text-sm rounded-md px-3 py-2 border ${active === sec.id ? "bg-accent" : "bg-background"}`}
-                    onClick={() => setActive(sec.id)}
+                    onClick={() => { setShowDetails(false); setActive(sec.id); }}
                     aria-current={active === sec.id}
                   >
                     <span className="truncate">{s.name}</span>
@@ -396,7 +404,13 @@ const ReportEditor: React.FC = () => {
           </div>
         </aside>
         <main className="flex-1 min-w-0">
-          {/* Report details panel */}
+          {showDetails && (
+            <>
+              <header className="flex flex-wrap items-center gap-3 mb-4">
+                <h1 className="text-xl font-semibold flex-1">Report Details</h1>
+                <Button variant="outline" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
+              </header>
+              {/* Report details panel */}
           <section className="mb-4 rounded-md border p-4 space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
@@ -485,11 +499,13 @@ const ReportEditor: React.FC = () => {
             </div>
           </section>
 
-          <header className="flex flex-wrap items-center gap-3 mb-4">
-            <h1 className="text-xl font-semibold flex-1">{activeSection.title}</h1>
-            <Button variant="outline" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
-            <Button onClick={() => setPickerOpen(true)}>Add Observation</Button>
-          </header>
+          {!showDetails && (
+            <>
+              <header className="flex flex-wrap items-center gap-3 mb-4">
+                <h1 className="text-xl font-semibold flex-1">{activeSection.title}</h1>
+                <Button variant="outline" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
+                <Button onClick={() => setPickerOpen(true)}>Add Observation</Button>
+              </header>
 
           {activeSection.key !== "finalize" ? (
             <>
