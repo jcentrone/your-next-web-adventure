@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
-import { loadReport, saveReport } from "@/hooks/useLocalDraft";
+import { loadReport as loadLocalReport, saveReport as saveLocalReport } from "@/hooks/useLocalDraft";
 import { useAutosave } from "@/hooks/useAutosave";
 import { SectionKey, SOP_SECTIONS } from "@/constants/sop";
 import { Finding, Report, Media } from "@/lib/reportSchemas";
@@ -11,6 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import DefectPicker from "@/components/reports/DefectPicker";
 import { SOP_GUIDANCE } from "@/constants/sopGuidance";
+import { useAuth } from "@/contexts/AuthContext";
+import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
+
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 
 type Severity = typeof SEVERITIES[number];
@@ -18,38 +21,59 @@ type Severity = typeof SEVERITIES[number];
 const ReportEditor: React.FC = () => {
   const { id } = useParams();
   const nav = useNavigate();
+  const { user } = useAuth();
   const [report, setReport] = React.useState<Report | null>(null);
   const [active, setActive] = React.useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!id) return;
-    const r = loadReport(id);
-    if (!r) {
-      nav("/reports");
-      return;
-    }
-    // normalize: ensure finalize section and finalComments exist
-    const rr: Report = {
-      ...r,
-      finalComments: (r as any).finalComments ?? "",
-      sections: [...r.sections],
-    } as Report;
-    const existingKeys = new Set(rr.sections.map((s) => s.key));
-    SOP_SECTIONS.forEach((s) => {
-      if (!existingKeys.has(s.key as SectionKey)) {
-        rr.sections.push({ id: `${rr.id}-sec-${s.key}`, key: s.key as SectionKey, title: s.name, findings: [] } as any);
+    const load = async () => {
+      let r: Report | null = null;
+      try {
+        if (user) {
+          r = await dbGetReport(id);
+        } else {
+          r = loadLocalReport(id);
+        }
+      } catch (e) {
+        console.error(e);
       }
-    });
-    setReport(rr);
-    setActive(rr.sections[0]?.id ?? null);
-  }, [id, nav]);
+      if (!r) {
+        nav("/reports");
+        return;
+      }
+      // normalize: ensure finalize section and finalComments exist and all SOP sections are present
+      const rr: Report = {
+        ...r,
+        finalComments: (r as any).finalComments ?? "",
+        sections: [...r.sections],
+      } as Report;
+      const existingKeys = new Set(rr.sections.map((s) => s.key));
+      SOP_SECTIONS.forEach((s) => {
+        if (!existingKeys.has(s.key as SectionKey)) {
+          rr.sections.push({ id: `${rr.id}-sec-${s.key}`, key: s.key as SectionKey, title: s.name, findings: [] } as any);
+        }
+      });
+      setReport(rr);
+      setActive(rr.sections[0]?.id ?? null);
+    };
+    load();
+  }, [id, nav, user]);
 
   useAutosave({
     value: report,
-    onSave: (value) => {
-      if (value) {
-        saveReport(value);
+    onSave: async (value) => {
+      if (!value) return;
+      // Always keep a local copy for offline resiliency
+      saveLocalReport(value);
+      // If authenticated, also sync to Supabase
+      if (user) {
+        try {
+          await dbUpdateReport(value);
+        } catch (e) {
+          console.error(e);
+        }
       }
     },
     delay: 1000,

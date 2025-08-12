@@ -1,11 +1,36 @@
+
 import React from "react";
 import { useParams } from "react-router-dom";
 import Seo from "@/components/Seo";
-import { loadReport } from "@/hooks/useLocalDraft";
+import { loadReport as loadLocalReport } from "@/hooks/useLocalDraft";
+import { useAuth } from "@/contexts/AuthContext";
+import { dbGetReport } from "@/integrations/supabase/reportsApi";
+import { Report } from "@/lib/reportSchemas";
 
 const ReportPreview: React.FC = () => {
   const { id } = useParams();
-  const report = id ? loadReport(id) : null;
+  const { user } = useAuth();
+  const [report, setReport] = React.useState<Report | null>(null);
+
+  React.useEffect(() => {
+    if (!id) return;
+    const load = async () => {
+      try {
+        if (user) {
+          const r = await dbGetReport(id);
+          setReport(r);
+        } else {
+          const r = loadLocalReport(id);
+          setReport(r);
+        }
+      } catch (e) {
+        console.error(e);
+        setReport(null);
+      }
+    };
+    load();
+  }, [id, user]);
+
   if (!report) return null;
 
   const summary = report.sections.flatMap((s) => s.findings.filter((f) => f.includeInSummary));

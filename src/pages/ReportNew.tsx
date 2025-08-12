@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { createReport } from "@/hooks/useLocalDraft";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { dbCreateReport } from "@/integrations/supabase/reportsApi";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -22,6 +24,7 @@ type Values = z.infer<typeof schema>;
 
 const ReportNew: React.FC = () => {
   const nav = useNavigate();
+  const { user } = useAuth();
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -32,15 +35,34 @@ const ReportNew: React.FC = () => {
     },
   });
 
-  const onSubmit = (values: Values) => {
-    const report = createReport({
-      title: values.title,
-      clientName: values.clientName,
-      address: values.address,
-      inspectionDate: new Date(values.inspectionDate).toISOString(),
-    });
-    toast({ title: "Report created" });
-    nav(`/reports/${report.id}`);
+  const onSubmit = async (values: Values) => {
+    try {
+      if (user) {
+        const report = await dbCreateReport(
+          {
+            title: values.title,
+            clientName: values.clientName,
+            address: values.address,
+            inspectionDate: values.inspectionDate,
+          },
+          user.id
+        );
+        toast({ title: "Report created" });
+        nav(`/reports/${report.id}`);
+      } else {
+        const report = createReport({
+          title: values.title,
+          clientName: values.clientName,
+          address: values.address,
+          inspectionDate: new Date(values.inspectionDate).toISOString(),
+        });
+        toast({ title: "Report created (local draft)" });
+        nav(`/reports/${report.id}`);
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Failed to create report", description: e?.message || "Please try again." });
+    }
   };
 
   return (

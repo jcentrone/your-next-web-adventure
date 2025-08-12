@@ -56,6 +56,48 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          address: string
+          client_name: string
+          created_at: string
+          final_comments: string | null
+          id: string
+          inspection_date: string
+          sections: Json
+          status: Database["public"]["Enums"]["report_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address: string
+          client_name: string
+          created_at?: string
+          final_comments?: string | null
+          id?: string
+          inspection_date: string
+          sections?: Json
+          status?: Database["public"]["Enums"]["report_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string
+          client_name?: string
+          created_at?: string
+          final_comments?: string | null
+          id?: string
+          inspection_date?: string
+          sections?: Json
+          status?: Database["public"]["Enums"]["report_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       section_guidance: {
         Row: {
           created_at: string
@@ -130,6 +172,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      report_status: "Draft" | "Final"
       section_key:
         | "roof"
         | "exterior"
@@ -275,6 +318,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      report_status: ["Draft", "Final"],
       section_key: [
         "roof",
         "exterior",
