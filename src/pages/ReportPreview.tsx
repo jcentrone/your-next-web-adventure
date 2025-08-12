@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams } from "react-router-dom";
 import Seo from "@/components/Seo";
@@ -6,11 +5,13 @@ import { loadReport as loadLocalReport } from "@/hooks/useLocalDraft";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport } from "@/integrations/supabase/reportsApi";
 import { Report } from "@/lib/reportSchemas";
+import { isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 
 const ReportPreview: React.FC = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const [report, setReport] = React.useState<Report | null>(null);
+  const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
     if (!id) return;
@@ -30,6 +31,36 @@ const ReportPreview: React.FC = () => {
     };
     load();
   }, [id, user]);
+
+  // Resolve signed URLs for all media in the report (only when authenticated)
+  React.useEffect(() => {
+    if (!user) return;
+    if (!report) return;
+    const allMedia = report.sections.flatMap((s) => s.findings.flatMap((f) => f.media));
+    const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
+    if (needsSigned.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        needsSigned.map(async (m) => {
+          const signed = await getSignedUrlFromSupabaseUrl(m.url);
+          return [m.id, signed] as const;
+        })
+      );
+      if (!cancelled) {
+        setMediaUrlMap((prev) => {
+          const next = { ...prev };
+          for (const [id, url] of entries) next[id] = url;
+          return next;
+        });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, report]);
 
   if (!report) return null;
 
@@ -84,20 +115,23 @@ const ReportPreview: React.FC = () => {
                   )}
                   {f.media.length > 0 && (
                     <div className="mt-2 grid grid-cols-2 gap-3">
-                      {f.media.map((m) => (
-                        <figure key={m.id}>
-                          {m.type === "image" ? (
-                            <img src={m.url} alt={m.caption || f.title} loading="lazy" className="w-full rounded border" />
-                          ) : m.type === "video" ? (
-                            <video src={m.url} controls className="w-full rounded border" />
-                          ) : (
-                            <audio src={m.url} controls />
-                          )}
-                          {m.caption && (
-                            <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
-                          )}
-                        </figure>
-                      ))}
+                      {f.media.map((m) => {
+                        const resolvedUrl = mediaUrlMap[m.id] || m.url;
+                        return (
+                          <figure key={m.id}>
+                            {m.type === "image" ? (
+                              <img src={resolvedUrl} alt={m.caption || f.title} loading="lazy" className="w-full rounded border" />
+                            ) : m.type === "video" ? (
+                              <video src={resolvedUrl} controls className="w-full rounded border" />
+                            ) : (
+                              <audio src={resolvedUrl} controls />
+                            )}
+                            {m.caption && (
+                              <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
+                            )}
+                          </figure>
+                        );
+                      })}
                     </div>
                   )}
                 </article>

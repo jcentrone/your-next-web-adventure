@@ -13,6 +13,7 @@ import DefectPicker from "@/components/reports/DefectPicker";
 import { SOP_GUIDANCE } from "@/constants/sopGuidance";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
+import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 
@@ -25,6 +26,7 @@ const ReportEditor: React.FC = () => {
   const [report, setReport] = React.useState<Report | null>(null);
   const [active, setActive] = React.useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
     if (!id) return;
@@ -61,6 +63,12 @@ const ReportEditor: React.FC = () => {
     load();
   }, [id, nav, user]);
 
+  // Resolve signed URLs for media in the active section (only when authenticated)
+  React.useEffect(() => {
+    // activeSection is derived below; wait until report is ready
+    // no-op here; the next effect depends on activeSection
+  }, []);
+
   useAutosave({
     value: report,
     onSave: async (value) => {
@@ -82,6 +90,34 @@ const ReportEditor: React.FC = () => {
   if (!report) return null;
 
   const activeSection = report.sections.find((s) => s.id === active) ?? report.sections[0];
+
+  React.useEffect(() => {
+    if (!report || !activeSection) return;
+    if (!user) return; // only authenticated users can fetch signed URLs
+    const medias = activeSection.findings.flatMap((f) => f.media).filter((m) => isSupabaseUrl(m.url));
+    if (medias.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        medias.map(async (m) => {
+          const signed = await getSignedUrlFromSupabaseUrl(m.url);
+          return [m.id, signed] as const;
+        })
+      );
+      if (!cancelled) {
+        setMediaUrlMap((prev) => {
+          const next = { ...prev };
+          for (const [id, url] of entries) next[id] = url;
+          return next;
+        });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, activeSection, report?.id]);
 
   const updateFinding = (fid: string, patch: Partial<Finding>) => {
     setReport((prev) => {
@@ -284,19 +320,42 @@ const ReportEditor: React.FC = () => {
                         type="file"
                         accept="image/*,video/*,audio/*"
                         multiple
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const files = Array.from(e.target.files || []);
-                          const media: Media[] = files.map((file) => {
-                            const mtype: Media["type"] =
-                              file.type.startsWith("video") ? "video" : file.type.startsWith("audio") ? "audio" : "image";
-                            return {
-                              id: crypto.randomUUID(),
-                              type: mtype,
-                              url: URL.createObjectURL(file),
-                              caption: file.name,
-                            };
-                          });
-                          updateFinding(f.id, { media: [...f.media, ...media] });
+                          if (files.length === 0) return;
+
+                          if (user) {
+                            // Upload to Supabase Storage, store supabase:// URLs in report data
+                            try {
+                              const uploaded = await uploadFindingFiles({
+                                userId: user.id,
+                                reportId: report.id,
+                                findingId: f.id,
+                                files,
+                              });
+                              updateFinding(f.id, { media: [...f.media, ...uploaded] });
+                              toast({ title: "Media uploaded", description: `${uploaded.length} file(s) added.` });
+                            } catch (err) {
+                              console.error(err);
+                              toast({ title: "Upload failed", description: "Could not upload media.", variant: "destructive" });
+                            }
+                          } else {
+                            // Local-only (unauthenticated): use object URLs
+                            const media: Media[] = files.map((file) => {
+                              const mtype: Media["type"] =
+                                file.type.startsWith("video") ? "video" : file.type.startsWith("audio") ? "audio" : "image";
+                              return {
+                                id: crypto.randomUUID(),
+                                type: mtype,
+                                url: URL.createObjectURL(file),
+                                caption: file.name,
+                              };
+                            });
+                            updateFinding(f.id, { media: [...f.media, ...media] });
+                          }
+
+                          // clear input so the same file can be re-selected if needed
+                          e.currentTarget.value = "";
                         }}
                       />
                     </div>
@@ -305,18 +364,21 @@ const ReportEditor: React.FC = () => {
                     )}
                     {f.media.length > 0 && (
                       <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {f.media.map((m) => (
-                          <figure key={m.id} className="rounded border p-2">
-                            {m.type === "image" ? (
-                              <img src={m.url} alt={m.caption || "inspection media"} loading="lazy" className="w-full h-32 object-cover rounded" />
-                            ) : m.type === "video" ? (
-                              <video src={m.url} controls className="w-full h-32 object-cover rounded" />
-                            ) : (
-                              <audio src={m.url} controls />
-                            )}
-                            <figcaption className="mt-1 text-xs text-muted-foreground truncate">{m.caption}</figcaption>
-                          </figure>
-                        ))}
+                        {f.media.map((m) => {
+                          const resolvedUrl = mediaUrlMap[m.id] || m.url;
+                          return (
+                            <figure key={m.id} className="rounded border p-2">
+                              {m.type === "image" ? (
+                                <img src={resolvedUrl} alt={m.caption || "inspection media"} loading="lazy" className="w-full h-32 object-cover rounded" />
+                              ) : m.type === "video" ? (
+                                <video src={resolvedUrl} controls className="w-full h-32 object-cover rounded" />
+                              ) : (
+                                <audio src={resolvedUrl} controls />
+                              )}
+                              <figcaption className="mt-1 text-xs text-muted-foreground truncate">{m.caption}</figcaption>
+                            </figure>
+                          );
+                        })}
                       </div>
                     )}
                     <div className="mt-4 flex items-center gap-2">
