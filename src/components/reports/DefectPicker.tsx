@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { SOP_SECTIONS, SectionKey } from "@/constants/sop";
 import { supabase } from "@/integrations/supabase/client";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 export type LibrarySeverity = "Minor" | "Moderate" | "Major";
 
@@ -206,7 +208,25 @@ React.useEffect(() => {
                 </div>
                 {extractPlaceholders(selected.description).length > 0 && (
                   <div>
-                    <div className="text-sm font-medium">Fill placeholders</div>
+                    <div className="text-sm font-medium flex items-center gap-2">
+                      Fill Description Placeholders
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex items-center justify-center"
+                              aria-label="What are description placeholders?"
+                            >
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Replace bracketed tokens like [location] before inserting the narrative.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       {extractPlaceholders(selected.description).map((k) => (
                         <Input
