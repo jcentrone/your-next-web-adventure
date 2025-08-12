@@ -45,6 +45,8 @@ export const ReportSchema = z.object({
   inspectionDate: z.string(), // ISO
   status: z.enum(["Draft", "Final"]).default("Draft"),
   finalComments: z.string().optional().default(""),
+  coverImage: z.string().optional().default(""),
+  previewTemplate: z.enum(["classic", "modern"]).default("classic"),
   sections: z.array(SectionSchema),
 });
 export type Report = z.infer<typeof ReportSchema>;

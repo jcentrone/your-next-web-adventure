@@ -77,6 +77,8 @@ export function createReport(meta: {
     inspectionDate: meta.inspectionDate,
     status: "Draft",
     finalComments: "",
+    coverImage: "",
+    previewTemplate: "classic",
     sections,
   };
   saveReport(report);
