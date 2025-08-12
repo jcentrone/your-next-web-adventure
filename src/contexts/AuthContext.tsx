@@ -2,6 +2,7 @@
 import React from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { upsertProfile } from "@/lib/upsertProfile";
 
 type AuthContextValue = {
   user: User | null;
@@ -24,6 +25,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
+      // Defer supabase calls to avoid deadlocks in the callback
+      if (newSession?.user) {
+        setTimeout(() => upsertProfile(newSession), 0);
+      }
     });
 
     // Then get initial session
@@ -31,6 +36,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(data.session);
       setUser(data.session?.user ?? null);
       setLoading(false);
+      if (data.session?.user) {
+        setTimeout(() => upsertProfile(data.session), 0);
+      }
     });
 
     return () => subscription.unsubscribe();
