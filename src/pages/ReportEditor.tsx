@@ -301,8 +301,8 @@ const ReportEditor: React.FC = () => {
         description={`Editing report for ${report.clientName} at ${report.address}`}
         canonical={window.location.origin + `/reports/${report.id}`}
       />
-      <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-12 gap-6">
-        <aside className="col-span-12 md:col-span-3">
+      <div className="max-w-7xl mx-auto px-4 py-6 md:flex md:flex-nowrap items-start gap-6">
+        <aside className="w-full md:w-64 shrink-0">
           <div className="rounded-lg border p-3">
             <h2 className="font-medium mb-3">Sections</h2>
             <nav className="space-y-1">
@@ -331,7 +331,7 @@ const ReportEditor: React.FC = () => {
             </nav>
           </div>
         </aside>
-        <main className="col-span-12 md:col-span-9">
+        <main className="flex-1 min-w-0">
           <header className="flex flex-wrap items-center gap-3 mb-4">
             <h1 className="text-xl font-semibold flex-1">{activeSection.title}</h1>
             <Button variant="outline" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
