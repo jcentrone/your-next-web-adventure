@@ -53,10 +53,10 @@ const PersonalDefectForm: React.FC<Props> = ({ sectionKey, onSaved, onCancel }) 
       description: description.trim(),
       recommendation: recommendation.trim() || null,
       media_guidance: mediaGuidance.trim() || null,
-      tags: [],
+      tags: [] as string[],
       is_active: true,
-      severity: severity, // use exact enum value expected by DB/types
-    } as const;
+      severity: severity,
+    };
 
     const { data, error } = await supabase
       .from("user_defects")
