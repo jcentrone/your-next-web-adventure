@@ -10,6 +10,33 @@ import { isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supab
 import { Badge } from "@/components/ui/badge";
 import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
 
+function ButtonBar({ id }: { id: string }) {
+  const nav = useNavigate();
+  return (
+    <div className="w-full flex items-center justify-between gap-2">
+      <Button variant="outline" onClick={() => nav(`/reports/${id}`)} aria-label="Close preview and return to editor">
+        Close Preview
+      </Button>
+      <Button onClick={() => window.print()} aria-label="Download PDF">
+        Download PDF
+      </Button>
+    </div>
+  );
+}
+
+function SeverityBadge({ severity }: { severity: string }) {
+  const map: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    Safety: "destructive",
+    Major: "default",
+    Moderate: "secondary",
+    Minor: "outline",
+    Maintenance: "outline",
+    Info: "outline",
+  };
+  const variant = map[severity] ?? "outline";
+  return <Badge variant={variant}>{severity}</Badge>;
+}
+
 const ReportPreview: React.FC = () => {
   const { id } = useParams();
   const { user } = useAuth();
