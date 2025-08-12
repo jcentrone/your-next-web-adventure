@@ -54,6 +54,9 @@ const ReportPreview: React.FC = () => {
                 <article key={f.id} className="mb-4">
                   <h3 className="font-medium">[{f.severity}] {f.title}</h3>
                   {f.narrative && <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
+                  {f.recommendation && (
+                    <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>
+                  )}
                   {f.media.length > 0 && (
                     <div className="mt-2 grid grid-cols-2 gap-3">
                       {f.media.map((m) => (

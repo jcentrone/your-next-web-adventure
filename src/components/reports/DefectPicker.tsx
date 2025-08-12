@@ -1,0 +1,199 @@
+import React from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { SOP_SECTIONS, SectionKey } from "@/constants/sop";
+
+export type LibrarySeverity = "Minor" | "Moderate" | "Major";
+
+export type DefectTemplate = {
+  id?: string;
+  section: string; // e.g., "Roof"
+  title: string;
+  description: string;
+  severity: LibrarySeverity;
+  recommendation?: string;
+  media_guidance?: string;
+};
+
+function loadLibrary(): DefectTemplate[] {
+  try {
+    const raw = localStorage.getItem("defects:library");
+    const data = raw ? JSON.parse(raw) : [];
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+function sectionNameForKey(key: SectionKey): string {
+  return SOP_SECTIONS.find((s) => s.key === key)?.name || "";
+}
+
+function toId(v: DefectTemplate) {
+  return (
+    v.id ||
+    `${v.section}-${v.title}`
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+  );
+}
+
+function mapSeverity(sev: LibrarySeverity) {
+  switch (sev) {
+    case "Minor":
+      return "Minor" as const;
+    case "Moderate":
+      return "Moderate" as const;
+    case "Major":
+      return "Major" as const;
+  }
+}
+
+function extractPlaceholders(text: string) {
+  const re = /\[([^\]]+)\]/g;
+  const set = new Set<string>();
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) set.add(m[1]);
+  return Array.from(set);
+}
+
+function applyPlaceholders(text: string, values: Record<string, string>) {
+  return text.replace(/\[([^\]]+)\]/g, (_, k) => values[k] ?? `[${k}]`);
+}
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  sectionKey: SectionKey;
+  onInsert: (tpl: {
+    title: string;
+    narrative: string;
+    severity: "Minor" | "Moderate" | "Major";
+    recommendation?: string;
+    mediaGuidance?: string;
+    defectId?: string | null;
+  }) => void;
+}
+
+const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInsert }) => {
+  const [q, setQ] = React.useState("");
+  const [selected, setSelected] = React.useState<DefectTemplate | null>(null);
+  const [values, setValues] = React.useState<Record<string, string>>({});
+
+  const library = React.useMemo(() => loadLibrary(), [open]);
+  const sectionName = sectionNameForKey(sectionKey);
+
+  const list = React.useMemo(() => {
+    const pool = library.filter((d) => d.section === sectionName);
+    if (!q) return pool;
+    const qq = q.toLowerCase();
+    return pool.filter(
+      (d) =>
+        d.title.toLowerCase().includes(qq) ||
+        d.description.toLowerCase().includes(qq) ||
+        (d.recommendation || "").toLowerCase().includes(qq)
+    );
+  }, [library, q, sectionName]);
+
+  React.useEffect(() => {
+    if (!selected) return;
+    const phs = extractPlaceholders(selected.description);
+    const next: Record<string, string> = {};
+    phs.forEach((p) => (next[p] = values[p] ?? ""));
+    setValues(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.title]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Add from Defect Library – {sectionName}</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-12 gap-4">
+          <div className="col-span-12 md:col-span-5">
+            <Input
+              placeholder="Search defects..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="Search defects"
+            />
+            <div className="mt-3 max-h-80 overflow-auto rounded border divide-y">
+              {list.length === 0 && (
+                <div className="p-3 text-sm text-muted-foreground">No defects found for this section.</div>
+              )}
+              {list.map((d) => (
+                <button
+                  key={toId(d)}
+                  onClick={() => setSelected(d)}
+                  className={`w-full text-left p-3 hover:bg-accent ${selected?.title === d.title ? "bg-accent" : ""}`}
+                >
+                  <div className="text-sm font-medium">{d.title}</div>
+                  <div className="text-xs text-muted-foreground">Severity: {d.severity}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="col-span-12 md:col-span-7">
+            {!selected ? (
+              <p className="text-sm text-muted-foreground">Select a defect on the left to preview and insert.</p>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <div className="text-sm font-medium mb-1">Description</div>
+                  <Textarea value={selected.description} readOnly className="min-h-24" />
+                </div>
+                {extractPlaceholders(selected.description).length > 0 && (
+                  <div>
+                    <div className="text-sm font-medium">Fill placeholders</div>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {extractPlaceholders(selected.description).map((k) => (
+                        <Input
+                          key={k}
+                          placeholder={k}
+                          value={values[k] || ""}
+                          onChange={(e) => setValues((p) => ({ ...p, [k]: e.target.value }))}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {selected.recommendation && (
+                  <div>
+                    <div className="text-sm font-medium mb-1">Recommendation</div>
+                    <Textarea value={selected.recommendation} readOnly className="min-h-20" />
+                  </div>
+                )}
+                {selected.media_guidance && (
+                  <p className="text-xs text-muted-foreground">Media guidance: {selected.media_guidance}</p>
+                )}
+                <div className="pt-2">
+                  <Button
+                    onClick={() => {
+                      const narrative = applyPlaceholders(selected.description, values);
+                      onInsert({
+                        title: selected.title,
+                        narrative,
+                        severity: mapSeverity(selected.severity),
+                        recommendation: selected.recommendation,
+                        mediaGuidance: selected.media_guidance,
+                        defectId: toId(selected),
+                      });
+                    }}
+                  >
+                    Insert into section
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default DefectPicker;

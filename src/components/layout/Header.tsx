@@ -11,6 +11,7 @@ const Header: React.FC = () => {
         </Link>
         <div className="hidden md:flex items-center gap-6">
           <Link to="/reports" className="text-sm text-muted-foreground hover:text-foreground">Reports</Link>
+          <Link to="/defects-admin" className="text-sm text-muted-foreground hover:text-foreground">Defects</Link>
           <a href="#features" className="text-sm text-muted-foreground hover:text-foreground">Features</a>
           <a href="#templates" className="text-sm text-muted-foreground hover:text-foreground">Templates</a>
           <a href="#offline" className="text-sm text-muted-foreground hover:text-foreground">Offline</a>

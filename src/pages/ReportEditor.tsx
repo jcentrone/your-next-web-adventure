@@ -9,8 +9,9 @@ import { Finding, Report, Media } from "@/lib/reportSchemas";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
-
-const SEVERITIES = ["Info", "Maintenance", "Minor", "Major", "Safety"] as const;
+import DefectPicker from "@/components/reports/DefectPicker";
+import { SOP_GUIDANCE } from "@/constants/sopGuidance";
+const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 
 type Severity = typeof SEVERITIES[number];
 
@@ -19,6 +20,7 @@ const ReportEditor: React.FC = () => {
   const nav = useNavigate();
   const [report, setReport] = React.useState<Report | null>(null);
   const [active, setActive] = React.useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!id) return;
@@ -69,13 +71,42 @@ const ReportEditor: React.FC = () => {
         title: "New observation",
         severity: "Info",
         narrative: "",
+        recommendation: "",
+        mediaGuidance: "",
         media: [],
         includeInSummary: false,
-      });
+      } as Finding);
       return { ...next };
     });
   };
 
+  const addFindingFromTemplate = (tpl: {
+    title: string;
+    narrative: string;
+    severity: Severity;
+    recommendation?: string;
+    mediaGuidance?: string;
+    defectId?: string | null;
+  }) => {
+    const fid = crypto.randomUUID();
+    setReport((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev };
+      const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
+      next.sections[sIdx].findings.unshift({
+        id: fid,
+        title: tpl.title,
+        severity: tpl.severity,
+        narrative: tpl.narrative,
+        recommendation: tpl.recommendation || "",
+        mediaGuidance: tpl.mediaGuidance || "",
+        defectId: tpl.defectId ?? null,
+        media: [],
+        includeInSummary: false,
+      } as Finding);
+      return { ...next };
+    });
+  };
   const removeFinding = (fid: string) => {
     setReport((prev) => {
       if (!prev) return prev;
@@ -147,8 +178,20 @@ const ReportEditor: React.FC = () => {
             <Button onClick={finalize} disabled={report.status === "Final"}>
               {report.status === "Final" ? "Finalized" : "Finalize"}
             </Button>
+            <Button variant="secondary" onClick={() => setPickerOpen(true)}>Add from Library</Button>
             <Button onClick={addFinding}>Add Observation</Button>
           </header>
+
+          <section className="mb-4 rounded-md border p-3">
+            <details>
+              <summary className="text-sm font-medium">What to inspect (InterNACHI)</summary>
+              <ul className="mt-2 list-disc pl-5 text-sm">
+                {(SOP_GUIDANCE[activeSection.key] || []).map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </details>
+          </section>
 
           <div className="space-y-4">
             {activeSection.findings.length === 0 && (
@@ -188,6 +231,13 @@ const ReportEditor: React.FC = () => {
                     onChange={(e) => updateFinding(f.id, { narrative: e.target.value })}
                   />
                 </div>
+                <div className="mt-3">
+                  <Textarea
+                    placeholder="Recommendation"
+                    value={f.recommendation || ""}
+                    onChange={(e) => updateFinding(f.id, { recommendation: e.target.value })}
+                  />
+                </div>
                 <div className="mt-3 flex items-center gap-2">
                   <input
                     type="file"
@@ -209,6 +259,9 @@ const ReportEditor: React.FC = () => {
                     }}
                   />
                 </div>
+                {f.mediaGuidance && (
+                  <p className="text-xs text-muted-foreground mt-2">Media guidance: {f.mediaGuidance}</p>
+                )}
                 {f.media.length > 0 && (
                   <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
                     {f.media.map((m) => (
@@ -233,6 +286,16 @@ const ReportEditor: React.FC = () => {
               </article>
             ))}
           </div>
+
+          <DefectPicker
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            sectionKey={activeSection.key}
+            onInsert={(tpl) => {
+              addFindingFromTemplate(tpl as any);
+              setPickerOpen(false);
+            }}
+          />
         </main>
       </div>
     </>
