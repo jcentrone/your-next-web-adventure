@@ -2,13 +2,15 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { useParams, useNavigate } from "react-router-dom";
 import Seo from "@/components/Seo";
-import { loadReport as loadLocalReport } from "@/hooks/useLocalDraft";
+import { loadReport as loadLocalReport, saveReport as saveLocalReport } from "@/hooks/useLocalDraft";
 import { useAuth } from "@/contexts/AuthContext";
-import { dbGetReport } from "@/integrations/supabase/reportsApi";
+import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { Report } from "@/lib/reportSchemas";
 import { isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import { Badge } from "@/components/ui/badge";
 import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
 
 function ButtonBar({ id }: { id: string }) {
   const nav = useNavigate();
@@ -37,6 +39,21 @@ function SeverityBadge({ severity }: { severity: string }) {
   return <Badge variant={variant}>{severity}</Badge>;
 }
 
+function TemplateSelector({ value, onChange, disabled }: { value: 'classic' | 'modern' | 'minimal'; onChange: (v: 'classic' | 'modern' | 'minimal') => void; disabled?: boolean }) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as any)} disabled={disabled}>
+      <SelectTrigger className="w-[200px]" aria-label="Choose preview template">
+        <SelectValue placeholder="Choose template" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="classic">Classic</SelectItem>
+        <SelectItem value="modern">Modern</SelectItem>
+        <SelectItem value="minimal">Minimal</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
+
 const ReportPreview: React.FC = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -44,6 +61,28 @@ const ReportPreview: React.FC = () => {
   const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
   const [coverUrl, setCoverUrl] = React.useState<string>("");
 
+  const nav = useNavigate();
+  const [savingTpl, setSavingTpl] = React.useState(false);
+  const handleTemplateChange = async (tplKey: 'classic' | 'modern' | 'minimal') => {
+    if (!report) return;
+    setSavingTpl(true);
+    try {
+      const next = { ...report, previewTemplate: tplKey } as Report;
+      if (user) {
+        const updated = await dbUpdateReport(next);
+        setReport(updated);
+      } else {
+        saveLocalReport(next);
+        setReport(next);
+      }
+      toast({ title: 'Template updated', description: `Applied ${tplKey} template.` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Failed to update template', description: 'Please try again.', variant: 'destructive' } as any);
+    } finally {
+      setSavingTpl(false);
+    }
+  };
   React.useEffect(() => {
     if (!id) return;
     const load = async () => {
@@ -106,7 +145,9 @@ const ReportPreview: React.FC = () => {
 
   const tpl = PREVIEW_TEMPLATES[report.previewTemplate] || PREVIEW_TEMPLATES.classic;
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
-  const summary = report.sections.flatMap((s) => s.findings.filter((f) => f.includeInSummary));
+  const summary = report.sections.flatMap((s) =>
+    s.findings.filter((f) => f.includeInSummary || f.severity === "Safety" || f.severity === "Major")
+  );
   const sortedSummary = [...summary].sort(
     (a, b) => severityOrder.indexOf(a.severity as any) - severityOrder.indexOf(b.severity as any)
   );
@@ -125,7 +166,15 @@ const ReportPreview: React.FC = () => {
         }}
       />
       <div className="max-w-4xl mx-auto px-4 py-4 print-hidden flex items-center justify-between gap-2">
-        <ButtonBar id={report.id} />
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)} aria-label="Close preview and return to editor">
+            Close Preview
+          </Button>
+          <TemplateSelector value={report.previewTemplate} onChange={handleTemplateChange} disabled={savingTpl} />
+        </div>
+        <Button onClick={() => window.print()} aria-label="Download PDF">
+          Download PDF
+        </Button>
       </div>
       <article className="max-w-4xl mx-auto px-4 py-6">
         {/* Cover Page */}
