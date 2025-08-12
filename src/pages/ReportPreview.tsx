@@ -1,17 +1,21 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useParams, useNavigate } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { loadReport as loadLocalReport } from "@/hooks/useLocalDraft";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport } from "@/integrations/supabase/reportsApi";
 import { Report } from "@/lib/reportSchemas";
 import { isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
+import { Badge } from "@/components/ui/badge";
+import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
 
 const ReportPreview: React.FC = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const [report, setReport] = React.useState<Report | null>(null);
   const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
+  const [coverUrl, setCoverUrl] = React.useState<string>("");
 
   React.useEffect(() => {
     if (!id) return;
@@ -34,26 +38,35 @@ const ReportPreview: React.FC = () => {
 
   // Resolve signed URLs for all media in the report (only when authenticated)
   React.useEffect(() => {
-    if (!user) return;
-    if (!report) return;
+    if (!user || !report) return;
     const allMedia = report.sections.flatMap((s) => s.findings.flatMap((f) => f.media));
     const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
-    if (needsSigned.length === 0) return;
 
     let cancelled = false;
     (async () => {
-      const entries = await Promise.all(
-        needsSigned.map(async (m) => {
-          const signed = await getSignedUrlFromSupabaseUrl(m.url);
-          return [m.id, signed] as const;
-        })
-      );
-      if (!cancelled) {
-        setMediaUrlMap((prev) => {
-          const next = { ...prev };
-          for (const [id, url] of entries) next[id] = url;
-          return next;
-        });
+      if (needsSigned.length > 0) {
+        const entries = await Promise.all(
+          needsSigned.map(async (m) => {
+            const signed = await getSignedUrlFromSupabaseUrl(m.url);
+            return [m.id, signed] as const;
+          })
+        );
+        if (!cancelled) {
+          setMediaUrlMap((prev) => {
+            const next = { ...prev };
+            for (const [id, url] of entries) next[id] = url;
+            return next;
+          });
+        }
+      }
+      // cover image
+      if (report.coverImage) {
+        if (isSupabaseUrl(report.coverImage)) {
+          const signed = await getSignedUrlFromSupabaseUrl(report.coverImage);
+          if (!cancelled) setCoverUrl(signed);
+        } else {
+          if (!cancelled) setCoverUrl(report.coverImage);
+        }
       }
     })();
 
@@ -64,7 +77,12 @@ const ReportPreview: React.FC = () => {
 
   if (!report) return null;
 
+  const tpl = PREVIEW_TEMPLATES[report.previewTemplate] || PREVIEW_TEMPLATES.classic;
+  const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
   const summary = report.sections.flatMap((s) => s.findings.filter((f) => f.includeInSummary));
+  const sortedSummary = [...summary].sort(
+    (a, b) => severityOrder.indexOf(a.severity as any) - severityOrder.indexOf(b.severity as any)
+  );
 
   return (
     <>
@@ -79,36 +97,50 @@ const ReportPreview: React.FC = () => {
           datePublished: report.inspectionDate,
         }}
       />
-      <article className="max-w-4xl mx-auto px-4 py-10">
-        <header className="mb-8">
-          <h1 className="text-3xl font-semibold">{report.title}</h1>
-          <p className="text-muted-foreground">
-            {report.clientName} • {new Date(report.inspectionDate).toLocaleDateString()} • {report.address}
-          </p>
-        </header>
+      <div className="max-w-4xl mx-auto px-4 py-4 print-hidden flex items-center justify-between gap-2">
+        <ButtonBar id={report.id} />
+      </div>
+      <article className="max-w-4xl mx-auto px-4 py-6">
+        {/* Cover Page */}
+        <section className="mb-8 page-break">
+          <header className="mb-4 text-center">
+            <h1 className={`text-3xl font-semibold ${tpl.h1}`}>{report.title}</h1>
+            <p className="text-muted-foreground">
+              {report.clientName} • {new Date(report.inspectionDate).toLocaleDateString()} • {report.address}
+            </p>
+          </header>
+          {coverUrl && (
+            <img src={coverUrl} alt="Report cover" className="w-full rounded border" />
+          )}
+        </section>
 
-        {summary.length > 0 && (
-          <section className="mb-10">
-            <h2 className="text-xl font-medium mb-2">Summary of Significant Issues</h2>
-            <ul className="list-disc pl-5 space-y-2">
-              {summary.map((f) => (
-                <li key={f.id}>
-                  <strong>[{f.severity}]</strong> {f.title}
+        {/* Summary */}
+        {sortedSummary.length > 0 && (
+          <section className="mb-10 page-break">
+            <h2 className={`text-xl font-medium mb-2 ${tpl.h2}`}>Summary of Significant Issues</h2>
+            <ul className="space-y-2">
+              {sortedSummary.map((f) => (
+                <li key={f.id} className="flex items-start gap-2">
+                  <SeverityBadge severity={f.severity} />
+                  <span>
+                    <strong>[{f.severity}]</strong> {f.title}
+                  </span>
                 </li>
               ))}
             </ul>
           </section>
         )}
 
+        {/* Sections */}
         {report.sections.map((sec) => (
           <section key={sec.id} className="mb-8">
-            <h2 className="text-xl font-medium mb-3">{sec.title}</h2>
+            <h2 className={`text-xl font-medium mb-3 ${tpl.h2}`}>{sec.title}</h2>
             {sec.findings.length === 0 ? (
               <p className="text-sm text-muted-foreground">No material defects noted.</p>
             ) : (
               sec.findings.map((f) => (
                 <article key={f.id} className="mb-4">
-                  <h3 className="font-medium">[{f.severity}] {f.title}</h3>
+                  <h3 className={`font-medium ${tpl.h3}`}>[{f.severity}] {f.title}</h3>
                   {f.narrative && <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
                   {f.recommendation && (
                     <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>

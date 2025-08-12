@@ -14,6 +14,8 @@ function toDbPayload(report: Report) {
     status: report.status,
     final_comments: report.finalComments || null,
     sections: report.sections,
+    cover_image: report.coverImage || null,
+    preview_template: report.previewTemplate || 'classic',
   };
 }
 
@@ -26,6 +28,8 @@ function fromDbRow(row: any): Report {
     inspectionDate: new Date(`${row.inspection_date}T00:00:00Z`).toISOString(),
     status: row.status,
     finalComments: row.final_comments || "",
+    coverImage: row.cover_image || "",
+    previewTemplate: row.preview_template || "classic",
     sections: (row.sections || []) as Section[],
   };
   const parsed = ReportSchema.safeParse(base);
@@ -58,6 +62,8 @@ export async function dbCreateReport(meta: {
     inspectionDate: new Date(meta.inspectionDate).toISOString(),
     status: "Draft",
     finalComments: "",
+    coverImage: "",
+    previewTemplate: "classic",
     sections,
   };
 

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ZoomIn, Trash2, Upload, ChevronDown, ChevronRight, Wand2 } from "lucide-react";
+import { ZoomIn, Trash2, Upload, ChevronDown, ChevronRight, Wand2, Calendar as CalendarIcon, ImagePlus } from "lucide-react";
 import { loadReport as loadLocalReport, saveReport as saveLocalReport } from "@/hooks/useLocalDraft";
 import { useAutosave } from "@/hooks/useAutosave";
 import { SectionKey, SOP_SECTIONS } from "@/constants/sop";
@@ -18,6 +18,10 @@ import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi"
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import { supabase } from "@/integrations/supabase/client";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 
@@ -37,6 +41,7 @@ const ReportEditor: React.FC = () => {
   const [aiDialogImages, setAiDialogImages] = React.useState<{ id: string; url: string; caption?: string }[]>([]);
   const [aiDialogFindingId, setAiDialogFindingId] = React.useState<string | null>(null);
   const [aiLoading, setAiLoading] = React.useState(false);
+  const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>("");
 
   React.useEffect(() => {
     if (!id) return;
@@ -126,6 +131,28 @@ const ReportEditor: React.FC = () => {
       cancelled = true;
     };
   }, [user, activeSection, report?.id]);
+
+  // Resolve cover image preview when authenticated and using Supabase URL
+  React.useEffect(() => {
+    if (!user) return;
+    if (!report?.coverImage) return;
+    if (!isSupabaseUrl(report.coverImage)) {
+      setCoverPreviewUrl(report.coverImage);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const signed = await getSignedUrlFromSupabaseUrl(report.coverImage!);
+        if (!cancelled) setCoverPreviewUrl(signed);
+      } catch (e) {
+        console.error("Failed to sign cover image", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, report?.coverImage]);
 
   if (!report) return null;
 
@@ -369,6 +396,95 @@ const ReportEditor: React.FC = () => {
           </div>
         </aside>
         <main className="flex-1 min-w-0">
+          {/* Report details panel */}
+          <section className="mb-4 rounded-md border p-4 space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-muted-foreground">Title</label>
+                <Input value={report.title} onChange={(e) => setReport((prev) => (prev ? { ...prev, title: e.target.value } : prev))} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Client Name</label>
+                <Input value={report.clientName} onChange={(e) => setReport((prev) => (prev ? { ...prev, clientName: e.target.value } : prev))} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Address</label>
+                <Input value={report.address} onChange={(e) => setReport((prev) => (prev ? { ...prev, address: e.target.value } : prev))} />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-muted-foreground">Inspection Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("justify-start font-normal", !report.inspectionDate && "text-muted-foreground")}> 
+                      {report.inspectionDate ? new Date(report.inspectionDate).toLocaleDateString() : <span>Pick a date</span>}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={report.inspectionDate ? new Date(report.inspectionDate) : undefined}
+                      onSelect={(d) => d && setReport((prev) => (prev ? { ...prev, inspectionDate: d.toISOString() } : prev))}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Cover Image</label>
+                <div className="flex items-center gap-3">
+                  <input id="cover-file" type="file" accept="image/*" className="sr-only" onChange={async (e) => {
+                    const file = (e.target.files || [])[0];
+                    if (!file) return;
+                    if (user) {
+                      try {
+                        const uploaded = await uploadFindingFiles({ userId: user.id, reportId: report.id, findingId: "cover", files: [file] });
+                        const first = uploaded[0];
+                        const signed = await getSignedUrlFromSupabaseUrl(first.url);
+                        setCoverPreviewUrl(signed);
+                        setReport((prev) => (prev ? { ...prev, coverImage: first.url } : prev));
+                        toast({ title: "Cover image uploaded" });
+                      } catch (err) {
+                        console.error(err);
+                        toast({ title: "Upload failed", variant: "destructive" });
+                      }
+                    } else {
+                      const url = URL.createObjectURL(file);
+                      setCoverPreviewUrl(url);
+                      setReport((prev) => (prev ? { ...prev, coverImage: url } : prev));
+                    }
+                    e.currentTarget.value = "";
+                  }} />
+                  <Button variant="secondary" asChild>
+                    <label htmlFor="cover-file" className="cursor-pointer inline-flex items-center gap-2">
+                      <ImagePlus className="h-4 w-4" />
+                      Upload cover
+                    </label>
+                  </Button>
+                  {(coverPreviewUrl || report.coverImage) && (
+                    <img src={coverPreviewUrl || report.coverImage} alt="Cover preview" className="h-12 w-20 object-cover rounded border" />
+                  )}
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Preview Template</label>
+                <Select value={report.previewTemplate} onValueChange={(v) => setReport((prev) => (prev ? { ...prev, previewTemplate: v as any } : prev))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select template" />
+                  </SelectTrigger>
+                  <SelectContent className="z-50 bg-background">
+                    <SelectItem value="classic">Classic</SelectItem>
+                    <SelectItem value="modern">Modern</SelectItem>
+                    <SelectItem value="minimal">Minimal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </section>
+
           <header className="flex flex-wrap items-center gap-3 mb-4">
             <h1 className="text-xl font-semibold flex-1">{activeSection.title}</h1>
             <Button variant="outline" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
@@ -379,7 +495,7 @@ const ReportEditor: React.FC = () => {
             <>
               <section className="mb-4 rounded-md border p-3">
                 <details>
-                  <summary className="text-sm font-medium">What to inspect (InterNACHI)</summary>
+                  <summary className="text-sm font-medium cursor-pointer">What to inspect (InterNACHI)</summary>
                   <ul className="mt-2 list-disc pl-5 text-sm">
                     {(SOP_GUIDANCE[activeSection.key] || []).map((item, idx) => (
                       <li key={idx}>{item}</li>

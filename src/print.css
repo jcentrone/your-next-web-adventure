@@ -1,0 +1,6 @@
+/* Print helpers */
+@media print {
+  .print-hidden { display: none !important; }
+  .page-break { break-after: page; }
+  @page { margin: 16mm; }
+}
