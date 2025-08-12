@@ -176,7 +176,7 @@ const ReportPreview: React.FC = () => {
           Download PDF
         </Button>
       </div>
-      <article className="max-w-4xl mx-auto px-4 py-6">
+      <article className="{tpl.container}">
         {/* Cover Page */}
         <section className="mb-8 page-break">
           <header className="mb-4 text-center">
