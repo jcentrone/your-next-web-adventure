@@ -499,6 +499,9 @@ const ReportEditor: React.FC = () => {
             </div>
           </section>
 
+            </>
+          )}
+
           {!showDetails && (
             <>
               <header className="flex flex-wrap items-center gap-3 mb-4">
@@ -700,6 +703,8 @@ const ReportEditor: React.FC = () => {
                 </Button>
               </div>
             </section>
+          )}
+            </>
           )}
 
           <DefectPicker
