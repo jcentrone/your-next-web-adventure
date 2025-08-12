@@ -156,7 +156,7 @@ const ReportPreview: React.FC = () => {
   const tpl = PREVIEW_TEMPLATES[report.previewTemplate] || PREVIEW_TEMPLATES.classic;
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
   const summary = report.sections.flatMap((s) =>
-    s.findings.filter((f) => f.includeInSummary || f.severity === "Safety" || f.severity === "Major")
+    s.findings.filter((f) => f.includeInSummary || f.severity === "Safety" || f.severity === "Major" || f.severity === "Moderate")
   );
   const sortedSummary = [...summary].sort(
     (a, b) => severityOrder.indexOf(a.severity as any) - severityOrder.indexOf(b.severity as any)
