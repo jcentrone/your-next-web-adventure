@@ -55,7 +55,7 @@ const PersonalDefectForm: React.FC<Props> = ({ sectionKey, onSaved, onCancel }) 
       media_guidance: mediaGuidance.trim() || null,
       tags: [],
       is_active: true,
-      severity: severity.toLowerCase(), // enum values: 'minor' | 'moderate' | 'major' ...
+      severity: severity, // use exact enum value expected by DB/types
     } as const;
 
     const { data, error } = await supabase
@@ -78,7 +78,7 @@ const PersonalDefectForm: React.FC<Props> = ({ sectionKey, onSaved, onCancel }) 
       description: data.description,
       recommendation: data.recommendation ?? undefined,
       media_guidance: data.media_guidance ?? undefined,
-      severity: (severity as any),
+      severity: severity,
     });
   };
 
