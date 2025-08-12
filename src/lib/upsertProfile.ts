@@ -1,4 +1,3 @@
-
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,11 +21,9 @@ export async function upsertProfile(session: Session | null) {
     last_sign_in_at,
   };
 
-  // Cast the client to any to avoid TS union error because "profiles" is not in the generated Database types yet.
-  const client: any = supabase;
-
-  const { error } = await client
-    .from("profiles")
+  // Bypass strict Database typing since "profiles" isn't in the generated types yet.
+  const { error } = await (supabase as any)
+    .from("profiles" as any)
     .upsert(payload, { onConflict: "user_id" });
 
   if (error) {
