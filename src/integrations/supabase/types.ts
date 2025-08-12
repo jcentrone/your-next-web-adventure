@@ -77,6 +77,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_defects: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          media_guidance: string | null
+          recommendation: string | null
+          section_key: Database["public"]["Enums"]["section_key"]
+          severity: Database["public"]["Enums"]["severity_level"]
+          tags: string[]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          media_guidance?: string | null
+          recommendation?: string | null
+          section_key: Database["public"]["Enums"]["section_key"]
+          severity: Database["public"]["Enums"]["severity_level"]
+          tags?: string[]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          media_guidance?: string | null
+          recommendation?: string | null
+          section_key?: Database["public"]["Enums"]["section_key"]
+          severity?: Database["public"]["Enums"]["severity_level"]
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

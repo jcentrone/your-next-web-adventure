@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,9 @@ import { SOP_SECTIONS, SectionKey } from "@/constants/sop";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import PersonalDefectForm from "./PersonalDefectForm";
+import { Badge } from "@/components/ui/badge";
 
 export type LibrarySeverity = "Minor" | "Moderate" | "Major";
 
@@ -18,6 +22,7 @@ export type DefectTemplate = {
   severity: LibrarySeverity;
   recommendation?: string;
   media_guidance?: string;
+  source?: "global" | "mine";
 };
 
 function loadLibrary(): DefectTemplate[] {
@@ -95,42 +100,74 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
   const [q, setQ] = React.useState("");
   const [selected, setSelected] = React.useState<DefectTemplate | null>(null);
   const [values, setValues] = React.useState<Record<string, string>>({});
+  const [library, setLibrary] = React.useState<DefectTemplate[]>([]);
+  const [myLibrary, setMyLibrary] = React.useState<DefectTemplate[]>([]);
+  const [showCreate, setShowCreate] = React.useState(false);
+  const { user } = useAuth();
 
-const [library, setLibrary] = React.useState<DefectTemplate[]>([]);
-const sectionName = sectionNameForKey(sectionKey);
+  const sectionName = sectionNameForKey(sectionKey);
 
-React.useEffect(() => {
-  if (!open) return;
-  let cancelled = false;
-  (async () => {
-    const { data, error } = await supabase
-      .from("defects")
-      .select("id,title,description,recommendation,media_guidance,severity,section_key,is_active")
-      .eq("section_key", sectionKey as any)
-      .eq("is_active", true)
-      .order("title");
-    if (error) {
-      setLibrary([]);
-      return;
-    }
-    const mapped: DefectTemplate[] = (data ?? []).map((row: any) => ({
-      id: row.id,
-      section: sectionName,
-      title: row.title,
-      description: row.description,
-      severity: mapDbSeverity(row.severity),
-      recommendation: row.recommendation ?? undefined,
-      media_guidance: row.media_guidance ?? undefined,
-    }));
-    if (!cancelled) setLibrary(mapped);
-  })();
-  return () => {
-    cancelled = true;
-  };
-}, [open, sectionKey, sectionName]);
+  React.useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      // Global defects
+      const { data: gData, error: gErr } = await supabase
+        .from("defects")
+        .select("id,title,description,recommendation,media_guidance,severity,section_key,is_active")
+        .eq("section_key", sectionKey as any)
+        .eq("is_active", true)
+        .order("title");
+      if (gErr) {
+        setLibrary([]);
+      } else {
+        const mapped: DefectTemplate[] = (gData ?? []).map((row: any) => ({
+          id: row.id,
+          section: sectionName,
+          title: row.title,
+          description: row.description,
+          severity: mapDbSeverity(row.severity),
+          recommendation: row.recommendation ?? undefined,
+          media_guidance: row.media_guidance ?? undefined,
+          source: "global",
+        }));
+        if (!cancelled) setLibrary(mapped);
+      }
+
+      // Personal defects (only if signed in)
+      if (user) {
+        const { data: pData, error: pErr } = await supabase
+          .from("user_defects")
+          .select("id,title,description,recommendation,media_guidance,severity,section_key,is_active")
+          .eq("section_key", sectionKey as any)
+          .eq("is_active", true)
+          .order("title");
+        if (pErr) {
+          setMyLibrary([]);
+        } else {
+          const mappedMine: DefectTemplate[] = (pData ?? []).map((row: any) => ({
+            id: row.id,
+            section: sectionName,
+            title: row.title,
+            description: row.description,
+            severity: mapDbSeverity(row.severity),
+            recommendation: row.recommendation ?? undefined,
+            media_guidance: row.media_guidance ?? undefined,
+            source: "mine",
+          }));
+          if (!cancelled) setMyLibrary(mappedMine);
+        }
+      } else {
+        setMyLibrary([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, sectionKey, sectionName, user]);
 
   const list = React.useMemo(() => {
-    const pool = library.filter((d) => d.section === sectionName);
+    const pool = [...myLibrary, ...library].filter((d) => d.section === sectionName);
     if (!q) return pool;
     const qq = q.toLowerCase();
     return pool.filter(
@@ -139,7 +176,7 @@ React.useEffect(() => {
         d.description.toLowerCase().includes(qq) ||
         (d.recommendation || "").toLowerCase().includes(qq)
     );
-  }, [library, q, sectionName]);
+  }, [library, myLibrary, q, sectionName]);
 
   React.useEffect(() => {
     if (!selected) return;
@@ -181,6 +218,20 @@ React.useEffect(() => {
             >
               Insert blank observation
             </Button>
+
+            <Button
+              className="mt-2 w-full"
+              onClick={() => {
+                if (!user) {
+                  window.location.href = `/auth?redirectTo=${encodeURIComponent(window.location.pathname)}`;
+                  return;
+                }
+                setShowCreate((s) => !s);
+              }}
+            >
+              {showCreate ? "Close personal defect form" : "New personal defect"}
+            </Button>
+
             <div className="mt-3 max-h-80 overflow-auto rounded border divide-y">
               {list.length === 0 && (
                 <div className="p-3 text-sm text-muted-foreground">No defects found for this section.</div>
@@ -191,13 +242,40 @@ React.useEffect(() => {
                   onClick={() => setSelected(d)}
                   className={`w-full text-left p-3 hover:bg-accent ${selected?.title === d.title ? "bg-accent" : ""}`}
                 >
-                  <div className="text-sm font-medium">{d.title}</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium">{d.title}</div>
+                    {d.source === "mine" && <Badge variant="secondary">My</Badge>}
+                  </div>
                   <div className="text-xs text-muted-foreground">Severity: {d.severity}</div>
                 </button>
               ))}
             </div>
           </div>
           <div className="col-span-12 md:col-span-7">
+            {showCreate && user && (
+              <div className="mb-4">
+                <PersonalDefectForm
+                  sectionKey={sectionKey}
+                  onSaved={(defect) => {
+                    const mapped: DefectTemplate = {
+                      id: defect.id,
+                      section: sectionName,
+                      title: defect.title,
+                      description: defect.description,
+                      severity: defect.severity,
+                      recommendation: defect.recommendation,
+                      media_guidance: defect.media_guidance,
+                      source: "mine",
+                    };
+                    setMyLibrary((prev) => [mapped, ...prev]);
+                    setSelected(mapped);
+                    setShowCreate(false);
+                  }}
+                  onCancel={() => setShowCreate(false)}
+                />
+              </div>
+            )}
+
             {!selected ? (
               <p className="text-sm text-muted-foreground">Select a defect on the left to preview and insert.</p>
             ) : (
