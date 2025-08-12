@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { SOP_SECTIONS, SectionKey } from "@/constants/sop";
+import { supabase } from "@/integrations/supabase/client";
 
 export type LibrarySeverity = "Minor" | "Moderate" | "Major";
 
@@ -52,6 +53,16 @@ function mapSeverity(sev: LibrarySeverity) {
   }
 }
 
+function mapDbSeverity(sev: string): LibrarySeverity {
+  const s = (sev || "").toLowerCase();
+  if (s === "major") return "Major";
+  if (s === "moderate") return "Moderate";
+  if (s === "minor") return "Minor";
+  if (s === "safety") return "Major";
+  if (s === "maintenance" || s === "info") return "Minor";
+  return "Minor";
+}
+
 function extractPlaceholders(text: string) {
   const re = /\[([^\]]+)\]/g;
   const set = new Set<string>();
@@ -83,8 +94,38 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
   const [selected, setSelected] = React.useState<DefectTemplate | null>(null);
   const [values, setValues] = React.useState<Record<string, string>>({});
 
-  const library = React.useMemo(() => loadLibrary(), [open]);
-  const sectionName = sectionNameForKey(sectionKey);
+const [library, setLibrary] = React.useState<DefectTemplate[]>([]);
+const sectionName = sectionNameForKey(sectionKey);
+
+React.useEffect(() => {
+  if (!open) return;
+  let cancelled = false;
+  (async () => {
+    const { data, error } = await supabase
+      .from("defects")
+      .select("id,title,description,recommendation,media_guidance,severity,section_key,is_active")
+      .eq("section_key", sectionKey)
+      .eq("is_active", true)
+      .order("title");
+    if (error) {
+      setLibrary([]);
+      return;
+    }
+    const mapped: DefectTemplate[] = (data ?? []).map((row: any) => ({
+      id: row.id,
+      section: sectionName,
+      title: row.title,
+      description: row.description,
+      severity: mapDbSeverity(row.severity),
+      recommendation: row.recommendation ?? undefined,
+      media_guidance: row.media_guidance ?? undefined,
+    }));
+    if (!cancelled) setLibrary(mapped);
+  })();
+  return () => {
+    cancelled = true;
+  };
+}, [open, sectionKey, sectionName]);
 
   const list = React.useMemo(() => {
     const pool = library.filter((d) => d.section === sectionName);
