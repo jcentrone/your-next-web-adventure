@@ -196,7 +196,7 @@ const ReportPreview: React.FC = () => {
             </p>
           </header>
           {coverUrl && (
-            <img src={coverUrl} alt="Report cover" className="w-full rounded border" />
+            <img src={coverUrl} alt="Report cover" className="w-full rounded border object-contain" />
           )}
         </section>
 
