@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ZoomIn, Trash2, Upload, ChevronDown, ChevronRight } from "lucide-react";
+import { ZoomIn, Trash2, Upload, ChevronDown, ChevronRight, Wand2 } from "lucide-react";
 import { loadReport as loadLocalReport, saveReport as saveLocalReport } from "@/hooks/useLocalDraft";
 import { useAutosave } from "@/hooks/useAutosave";
 import { SectionKey, SOP_SECTIONS } from "@/constants/sop";
@@ -16,6 +16,8 @@ import { SOP_GUIDANCE } from "@/constants/sopGuidance";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
+import { supabase } from "@/integrations/supabase/client";
+import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 
@@ -31,6 +33,10 @@ const ReportEditor: React.FC = () => {
   const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
   const [zoomImage, setZoomImage] = React.useState<{ url: string; caption?: string } | null>(null);
   const [collapsed, setCollapsed] = React.useState<Record<string, boolean>>({});
+  const [aiDialogOpen, setAiDialogOpen] = React.useState(false);
+  const [aiDialogImages, setAiDialogImages] = React.useState<{ id: string; url: string; caption?: string }[]>([]);
+  const [aiDialogFindingId, setAiDialogFindingId] = React.useState<string | null>(null);
+  const [aiLoading, setAiLoading] = React.useState(false);
 
   React.useEffect(() => {
     if (!id) return;
@@ -217,6 +223,77 @@ const ReportEditor: React.FC = () => {
     toast({ title: "Report finalized. Use Preview to print/PDF." });
   };
 
+  const openAiDialogForFinding = (finding: Finding) => {
+    const images = (finding.media || [])
+      .filter((m) => m.type === "image")
+      .map((m) => ({
+        id: m.id,
+        url: mediaUrlMap[m.id] || m.url,
+        caption: m.caption,
+      }));
+    if (images.length === 0) {
+      toast({ title: "Add an image first", description: "Attach a photo to analyze.", variant: "destructive" });
+      return;
+    }
+    setAiDialogImages(images);
+    setAiDialogFindingId(finding.id);
+    setAiDialogOpen(true);
+  };
+
+  const blobUrlToDataUrl = async (url: string): Promise<string> => {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const handleAIAnalyze = async (imageId: string) => {
+    if (!aiDialogFindingId) return;
+    const section = activeSection;
+    if (!section) return;
+    const f = section.findings.find((x) => x.id === aiDialogFindingId);
+    if (!f) return;
+    const m = f.media.find((x) => x.id === imageId);
+    if (!m) return;
+
+    setAiLoading(true);
+    try {
+      const payload: any = {
+        context: `${report.title} • ${section.title} • ${f.title}`,
+      };
+
+      if (isSupabaseUrl(m.url)) {
+        const signed = await getSignedUrlFromSupabaseUrl(m.url);
+        payload.imageUrl = signed;
+      } else if (m.url.startsWith("http")) {
+        payload.imageUrl = m.url;
+      } else {
+        // Likely a blob: URL from local uploads when unauthenticated
+        payload.imageData = await blobUrlToDataUrl(m.url);
+      }
+
+      const { data, error } = await (supabase as any).functions.invoke("analyze-image", {
+        body: payload,
+      });
+      if (error) throw error;
+      const analysis: string = data?.analysis || "No analysis returned.";
+
+      // Append analysis to narrative
+      const divider = f.narrative?.trim() ? "\n\n" : "";
+      updateFinding(f.id, { narrative: `${f.narrative || ""}${divider}${analysis}` });
+      toast({ title: "AI analysis added to narrative." });
+      setAiDialogOpen(false);
+    } catch (e) {
+      console.error("AI analysis failed", e);
+      toast({ title: "AI analysis failed", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <>
       <Seo
@@ -289,7 +366,7 @@ const ReportEditor: React.FC = () => {
                       <select
                         className="border rounded-md h-10 px-2 text-sm"
                         value={f.severity}
-                        onChange={(e) => updateFinding(f.id, { severity: e.target.value as Severity })}
+                        onChange={(e) => updateFinding(f.id, { severity: e.target.value as any })}
                         aria-label="Severity"
                       >
                         {SEVERITIES.map((s) => (
@@ -303,11 +380,7 @@ const ReportEditor: React.FC = () => {
                         aria-label={collapsed[f.id] ? "Expand" : "Collapse"}
                         title={collapsed[f.id] ? "Expand" : "Collapse"}
                       >
-                        {collapsed[f.id] ? (
-                          <ChevronRight className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
+                        {collapsed[f.id] ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                       </Button>
                     </div>
                     {!collapsed[f.id] && (
@@ -326,6 +399,11 @@ const ReportEditor: React.FC = () => {
                             onChange={(e) => updateFinding(f.id, { recommendation: e.target.value })}
                           />
                         </div>
+
+                        {f.mediaGuidance && (
+                          <p className="text-xs text-muted-foreground mt-3">Media guidance: {f.mediaGuidance}</p>
+                        )}
+
                         <div className="mt-3 flex items-center gap-2">
                           <input
                             id={`file-${f.id}`}
@@ -377,11 +455,15 @@ const ReportEditor: React.FC = () => {
                               Add media
                             </label>
                           </Button>
+
+                          <Button variant="secondary" onClick={() => openAiDialogForFinding(f)} className="inline-flex items-center gap-2">
+                            <Wand2 className="h-4 w-4" />
+                            AI Analysis
+                          </Button>
+
                           <span className="text-xs text-muted-foreground">Images, videos, or audio</span>
                         </div>
-                        {f.mediaGuidance && (
-                          <p className="text-xs text-muted-foreground mt-2">Media guidance: {f.mediaGuidance}</p>
-                        )}
+
                         {f.media.length > 0 && (
                           <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
                             {f.media.map((m) => {
@@ -458,6 +540,14 @@ const ReportEditor: React.FC = () => {
               )}
             </DialogContent>
           </Dialog>
+
+          <AIAnalyzeDialog
+            open={aiDialogOpen}
+            onOpenChange={setAiDialogOpen}
+            images={aiDialogImages}
+            loading={aiLoading}
+            onConfirm={handleAIAnalyze}
+          />
         </main>
       </div>
     </>
