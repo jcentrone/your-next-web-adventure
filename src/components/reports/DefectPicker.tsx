@@ -103,6 +103,7 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
   const [library, setLibrary] = React.useState<DefectTemplate[]>([]);
   const [myLibrary, setMyLibrary] = React.useState<DefectTemplate[]>([]);
   const [showCreate, setShowCreate] = React.useState(false);
+  const [justAddedBlank, setJustAddedBlank] = React.useState(false);
   const { user } = useAuth();
 
   const sectionName = sectionNameForKey(sectionKey);
@@ -166,6 +167,13 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
     };
   }, [open, sectionKey, sectionName, user]);
 
+  React.useEffect(() => {
+    if (!open) {
+      setJustAddedBlank(false);
+      setShowCreate(false);
+    }
+  }, [open]);
+
   const list = React.useMemo(() => {
     const pool = [...myLibrary, ...library].filter((d) => d.section === sectionName);
     if (!q) return pool;
@@ -213,24 +221,28 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
                   mediaGuidance: "",
                   defectId: null,
                 });
-                onOpenChange(false);
+                // Keep dialog open and prompt user to save this as a template
+                setJustAddedBlank(true);
+                setShowCreate(false);
               }}
             >
               Insert blank observation
             </Button>
 
-            <Button
-              className="mt-2 w-full"
-              onClick={() => {
-                if (!user) {
-                  window.location.href = `/auth?redirectTo=${encodeURIComponent(window.location.pathname)}`;
-                  return;
-                }
-                setShowCreate((s) => !s);
-              }}
-            >
-              {showCreate ? "Close personal defect form" : "New personal defect"}
-            </Button>
+            {justAddedBlank && (
+              <Button
+                className="mt-2 w-full"
+                onClick={() => {
+                  if (!user) {
+                    window.location.href = `/auth?redirectTo=${encodeURIComponent(window.location.pathname)}`;
+                    return;
+                  }
+                  setShowCreate(true);
+                }}
+              >
+                Save as template
+              </Button>
+            )}
 
             <div className="mt-3 max-h-80 overflow-auto rounded border divide-y">
               {list.length === 0 && (
@@ -270,6 +282,7 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
                     setMyLibrary((prev) => [mapped, ...prev]);
                     setSelected(mapped);
                     setShowCreate(false);
+                    setJustAddedBlank(false);
                   }}
                   onCancel={() => setShowCreate(false)}
                 />

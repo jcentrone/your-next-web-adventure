@@ -425,6 +425,19 @@ const ReportEditor: React.FC = () => {
                                     files,
                                   });
                                   updateFinding(f.id, { media: [...f.media, ...uploaded] });
+                                  // Immediately resolve signed URLs so previews work without refresh
+                                  try {
+                                    const entries = await Promise.all(
+                                      uploaded.map(async (m) => [m.id, await getSignedUrlFromSupabaseUrl(m.url)] as const)
+                                    );
+                                    setMediaUrlMap((prev) => {
+                                      const next = { ...prev };
+                                      for (const [mid, url] of entries) next[mid] = url;
+                                      return next;
+                                    });
+                                  } catch (signErr) {
+                                    console.error("Failed to sign media URLs", signErr);
+                                  }
                                   toast({ title: "Media uploaded", description: `${uploaded.length} file(s) added.` });
                                 } catch (err) {
                                   console.error(err);
@@ -526,7 +539,7 @@ const ReportEditor: React.FC = () => {
             sectionKey={activeSection.key}
             onInsert={(tpl) => {
               addFindingFromTemplate(tpl as any);
-              setPickerOpen(false);
+              if (tpl.defectId) setPickerOpen(false);
             }}
           />
 
