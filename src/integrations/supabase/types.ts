@@ -60,10 +60,12 @@ export type Database = {
         Row: {
           address: string
           client_name: string
+          cover_image: string | null
           created_at: string
           final_comments: string | null
           id: string
           inspection_date: string
+          preview_template: string
           sections: Json
           status: Database["public"]["Enums"]["report_status"]
           title: string
@@ -73,10 +75,12 @@ export type Database = {
         Insert: {
           address: string
           client_name: string
+          cover_image?: string | null
           created_at?: string
           final_comments?: string | null
           id?: string
           inspection_date: string
+          preview_template?: string
           sections?: Json
           status?: Database["public"]["Enums"]["report_status"]
           title: string
@@ -86,10 +90,12 @@ export type Database = {
         Update: {
           address?: string
           client_name?: string
+          cover_image?: string | null
           created_at?: string
           final_comments?: string | null
           id?: string
           inspection_date?: string
+          preview_template?: string
           sections?: Json
           status?: Database["public"]["Enums"]["report_status"]
           title?: string
