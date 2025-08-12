@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      defects: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          media_guidance: string | null
+          recommendation: string | null
+          section_key: Database["public"]["Enums"]["section_key"]
+          severity: Database["public"]["Enums"]["severity_level"]
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          media_guidance?: string | null
+          recommendation?: string | null
+          section_key: Database["public"]["Enums"]["section_key"]
+          severity: Database["public"]["Enums"]["severity_level"]
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          media_guidance?: string | null
+          recommendation?: string | null
+          section_key?: Database["public"]["Enums"]["section_key"]
+          severity?: Database["public"]["Enums"]["severity_level"]
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      section_guidance: {
+        Row: {
+          created_at: string
+          items: string[]
+          section_key: Database["public"]["Enums"]["section_key"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          items: string[]
+          section_key: Database["public"]["Enums"]["section_key"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          items?: string[]
+          section_key?: Database["public"]["Enums"]["section_key"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +85,24 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      section_key:
+        | "roof"
+        | "exterior"
+        | "structure"
+        | "heating"
+        | "cooling"
+        | "plumbing"
+        | "electrical"
+        | "fireplace"
+        | "attic"
+        | "interior"
+      severity_level:
+        | "Info"
+        | "Maintenance"
+        | "Minor"
+        | "Moderate"
+        | "Major"
+        | "Safety"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +229,27 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      section_key: [
+        "roof",
+        "exterior",
+        "structure",
+        "heating",
+        "cooling",
+        "plumbing",
+        "electrical",
+        "fireplace",
+        "attic",
+        "interior",
+      ],
+      severity_level: [
+        "Info",
+        "Maintenance",
+        "Minor",
+        "Moderate",
+        "Major",
+        "Safety",
+      ],
+    },
   },
 } as const
