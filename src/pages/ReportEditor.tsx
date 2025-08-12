@@ -63,12 +63,6 @@ const ReportEditor: React.FC = () => {
     load();
   }, [id, nav, user]);
 
-  // Resolve signed URLs for media in the active section (only when authenticated)
-  React.useEffect(() => {
-    // activeSection is derived below; wait until report is ready
-    // no-op here; the next effect depends on activeSection
-  }, []);
-
   useAutosave({
     value: report,
     onSave: async (value) => {
@@ -87,10 +81,14 @@ const ReportEditor: React.FC = () => {
     delay: 1000,
   });
 
-  if (!report) return null;
+  // Compute activeSection safely; do not rely on rendering position
+  const activeSection = React.useMemo(() => {
+    if (!report) return undefined;
+    return report.sections.find((s) => s.id === active) ?? report.sections[0];
+  }, [report, active]);
 
-  const activeSection = report.sections.find((s) => s.id === active) ?? report.sections[0];
-
+  // Resolve signed URLs for media in the active section (only when authenticated).
+  // This effect is always declared (hook order is stable) and guards internally.
   React.useEffect(() => {
     if (!report || !activeSection) return;
     if (!user) return; // only authenticated users can fetch signed URLs
@@ -118,6 +116,8 @@ const ReportEditor: React.FC = () => {
       cancelled = true;
     };
   }, [user, activeSection, report?.id]);
+
+  if (!report) return null;
 
   const updateFinding = (fid: string, patch: Partial<Finding>) => {
     setReport((prev) => {
