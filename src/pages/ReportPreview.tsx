@@ -26,7 +26,17 @@ function ButtonBar({ id }: { id: string }) {
   );
 }
 
-function SeverityBadge({ severity }: { severity: string }) {
+function SeverityBadge({ severity, classes }: { severity: string; classes?: Record<string, string> }) {
+  if (classes) {
+    const cls = classes[severity] ?? "";
+    return (
+      <span className={
+        `inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${cls}`
+      }>
+        {severity}
+      </span>
+    );
+  }
   const map: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
     Safety: "destructive",
     Major: "default",
@@ -176,12 +186,12 @@ const ReportPreview: React.FC = () => {
           Download PDF
         </Button>
       </div>
-      <article className="{tpl.container}">
+      <article className={tpl.container}>
         {/* Cover Page */}
-        <section className="mb-8 page-break">
+        <section className={`${tpl.cover} page-break`}>
           <header className="mb-4 text-center">
-            <h1 className={`text-3xl font-semibold ${tpl.h1}`}>{report.title}</h1>
-            <p className="text-muted-foreground">
+            <h1 className={tpl.coverTitle}>{report.title}</h1>
+            <p className={tpl.coverSubtitle}>
               {report.clientName} • {new Date(report.inspectionDate).toLocaleDateString()} • {report.address}
             </p>
           </header>
@@ -193,11 +203,11 @@ const ReportPreview: React.FC = () => {
         {/* Summary */}
         {sortedSummary.length > 0 && (
           <section className="mb-10 page-break">
-            <h2 className={`text-xl font-medium mb-2 ${tpl.h2}`}>Summary of Significant Issues</h2>
+            <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
             <ul className="space-y-2">
               {sortedSummary.map((f) => (
                 <li key={f.id} className="flex items-start gap-2">
-                  <SeverityBadge severity={f.severity} />
+                  <SeverityBadge severity={f.severity} classes={tpl.severityBadge as any} />
                   <span>
                     <strong>[{f.severity}]</strong> {f.title}
                   </span>
@@ -209,14 +219,14 @@ const ReportPreview: React.FC = () => {
 
         {/* Sections */}
         {report.sections.map((sec) => (
-          <section key={sec.id} className="mb-8">
-            <h2 className={`text-xl font-medium mb-3 ${tpl.h2}`}>{sec.title}</h2>
+          <section key={sec.id} className={tpl.sectionWrapper}>
+            <h2 className={tpl.h2}>{sec.title}</h2>
             {sec.findings.length === 0 ? (
               <p className="text-sm text-muted-foreground">No material defects noted.</p>
             ) : (
               sec.findings.map((f) => (
-                <article key={f.id} className="mb-4">
-                  <h3 className={`font-medium ${tpl.h3}`}>[{f.severity}] {f.title}</h3>
+                <article key={f.id} className={tpl.findingWrapper}>
+                  <h3 className={tpl.h3}>[{f.severity}] {f.title}</h3>
                   {f.narrative && <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
                   {f.recommendation && (
                     <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>
