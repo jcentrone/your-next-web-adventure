@@ -37,16 +37,19 @@ serve(async (req) => {
     }
 
     const imageSource = imageUrl || imageData!;
+    // Ask for strict JSON so we can map to fields in the app
     const prompt = [
       "You are a certified home inspection assistant.",
       "Analyze the provided image for visible defects, safety issues, or maintenance concerns.",
-      "Respond with a concise, professional narrative suitable for an inspection report.",
-      "Include:", 
-      "- Observation (what you see).",
-      "- Possible implications.",
-      "- Severity suggestion (Info/Maintenance/Minor/Moderate/Major/Safety).",
-      "- Clear recommendation.",
-      "Keep under 120 words. Do not fabricate details you cannot see.",
+      "Return ONLY valid JSON (no markdown, no backticks) with exactly these keys: ",
+      '{"title":"","observation":"","implications":"","severity":"","recommendation":""}',
+      "Field rules:",
+      "- title: 2-6 word concise noun phrase describing the main issue (e.g., 'Door Misalignment', 'Overgrown Vegetation').",
+      "- observation: 1-2 sentences of what is visible (objective description).",
+      "- implications: 1-2 sentences on possible impacts or risks.",
+      "- severity: one of exactly [Info, Maintenance, Minor, Moderate, Major, Safety] (choose the best match).",
+      "- recommendation: clear, liability-aware action (e.g., 'Have a qualified contractor evaluate and repair as needed.').",
+      "Keep each field under 300 characters. Do not fabricate details you cannot see.",
       context ? `Context: ${context}` : "",
     ].filter(Boolean).join("\n");
 
@@ -59,7 +62,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "You write clear, liability-aware home inspection report narratives." },
+          { role: "system", content: "You write clear, liability-aware home inspection report narratives. Always output strict JSON when asked." },
           {
             role: "user",
             content: [
@@ -82,10 +85,43 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const analysis = data?.choices?.[0]?.message?.content ?? "No analysis returned.";
-    return new Response(JSON.stringify({ analysis }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const content = data?.choices?.[0]?.message?.content?.trim() ?? "";
+
+    // Try to parse strict JSON and normalize severity
+    let structured: any = null;
+    try {
+      const parsed = JSON.parse(content);
+      const allowed = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
+      const sevRaw = String(parsed.severity || "").trim().toLowerCase();
+      const sevMap: Record<string, typeof allowed[number]> = {
+        info: "Info",
+        informational: "Info",
+        maintenance: "Maintenance",
+        minor: "Minor",
+        low: "Minor",
+        moderate: "Moderate",
+        medium: "Moderate",
+        major: "Major",
+        significant: "Major",
+        safety: "Safety",
+        hazard: "Safety",
+      };
+      const normalizedSeverity = sevMap[sevRaw] || (allowed as readonly string[]).find((s) => s.toLowerCase() === sevRaw) || "Info";
+      structured = {
+        title: String(parsed.title || "").trim(),
+        observation: String(parsed.observation || "").trim(),
+        implications: String(parsed.implications || "").trim(),
+        severity: normalizedSeverity,
+        recommendation: String(parsed.recommendation || "").trim(),
+      };
+    } catch (_err) {
+      // fall back: not JSON
+    }
+
+    return new Response(
+      JSON.stringify({ structured, analysis: content || "No analysis returned." }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (err) {
     console.error("analyze-image function error:", err);
     return new Response(JSON.stringify({ error: "Unexpected error" }), {

@@ -279,12 +279,49 @@ const ReportEditor: React.FC = () => {
         body: payload,
       });
       if (error) throw error;
-      const analysis: string = data?.analysis || "No analysis returned.";
 
-      // Append analysis to narrative
+      const structured = (data?.structured ?? null) as
+        | { title?: string; observation?: string; implications?: string; severity?: string; recommendation?: string }
+        | null;
+      const raw: string = data?.analysis || "";
+
+      // Decide title: only overwrite if currently empty or default
+      let nextTitle = f.title;
+      if (!nextTitle || nextTitle.trim() === "" || nextTitle.trim().toLowerCase() === "new observation") {
+        if (structured?.title) nextTitle = structured.title;
+      }
+
+      // Build narrative from observation + implications (or fall back to raw)
+      const combined = structured
+        ? [structured.observation, structured.implications].filter(Boolean).join("\n\n")
+        : raw || "No analysis returned.";
       const divider = f.narrative?.trim() ? "\n\n" : "";
-      updateFinding(f.id, { narrative: `${f.narrative || ""}${divider}${analysis}` });
-      toast({ title: "AI analysis added to narrative." });
+      const nextNarrative = `${f.narrative || ""}${divider}${combined}`;
+
+      // Map severity if provided
+      let nextSeverity = f.severity as Severity;
+      if (structured?.severity) {
+        const found = (SEVERITIES as readonly string[]).find(
+          (s) => s.toLowerCase() === String(structured.severity).toLowerCase()
+        );
+        if (found) nextSeverity = found as Severity;
+      }
+
+      // Put recommendation in its field; append if something already exists
+      let nextRecommendation = f.recommendation || "";
+      if (structured?.recommendation) {
+        nextRecommendation = nextRecommendation?.trim()
+          ? `${nextRecommendation}\n\n${structured.recommendation}`
+          : structured.recommendation;
+      }
+
+      updateFinding(f.id, {
+        title: nextTitle,
+        narrative: nextNarrative,
+        severity: nextSeverity,
+        recommendation: nextRecommendation,
+      });
+      toast({ title: "AI analysis applied", description: "Title, severity, narrative and recommendation updated." });
       setAiDialogOpen(false);
     } catch (e) {
       console.error("AI analysis failed", e);
