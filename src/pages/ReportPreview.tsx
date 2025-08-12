@@ -163,6 +163,8 @@ const ReportPreview: React.FC = () => {
   return acc;
 }, {} as Record<string, number>);
 
+  const orderedSeverities = severityOrder.filter(sev => severityCounts[sev]);
+
   return (
     <>
       <Seo
