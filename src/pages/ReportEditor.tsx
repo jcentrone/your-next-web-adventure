@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ZoomIn, Trash2, Upload } from "lucide-react";
 import { loadReport as loadLocalReport, saveReport as saveLocalReport } from "@/hooks/useLocalDraft";
 import { useAutosave } from "@/hooks/useAutosave";
 import { SectionKey, SOP_SECTIONS } from "@/constants/sop";
@@ -27,6 +29,7 @@ const ReportEditor: React.FC = () => {
   const [active, setActive] = React.useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
+  const [zoomImage, setZoomImage] = React.useState<{ url: string; caption?: string } | null>(null);
 
   React.useEffect(() => {
     if (!id) return;
@@ -317,9 +320,11 @@ const ReportEditor: React.FC = () => {
                     </div>
                     <div className="mt-3 flex items-center gap-2">
                       <input
+                        id={`file-${f.id}`}
                         type="file"
                         accept="image/*,video/*,audio/*"
                         multiple
+                        className="sr-only"
                         onChange={async (e) => {
                           const files = Array.from(e.target.files || []);
                           if (files.length === 0) return;
@@ -358,6 +363,13 @@ const ReportEditor: React.FC = () => {
                           e.currentTarget.value = "";
                         }}
                       />
+                      <Button variant="secondary" asChild>
+                        <label htmlFor={`file-${f.id}`} className="cursor-pointer inline-flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          Add media
+                        </label>
+                      </Button>
+                      <span className="text-xs text-muted-foreground">Images, videos, or audio</span>
                     </div>
                     {f.mediaGuidance && (
                       <p className="text-xs text-muted-foreground mt-2">Media guidance: {f.mediaGuidance}</p>
@@ -367,9 +379,19 @@ const ReportEditor: React.FC = () => {
                         {f.media.map((m) => {
                           const resolvedUrl = mediaUrlMap[m.id] || m.url;
                           return (
-                            <figure key={m.id} className="rounded border p-2">
+                            <figure key={m.id} className="group relative rounded border p-2">
                               {m.type === "image" ? (
-                                <img src={resolvedUrl} alt={m.caption || "inspection media"} loading="lazy" className="w-full h-32 object-cover rounded" />
+                                <div className="relative">
+                                  <img src={resolvedUrl} alt={m.caption || "inspection media"} loading="lazy" className="w-full h-32 object-cover rounded" />
+                                  <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/70 opacity-0 group-hover:opacity-100 transition-opacity rounded">
+                                    <Button size="sm" variant="outline" onClick={() => setZoomImage({ url: resolvedUrl, caption: m.caption })}>
+                                      <ZoomIn className="h-4 w-4 mr-1" /> Zoom
+                                    </Button>
+                                    <Button size="sm" variant="destructive" onClick={() => updateFinding(f.id, { media: f.media.filter((x) => x.id !== m.id) })}>
+                                      <Trash2 className="h-4 w-4 mr-1" /> Remove
+                                    </Button>
+                                  </div>
+                                </div>
                               ) : m.type === "video" ? (
                                 <video src={resolvedUrl} controls className="w-full h-32 object-cover rounded" />
                               ) : (
@@ -415,6 +437,17 @@ const ReportEditor: React.FC = () => {
               setPickerOpen(false);
             }}
           />
+
+          <Dialog open={!!zoomImage} onOpenChange={(open) => { if (!open) setZoomImage(null); }}>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>{zoomImage?.caption || "Image preview"}</DialogTitle>
+              </DialogHeader>
+              {zoomImage && (
+                <img src={zoomImage.url} alt={zoomImage.caption || "Zoomed media"} className="w-full h-auto rounded" />
+              )}
+            </DialogContent>
+          </Dialog>
         </main>
       </div>
     </>
