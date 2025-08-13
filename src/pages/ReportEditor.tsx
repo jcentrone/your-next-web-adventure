@@ -350,6 +350,16 @@ const ReportEditor: React.FC = () => {
                 >
                   Observations
                 </button>
+<div className="flex justify-between mb-4">
+                    <Button
+                      variant="secondary"
+                      onClick={() => nav(`/reports/${report.id}/preview`)}
+                    >
+                      Preview Report
+                    </Button>
+                    <Button onClick={() => setPickerOpen(true)}>+ Add Observation</Button>
+                  </div>
+                
               </div>
 
               {activeTab === "info" && (
