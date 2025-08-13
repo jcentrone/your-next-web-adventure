@@ -248,7 +248,7 @@ const ReportPreview: React.FC = () => {
                 return (
                   <article key={f.id} className={tpl.findingWrapper}>
                     <h3 className={tpl.h3}>
-                      <span
+                      <span aria-label={`${f.severity} issue`} 
                         className={`inline-flex items-center gap-1 px-2 py-0.5 mr-2 rounded ${tpl.severityBadge[f.severity] || ''}`}
                       >
                         <Icon size={14} />
