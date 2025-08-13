@@ -432,36 +432,41 @@ const ReportEditor: React.FC = () => {
                               <label className="block text-sm font-medium mb-1">Media</label>
                               <div className="flex flex-wrap gap-3">
                                 {f.media.map((m) => (
-                                  <div key={m.id} className="relative w-24 h-24 border rounded overflow-hidden">
-                                    <img
-                                      src={mediaUrlMap[m.id] || m.url}
-                                      alt={m.caption || "Media"}
-                                      className="w-full h-full object-cover cursor-pointer"
-                                      onClick={() => setZoomImage({ url: mediaUrlMap[m.id] || m.url, caption: m.caption })}
-                                    />
-                                    <button
-                                      type="button"
-                                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow"
-                                      onClick={() =>
-                                        updateFinding(f.id, {
-                                          media: f.media.filter((x) => x.id !== m.id),
-                                        })
-                                      }
-                                    >
-                                      <Trash2 className="w-4 h-4 text-red-500" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
-                                      onClick={() => {
-                                        setAiDialogFindingId(f.id);
-                                        setAiDialogImages([{ id: m.id, url: mediaUrlMap[m.id] || m.url, caption: m.caption }]);
-                                        setAiDialogOpen(true);
-                                      }}
-                                    >
-                                      <Wand2 className="w-4 h-4 text-blue-500" />
-                                    </button>
-                                  </div>
+                                 <div key={m.id} className="relative w-24 h-24 border rounded overflow-hidden">
+  <img
+    src={mediaUrlMap[m.id] || m.url}
+    alt={m.caption || "Media"}
+    className="w-full h-full object-cover cursor-pointer"
+    onClick={() => setZoomImage({ url: mediaUrlMap[m.id] || m.url, caption: m.caption })}
+  />
+
+  {/* Delete button */}
+  <button
+    type="button"
+    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow"
+    onClick={() =>
+      updateFinding(f.id, {
+        media: f.media.filter((x) => x.id !== m.id),
+      })
+    }
+  >
+    <Trash2 className="w-4 h-4 text-red-500" />
+  </button>
+
+  {/* AI Analysis button */}
+  <button
+    type="button"
+    className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
+    onClick={() => {
+      setAiDialogFindingId(f.id);
+      setAiDialogImages([{ id: m.id, url: mediaUrlMap[m.id] || m.url, caption: m.caption }]);
+      setAiDialogOpen(true);
+    }}
+  >
+    <Wand2 className="w-4 h-4 text-blue-500" />
+  </button>
+</div>
+
                                 ))}
                             
                                 {/* Add new media */}
