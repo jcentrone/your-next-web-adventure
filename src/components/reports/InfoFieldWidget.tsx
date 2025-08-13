@@ -132,7 +132,7 @@ export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps
   }
 
   if (widget === "date") {
-    const selectedDate = value ? new Date(value) : undefined;
+    const dateValue = value ? new Date(value) : undefined;
     
     return (
       <div className="space-y-2">
@@ -153,24 +153,18 @@ export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps
               variant="outline"
               className={cn(
                 "w-full justify-start text-left font-normal",
-                !selectedDate && "text-muted-foreground"
+                !dateValue && "text-muted-foreground"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+              {dateValue ? format(dateValue, "PPP") : <span>Pick a date</span>}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={selectedDate}
-              onSelect={(date) => {
-                if (date) {
-                  onChange(date.toISOString().split('T')[0]); // YYYY-MM-DD format
-                } else {
-                  onChange("");
-                }
-              }}
+              selected={dateValue}
+              onSelect={(date) => onChange(date ? date.toISOString().split('T')[0] : "")}
               initialFocus
               className={cn("p-3 pointer-events-auto")}
             />
