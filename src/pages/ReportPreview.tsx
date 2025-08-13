@@ -257,28 +257,20 @@ const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
 
     {/* Second Level: Breakdown by Section */}
     <div className="mt-6 text-left max-w-3xl mx-auto">
-      {sectionSeverityCounts.map(({ sectionTitle, counts }) => (
-        <div key={sectionTitle} className="mb-4">
-          <h3 className="font-semibold">{sectionTitle}</h3>
-          <div className="flex flex-wrap gap-4 mt-1">
-            {orderedSeverities.filter(s => counts[s]).map(severity => {
-              const Icon = SEVERITY_ICONS[severity];
-              return (
-                <div key={severity} className="flex items-center gap-1 text-sm">
-                  <span
-                    className={`flex items-center justify-center w-6 h-6 rounded-full ${tpl.severityBadge[severity] || ''}`}
-                  >
-                    <Icon size={14} />
-                  </span>
-                  {counts[severity]}
-                  <span className="ml-1">{severity}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
+  {sectionSeverityCounts.map(({ sectionTitle, counts }) => {
+    const breakdown = orderedSeverities
+      .filter(sev => counts[sev])
+      .map(sev => `${counts[sev]} ${sev}${counts[sev] > 1 ? 's' : ''}`)
+      .join(', ');
+
+    return (
+      <div key={sectionTitle} className="py-2 border-b border-gray-200">
+        <h3 className="font-semibold">{sectionTitle}</h3>
+        <p className="text-sm text-gray-700">{breakdown}</p>
+      </div>
+    );
+  })}
+</div>
   </section>
 )}
 
