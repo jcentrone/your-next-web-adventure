@@ -187,86 +187,87 @@ const ReportEditor: React.FC = () => {
   };
 
   const handleAIAnalyze = async (imageId: string) => {
-    if (!aiDialogFindingId) return;
-    const section = activeSection;
-    if (!section) return;
-    const f = section.findings.find((x) => x.id === aiDialogFindingId);
-    if (!f) return;
-    const m = f.media.find((x) => x.id === imageId);
-    if (!m) return;
+  if (!aiDialogFindingId) return;
+  const section = activeSection;
+  if (!section) return;
+  const f = section.findings.find((x) => x.id === aiDialogFindingId);
+  if (!f) return;
+  const m = f.media.find((x) => x.id === imageId);
+  if (!m) return;
 
-    setAiLoading(true);
+  setAiLoading(true);
 
-    try {
-      const payload: any = {
-        context: ${report.title} • ${section.title} • ${f.title},
-      };
+  try {
+    const payload: any = {
+      context: `${report.title} • ${section.title} • ${f.title}`,
+    };
 
-      if (isSupabaseUrl(m.url)) {
-        const signed = await getSignedUrlFromSupabaseUrl(m.url);
-        payload.imageUrl = signed;
-      } else if (m.url.startsWith("http")) {
-        payload.imageUrl = m.url;
-      } else {
-        // Likely a blob: URL from local uploads when unauthenticated
-        payload.imageData = await blobUrlToDataUrl(m.url);
-      }
-
-      const { data, error } = await (supabase as any).functions.invoke("analyze-image", {
-        body: payload,
-      });
-      if (error) throw error;
-
-      const structured = (data?.structured ?? null) as
-        | { title?: string; observation?: string; implications?: string; severity?: string; recommendation?: string }
-        | null;
-      const raw: string = data?.analysis || "";
-
-      // Decide title: only overwrite if currently empty or default
-      let nextTitle = f.title;
-      if (!nextTitle || nextTitle.trim() === "" || nextTitle.trim().toLowerCase() === "new observation") {
-        if (structured?.title) nextTitle = structured.title;
-      }
-
-      // Build narrative from observation + implications (or fall back to raw)
-      const combined = structured
-        ? [structured.observation, structured.implications].filter(Boolean).join("\n\n")
-        : raw || "No analysis returned.";
-      const divider = f.narrative?.trim() ? "\n\n" : "";
-      const nextNarrative = ${f.narrative || ""}${divider}${combined};
-
-      // Map severity if provided
-      let nextSeverity = f.severity as Severity;
-      if (structured?.severity) {
-        const found = (SEVERITIES as readonly string[]).find(
-          (s) => s.toLowerCase() === String(structured.severity).toLowerCase()
-        );
-        if (found) nextSeverity = found as Severity;
-      }
-
-      // Put recommendation in its field; append if something already exists
-      let nextRecommendation = f.recommendation || "";
-      if (structured?.recommendation) {
-        nextRecommendation = nextRecommendation?.trim()
-          ? ${nextRecommendation}\n\n${structured.recommendation}
-          : structured.recommendation;
-      }
-
-      updateFinding(f.id, {
-        title: nextTitle,
-        narrative: nextNarrative,
-        severity: nextSeverity,
-        recommendation: nextRecommendation,
-      });
-      toast({ title: "AI analysis applied", description: "Title, severity, narrative and recommendation updated." });
-      setAiDialogOpen(false);
-    } catch (e) {
-      console.error("AI analysis failed", e);
-      toast({ title: "AI analysis failed", description: "Please try again.", variant: "destructive" });
-    } finally {
-      setAiLoading(false);
+    if (isSupabaseUrl(m.url)) {
+      const signed = await getSignedUrlFromSupabaseUrl(m.url);
+      payload.imageUrl = signed;
+    } else if (m.url.startsWith("http")) {
+      payload.imageUrl = m.url;
+    } else {
+      // Likely a blob: URL from local uploads when unauthenticated
+      payload.imageData = await blobUrlToDataUrl(m.url);
     }
-  };
+
+    const { data, error } = await (supabase as any).functions.invoke("analyze-image", {
+      body: payload,
+    });
+    if (error) throw error;
+
+    const structured = (data?.structured ?? null) as
+      | { title?: string; observation?: string; implications?: string; severity?: string; recommendation?: string }
+      | null;
+    const raw: string = data?.analysis || "";
+
+    // Decide title: only overwrite if currently empty or default
+    let nextTitle = f.title;
+    if (!nextTitle || nextTitle.trim() === "" || nextTitle.trim().toLowerCase() === "new observation") {
+      if (structured?.title) nextTitle = structured.title;
+    }
+
+    // Build narrative from observation + implications (or fall back to raw)
+    const combined = structured
+      ? [structured.observation, structured.implications].filter(Boolean).join("\n\n")
+      : raw || "No analysis returned.";
+    const divider = f.narrative?.trim() ? "\n\n" : "";
+    const nextNarrative = `${f.narrative || ""}${divider}${combined}`;
+
+    // Map severity if provided
+    let nextSeverity = f.severity as Severity;
+    if (structured?.severity) {
+      const found = (SEVERITIES as readonly string[]).find(
+        (s) => s.toLowerCase() === String(structured.severity).toLowerCase()
+      );
+      if (found) nextSeverity = found as Severity;
+    }
+
+    // Put recommendation in its field; append if something already exists
+    let nextRecommendation = f.recommendation || "";
+    if (structured?.recommendation) {
+      nextRecommendation = nextRecommendation?.trim()
+        ? `${nextRecommendation}\n\n${structured.recommendation}`
+        : structured.recommendation;
+    }
+
+    updateFinding(f.id, {
+      title: nextTitle,
+      narrative: nextNarrative,
+      severity: nextSeverity,
+      recommendation: nextRecommendation,
+    });
+    toast({ title: "AI analysis applied", description: "Title, severity, narrative and recommendation updated." });
+    setAiDialogOpen(false);
+  } catch (e) {
+    console.error("AI analysis failed", e);
+    toast({ title: "AI analysis failed", description: "Please try again.", variant: "destructive" });
+  } finally {
+    setAiLoading(false);
+  }
+};
+
 
 
 
