@@ -243,44 +243,47 @@ const ReportPreview: React.FC = () => {
             {sec.findings.length === 0 ? (
               <p className="text-sm text-muted-foreground">No material defects noted.</p>
             ) : (
-              sec.findings.map((f) => (
-                <article key={f.id} className={tpl.findingWrapper}>
-                  <h3 className={tpl.h3}>
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 mr-2 rounded ${tpl.severityBadge[f.severity] || ''}`}
-                    >
-                      <Icon size={14} />
-                      {f.severity}
-                    </span>
-                    {f.title}
-                  </h3>
-                  {f.narrative && <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
-                  {f.recommendation && (
-                    <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>
-                  )}
-                  {f.media.length > 0 && (
-                    <div className="mt-2 grid grid-cols-2 gap-3">
-                      {f.media.map((m) => {
-                        const resolvedUrl = mediaUrlMap[m.id] || m.url;
-                        return (
-                          <figure key={m.id}>
-                            {m.type === "image" ? (
-                              <img src={resolvedUrl} alt={m.caption || f.title} loading="lazy" className="w-full rounded border" />
-                            ) : m.type === "video" ? (
-                              <video src={resolvedUrl} controls className="w-full rounded border" />
-                            ) : (
-                              <audio src={resolvedUrl} controls />
-                            )}
-                            {m.caption && (
-                              <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
-                            )}
-                          </figure>
-                        );
-                      })}
-                    </div>
-                  )}
-                </article>
-              ))
+              sec.findings.map((f) => {
+                const Icon = SEVERITY_ICONS[f.severity];
+                return (
+                  <article key={f.id} className={tpl.findingWrapper}>
+                    <h3 className={tpl.h3}>
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 mr-2 rounded ${tpl.severityBadge[f.severity] || ''}`}
+                      >
+                        <Icon size={14} />
+                        {f.severity}
+                      </span>
+                      {f.title}
+                    </h3>
+                    {f.narrative && <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
+                    {f.recommendation && (
+                      <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>
+                    )}
+                    {f.media.length > 0 && (
+                      <div className="mt-2 grid grid-cols-2 gap-3">
+                        {f.media.map((m) => {
+                          const resolvedUrl = mediaUrlMap[m.id] || m.url;
+                          return (
+                            <figure key={m.id}>
+                              {m.type === "image" ? (
+                                <img src={resolvedUrl} alt={m.caption || f.title} loading="lazy" className="w-full rounded border" />
+                              ) : m.type === "video" ? (
+                                <video src={resolvedUrl} controls className="w-full rounded border" />
+                              ) : (
+                                <audio src={resolvedUrl} controls />
+                              )}
+                              {m.caption && (
+                                <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
+                              )}
+                            </figure>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </article>
+                );
+              })
             )}
           </section>
         ))}
