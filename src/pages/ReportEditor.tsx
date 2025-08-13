@@ -596,6 +596,48 @@ const ReportEditor: React.FC = () => {
             </>
           )}
 
+          {showDetails && (
+            <section className="rounded-md border p-4 space-y-4">
+              <h2 className="text-lg font-medium">Report Details</h2>
+              {guidance['report_details']?.infoFields?.length > 0 ? (
+                guidance['report_details'].infoFields.map((field, idx) => {
+                  const fieldName = typeof field === "string" ? field : field.name;
+                  const reportDetailsSection = report.sections.find(s => s.key === 'report_details');
+                  
+                  return (
+                    <InfoFieldWidget
+                      key={idx}
+                      field={field}
+                      value={reportDetailsSection?.info?.[fieldName] || ""}
+                      onChange={(val) => {
+                        setReport((prev) => {
+                          if (!prev) return prev;
+                          const next = { ...prev };
+                          let sec = next.sections.find(s => s.key === 'report_details');
+                          if (!sec) {
+                            // Create report_details section if it doesn't exist
+                            sec = {
+                              id: `${prev.id}-sec-report-details`,
+                              key: 'report_details' as any,
+                              title: 'Report Details',
+                              findings: [],
+                              info: {}
+                            };
+                            next.sections.push(sec);
+                          }
+                          sec.info = { ...(sec.info || {}), [fieldName]: val };
+                          return next;
+                        });
+                      }}
+                    />
+                  );
+                })
+              ) : (
+                <p className="text-sm text-muted-foreground">No report details fields configured.</p>
+              )}
+            </section>
+          )}
+
           {activeSection.key === "finalize" && (
             <section className="rounded-md border p-3 space-y-3">
               <div className="text-sm font-medium">Additional comments</div>

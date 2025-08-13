@@ -52,5 +52,11 @@ export const SOP_GUIDANCE: Record<SectionKey, string[]> = {
     "Observe walls, ceilings, floors for damage or moisture",
     "Test stairs/railings; report safety hazards (egress/guards)"
   ],
+  report_details: [
+    "Document inspection participants and attendees",
+    "Record property occupancy status and conditions", 
+    "Note architectural style and building type",
+    "Record weather conditions and temperature during inspection"
+  ],
   finalize: [],
 };
