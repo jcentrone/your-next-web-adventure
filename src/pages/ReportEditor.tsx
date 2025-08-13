@@ -286,6 +286,10 @@ const ReportEditor: React.FC = () => {
                       </ul>
                     </details>
                   </section>
+                  <div className="flex justify-between mb-4">
+                    <Button onClick={addFinding}>+ Add Observation</Button>
+                    <Button variant="secondary" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview Report</Button>
+                  </div>
 
                   <div className="space-y-4">
                     {activeSection.findings.length === 0 && (
