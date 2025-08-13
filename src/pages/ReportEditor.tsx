@@ -358,6 +358,34 @@ const ReportEditor: React.FC = () => {
               </Button>
             </section>
           )}
+          <DefectPicker
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            sectionKey={activeSection.key}
+            onInsert={(tpl) => {
+              addFindingFromTemplate(tpl as any);
+              if (tpl.defectId) setPickerOpen(false);
+            }}
+          />
+
+          <Dialog open={!!zoomImage} onOpenChange={(open) => { if (!open) setZoomImage(null); }}>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>{zoomImage?.caption || "Image preview"}</DialogTitle>
+              </DialogHeader>
+              {zoomImage && (
+                <img src={zoomImage.url} alt={zoomImage.caption || "Zoomed media"} className="w-full h-auto rounded" />
+              )}
+            </DialogContent>
+          </Dialog>
+
+          <AIAnalyzeDialog
+            open={aiDialogOpen}
+            onOpenChange={setAiDialogOpen}
+            images={aiDialogImages}
+            loading={aiLoading}
+            onConfirm={handleAIAnalyze}
+          />
         </main>
       </div>
     </>
