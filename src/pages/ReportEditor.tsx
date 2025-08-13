@@ -337,25 +337,27 @@ const ReportEditor: React.FC = () => {
         <main className="flex-1 min-w-0">
           {!showDetails && !excludedKeys.includes(activeSection.key) && (
             <>
-              <div className="mb-4 border-b flex gap-6">
-                <button
-                  onClick={() => setActiveTab("info")}
-                  className={`pb-2 border-b-2 ${activeTab === "info" ? "border-primary font-medium" : "border-transparent text-muted-foreground"}`}
+              <div className="flex justify-between mb-4">
+                <div className="mb-4 border-b flex gap-6">
+                  <button
+                    onClick={() => setActiveTab("info")}
+                    className={`pb-2 border-b-2 ${activeTab === "info" ? "border-primary font-medium" : "border-transparent text-muted-foreground"}`}
+                  >
+                    Information
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("observations")}
+                    className={`pb-2 border-b-2 ${activeTab === "observations" ? "border-primary font-medium" : "border-transparent text-muted-foreground"}`}
+                  >
+                    Observations
+                  </button>
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => nav(`/reports/${report.id}/preview`)}
                 >
-                  Information
-                </button>
-                <button
-                  onClick={() => setActiveTab("observations")}
-                  className={`pb-2 border-b-2 ${activeTab === "observations" ? "border-primary font-medium" : "border-transparent text-muted-foreground"}`}
-                >
-                  Observations
-                </button>
-                    <Button
-                      variant="secondary"
-                      onClick={() => nav(`/reports/${report.id}/preview`)}
-                    >
-                      Preview Report
-                    </Button>
+                  Preview Report
+                </Button>
           
                 
               </div>
