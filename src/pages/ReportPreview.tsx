@@ -9,6 +9,8 @@ import { Report } from "@/lib/reportSchemas";
 import { isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import { Badge } from "@/components/ui/badge";
 import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
+import { AlertTriangle, AlertCircle, Info, Wrench, CheckCircle, MinusCircle } from "lucide-react";
+
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 
@@ -216,8 +218,8 @@ const ReportPreview: React.FC = () => {
             {severity}
           </span>
           <span>
-            <strong> {severityCounts[severity]} finding
-            {severityCounts[severity] > 1 ? 's' : ''}</strong>
+            <strong>{severity}</strong>: {severityCounts[severity]} finding
+            {severityCounts[severity] > 1 ? 's' : ''}
           </span>
         </li>
       ))}
