@@ -280,7 +280,7 @@ const ReportEditor: React.FC = () => {
                     <details>
                       <summary className="text-sm font-medium cursor-pointer">What to inspect (InterNACHI)</summary>
                       <ul className="mt-2 list-disc pl-5 text-sm">
-                        {(guidance[activeSection.key] || []).map((item, idx) => (
+                        {(guidance[activeSection.key]?.observationItems || []).map((item, idx) => (
                           <li key={idx}>{item}</li>
                         ))}
                       </ul>
