@@ -161,19 +161,19 @@ const ReportPreview: React.FC = () => {
     s.findings.filter((f) => f.includeInSummary || f.severity === "Safety" || f.severity === "Major" || f.severity === "Moderate")
   );
   const severityCounts = summary.reduce((acc, finding) => {
-    acc[finding.severity] = (acc[finding.severity] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  acc[finding.severity] = (acc[finding.severity] || 0) + 1;
+  return acc;
+}, {} as Record<string, number>);
 
   const orderedSeverities = severityOrder.filter(sev => severityCounts[sev]);
   const SEVERITY_ICONS: Record<string, React.ElementType> = {
-    Safety: AlertTriangle,
-    Major: AlertCircle,
-    Moderate: AlertCircle,
-    Minor: MinusCircle,
-    Maintenance: Wrench,
-    Info: Info
-  };
+  Safety: AlertTriangle,
+  Major: AlertCircle,
+  Moderate: AlertCircle,
+  Minor: MinusCircle,
+  Maintenance: Wrench,
+  Info: Info
+};
 
   return (
     <>
@@ -245,7 +245,15 @@ const ReportPreview: React.FC = () => {
             ) : (
               sec.findings.map((f) => (
                 <article key={f.id} className={tpl.findingWrapper}>
-                  <h3 className={tpl.h3}>[{f.severity}] {f.title}</h3>
+                  <h3 className={tpl.h3}>
+                    <span
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 mr-2 rounded ${tpl.severityBadge[f.severity] || ''}`}
+                    >
+                      <Icon size={14} />
+                      {f.severity}
+                    </span>
+                    {f.title}
+                  </h3>
                   {f.narrative && <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
                   {f.recommendation && (
                     <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>
