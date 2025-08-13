@@ -225,7 +225,7 @@ const ReportPreview: React.FC = () => {
                 <div
                   className={`flex items-center justify-center w-40 h-40 rounded-full ${tpl.severityBadge[severity] || ''}`}
                 >
-                  <Icon size={36} />
+                  <Icon size={72} />
                 </div>
                 <span className="mt-2 font-bold">{severityCounts[severity]}</span>
                 <span className="text-sm">{severity}</span>
