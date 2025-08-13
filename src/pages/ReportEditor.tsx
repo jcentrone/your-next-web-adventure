@@ -604,28 +604,62 @@ const ReportEditor: React.FC = () => {
                   const fieldName = typeof field === "string" ? field : field.name;
                   const reportDetailsSection = report.sections.find(s => s.key === 'report_details');
                   
+                  // Handle report-level fields vs section info fields
+                  const isReportLevelField = ['title', 'client_name', 'address', 'inspection_date'].includes(fieldName);
+                  const currentValue = isReportLevelField 
+                    ? (() => {
+                        switch(fieldName) {
+                          case 'title': return report.title;
+                          case 'client_name': return report.clientName;
+                          case 'address': return report.address;
+                          case 'inspection_date': return report.inspectionDate;
+                          default: return '';
+                        }
+                      })()
+                    : reportDetailsSection?.info?.[fieldName] || "";
+                  
                   return (
                     <InfoFieldWidget
                       key={idx}
                       field={field}
-                      value={reportDetailsSection?.info?.[fieldName] || ""}
+                      value={currentValue}
                       onChange={(val) => {
                         setReport((prev) => {
                           if (!prev) return prev;
                           const next = { ...prev };
-                          let sec = next.sections.find(s => s.key === 'report_details');
-                          if (!sec) {
-                            // Create report_details section if it doesn't exist
-                            sec = {
-                              id: `${prev.id}-sec-report-details`,
-                              key: 'report_details' as any,
-                              title: 'Report Details',
-                              findings: [],
-                              info: {}
-                            };
-                            next.sections.push(sec);
+                          
+                          if (isReportLevelField) {
+                            // Update report-level fields
+                            switch(fieldName) {
+                              case 'title':
+                                next.title = val;
+                                break;
+                              case 'client_name':
+                                next.clientName = val;
+                                break;
+                              case 'address':
+                                next.address = val;
+                                break;
+                              case 'inspection_date':
+                                next.inspectionDate = val;
+                                break;
+                            }
+                          } else {
+                            // Update section info fields
+                            let sec = next.sections.find(s => s.key === 'report_details');
+                            if (!sec) {
+                              // Create report_details section if it doesn't exist
+                              sec = {
+                                id: `${prev.id}-sec-report-details`,
+                                key: 'report_details' as any,
+                                title: 'Report Details',
+                                findings: [],
+                                info: {}
+                              };
+                              next.sections.push(sec);
+                            }
+                            sec.info = { ...(sec.info || {}), [fieldName]: val };
                           }
-                          sec.info = { ...(sec.info || {}), [fieldName]: val };
                           return next;
                         });
                       }}

@@ -3,6 +3,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 import type { InfoField } from "@/hooks/useSectionGuidance";
 
@@ -121,6 +127,55 @@ export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps
           placeholder="Enter any additional notes relevant to this section..."
           className="min-h-[100px]"
         />
+      </div>
+    );
+  }
+
+  if (widget === "date") {
+    const selectedDate = value ? new Date(value) : undefined;
+    
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label className="text-sm font-medium">
+            {label}
+            {required && <span className="text-destructive">*</span>}
+          </Label>
+          {sop_ref && (
+            <Badge variant="secondary" className="text-xs">
+              {sop_ref}
+            </Badge>
+          )}
+        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !selectedDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={(date) => {
+                if (date) {
+                  onChange(date.toISOString().split('T')[0]); // YYYY-MM-DD format
+                } else {
+                  onChange("");
+                }
+              }}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
     );
   }
