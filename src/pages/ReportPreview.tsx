@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
-import { AlertTriangle, AlertCircle, Info, Wrench, MinusCircle } from "lucide-react";
+import { AlertTriangle, AlertCircle, AlertOctagon, Info, Wrench, MinusCircle } from "lucide-react";
 
 
 function ButtonBar({ id }: { id: string }) {
@@ -168,7 +168,7 @@ const ReportPreview: React.FC = () => {
   const orderedSeverities = severityOrder.filter(sev => severityCounts[sev]);
   const SEVERITY_ICONS: Record<string, React.ElementType> = {
   Safety: AlertTriangle,
-  Major: AlertCircle,
+  Major: AlertOctagon,
   Moderate: AlertCircle,
   Minor: MinusCircle,
   Maintenance: Wrench,
