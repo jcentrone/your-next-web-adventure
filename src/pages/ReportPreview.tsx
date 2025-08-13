@@ -180,7 +180,7 @@ const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
   const counts: Record<string, number> = {};
   
   sec.findings
-    .filter(f => f.includeInSummary || ["Safety", "Major", "Moderate"].includes(f.severity))
+    .filter(f => f.includeInSummary || ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"].includes(f.severity))
     .forEach(f => {
       counts[f.severity] = (counts[f.severity] || 0) + 1;
     });
