@@ -216,8 +216,8 @@ const ReportPreview: React.FC = () => {
             {severity}
           </span>
           <span>
-            <strong>{severity}</strong>: {severityCounts[severity]} finding
-            {severityCounts[severity] > 1 ? 's' : ''}
+            <strong> {severityCounts[severity]} finding
+            {severityCounts[severity] > 1 ? 's' : ''}</strong>
           </span>
         </li>
       ))}
