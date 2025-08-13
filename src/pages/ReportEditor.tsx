@@ -287,13 +287,13 @@ const ReportEditor: React.FC = () => {
                     </details>
                   </section>
                   <div className="flex justify-between mb-4">
-                    <Button onClick={() => setPickerOpen(true)}>+ Add Observation</Button>
                     <Button
                       variant="secondary"
                       onClick={() => nav(`/reports/${report.id}/preview`)}
                     >
                       Preview Report
                     </Button>
+                    <Button onClick={() => setPickerOpen(true)}>+ Add Observation</Button>
                   </div>
 
                   <div className="space-y-4">
