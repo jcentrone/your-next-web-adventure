@@ -467,31 +467,69 @@ const ReportEditor: React.FC = () => {
                                 {/* Add new media */}
                                 <label className="w-24 h-24 border rounded flex items-center justify-center text-sm text-muted-foreground cursor-pointer hover:bg-accent">
                                   <input
-                                    type="file"
-                                    className="hidden"
-                                    accept="image/*,video/*"
-                                    onChange={async (e) => {
-                                      const files = e.target.files;
-                                      if (!files || files.length === 0) return;
-                            
-                                      const uploaded: Media[] = [];
-                                      for (const file of Array.from(files)) {
-                                        // Upload to Supabase
-                                        const { data, error } = await uploadFindingFiles(file);
-                                        if (error) {
-                                          toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-                                          continue;
-                                        }
-                                        uploaded.push({
-                                          id: crypto.randomUUID(),
-                                          url: data?.path || "",
-                                          caption: file.name,
-                                        });
-                                      }
-                            
-                                      updateFinding(f.id, { media: [...f.media, ...uploaded] });
-                                    }}
-                                  />
+  type="file"
+  className="hidden"
+  accept="image/*,video/*"
+  onChange={async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    for (const file of Array.from(files)) {
+      const tempId = crypto.randomUUID();
+      const localUrl = URL.createObjectURL(file);
+
+      // 1️⃣ Add temporary local preview
+      updateFinding(f.id, {
+        media: [
+          ...f.media,
+          { id: tempId, url: localUrl, caption: file.name }
+        ],
+      });
+
+      // Also set it in mediaUrlMap so <img> works
+      setMediaUrlMap((prev) => ({
+        ...prev,
+        [tempId]: localUrl,
+      }));
+
+      // 2️⃣ Upload to Supabase
+      const { data, error } = await uploadFindingFiles(file);
+      if (error || !data?.path) {
+        toast({
+          title: "Upload failed",
+          description: error?.message || "Could not upload file.",
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      // 3️⃣ Get a signed URL from Supabase
+      const signedUrl = await getSignedUrlFromSupabaseUrl(data.path);
+
+      // 4️⃣ Replace temporary local preview with the signed URL
+      setReport((prev) => {
+        if (!prev) return prev;
+        const next = { ...prev };
+        const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
+        const finding = next.sections[sIdx].findings.find((x) => x.id === f.id);
+        if (finding) {
+          const mediaItem = finding.media.find((m) => m.id === tempId);
+          if (mediaItem) {
+            mediaItem.url = signedUrl;
+          }
+        }
+        return next;
+      });
+
+      // 5️⃣ Update mediaUrlMap so display uses the signed URL
+      setMediaUrlMap((prev) => ({
+        ...prev,
+        [tempId]: signedUrl,
+      }));
+    }
+  }}
+/>
+
                                   <ImagePlus className="w-6 h-6" />
                                 </label>
                               </div>
