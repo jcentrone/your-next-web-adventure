@@ -395,24 +395,20 @@ const ReportEditor: React.FC = () => {
 
               {activeTab === "observations" && (
                 <>
-                  <section className="mb-4 rounded-md border p-3">
-                    <details>
-                      <summary className="text-sm font-medium cursor-pointer">What to inspect (InterNACHI)</summary>
-                      <ul className="mt-2 list-disc pl-5 text-sm">
-                        {(guidance[activeSection.key]?.observationItems || []).map((item, idx) => (
-                          <li key={idx}>{item}</li>
-                        ))}
-                      </ul>
-                    </details>
-                  </section>
                   <div className="flex justify-between mb-4">
-                    <Button
-                      variant="secondary"
-                      onClick={() => nav(`/reports/${report.id}/preview`)}
-                    >
-                      Preview Report
-                    </Button>
-                    <Button onClick={() => setPickerOpen(true)}>+ Add Observation</Button>
+                    <section className="mb-4 rounded-md border p-3">
+                      <details>
+                        <summary className="text-sm font-medium cursor-pointer">What to inspect (InterNACHI)</summary>
+                        <ul className="mt-2 list-disc pl-5 text-sm">
+                          {(guidance[activeSection.key]?.observationItems || []).map((item, idx) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
+                      </details>
+                    </section>
+                    <div className="flex justify-between mb-4">
+                      <Button onClick={() => setPickerOpen(true)}>Add Defect</Button>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
