@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
+import { AlertTriangle, AlertCircle, Info, Wrench, MinusCircle } from "lucide-react";
+
 
 function ButtonBar({ id }: { id: string }) {
   const nav = useNavigate();
@@ -164,6 +166,14 @@ const ReportPreview: React.FC = () => {
 }, {} as Record<string, number>);
 
   const orderedSeverities = severityOrder.filter(sev => severityCounts[sev]);
+  const SEVERITY_ICONS: Record<string, React.ElementType> = {
+  Safety: AlertTriangle,
+  Major: AlertCircle,
+  Moderate: AlertCircle,
+  Minor: MinusCircle,
+  Maintenance: Wrench,
+  Info: Info
+};
 
   return (
     <>
@@ -207,21 +217,22 @@ const ReportPreview: React.FC = () => {
 {Object.keys(severityCounts).length > 0 && (
   <section className="mb-10 page-break">
     <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
-    <ul className="space-y-2">
-      {orderedSeverities.map(severity => (
-        <li key={severity} className="flex items-center gap-2">
-          <span
-            className={`px-2 py-1 rounded ${tpl.severityBadge[severity] || ''}`}
-          >
-            {severity}
-          </span>
-          <span>
-            <strong>: {severityCounts[severity]} finding
-            {severityCounts[severity] > 1 ? 's' : ''}</strong>
-          </span>
-        </li>
-      ))}
-    </ul>
+    <div className="grid grid-cols-3 md:grid-cols-6 gap-6 text-center">
+      {orderedSeverities.map(severity => {
+        const Icon = SEVERITY_ICONS[severity];
+        return (
+          <div key={severity} className="flex flex-col items-center">
+            <div
+              className={`flex items-center justify-center w-16 h-16 rounded-full ${tpl.severityBadge[severity] || ''}`}
+            >
+              <Icon size={28} />
+            </div>
+            <span className="mt-2 font-bold">{severityCounts[severity]}</span>
+            <span className="text-sm">{severity}</span>
+          </div>
+        );
+      })}
+    </div>
   </section>
 )}
 
