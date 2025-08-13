@@ -193,6 +193,7 @@ export type Database = {
         | "fireplace"
         | "attic"
         | "interior"
+        | "report_details"
       severity_level:
         | "Info"
         | "Maintenance"
@@ -339,6 +340,7 @@ export const Constants = {
         "fireplace",
         "attic",
         "interior",
+        "report_details",
       ],
       severity_level: [
         "Info",
