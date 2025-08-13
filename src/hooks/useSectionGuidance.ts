@@ -19,7 +19,7 @@ export function useSectionGuidance() {
         setLoading(true);
         const { data, error } = await supabase
           .from("section_guidance")
-          .select("section_key, info_fields, items"); // <-- make sure your DB has these columns
+          .select("section_key, infoFields, items"); // <-- make sure your DB has these columns
 
         if (error) throw error;
 
