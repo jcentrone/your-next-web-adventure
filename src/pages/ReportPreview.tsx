@@ -10,8 +10,6 @@ import { isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supab
 import { Badge } from "@/components/ui/badge";
 import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, AlertCircle, Info, Wrench, CheckCircle, MinusCircle } from "lucide-react";
-
 import { toast } from "@/components/ui/use-toast";
 
 function ButtonBar({ id }: { id: string }) {
@@ -65,15 +63,6 @@ function TemplateSelector({ value, onChange, disabled }: { value: 'classic' | 'm
     </Select>
   );
 }
-
-const SEVERITY_ICONS: Record<string, React.ElementType> = {
-  Safety: AlertTriangle,
-  Major: AlertCircle,
-  Moderate: AlertCircle,
-  Minor: MinusCircle,
-  Maintenance: Wrench,
-  Info: Info
-};
 
 const ReportPreview: React.FC = () => {
   const { id } = useParams();
@@ -227,8 +216,8 @@ const ReportPreview: React.FC = () => {
             {severity}
           </span>
           <span>
-            <strong>{severity}</strong>: {severityCounts[severity]} finding
-            {severityCounts[severity] > 1 ? 's' : ''}
+            <strong>: {severityCounts[severity]} finding
+            {severityCounts[severity] > 1 ? 's' : ''}</strong>
           </span>
         </li>
       ))}
