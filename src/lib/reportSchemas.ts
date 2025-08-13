@@ -34,7 +34,7 @@ export const SectionSchema = z.object({
   key: z.custom<SectionKey>(),
   title: z.string(),
   findings: z.array(FindingSchema).default([]),
-  info?: Record<string, string>,
+  info: z.record(z.string()).optional().default({}),
 });
 export type Section = z.infer<typeof SectionSchema>;
 
