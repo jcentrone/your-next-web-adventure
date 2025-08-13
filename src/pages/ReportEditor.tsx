@@ -337,8 +337,8 @@ const ReportEditor: React.FC = () => {
         <main className="flex-1 min-w-0">
           {!showDetails && !excludedKeys.includes(activeSection.key) && (
             <>
-              <div className="flex justify-between mb-4">
-                <div className="mb-4 border-b flex gap-6">
+              <div className="flex justify-between border-b mb-4">
+                <div className="mb-4 flex gap-6">
                   <button
                     onClick={() => setActiveTab("info")}
                     className={`pb-2 border-b-2 ${activeTab === "info" ? "border-primary font-medium" : "border-transparent text-muted-foreground"}`}
