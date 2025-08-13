@@ -85,7 +85,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                   return (
                     <div key={severity} className="flex flex-col items-center">
                       <div className={`flex items-center justify-center w-20 h-20 rounded-full ${badgeClasses}`}>
-                        <Icon size={45} className="text-white"/>
+                        <Icon size={40} className="text-white"/>
                       </div>
                       <span className="mt-2 font-bold">{severityCounts[severity]}</span>
                       <span className="text-sm">{severity}</span>
