@@ -223,7 +223,7 @@ const ReportPreview: React.FC = () => {
             return (
               <div key={severity} className="flex flex-col items-center">
                 <div
-                  className={`flex items-center justify-center w-40 h-40 rounded-full ${tpl.severityBadge[severity] || ''}`}
+                  className={`flex items-center justify-center w-36 h-36 rounded-full ${tpl.severityBadge[severity] || ''}`}
                 >
                   <Icon size={72} />
                 </div>
