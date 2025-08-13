@@ -396,7 +396,7 @@ const ReportEditor: React.FC = () => {
               {activeTab === "observations" && (
                 <>
                   <div className="flex justify-between mb-4">
-                    <section className="mb-4 rounded-md border p-3">
+                    <section className="mb-4 rounded-md border p-3 w-100">
                       <details>
                         <summary className="text-sm font-medium cursor-pointer">What to inspect (InterNACHI)</summary>
                         <ul className="mt-2 list-disc pl-5 text-sm">
