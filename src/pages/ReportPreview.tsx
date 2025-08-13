@@ -235,7 +235,7 @@ const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
         {/* Summary */}
         {Object.keys(severityCounts).length > 0 && (
   <section className="my-10 text-center page-break">
-    <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
+    <h2 className={tpl.summaryTitle}>Summary of Defeciencies</h2>
 
     {/* Top Level: Big Bubbles */}
     <div className="flex flex-wrap justify-center gap-8 mb-8">
