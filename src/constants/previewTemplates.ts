@@ -3,7 +3,7 @@ import { AlertTriangle, AlertCircle, Info, Wrench, CheckCircle, MinusCircle } fr
 export const PREVIEW_TEMPLATES = {
   classic: {
     container: "m-8 px-8 py-10 bg-white text-gray-900",
-    cover: "flex flex-col items-center justify-center min-h-screen bg-gray-100 text-center print:justify-start print:min-h-0 print:py-12",
+    cover: "cover flex flex-col items-center justify-center bg-gray-100 text-center print:justify-start print:min-h-0 print:py-12",
     coverTitle: "text-5xl font-bold mb-4",
     coverSubtitle: "text-lg text-gray-500",
     summaryTitle: "text-2xl font-semibold mb-4 border-b pb-2",

@@ -2,5 +2,11 @@
 @media print {
   .print-hidden { display: none !important; }
   .page-break { break-after: page; }
+  .cover {
+      max-height: 10in; /* adjust to fit within page */
+      width: auto;
+      object-fit: contain;
+    }
   @page { margin: 16mm; }
+
 }
