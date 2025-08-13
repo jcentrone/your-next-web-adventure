@@ -246,7 +246,7 @@ const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
             <div
               className={`flex items-center justify-center w-24 h-24 rounded-full ${tpl.severityBadge[severity] || ''}`}
             >
-              <Icon size={52} />
+              <Icon size={52} className="text-white"/>
             </div>
             <span className="mt-2 font-bold">{severityCounts[severity]}</span>
             <span className="text-sm">{severity}</span>
