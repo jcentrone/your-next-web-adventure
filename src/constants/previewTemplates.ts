@@ -1,3 +1,5 @@
+import { AlertTriangle, AlertCircle, Info, Wrench, CheckCircle, MinusCircle } from "lucide-react";
+
 export const PREVIEW_TEMPLATES = {
   classic: {
     container: "m-8 px-8 py-10 bg-white text-gray-900",
@@ -8,12 +10,12 @@ export const PREVIEW_TEMPLATES = {
     sectionWrapper: "mb-10 border-b border-gray-300 pb-4",
     findingWrapper: "mb-4 p-4 border rounded bg-gray-50",
     severityBadge: {
-      Safety: "bg-red-100 text-red-800",
-      Major: "bg-orange-100 text-orange-800",
-      Moderate: "bg-yellow-100 text-yellow-800",
-      Minor: "bg-blue-100 text-blue-800",
-      Maintenance: "bg-green-100 text-green-800",
-      Info: "bg-gray-100 text-gray-800"
+      Safety: { className: "bg-red-100 text-red-800", icon: AlertTriangle },
+      Major: { className: "bg-orange-100 text-orange-800", icon: AlertCircle },
+      Moderate: { className: "bg-yellow-100 text-yellow-800", icon: AlertCircle },
+      Minor: { className: "bg-blue-100 text-blue-800", icon: MinusCircle },
+      Maintenance: { className: "bg-green-100 text-green-800", icon: Wrench },
+      Info: { className: "bg-gray-100 text-gray-800", icon: Info }
     },
     h1: "text-3xl font-bold",
     h2: "mt-6 border-b border-gray-300 pb-1 text-xl font-semibold",
