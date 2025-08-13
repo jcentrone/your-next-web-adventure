@@ -28,7 +28,7 @@ export function useSectionGuidance() {
         if (data) {
           data.forEach((item: any) => {
             guidanceMap[item.section_key as SectionKey] = {
-              infoFields: item.info_fields || [],
+              infoFields: item.infoFields || [],
               observationItems: item.items || []
             };
           });
