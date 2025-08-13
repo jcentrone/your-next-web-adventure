@@ -29,15 +29,19 @@ export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps
   const { name, label, sop_ref, widget, required = false, options = [] } = field;
 
   if (widget === "select" && options.length > 0) {
-    // Determine if current value is a predefined option or custom
+    // Determine what should be selected in the dropdown
     const isPredefinedOption = options.includes(value);
     const isCustomValue = value && !isPredefinedOption;
     
-    // For select display: show actual value if predefined, otherwise show "Other"/"Multiple"
-    const selectValue = isPredefinedOption ? value : "";
+    // Track what's selected in the dropdown - separate from the stored value
+    const [selectedOption, setSelectedOption] = useState(() => {
+      if (isPredefinedOption) return value;
+      if (isCustomValue) return "Other";
+      return "";
+    });
     
-    // Show custom input when "Other"/"Multiple" is selected or when there's a custom value
-    const showCustomInput = isCustomValue || selectValue === "Other" || selectValue === "Multiple";
+    // Show custom input when "Other" or "Multiple" is selected, or when there's a custom value
+    const showCustomInput = selectedOption === "Other" || selectedOption === "Multiple" || isCustomValue;
 
     return (
       <div className="space-y-2">
@@ -54,11 +58,11 @@ export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps
         </div>
         
         <Select
-          value={selectValue}
+          value={selectedOption}
           onValueChange={(newValue) => {
+            setSelectedOption(newValue);
             if (newValue === "Other" || newValue === "Multiple") {
-              // Don't change the report value yet - wait for user to type
-              // Keep existing custom value if there is one
+              // Keep existing custom value if there is one, otherwise clear
               if (!isCustomValue) {
                 onChange("");
               }
