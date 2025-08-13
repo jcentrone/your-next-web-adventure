@@ -245,8 +245,14 @@ const ReportPreview: React.FC = () => {
             ) : (
               sec.findings.map((f) => (
                 <article key={f.id} className={tpl.findingWrapper}>
-                  <span className={${tpl.severityBadge[severity] || ''}>{f.severity}}</span>
-                  <h3 className={tpl.h3}>[{f.severity}] {f.title}</h3>
+                  <h3 className={tpl.h3}>
+                    <span
+                      className={`inline-block px-2 py-0.5 mr-2 rounded ${tpl.severityBadge[f.severity] || ''}`}
+                    >
+                      {f.severity}
+                    </span>
+                    {f.title}
+                  </h3>  
                   {f.narrative && <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
                   {f.recommendation && (
                     <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>
