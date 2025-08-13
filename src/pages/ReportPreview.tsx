@@ -158,7 +158,7 @@ const ReportPreview: React.FC = () => {
   const tpl = PREVIEW_TEMPLATES[report.previewTemplate] || PREVIEW_TEMPLATES.classic;
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
   const summary = report.sections.flatMap((s) =>
-    s.findings.filter((f) => f.includeInSummary || f.severity === "Safety" || f.severity === "Major" || f.severity === "Moderate")
+    s.findings.filter((f) => f.includeInSummary || f.severity === "Safety" || f.severity === "Major" || f.severity === "Moderate" || f.severity === "Minor" || f.severity === "Maintenance" || f.severity === "Info")
   );
   const severityCounts = summary.reduce((acc, finding) => {
   acc[finding.severity] = (acc[finding.severity] || 0) + 1;
