@@ -12,8 +12,6 @@ interface InfoFieldWidgetProps {
 }
 
 export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps) {
-  const [customValue, setCustomValue] = useState("");
-  
   // Handle legacy string fields
   if (typeof field === "string") {
     return (
@@ -31,8 +29,15 @@ export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps
   const { name, label, sop_ref, widget, required = false, options = [] } = field;
 
   if (widget === "select" && options.length > 0) {
-    const isOtherSelected = value && !options.includes(value) && value !== "Other";
-    const displayValue = isOtherSelected ? "Other" : value;
+    // Determine if current value is a predefined option or custom
+    const isPredefinedOption = options.includes(value);
+    const isCustomValue = value && !isPredefinedOption;
+    
+    // For select display: show actual value if predefined, otherwise show "Other"/"Multiple"
+    const selectValue = isPredefinedOption ? value : "";
+    
+    // Show custom input when "Other"/"Multiple" is selected or when there's a custom value
+    const showCustomInput = isCustomValue || selectValue === "Other" || selectValue === "Multiple";
 
     return (
       <div className="space-y-2">
@@ -49,18 +54,22 @@ export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps
         </div>
         
         <Select
-          value={displayValue}
+          value={selectValue}
           onValueChange={(newValue) => {
-            if (newValue === "Other") {
-              onChange(customValue || "");
+            if (newValue === "Other" || newValue === "Multiple") {
+              // Don't change the report value yet - wait for user to type
+              // Keep existing custom value if there is one
+              if (!isCustomValue) {
+                onChange("");
+              }
             } else {
+              // User selected a predefined option
               onChange(newValue);
-              setCustomValue("");
             }
           }}
         >
           <SelectTrigger className="bg-background">
-            <SelectValue placeholder="Select an option..." />
+            <SelectValue placeholder={isCustomValue ? `Custom: ${value}` : "Select an option..."} />
           </SelectTrigger>
           <SelectContent className="bg-background border z-50">
             {options.map((option) => (
@@ -71,22 +80,14 @@ export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps
           </SelectContent>
         </Select>
 
-        {(displayValue === "Other" || isOtherSelected) && (
+        {showCustomInput && (
           <div className="mt-2">
             <Label className="text-sm text-muted-foreground">
               Please specify:
             </Label>
             <Input
-              value={isOtherSelected ? value : customValue}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                if (displayValue === "Other") {
-                  setCustomValue(newValue);
-                  onChange(newValue);
-                } else {
-                  onChange(newValue);
-                }
-              }}
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
               placeholder="Enter custom value..."
             />
           </div>
