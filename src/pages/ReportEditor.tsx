@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import DefectPicker from "@/components/reports/DefectPicker";
-import { SOP_GUIDANCE } from "@/constants/sopGuidance";
+import { useSectionGuidance } from "@/hooks/useSectionGuidance";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
@@ -31,6 +31,7 @@ const ReportEditor: React.FC = () => {
   const { id } = useParams();
   const nav = useNavigate();
   const { user } = useAuth();
+  const { guidance } = useSectionGuidance();
   const [report, setReport] = React.useState<Report | null>(null);
   const [active, setActive] = React.useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = React.useState(false);
@@ -516,7 +517,7 @@ const ReportEditor: React.FC = () => {
                 <details>
                   <summary className="text-sm font-medium cursor-pointer">What to inspect (InterNACHI)</summary>
                   <ul className="mt-2 list-disc pl-5 text-sm">
-                    {(SOP_GUIDANCE[activeSection.key] || []).map((item, idx) => (
+                    {(guidance[activeSection.key] || []).map((item, idx) => (
                       <li key={idx}>{item}</li>
                     ))}
                   </ul>
