@@ -175,6 +175,25 @@ const ReportPreview: React.FC = () => {
   Info: Info
 };
 
+  // Group summary findings by section and severity
+const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
+  const counts: Record<string, number> = {};
+  
+  sec.findings
+    .filter(f => f.includeInSummary || ["Safety", "Major", "Moderate"].includes(f.severity))
+    .forEach(f => {
+      counts[f.severity] = (counts[f.severity] || 0) + 1;
+    });
+
+  if (Object.keys(counts).length > 0) {
+    acc.push({
+      sectionTitle: sec.title,
+      counts
+    });
+  }
+  return acc;
+}, [] as { sectionTitle: string; counts: Record<string, number> }[]);
+
   return (
     <>
       <Seo
@@ -215,26 +234,53 @@ const ReportPreview: React.FC = () => {
 
         {/* Summary */}
         {Object.keys(severityCounts).length > 0 && (
-          <section className="my-10  text-center page-break">
-            <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
-            <div className="flex flex-wrap justify-center gap-8 text-center">
-          {orderedSeverities.map(severity => {
-            const Icon = SEVERITY_ICONS[severity];
-            return (
-              <div key={severity} className="flex flex-col items-center">
-                <div
-                  className={`flex items-center justify-center w-36 h-36 rounded-full ${tpl.severityBadge[severity] || ''}`}
-                >
-                  <Icon size={72} />
+  <section className="my-10 text-center page-break">
+    <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
+
+    {/* Top Level: Big Bubbles */}
+    <div className="flex flex-wrap justify-center gap-8 mb-8">
+      {orderedSeverities.map(severity => {
+        const Icon = SEVERITY_ICONS[severity];
+        return (
+          <div key={severity} className="flex flex-col items-center">
+            <div
+              className={`flex items-center justify-center w-36 h-36 rounded-full ${tpl.severityBadge[severity] || ''}`}
+            >
+              <Icon size={72} />
+            </div>
+            <span className="mt-2 font-bold">{severityCounts[severity]}</span>
+            <span className="text-sm">{severity}</span>
+          </div>
+        );
+      })}
+    </div>
+
+    {/* Second Level: Breakdown by Section */}
+    <div className="mt-6 text-left max-w-3xl mx-auto">
+      {sectionSeverityCounts.map(({ sectionTitle, counts }) => (
+        <div key={sectionTitle} className="mb-4">
+          <h3 className="font-semibold">{sectionTitle}</h3>
+          <div className="flex flex-wrap gap-4 mt-1">
+            {orderedSeverities.filter(s => counts[s]).map(severity => {
+              const Icon = SEVERITY_ICONS[severity];
+              return (
+                <div key={severity} className="flex items-center gap-1 text-sm">
+                  <span
+                    className={`flex items-center justify-center w-6 h-6 rounded-full ${tpl.severityBadge[severity] || ''}`}
+                  >
+                    <Icon size={14} />
+                  </span>
+                  {counts[severity]}
+                  <span className="ml-1">{severity}</span>
                 </div>
-                <span className="mt-2 font-bold">{severityCounts[severity]}</span>
-                <span className="text-sm">{severity}</span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-          </section>
-        )}
+      ))}
+    </div>
+  </section>
+)}
 
         {/* Sections */}
         {report.sections.map((sec) => (
