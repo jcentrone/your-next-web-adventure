@@ -215,7 +215,7 @@ const ReportPreview: React.FC = () => {
 
         {/* Summary */}
 {Object.keys(severityCounts).length > 0 && (
-  <section className="mb-10 page-break">
+  <section className="my-10 items-center page-break">
     <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
     <div className="grid grid-cols-3 md:grid-cols-6 gap-6 text-center">
       {orderedSeverities.map(severity => {
