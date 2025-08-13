@@ -3,7 +3,7 @@ import { AlertTriangle, AlertCircle, Info, Wrench, CheckCircle, MinusCircle } fr
 export const PREVIEW_TEMPLATES = {
   classic: {
     container: "m-8 px-8 py-10 bg-white text-gray-900",
-    cover: "flex flex-col items-center justify-center h-screen bg-gray-100 text-center",
+    cover: "flex flex-col items-center justify-center min-h-screen bg-gray-100 text-center print:justify-start print:min-h-0 print:py-12",
     coverTitle: "text-5xl font-bold mb-4",
     coverSubtitle: "text-lg text-gray-500",
     summaryTitle: "text-2xl font-semibold mb-4 border-b pb-2",
@@ -23,7 +23,7 @@ export const PREVIEW_TEMPLATES = {
   },
   modern: {
     container: "px-10 py-12 bg-gradient-to-br from-white to-gray-50 text-gray-900",
-    cover: "flex flex-col items-center justify-center h-screen bg-gradient-to-br from-primary to-accent text-white",
+    cover: "flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-primary to-accent text-white print:justify-start print:min-h-0 print:py-12",
     coverTitle: "text-6xl font-extrabold drop-shadow mb-2",
     coverSubtitle: "text-xl opacity-80",
     summaryTitle: "text-3xl font-bold mb-4 text-primary",
@@ -43,7 +43,7 @@ export const PREVIEW_TEMPLATES = {
   },
   minimal: {
     container: "px-6 py-8 bg-white text-gray-800",
-    cover: "flex flex-col items-center justify-center h-screen text-center",
+    cover: "flex flex-col items-center justify-center min-h-screen text-center print:justify-start print:min-h-0 print:py-12",
     coverTitle: "text-4xl font-medium",
     coverSubtitle: "text-sm text-gray-400",
     summaryTitle: "text-xl font-medium mb-2",
