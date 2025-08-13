@@ -428,6 +428,75 @@ const ReportEditor: React.FC = () => {
                                 onChange={(e) => updateFinding(f.id, { recommendation: e.target.value })}
                               />
                             </div>
+                            <div className="mt-3">
+                              <label className="block text-sm font-medium mb-1">Media</label>
+                              <div className="flex flex-wrap gap-3">
+                                {f.media.map((m) => (
+                                  <div key={m.id} className="relative w-24 h-24 border rounded overflow-hidden">
+                                    <img
+                                      src={mediaUrlMap[m.id] || m.url}
+                                      alt={m.caption || "Media"}
+                                      className="w-full h-full object-cover cursor-pointer"
+                                      onClick={() => setZoomImage({ url: mediaUrlMap[m.id] || m.url, caption: m.caption })}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow"
+                                      onClick={() =>
+                                        updateFinding(f.id, {
+                                          media: f.media.filter((x) => x.id !== m.id),
+                                        })
+                                      }
+                                    >
+                                      <Trash2 className="w-4 h-4 text-red-500" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
+                                      onClick={() => {
+                                        setAiDialogFindingId(f.id);
+                                        setAiDialogImages([{ id: m.id, url: mediaUrlMap[m.id] || m.url, caption: m.caption }]);
+                                        setAiDialogOpen(true);
+                                      }}
+                                    >
+                                      <Wand2 className="w-4 h-4 text-blue-500" />
+                                    </button>
+                                  </div>
+                                ))}
+                            
+                                {/* Add new media */}
+                                <label className="w-24 h-24 border rounded flex items-center justify-center text-sm text-muted-foreground cursor-pointer hover:bg-accent">
+                                  <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*,video/*"
+                                    onChange={async (e) => {
+                                      const files = e.target.files;
+                                      if (!files || files.length === 0) return;
+                            
+                                      const uploaded: Media[] = [];
+                                      for (const file of Array.from(files)) {
+                                        // Upload to Supabase
+                                        const { data, error } = await uploadFindingFiles(file);
+                                        if (error) {
+                                          toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+                                          continue;
+                                        }
+                                        uploaded.push({
+                                          id: crypto.randomUUID(),
+                                          url: data?.path || "",
+                                          caption: file.name,
+                                        });
+                                      }
+                            
+                                      updateFinding(f.id, { media: [...f.media, ...uploaded] });
+                                    }}
+                                  />
+                                  <ImagePlus className="w-6 h-6" />
+                                </label>
+                              </div>
+                            </div>
+
                           </>
                         )}
                       </article>
