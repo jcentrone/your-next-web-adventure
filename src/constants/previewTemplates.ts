@@ -6,8 +6,10 @@ export const PREVIEW_TEMPLATES = {
     cover: "cover flex flex-col items-center justify-center bg-gray-100 text-center print:justify-start print:min-h-0 print:py-12",
     coverTitle: "text-5xl font-bold mb-4",
     coverSubtitle: "text-lg text-gray-500",
+    reportDetails: "mb-10 pb-6 border-b border-gray-300",
     summaryTitle: "text-2xl font-semibold mb-4 border-b pb-2",
     sectionWrapper: "mb-10 border-b border-gray-300 pb-4",
+    sectionInfo: "bg-gray-50 rounded p-4 mb-4",
     findingWrapper: "mb-4 p-4 border rounded bg-gray-50",
     severityBadge: {
       Safety: { className: "bg-red-100 text-red-800", icon: AlertTriangle },
@@ -26,8 +28,10 @@ export const PREVIEW_TEMPLATES = {
     cover: "flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-primary to-accent text-white print:justify-start print:min-h-0 print:py-12",
     coverTitle: "text-6xl font-extrabold drop-shadow mb-2",
     coverSubtitle: "text-xl opacity-80",
+    reportDetails: "mb-12 pb-8 border-b border-gray-200",
     summaryTitle: "text-3xl font-bold mb-4 text-primary",
     sectionWrapper: "mb-12 pb-4 border-b border-gray-200",
+    sectionInfo: "bg-white/70 rounded-lg p-6 mb-6 shadow-sm",
     findingWrapper: "mb-4 p-6 rounded-lg shadow bg-white",
     severityBadge: {
       Safety: "bg-red-600 text-white",
@@ -46,8 +50,10 @@ export const PREVIEW_TEMPLATES = {
     cover: "flex flex-col items-center justify-center min-h-screen text-center print:justify-start print:min-h-0 print:py-12",
     coverTitle: "text-4xl font-medium",
     coverSubtitle: "text-sm text-gray-400",
+    reportDetails: "mb-8 pb-4 border-b border-gray-200",
     summaryTitle: "text-xl font-medium mb-2",
     sectionWrapper: "mb-8",
+    sectionInfo: "bg-gray-50 rounded p-3 mb-4",
     findingWrapper: "mb-3 p-3 border-b",
     severityBadge: {
       Safety: "border border-red-400 text-red-600",

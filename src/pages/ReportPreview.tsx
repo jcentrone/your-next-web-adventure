@@ -14,6 +14,8 @@ import { toast } from "@/components/ui/use-toast";
 import { AlertTriangle, AlertCircle, AlertOctagon, Info, Wrench, MinusCircle } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import PDFDocument from "@/components/reports/PDFDocument";
+import ReportDetailsSection from "@/components/reports/ReportDetailsSection";
+import SectionInfoDisplay from "@/components/reports/SectionInfoDisplay";
 import "../styles/pdf.css";
 
 
@@ -261,6 +263,13 @@ const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
           )}
         </section>
 
+        {/* Report Details */}
+        <ReportDetailsSection 
+          report={report}
+          sectionInfo={report.sections.find(s => s.key === 'report_details')?.info || {}}
+          className={tpl.reportDetails}
+        />
+
         {/* Summary */}
         {Object.keys(severityCounts).length > 0 && (
   <section className="my-10 text-center page-break">
@@ -304,9 +313,17 @@ const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
 )}
 
         {/* Sections */}
-        {report.sections.map((sec) => (
+        {report.sections.filter(sec => sec.key !== 'report_details').map((sec) => (
           <section key={sec.id} className={tpl.sectionWrapper}>
             <h2 className={tpl.h2}>{sec.title}</h2>
+            
+            {/* Section Information */}
+            <SectionInfoDisplay 
+              sectionKey={sec.key}
+              sectionInfo={sec.info || {}}
+              className={tpl.sectionInfo}
+            />
+            
             {sec.findings.length === 0 ? (
               <p className="text-sm text-muted-foreground">No material defects noted.</p>
             ) : (

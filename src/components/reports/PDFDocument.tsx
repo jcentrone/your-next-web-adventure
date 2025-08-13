@@ -2,6 +2,8 @@ import React from "react";
 import { Report } from "@/lib/reportSchemas";
 import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
 import { AlertTriangle, AlertCircle, AlertOctagon, Info, Wrench, MinusCircle } from "lucide-react";
+import ReportDetailsSection from "./ReportDetailsSection";
+import SectionInfoDisplay from "./SectionInfoDisplay";
 
 interface PDFDocumentProps {
   report: Report;
@@ -68,6 +70,14 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
             )}
           </section>
 
+          {/* Report Details */}
+          <section className={`${tpl.reportDetails} pdf-page-break`}>
+            <ReportDetailsSection 
+              report={report}
+              sectionInfo={report.sections.find(s => s.key === 'report_details')?.info || {}}
+            />
+          </section>
+
           {/* Summary */}
           {Object.keys(severityCounts).length > 0 && (
             <section className="my-10 text-center pdf-page-break">
@@ -114,9 +124,17 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
           )}
 
           {/* Sections */}
-          {report.sections.map((sec) => (
+          {report.sections.filter(sec => sec.key !== 'report_details').map((sec) => (
             <section key={sec.id} className={tpl.sectionWrapper}>
               <h2 className={tpl.h2}>{sec.title}</h2>
+              
+              {/* Section Information */}
+              <SectionInfoDisplay 
+                sectionKey={sec.key}
+                sectionInfo={sec.info || {}}
+                className={tpl.sectionInfo}
+              />
+              
               {sec.findings.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No material defects noted.</p>
               ) : (
