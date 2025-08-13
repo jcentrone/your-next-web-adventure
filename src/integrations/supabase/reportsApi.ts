@@ -20,6 +20,24 @@ function toDbPayload(report: Report) {
 }
 
 function fromDbRow(row: any): Report {
+  // Clean up sections data to ensure media objects have required fields
+  const cleanSections = (row.sections || []).map((section: any) => ({
+    ...section,
+    findings: (section.findings || []).map((finding: any) => ({
+      ...finding,
+      media: (finding.media || []).map((media: any) => {
+        // Ensure each media item has required fields with fallbacks
+        const cleanMedia = {
+          id: media.id || crypto.randomUUID(),
+          url: media.url || "",
+          caption: media.caption || "",
+          type: media.type || inferMediaType(media.url) || "image",
+        };
+        return cleanMedia;
+      }),
+    })),
+  }));
+
   const base: Report = {
     id: row.id,
     title: row.title,
@@ -30,14 +48,43 @@ function fromDbRow(row: any): Report {
     finalComments: row.final_comments || "",
     coverImage: row.cover_image || "",
     previewTemplate: row.preview_template || "classic",
-    sections: (row.sections || []) as Section[],
+    sections: cleanSections,
   };
+  
   const parsed = ReportSchema.safeParse(base);
   if (!parsed.success) {
     console.error("Failed to parse report from DB", parsed.error, base);
     throw new Error("Invalid report data from database");
   }
   return parsed.data;
+}
+
+function inferMediaType(url: string): "image" | "video" | "audio" {
+  if (!url) return "image";
+  
+  const lowerUrl = url.toLowerCase();
+  
+  // Check for image extensions or blob URLs (often images)
+  if (lowerUrl.includes('.png') || lowerUrl.includes('.jpg') || lowerUrl.includes('.jpeg') || 
+      lowerUrl.includes('.gif') || lowerUrl.includes('.webp') || lowerUrl.includes('.svg') ||
+      lowerUrl.startsWith('blob:')) {
+    return "image";
+  }
+  
+  // Check for video extensions
+  if (lowerUrl.includes('.mp4') || lowerUrl.includes('.webm') || lowerUrl.includes('.mov') ||
+      lowerUrl.includes('.avi') || lowerUrl.includes('.mkv')) {
+    return "video";
+  }
+  
+  // Check for audio extensions
+  if (lowerUrl.includes('.mp3') || lowerUrl.includes('.wav') || lowerUrl.includes('.ogg') ||
+      lowerUrl.includes('.m4a') || lowerUrl.includes('.flac')) {
+    return "audio";
+  }
+  
+  // Default to image
+  return "image";
 }
 
 export async function dbCreateReport(meta: {

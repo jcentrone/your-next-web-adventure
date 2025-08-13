@@ -27,6 +27,23 @@ import { cn } from "@/lib/utils";
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 type Severity = typeof SEVERITIES[number];
 
+// Utility function to convert blob URL to data URL
+async function convertBlobUrlToDataUrl(blobUrl: string): Promise<string> {
+  try {
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Failed to convert blob URL to data URL:', error);
+    throw error;
+  }
+}
+
 const ReportEditor: React.FC = () => {
   const { id } = useParams();
   const nav = useNavigate();
@@ -209,7 +226,7 @@ const ReportEditor: React.FC = () => {
       payload.imageUrl = m.url;
     } else {
       // Likely a blob: URL from local uploads when unauthenticated
-      payload.imageData = await blobUrlToDataUrl(m.url);
+      payload.imageData = await convertBlobUrlToDataUrl(m.url);
     }
 
     const { data, error } = await (supabase as any).functions.invoke("analyze-image", {
@@ -497,19 +514,29 @@ const ReportEditor: React.FC = () => {
         [tempId]: localUrl,
       }));
 
-      // 2️⃣ Upload to Supabase
-      const { data, error } = await uploadFindingFiles(file);
-      if (error || !data?.path) {
-        toast({
-          title: "Upload failed",
-          description: error?.message || "Could not upload file.",
-          variant: "destructive",
+      // 2️⃣ Upload to Supabase (only if user is authenticated)
+      if (!user) continue; // Skip upload for unauthenticated users
+      
+      try {
+        const uploadedMedia = await uploadFindingFiles({
+          userId: user.id,
+          reportId: report.id,
+          findingId: f.id,
+          files: [file]
         });
-        continue;
-      }
-
-      // 3️⃣ Get a signed URL from Supabase
-      const signedUrl = await getSignedUrlFromSupabaseUrl(data.path);
+        
+        if (!uploadedMedia || uploadedMedia.length === 0) {
+          toast({
+            title: "Upload failed",
+            description: "Could not upload file.",
+            variant: "destructive",
+          });
+          continue;
+        }
+        
+        const media = uploadedMedia[0];
+        // 3️⃣ Get a signed URL from Supabase
+        const signedUrl = await getSignedUrlFromSupabaseUrl(media.url);
 
       // 4️⃣ Replace temporary local preview with the signed URL
       setReport((prev) => {
@@ -520,17 +547,26 @@ const ReportEditor: React.FC = () => {
         if (finding) {
           const mediaItem = finding.media.find((m) => m.id === tempId);
           if (mediaItem) {
-            mediaItem.url = signedUrl;
+            mediaItem.url = media.url;
+            mediaItem.type = media.type;
           }
         }
         return next;
       });
 
-      // 5️⃣ Update mediaUrlMap so display uses the signed URL
-      setMediaUrlMap((prev) => ({
-        ...prev,
-        [tempId]: signedUrl,
-      }));
+        // 5️⃣ Update mediaUrlMap so display uses the signed URL
+        setMediaUrlMap((prev) => ({
+          ...prev,
+          [tempId]: signedUrl,
+        }));
+      } catch (uploadError) {
+        console.error('Upload error:', uploadError);
+        toast({
+          title: "Upload failed",
+          description: "Could not upload file.",
+          variant: "destructive",
+        });
+      }
     }
   }}
 />
@@ -569,7 +605,24 @@ const ReportEditor: React.FC = () => {
             onOpenChange={setPickerOpen}
             sectionKey={activeSection.key}
             onInsert={(tpl) => {
-              addFindingFromTemplate(tpl as any);
+              const fid = crypto.randomUUID();
+              setReport((prev) => {
+                if (!prev) return prev;
+                const next = { ...prev };
+                const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
+                next.sections[sIdx].findings.unshift({
+                  id: fid,
+                  title: tpl.title,
+                  severity: (tpl.severity as Severity),
+                  narrative: tpl.narrative,
+                  recommendation: tpl.recommendation || "",
+                  mediaGuidance: tpl.mediaGuidance || "",
+                  defectId: tpl.defectId || null,
+                  media: [],
+                  includeInSummary: false,
+                } as Finding);
+                return { ...next };
+              });
               if (tpl.defectId) setPickerOpen(false);
             }}
           />
