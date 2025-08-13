@@ -1,0 +1,212 @@
+/* PDF-specific styles for react-to-print */
+@media print {
+  .pdf-document {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.4;
+    color: #000;
+    background: white;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 0.75in;
+    size: letter;
+  }
+
+  /* Page breaks */
+  .pdf-page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .pdf-page-break:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  /* Images optimization */
+  .pdf-image {
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: contain;
+    break-inside: avoid;
+  }
+
+  .cover {
+    max-height: 6in;
+    width: auto;
+    object-fit: contain;
+    margin: 0 auto;
+  }
+
+  /* Typography adjustments for print */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+    orphans: 3;
+    widows: 3;
+  }
+
+  p {
+    orphans: 2;
+    widows: 2;
+  }
+
+  /* Avoid breaks inside elements */
+  figure, .findingWrapper {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Grid adjustments for print */
+  .grid-cols-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Color adjustments for print */
+  .bg-gradient-to-br {
+    background: #f8f9fa !important;
+    color: #000 !important;
+  }
+
+  /* Ensure text contrast in print */
+  .text-white {
+    color: #000 !important;
+  }
+
+  .text-muted-foreground {
+    color: #666 !important;
+  }
+
+  /* Badge styles for print */
+  .bg-red-600, .bg-red-100 {
+    background-color: #fee !important;
+    border: 1px solid #dc2626 !important;
+    color: #dc2626 !important;
+  }
+
+  .bg-orange-500, .bg-orange-100 {
+    background-color: #fef3c7 !important;
+    border: 1px solid #f59e0b !important;
+    color: #f59e0b !important;
+  }
+
+  .bg-yellow-400, .bg-yellow-100 {
+    background-color: #fef9c3 !important;
+    border: 1px solid #eab308 !important;
+    color: #ca8a04 !important;
+  }
+
+  .bg-blue-400, .bg-blue-100 {
+    background-color: #dbeafe !important;
+    border: 1px solid #3b82f6 !important;
+    color: #3b82f6 !important;
+  }
+
+  .bg-green-500, .bg-green-100 {
+    background-color: #dcfce7 !important;
+    border: 1px solid #22c55e !important;
+    color: #22c55e !important;
+  }
+
+  .bg-gray-300, .bg-gray-100 {
+    background-color: #f3f4f6 !important;
+    border: 1px solid #6b7280 !important;
+    color: #374151 !important;
+  }
+
+  /* Shadow removal for print */
+  .shadow, .drop-shadow {
+    box-shadow: none !important;
+    filter: none !important;
+  }
+
+  /* Border adjustments */
+  .border-b {
+    border-bottom: 1px solid #d1d5db !important;
+  }
+
+  .border {
+    border: 1px solid #d1d5db !important;
+  }
+
+  /* Spacing adjustments */
+  .mb-12 {
+    margin-bottom: 2rem !important;
+  }
+
+  .my-10 {
+    margin-top: 2rem !important;
+    margin-bottom: 2rem !important;
+  }
+
+  /* Flex adjustments for print */
+  .flex {
+    display: flex !important;
+  }
+
+  .flex-wrap {
+    flex-wrap: wrap !important;
+  }
+
+  .justify-center {
+    justify-content: center !important;
+  }
+
+  .items-center {
+    align-items: center !important;
+  }
+
+  /* Remove unnecessary print elements */
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  /* Ensure minimum sizing for readability */
+  .text-xs {
+    font-size: 10px !important;
+  }
+
+  .text-sm {
+    font-size: 12px !important;
+  }
+
+  .text-base {
+    font-size: 14px !important;
+  }
+
+  .text-lg {
+    font-size: 16px !important;
+  }
+
+  .text-xl {
+    font-size: 18px !important;
+  }
+
+  .text-2xl {
+    font-size: 20px !important;
+  }
+
+  .text-3xl {
+    font-size: 24px !important;
+  }
+}
+
+/* Non-print styles for the PDF component */
+.pdf-document {
+  background: white;
+  color: black;
+}
+
+.pdf-document .pdf-page-break {
+  margin-bottom: 2rem;
+  border-bottom: 2px dashed #e5e7eb;
+  padding-bottom: 2rem;
+}
+
+.pdf-document .pdf-page-break:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}

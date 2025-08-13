@@ -12,6 +12,9 @@ import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { AlertTriangle, AlertCircle, AlertOctagon, Info, Wrench, MinusCircle } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import PDFDocument from "@/components/reports/PDFDocument";
+import "../styles/pdf.css";
 
 
 function ButtonBar({ id }: { id: string }) {
@@ -72,9 +75,31 @@ const ReportPreview: React.FC = () => {
   const [report, setReport] = React.useState<Report | null>(null);
   const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
   const [coverUrl, setCoverUrl] = React.useState<string>("");
+  const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
+  const pdfRef = React.useRef<HTMLDivElement>(null);
 
   const nav = useNavigate();
   const [savingTpl, setSavingTpl] = React.useState(false);
+
+  const handlePrint = useReactToPrint({
+    contentRef: pdfRef,
+    documentTitle: `${report?.title || 'Report'} - ${report?.clientName || 'Client'}`,
+  });
+
+  const onPrintClick = () => {
+    setIsGeneratingPDF(true);
+    try {
+      handlePrint();
+      setTimeout(() => {
+        setIsGeneratingPDF(false);
+        toast({ title: 'PDF Generated', description: 'Your report has been generated successfully.' });
+      }, 1000);
+    } catch (error) {
+      setIsGeneratingPDF(false);
+      toast({ title: 'PDF Generation Failed', description: 'Failed to generate PDF. Please try again.', variant: 'destructive' });
+    }
+  };
+
   const handleTemplateChange = async (tplKey: 'classic' | 'modern' | 'minimal') => {
     if (!report) return;
     setSavingTpl(true);
@@ -214,8 +239,12 @@ const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
           </Button>
           <TemplateSelector value={report.previewTemplate} onChange={handleTemplateChange} disabled={savingTpl} />
         </div>
-        <Button onClick={() => window.print()} aria-label="Download PDF">
-          Download PDF
+        <Button 
+          onClick={onPrintClick} 
+          disabled={isGeneratingPDF}
+          aria-label="Download PDF"
+        >
+          {isGeneratingPDF ? 'Generating PDF...' : 'Download PDF'}
         </Button>
       </div>
       <article className={tpl.container}>
@@ -326,6 +355,16 @@ const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
           </section>
         ))}
       </article>
+
+      {/* Hidden PDF Document for react-to-print */}
+      <div style={{ display: 'none' }}>
+        <PDFDocument 
+          ref={pdfRef}
+          report={report}
+          mediaUrlMap={mediaUrlMap}
+          coverUrl={coverUrl}
+        />
+      </div>
     </>
   );
 };
