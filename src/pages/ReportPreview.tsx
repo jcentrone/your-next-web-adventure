@@ -214,27 +214,27 @@ const ReportPreview: React.FC = () => {
         </section>
 
         {/* Summary */}
-{Object.keys(severityCounts).length > 0 && (
-  <section className="my-10  text-center page-break">
-    <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
-    <div className="flex flex-wrap justify-center gap-8 text-center">
-  {orderedSeverities.map(severity => {
-    const Icon = SEVERITY_ICONS[severity];
-    return (
-      <div key={severity} className="flex flex-col items-center">
-        <div
-          className={`flex items-center justify-center w-16 h-16 rounded-full ${tpl.severityBadge[severity] || ''}`}
-        >
-          <Icon size={28} />
+        {Object.keys(severityCounts).length > 0 && (
+          <section className="my-10  text-center page-break">
+            <h2 className={tpl.summaryTitle}>Summary of Significant Issues</h2>
+            <div className="flex flex-wrap justify-center gap-8 text-center">
+          {orderedSeverities.map(severity => {
+            const Icon = SEVERITY_ICONS[severity];
+            return (
+              <div key={severity} className="flex flex-col items-center">
+                <div
+                  className={`flex items-center justify-center w-40 h-40 rounded-full ${tpl.severityBadge[severity] || ''}`}
+                >
+                  <Icon size={36} />
+                </div>
+                <span className="mt-2 font-bold">{severityCounts[severity]}</span>
+                <span className="text-sm">{severity}</span>
+              </div>
+            );
+          })}
         </div>
-        <span className="mt-2 font-bold">{severityCounts[severity]}</span>
-        <span className="text-sm">{severity}</span>
-      </div>
-    );
-  })}
-</div>
-  </section>
-)}
+          </section>
+        )}
 
         {/* Sections */}
         {report.sections.map((sec) => (
