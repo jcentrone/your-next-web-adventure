@@ -11,6 +11,7 @@ import { SectionKey, SOP_SECTIONS } from "@/constants/sop";
 import { Finding, Report, Media } from "@/lib/reportSchemas";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { InfoFieldWidget } from "@/components/reports/InfoFieldWidget";
 import { toast } from "@/components/ui/use-toast";
 import DefectPicker from "@/components/reports/DefectPicker";
 import { useSectionGuidance } from "@/hooks/useSectionGuidance";
@@ -354,25 +355,28 @@ const ReportEditor: React.FC = () => {
               {activeTab === "info" && (
                 <section className="mb-4 rounded-md border p-4 space-y-4">
                   {guidance[activeSection.key]?.infoFields?.length > 0 ? (
-                    guidance[activeSection.key].infoFields.map((field, idx) => (
-                      <div key={idx}>
-                        <label className="block text-sm font-medium">{field}</label>
-                        <Input
-                          value={activeSection.info?.[field] || ""}
-                          onChange={(e) => {
-                            const val = e.target.value;
+                    guidance[activeSection.key].infoFields.map((field, idx) => {
+                      const fieldName = typeof field === "string" ? field : field.name;
+                      const fieldLabel = typeof field === "string" ? field : field.label;
+                      
+                      return (
+                        <InfoFieldWidget
+                          key={idx}
+                          field={field}
+                          value={activeSection.info?.[fieldName] || ""}
+                          onChange={(val) => {
                             setReport((prev) => {
                               if (!prev) return prev;
                               const next = { ...prev };
                               const sec = next.sections.find(s => s.id === activeSection.id);
                               if (!sec) return prev;
-                              sec.info = { ...(sec.info || {}), [field]: val };
+                              sec.info = { ...(sec.info || {}), [fieldName]: val };
                               return next;
                             });
                           }}
                         />
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <p className="text-sm text-muted-foreground">No information fields for this section.</p>
                   )}

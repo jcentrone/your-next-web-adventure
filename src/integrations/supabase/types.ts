@@ -107,21 +107,21 @@ export type Database = {
       section_guidance: {
         Row: {
           created_at: string
-          infoFields: string[] | null
+          infoFields: Json | null
           items: string[]
           section_key: Database["public"]["Enums"]["section_key"]
           updated_at: string
         }
         Insert: {
           created_at?: string
-          infoFields?: string[] | null
+          infoFields?: Json | null
           items: string[]
           section_key: Database["public"]["Enums"]["section_key"]
           updated_at?: string
         }
         Update: {
           created_at?: string
-          infoFields?: string[] | null
+          infoFields?: Json | null
           items?: string[]
           section_key?: Database["public"]["Enums"]["section_key"]
           updated_at?: string

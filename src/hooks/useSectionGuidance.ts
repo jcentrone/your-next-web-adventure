@@ -3,8 +3,17 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SectionKey } from "@/constants/sop";
 
+export type InfoField = {
+  name: string;
+  label: string;
+  sop_ref?: string;
+  widget: "text" | "select";
+  required?: boolean;
+  options?: string[];
+};
+
 export type SectionGuidance = {
-  infoFields: string[];
+  infoFields: string[] | InfoField[];
   observationItems: string[];
 };
 
