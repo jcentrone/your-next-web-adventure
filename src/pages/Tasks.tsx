@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tasksApi, contactsApi, appointmentsApi } from "@/integrations/supabase/crmApi";
@@ -10,15 +10,19 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckSquare, Plus, Edit, Trash2, Clock } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Plus, Edit, Trash2, CheckSquare, Check, ArrowUpDown, Filter, Calendar, User, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TaskSchema, type Task } from "@/lib/crmSchemas";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Seo from "@/components/Seo";
+
+type SortField = "title" | "priority" | "status" | "due_date" | "created_at";
+type SortOrder = "asc" | "desc";
 
 const Tasks: React.FC = () => {
   const { user } = useAuth();
@@ -26,6 +30,11 @@ const Tasks: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteTask, setDeleteTask] = useState<Task | null>(null);
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks", user?.id],
@@ -161,6 +170,15 @@ const Tasks: React.FC = () => {
     });
   };
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent":
@@ -191,68 +209,232 @@ const Tasks: React.FC = () => {
     }
   };
 
+  const filteredAndSortedTasks = useMemo(() => {
+    let filtered = tasks.filter(task => {
+      const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           (task.description || "").toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
+      const matchesStatus = statusFilter === "all" || task.status === statusFilter;
+      
+      return matchesSearch && matchesPriority && matchesStatus;
+    });
+
+    return filtered.sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortField) {
+        case "title":
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case "priority":
+          const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
+          aValue = priorityOrder[a.priority as keyof typeof priorityOrder];
+          bValue = priorityOrder[b.priority as keyof typeof priorityOrder];
+          break;
+        case "status":
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        case "due_date":
+          aValue = a.due_date ? new Date(a.due_date).getTime() : 0;
+          bValue = b.due_date ? new Date(b.due_date).getTime() : 0;
+          break;
+        case "created_at":
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortOrder === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+  }, [tasks, searchQuery, priorityFilter, statusFilter, sortField, sortOrder]);
+
   const filterTasksByStatus = (status: string) => {
-    if (status === "all") return tasks;
-    return tasks.filter(task => task.status === status);
+    if (status === "all") return filteredAndSortedTasks;
+    return filteredAndSortedTasks.filter(task => task.status === status);
   };
 
-  const TaskCard = ({ task }: { task: Task }) => (
-    <Card className="relative">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={task.status === "completed"}
-                onChange={() => handleToggleComplete(task)}
-                className="rounded"
-              />
-              <h3 className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
-                {task.title}
-              </h3>
-            </div>
-            
-            {task.description && (
-              <p className="text-sm text-muted-foreground">{task.description}</p>
-            )}
-            
-            <div className="flex flex-wrap gap-2">
-              <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
-              <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
-            </div>
-            
-            {task.due_date && (
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                Due: {format(new Date(task.due_date), "MMM d, yyyy")}
-              </p>
-            )}
-            
-            {(task as any).contact && (
-              <p className="text-sm text-muted-foreground">
-                Contact: {(task as any).contact.first_name} {(task as any).contact.last_name}
-              </p>
-            )}
-            
-            {(task as any).appointment && (
-              <p className="text-sm text-muted-foreground">
-                Appointment: {(task as any).appointment.title}
-              </p>
-            )}
+  const TaskListView = ({ tasks }: { tasks: Task[] }) => (
+    <div className="space-y-4">
+      {/* Controls Bar */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex gap-2 flex-wrap">
+          <div className="relative">
+            <Input
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-64"
+            />
           </div>
-          
-          <div className="flex gap-2">
-            <Button size="sm" variant="ghost" onClick={() => handleEdit(task)}>
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => handleDelete(task)}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <SelectTrigger className="w-32">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Priority</SelectItem>
+              <SelectItem value="urgent">Urgent</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="low">Low</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-32">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Task Table */}
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12"></TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort("title")}
+              >
+                <div className="flex items-center gap-2">
+                  Title
+                  <ArrowUpDown className="w-4 h-4" />
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort("priority")}
+              >
+                <div className="flex items-center gap-2">
+                  Priority
+                  <ArrowUpDown className="w-4 h-4" />
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort("status")}
+              >
+                <div className="flex items-center gap-2">
+                  Status
+                  <ArrowUpDown className="w-4 h-4" />
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleSort("due_date")}
+              >
+                <div className="flex items-center gap-2">
+                  Due Date
+                  <ArrowUpDown className="w-4 h-4" />
+                </div>
+              </TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead className="w-32">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tasks.map((task) => (
+              <TableRow key={task.id} className="hover:bg-muted/50">
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleToggleComplete(task)}
+                    className="p-1"
+                  >
+                    {task.status === "completed" ? (
+                      <CheckSquare className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <div className="w-4 h-4 border-2 border-muted-foreground rounded" />
+                    )}
+                  </Button>
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <div className="font-medium">{task.title}</div>
+                    {task.description && (
+                      <div className="text-sm text-muted-foreground truncate max-w-[200px]">
+                        {task.description}
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge className={getPriorityColor(task.priority)}>
+                    {task.priority}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge className={getStatusColor(task.status)}>
+                    {task.status.replace("_", " ")}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {task.due_date ? (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {format(new Date(task.due_date), "MMM d, yyyy")}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">No due date</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {(task as any).contacts ? (
+                    <div className="flex items-center gap-1">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {(task as any).contacts.first_name} {(task as any).contacts.last_name}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">No contact</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(task)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(task)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 
   return (
@@ -460,7 +642,7 @@ const Tasks: React.FC = () => {
 
         <Tabs defaultValue="all" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="all">All Tasks ({tasks.length})</TabsTrigger>
+            <TabsTrigger value="all">All Tasks ({filteredAndSortedTasks.length})</TabsTrigger>
             <TabsTrigger value="pending">
               Pending ({filterTasksByStatus("pending").length})
             </TabsTrigger>
@@ -475,20 +657,16 @@ const Tasks: React.FC = () => {
           <TabsContent value="all">
             {isLoading ? (
               <div className="text-center py-8">Loading tasks...</div>
-            ) : tasks.length === 0 ? (
+            ) : filteredAndSortedTasks.length === 0 ? (
               <div className="text-center py-8">
                 <CheckSquare className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks found</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Get started by creating a new task.
+                  {tasks.length === 0 ? "Get started by creating a new task." : "Try adjusting your search or filters."}
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {tasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-              </div>
+              <TaskListView tasks={filteredAndSortedTasks} />
             )}
           </TabsContent>
 
@@ -502,11 +680,7 @@ const Tasks: React.FC = () => {
                   </h3>
                 </div>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {filterTasksByStatus(status).map((task) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                </div>
+                <TaskListView tasks={filterTasksByStatus(status)} />
               )}
             </TabsContent>
           ))}
