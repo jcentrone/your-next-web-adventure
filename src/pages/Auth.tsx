@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/use-toast";
@@ -26,6 +28,7 @@ const AuthPage: React.FC = () => {
   const [organizationName, setOrganizationName] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [licenseNumber, setLicenseNumber] = React.useState("");
+  const [verificationStatus, setVerificationStatus] = React.useState<"pending" | "success" | "error" | null>(null);
 
   const searchParams = new URLSearchParams(location.search);
   const redirectTo = searchParams.get("redirectTo") || "/";
@@ -34,6 +37,26 @@ const AuthPage: React.FC = () => {
   // Allow deep-linking to signup: /auth?mode=signup
   React.useEffect(() => {
     const m = searchParams.get("mode");
+    const type = searchParams.get("type");
+    const error = searchParams.get("error");
+    const error_description = searchParams.get("error_description");
+    
+    // Handle email verification callback
+    if (type === "signup" && !error) {
+      setVerificationStatus("success");
+      toast({
+        title: "Email verified!",
+        description: "Your account has been created successfully. Please sign in."
+      });
+    } else if (error) {
+      setVerificationStatus("error");
+      toast({
+        title: "Verification failed",
+        description: error_description || "There was an issue verifying your email.",
+        variant: "destructive"
+      });
+    }
+    
     if (m === "signup" || m === "signin") {
       setMode(m);
     }
@@ -88,21 +111,20 @@ const AuthPage: React.FC = () => {
 
       if (authError) throw authError;
 
-      if (authData.user) {
-        // Handle invitation acceptance during signup
-        if (inviteToken) {
-          // For invitations, we'll handle this after email confirmation and sign in
-          toast({
-            title: "Invitation will be processed",
-            description: "Check your email to confirm your account, then sign in to join the organization."
-          });
-        } else {
-          // Regular signup - organization will be created after email confirmation
-          toast({
-            title: "Check your email",
-            description: `Confirm your email to complete ${signupType === "organization" ? "organization setup" : "signup"}, then sign in.`
-          });
-        }
+      if (authData.user && !authData.user.email_confirmed_at) {
+        // User needs to verify email first
+        setVerificationStatus("pending");
+        toast({
+          title: "Check your email",
+          description: `We've sent you a confirmation link. ${signupType === "organization" ? "Your organization will be set up after verification." : "Please verify your email to complete signup."}`
+        });
+      } else if (authData.user?.email_confirmed_at) {
+        // Email already confirmed (shouldn't happen in signup flow)
+        toast({
+          title: "Account already verified",
+          description: "Please sign in with your credentials."
+        });
+        setMode("signin");
       }
     } catch (error: any) {
       toast({ title: "Sign up failed", description: error.message });
@@ -142,6 +164,34 @@ const AuthPage: React.FC = () => {
               <button className="underline" onClick={() => setMode("signin")}>Sign in</button></>
           )}
         </p>
+
+        {/* Verification Status Messages */}
+        {verificationStatus === "pending" && (
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Please check your email and click the verification link to complete your account setup.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {verificationStatus === "success" && (
+          <Alert className="mb-4">
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>
+              Your email has been verified successfully! You can now sign in.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {verificationStatus === "error" && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              There was an issue verifying your email. Please try signing up again or contact support.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <div className="space-y-4">
           <Button variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>

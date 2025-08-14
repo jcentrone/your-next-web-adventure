@@ -33,24 +33,6 @@ export async function upsertProfile(session: Session | null) {
     console.error("upsertProfile error:", error.message);
   } else {
     console.log("Profile upserted for", user.id);
-    
-    // Check if this user needs to create an organization (from signup metadata)
-    if (meta.is_organization_admin && meta.organization_name) {
-      try {
-        // Import the function dynamically to avoid circular imports
-        const { createOrganization } = await import("@/integrations/supabase/organizationsApi");
-        
-        await createOrganization({
-          name: meta.organization_name,
-          email: email,
-          phone: meta.phone,
-          license_number: meta.license_number
-        });
-        
-        console.log("Organization created during profile setup");
-      } catch (orgError) {
-        console.error("Failed to create organization during profile setup:", orgError);
-      }
-    }
+    // Organization creation is now handled by the database trigger
   }
 }
