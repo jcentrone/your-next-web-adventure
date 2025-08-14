@@ -127,6 +127,7 @@ export function GooglePlacesAutocomplete({
       e.preventDefault();
       e.stopPropagation();
     }
+    if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); }
   };
 
   return (
