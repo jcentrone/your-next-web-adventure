@@ -13,9 +13,13 @@ import {
   Undo, 
   Redo, 
   Save,
-  Palette
+  Palette,
+  Loader2,
+  AlertTriangle
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 interface ImageAnnotatorProps {
   isOpen: boolean;
@@ -50,11 +54,26 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
   const [activeColor, setActiveColor] = useState("#ef4444");
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
 
+  // Initialize canvas and load image
   useEffect(() => {
     if (!canvasRef.current || !isOpen) return;
 
-    console.log("Initializing canvas with image:", imageUrl);
+    setIsLoading(true);
+    setError(null);
+    setCanvasReady(false);
+
+    console.log("🎨 Initializing canvas with image:", imageUrl);
+
+    // Validate image URL first
+    if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('blob:') && !imageUrl.startsWith('data:'))) {
+      setError("Invalid image URL format");
+      setIsLoading(false);
+      return;
+    }
 
     const canvas = new FabricCanvas(canvasRef.current, {
       width: 800,
@@ -62,11 +81,34 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
       backgroundColor: "#ffffff",
     });
 
-    // Load image first
-    FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' })
-      .then((img) => {
-        console.log("Image loaded successfully:", img);
+    // Set up drawing brush early
+    canvas.freeDrawingBrush.color = activeColor;
+    canvas.freeDrawingBrush.width = 3;
+
+    const loadImage = async () => {
+      try {
+        console.log("📸 Loading image from URL:", imageUrl);
         
+        // Create image element for better error handling
+        const imgElement = new Image();
+        imgElement.crossOrigin = 'anonymous';
+        
+        await new Promise((resolve, reject) => {
+          imgElement.onload = resolve;
+          imgElement.onerror = (e) => {
+            console.error("Image load error:", e);
+            reject(new Error("Failed to load image"));
+          };
+          imgElement.src = imageUrl;
+        });
+
+        console.log("✅ Image loaded successfully, creating Fabric image...");
+        
+        const img = await FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' });
+        
+        console.log("✅ Fabric image created:", { width: img.width, height: img.height });
+        
+        // Calculate scaling to fit canvas
         const canvasAspect = canvas.width! / canvas.height!;
         const imageAspect = img.width! / img.height!;
         
@@ -83,39 +125,55 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
           top: (canvas.height! - img.getScaledHeight()) / 2,
           selectable: false,
           evented: false,
+          name: 'background-image'
         });
         
         canvas.add(img);
         canvas.sendObjectToBack(img);
         canvas.renderAll();
 
+        console.log("✅ Image added to canvas");
+
         // Load initial annotations if provided
         if (initialAnnotations) {
           try {
-            canvas.loadFromJSON(initialAnnotations).then(() => {
-              canvas.renderAll();
-              saveToHistory();
-            });
-          } catch (error) {
-            console.error("Failed to load annotations:", error);
-            saveToHistory();
+            console.log("📝 Loading initial annotations...");
+            const annotationsData = typeof initialAnnotations === 'string' 
+              ? JSON.parse(initialAnnotations) 
+              : initialAnnotations;
+            
+            await canvas.loadFromJSON(annotationsData);
+            canvas.renderAll();
+            console.log("✅ Annotations loaded successfully");
+          } catch (annotationError) {
+            console.error("❌ Failed to load annotations:", annotationError);
+            toast.error("Failed to load existing annotations");
           }
-        } else {
-          saveToHistory();
         }
-      })
-      .catch((error) => {
-        console.error("Failed to load image:", error);
-      });
 
-    // Set up drawing brush
-    canvas.freeDrawingBrush.color = activeColor;
-    canvas.freeDrawingBrush.width = 3;
+        // Initialize history with current state
+        const initialState = JSON.stringify(canvas.toJSON());
+        setHistory([initialState]);
+        setHistoryIndex(0);
+        setCanvasReady(true);
+        toast.success("Image loaded and ready for annotation!");
 
+      } catch (imageError) {
+        console.error("❌ Failed to load image:", imageError);
+        setError(`Failed to load image: ${imageError.message}`);
+        toast.error("Failed to load image for annotation");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadImage();
     setFabricCanvas(canvas);
 
     return () => {
+      console.log("🧹 Disposing canvas");
       canvas.dispose();
+      setCanvasReady(false);
     };
   }, [isOpen, imageUrl]);
 
@@ -130,39 +188,63 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
   }, [activeTool, activeColor, fabricCanvas]);
 
   const saveToHistory = () => {
-    if (!fabricCanvas) return;
+    if (!fabricCanvas || !canvasReady) return;
     
-    const state = JSON.stringify(fabricCanvas.toJSON());
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(state);
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
+    try {
+      const state = JSON.stringify(fabricCanvas.toJSON());
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(state);
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+      console.log("💾 State saved to history, index:", newHistory.length - 1);
+    } catch (error) {
+      console.error("❌ Failed to save to history:", error);
+    }
   };
 
-  const undo = () => {
-    if (!fabricCanvas || historyIndex <= 0) return;
+  const undo = async () => {
+    if (!fabricCanvas || !canvasReady || historyIndex <= 0) return;
     
-    const newIndex = historyIndex - 1;
-    fabricCanvas.loadFromJSON(history[newIndex], () => {
+    try {
+      const newIndex = historyIndex - 1;
+      const historyState = JSON.parse(history[newIndex]);
+      await fabricCanvas.loadFromJSON(historyState);
       fabricCanvas.renderAll();
       setHistoryIndex(newIndex);
-    });
+      console.log("↩️ Undo to index:", newIndex);
+    } catch (error) {
+      console.error("❌ Failed to undo:", error);
+      toast.error("Failed to undo");
+    }
   };
 
-  const redo = () => {
-    if (!fabricCanvas || historyIndex >= history.length - 1) return;
+  const redo = async () => {
+    if (!fabricCanvas || !canvasReady || historyIndex >= history.length - 1) return;
     
-    const newIndex = historyIndex + 1;
-    fabricCanvas.loadFromJSON(history[newIndex], () => {
+    try {
+      const newIndex = historyIndex + 1;
+      const historyState = JSON.parse(history[newIndex]);
+      await fabricCanvas.loadFromJSON(historyState);
       fabricCanvas.renderAll();
       setHistoryIndex(newIndex);
-    });
+      console.log("↪️ Redo to index:", newIndex);
+    } catch (error) {
+      console.error("❌ Failed to redo:", error);
+      toast.error("Failed to redo");
+    }
   };
 
   const handleToolClick = (tool: typeof activeTool) => {
-    setActiveTool(tool);
+    if (!fabricCanvas || !canvasReady) {
+      toast.error("Canvas not ready yet");
+      return;
+    }
 
-    if (!fabricCanvas) return;
+    setActiveTool(tool);
+    console.log("🔧 Tool selected:", tool);
+
+    // Clear any existing event handlers
+    fabricCanvas.off("mouse:down");
 
     if (tool === "arrow") {
       // Create arrow on next click
@@ -173,6 +255,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
         fabricCanvas.off("mouse:down", handler);
         setActiveTool("select");
         saveToHistory();
+        toast.success("Arrow added");
       };
       fabricCanvas.on("mouse:down", handler);
     } else if (tool === "text") {
@@ -189,6 +272,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
         fabricCanvas.off("mouse:down", handler);
         setActiveTool("select");
         saveToHistory();
+        toast.success("Text added");
       };
       fabricCanvas.on("mouse:down", handler);
     } else if (tool === "rectangle") {
@@ -204,6 +288,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
       fabricCanvas.add(rect);
       setActiveTool("select");
       saveToHistory();
+      toast.success("Rectangle added");
     } else if (tool === "circle") {
       const circle = new FabricCircle({
         left: 100,
@@ -216,6 +301,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
       fabricCanvas.add(circle);
       setActiveTool("select");
       saveToHistory();
+      toast.success("Circle added");
     } else if (tool === "line") {
       const line = new Line([100, 100, 200, 100], {
         stroke: activeColor,
@@ -224,6 +310,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
       fabricCanvas.add(line);
       setActiveTool("select");
       saveToHistory();
+      toast.success("Line added");
     }
   };
 
@@ -259,17 +346,39 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
     return new Group([line, arrowHead1, arrowHead2]);
   };
 
-  const handleSave = () => {
-    if (!fabricCanvas) return;
+  const handleSave = async () => {
+    if (!fabricCanvas || !canvasReady) {
+      toast.error("Canvas not ready for saving");
+      return;
+    }
 
-    const annotations = JSON.stringify(fabricCanvas.toJSON());
-    
-    fabricCanvas.toCanvasElement().toBlob((blob) => {
-      if (blob) {
-        onSave(annotations, blob);
-        onClose();
+    try {
+      setIsLoading(true);
+      console.log("💾 Saving annotations...");
+      
+      const annotations = JSON.stringify(fabricCanvas.toJSON());
+      console.log("📝 Annotations data:", annotations);
+      
+      // Convert canvas to blob
+      const canvas = fabricCanvas.toCanvasElement();
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, "image/jpeg", 0.9);
+      });
+
+      if (!blob) {
+        throw new Error("Failed to create image blob");
       }
-    }, "image/jpeg", 0.8);
+
+      console.log("✅ Image blob created, size:", blob.size);
+      toast.success("Annotations saved successfully!");
+      onSave(annotations, blob);
+      onClose();
+    } catch (error) {
+      console.error("❌ Failed to save annotations:", error);
+      toast.error("Failed to save annotations");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -282,12 +391,36 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
         </DialogHeader>
         
         <div className="flex flex-col gap-4">
+          {/* Loading/Error States */}
+          {isLoading && (
+            <Alert>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <AlertDescription>
+                Loading image for annotation...
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {error && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           {/* Toolbar */}
           <div className="flex items-center gap-2 p-4 border rounded-lg bg-muted/50">
+            {!canvasReady && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Preparing canvas...</span>
+              </div>
+            )}
             <Button
               variant={activeTool === "select" ? "default" : "outline"}
               size="sm"
               onClick={() => handleToolClick("select")}
+              disabled={!canvasReady}
             >
               <MousePointer className="h-4 w-4" />
             </Button>
@@ -296,6 +429,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
               variant={activeTool === "arrow" ? "default" : "outline"}
               size="sm"
               onClick={() => handleToolClick("arrow")}
+              disabled={!canvasReady}
             >
               <ArrowUpRight className="h-4 w-4" />
             </Button>
@@ -304,6 +438,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
               variant={activeTool === "text" ? "default" : "outline"}
               size="sm"
               onClick={() => handleToolClick("text")}
+              disabled={!canvasReady}
             >
               <Type className="h-4 w-4" />
             </Button>
@@ -312,6 +447,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
               variant={activeTool === "rectangle" ? "default" : "outline"}
               size="sm"
               onClick={() => handleToolClick("rectangle")}
+              disabled={!canvasReady}
             >
               <Square className="h-4 w-4" />
             </Button>
@@ -320,6 +456,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
               variant={activeTool === "circle" ? "default" : "outline"}
               size="sm"
               onClick={() => handleToolClick("circle")}
+              disabled={!canvasReady}
             >
               <Circle className="h-4 w-4" />
             </Button>
@@ -328,6 +465,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
               variant={activeTool === "line" ? "default" : "outline"}
               size="sm"
               onClick={() => handleToolClick("line")}
+              disabled={!canvasReady}
             >
               <Minus className="h-4 w-4" />
             </Button>
@@ -336,6 +474,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
               variant={activeTool === "draw" ? "default" : "outline"}
               size="sm"
               onClick={() => handleToolClick("draw")}
+              disabled={!canvasReady}
             >
               <Pencil className="h-4 w-4" />
             </Button>
@@ -374,7 +513,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
               variant="outline"
               size="sm"
               onClick={undo}
-              disabled={historyIndex <= 0}
+              disabled={!canvasReady || historyIndex <= 0}
             >
               <Undo className="h-4 w-4" />
             </Button>
@@ -383,22 +522,37 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
               variant="outline"
               size="sm"
               onClick={redo}
-              disabled={historyIndex >= history.length - 1}
+              disabled={!canvasReady || historyIndex >= history.length - 1}
             >
               <Redo className="h-4 w-4" />
             </Button>
             
             <div className="flex-1" />
             
-            <Button onClick={handleSave}>
-              <Save className="h-4 w-4 mr-2" />
+            <Button 
+              onClick={handleSave}
+              disabled={!canvasReady || isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
               Save
             </Button>
           </div>
           
           {/* Canvas */}
-          <div className="border rounded-lg overflow-hidden bg-muted/30">
+          <div className="border rounded-lg overflow-hidden bg-muted/30 relative">
             <canvas ref={canvasRef} className="max-w-full" />
+            {!canvasReady && !error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <p className="text-sm text-muted-foreground">Loading image...</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
