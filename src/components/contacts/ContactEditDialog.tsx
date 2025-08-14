@@ -139,7 +139,9 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
           // Prevent closing when interacting with Google Places dropdown
           const target = e.target as Element;
           if (target?.closest('.pac-container')) {
+            console.log('ContactEditDialog: Preventing close - onInteractOutside with pac-container');
             e.preventDefault();
+            return;
           }
         }}
         onPointerDownOutside={(e) => {

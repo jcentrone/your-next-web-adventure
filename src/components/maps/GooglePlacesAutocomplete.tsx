@@ -31,6 +31,7 @@ export function GooglePlacesAutocomplete({
   const onChangeRef = useRef(onChange);
   const isSelectingFromGoogle = useRef(false);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const preventDialogCloseRef = useRef(false);
   const [isFocused, setIsFocused] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +49,41 @@ export function GooglePlacesAutocomplete({
       setDisplayValue(value);
     }
   }, [value]);
+
+  // Add document-level event listeners to prevent dialog closing
+  useEffect(() => {
+    const handleDocumentMouseDown = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (target?.closest('.pac-container')) {
+        console.log('Google Places: Preventing dialog close - mousedown on pac-container');
+        preventDialogCloseRef.current = true;
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        
+        // Reset after a delay
+        setTimeout(() => {
+          preventDialogCloseRef.current = false;
+        }, 500);
+      }
+    };
+
+    const handleDocumentClick = (e: MouseEvent) => {
+      const target = e.target as Element;
+      if (target?.closest('.pac-container')) {
+        console.log('Google Places: Preventing dialog close - click on pac-container');
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('mousedown', handleDocumentMouseDown, true);
+    document.addEventListener('click', handleDocumentClick, true);
+
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentMouseDown, true);
+      document.removeEventListener('click', handleDocumentClick, true);
+    };
+  }, []);
 
   // initialize Google Autocomplete once
   useEffect(() => {
