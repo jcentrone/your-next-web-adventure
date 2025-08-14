@@ -12,6 +12,7 @@ import { createReport } from "@/hooks/useLocalDraft";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
+import { supabase } from "@/integrations/supabase/client";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -38,6 +39,13 @@ const ReportNew: React.FC = () => {
   const onSubmit = async (values: Values) => {
     try {
       if (user) {
+        // Get user's organization if they have one
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('user_id', user.id)
+          .single();
+
         const report = await dbCreateReport(
           {
             title: values.title,
@@ -45,7 +53,8 @@ const ReportNew: React.FC = () => {
             address: values.address,
             inspectionDate: values.inspectionDate,
           },
-          user.id
+          user.id,
+          profile?.organization_id || undefined
         );
         toast({ title: "Report created" });
         nav(`/reports/${report.id}`);

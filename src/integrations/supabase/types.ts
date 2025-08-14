@@ -56,6 +56,189 @@ export type Database = {
         }
         Relationships: []
       }
+      organization_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          organization_id: string
+          role: Database["public"]["Enums"]["organization_role"]
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          organization_id: string
+          role?: Database["public"]["Enums"]["organization_role"]
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["organization_role"]
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_members: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string | null
+          joined_at: string
+          organization_id: string
+          role: Database["public"]["Enums"]["organization_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          organization_id: string
+          role?: Database["public"]["Enums"]["organization_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string
+          organization_id?: string
+          role?: Database["public"]["Enums"]["organization_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_members_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          license_number: string | null
+          logo_url: string | null
+          name: string
+          phone: string | null
+          slug: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          license_number?: string | null
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          slug?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          license_number?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          slug?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_individual: boolean
+          last_sign_in_at: string | null
+          license_number: string | null
+          organization_id: string | null
+          phone: string | null
+          provider: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          is_individual?: boolean
+          last_sign_in_at?: string | null
+          license_number?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          provider?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_individual?: boolean
+          last_sign_in_at?: string | null
+          license_number?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          provider?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           address: string
@@ -65,6 +248,7 @@ export type Database = {
           final_comments: string | null
           id: string
           inspection_date: string
+          organization_id: string | null
           preview_template: string
           sections: Json
           status: Database["public"]["Enums"]["report_status"]
@@ -80,6 +264,7 @@ export type Database = {
           final_comments?: string | null
           id?: string
           inspection_date: string
+          organization_id?: string | null
           preview_template?: string
           sections?: Json
           status?: Database["public"]["Enums"]["report_status"]
@@ -95,6 +280,7 @@ export type Database = {
           final_comments?: string | null
           id?: string
           inspection_date?: string
+          organization_id?: string | null
           preview_template?: string
           sections?: Json
           status?: Database["public"]["Enums"]["report_status"]
@@ -102,7 +288,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reports_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       section_guidance: {
         Row: {
@@ -178,9 +372,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_organization_id: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
+      get_user_organization_role: {
+        Args: { user_uuid: string }
+        Returns: Database["public"]["Enums"]["organization_role"]
+      }
+      has_organization_role: {
+        Args: {
+          org_id: string
+          required_role: Database["public"]["Enums"]["organization_role"]
+        }
+        Returns: boolean
+      }
+      is_organization_member: {
+        Args: { org_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      organization_role: "owner" | "admin" | "inspector" | "viewer"
       report_status: "Draft" | "Final"
       section_key:
         | "roof"
@@ -328,6 +541,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      organization_role: ["owner", "admin", "inspector", "viewer"],
       report_status: ["Draft", "Final"],
       section_key: [
         "roof",

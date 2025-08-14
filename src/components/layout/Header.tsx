@@ -75,6 +75,9 @@ const Header: React.FC = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/reports">My Reports</Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">Profile Settings</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => {

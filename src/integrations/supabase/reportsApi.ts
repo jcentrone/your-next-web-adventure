@@ -92,7 +92,7 @@ export async function dbCreateReport(meta: {
   clientName: string;
   address: string;
   inspectionDate: string; // 'YYYY-MM-DD' or ISO
-}, userId: string): Promise<Report> {
+}, userId: string, organizationId?: string): Promise<Report> {
   const id = crypto.randomUUID();
   const sections: Section[] = SOP_SECTIONS.map((s, idx) => ({
     id: `${id}-sec-${idx + 1}`,
@@ -116,6 +116,7 @@ export async function dbCreateReport(meta: {
 
   const payload = {
     user_id: userId,
+    organization_id: organizationId || null,
     ...toDbPayload(report),
     sections,
     id, // preserve generated id so local and remote stay aligned
