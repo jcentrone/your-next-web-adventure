@@ -23,28 +23,41 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
 
   const startCamera = useCallback(async () => {
     try {
+      console.log("Starting camera with facingMode:", facingMode);
       setError(null);
       if (stream) {
+        console.log("Stopping existing stream");
         stream.getTracks().forEach(track => track.stop());
       }
 
-      const newStream = await navigator.mediaDevices.getUserMedia({
+      const constraints = {
         video: { 
           facingMode,
           width: { ideal: 1920 },
           height: { ideal: 1080 }
         }
-      });
+      };
+
+      console.log("Requesting camera with constraints:", constraints);
+      const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log("Camera stream obtained:", newStream);
       
       setStream(newStream);
       if (videoRef.current) {
+        console.log("Assigning stream to video element");
         videoRef.current.srcObject = newStream;
+        
+        // Wait for the video to load
+        videoRef.current.onloadedmetadata = () => {
+          console.log("Video metadata loaded, playing video");
+          videoRef.current?.play().catch(console.error);
+        };
       }
     } catch (err) {
       console.error("Camera access failed:", err);
       setError("Camera access denied or not available");
     }
-  }, [facingMode, stream]);
+  }, [facingMode]);
 
   const stopCamera = useCallback(() => {
     if (stream) {
@@ -104,12 +117,15 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     if (isOpen && !capturedImage) {
       startCamera();
     }
+  }, [isOpen, capturedImage, facingMode]);
+
+  React.useEffect(() => {
     return () => {
-      if (!isOpen) {
-        stopCamera();
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [isOpen, startCamera, stopCamera, capturedImage]);
+  }, [stream]);
 
   if (!isOpen) return null;
 
