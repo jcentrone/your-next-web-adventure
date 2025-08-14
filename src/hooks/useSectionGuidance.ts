@@ -7,7 +7,7 @@ export type InfoField = {
   name: string;
   label: string;
   sop_ref?: string;
-  widget: "text" | "select" | "textarea" | "date";
+  widget: "text" | "select" | "textarea" | "date" | "contact_lookup";
   required?: boolean;
   options?: string[];
 };

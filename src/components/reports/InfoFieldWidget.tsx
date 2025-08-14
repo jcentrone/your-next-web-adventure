@@ -9,16 +9,21 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { contactsApi } from "@/integrations/supabase/crmApi";
+import { useAuth } from "@/contexts/AuthContext";
 import type { InfoField } from "@/hooks/useSectionGuidance";
 
 interface InfoFieldWidgetProps {
   field: InfoField | string;
   value: string;
   onChange: (value: string) => void;
+  onContactChange?: (contact: any) => void;
 }
 
-export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps) {
+export function InfoFieldWidget({ field, value, onChange, onContactChange }: InfoFieldWidgetProps) {
+  const { user } = useAuth();
   // Handle legacy string fields
   if (typeof field === "string") {
     return (
@@ -34,6 +39,62 @@ export function InfoFieldWidget({ field, value, onChange }: InfoFieldWidgetProps
 
   // Handle structured fields
   const { name, label, sop_ref, widget, required = false, options = [] } = field;
+
+  // Fetch contacts for contact lookup widget
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts", user?.id],
+    queryFn: () => contactsApi.list(user!.id),
+    enabled: !!user && widget === "contact_lookup",
+  });
+
+  if (widget === "contact_lookup") {
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label className="text-sm font-medium">
+            {label}
+            {required && <span className="text-destructive">*</span>}
+          </Label>
+          {sop_ref && (
+            <Badge variant="secondary" className="text-xs">
+              {sop_ref}
+            </Badge>
+          )}
+        </div>
+        
+        <Select
+          value={value}
+          onValueChange={(contactId) => {
+            const selectedContact = contacts.find(c => c.id === contactId);
+            onChange(contactId);
+            if (onContactChange && selectedContact) {
+              onContactChange(selectedContact);
+            }
+          }}
+        >
+          <SelectTrigger className="bg-background">
+            <SelectValue placeholder="Select a contact...">
+              {value && contacts.length > 0 ? 
+                (() => {
+                  const contact = contacts.find(c => c.id === value);
+                  return contact ? `${contact.first_name} ${contact.last_name}` : value;
+                })()
+                : "Select a contact..."
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="bg-background border z-50">
+            {contacts.map((contact) => (
+              <SelectItem key={contact.id} value={contact.id}>
+                {contact.first_name} {contact.last_name}
+                {contact.company && ` (${contact.company})`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
 
   if (widget === "select" && options.length > 0) {
     // Determine what should be selected in the dropdown

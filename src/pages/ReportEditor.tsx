@@ -19,6 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import { supabase } from "@/integrations/supabase/client";
+import { contactsApi } from "@/integrations/supabase/crmApi";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
 import { ImageAnnotator } from "@/components/reports/ImageAnnotator";
@@ -69,6 +70,20 @@ const ReportEditor: React.FC = () => {
   const [annotatorOpen, setAnnotatorOpen] = React.useState(false);
   const [annotatorImage, setAnnotatorImage] = React.useState<{ url: string; mediaId: string; findingId: string } | null>(null);
   const [currentFindingId, setCurrentFindingId] = React.useState<string | null>(null);
+  const [selectedContactId, setSelectedContactId] = React.useState<string>("");
+
+  // Handle contact change to update address automatically
+  const handleContactChange = React.useCallback((contact: any) => {
+    setSelectedContactId(contact.id);
+    setReport((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev };
+      // Update client name and address from selected contact
+      next.clientName = `${contact.first_name} ${contact.last_name}`;
+      next.address = contact.formatted_address || contact.address || '';
+      return next;
+    });
+  }, []);
 
   React.useEffect(() => {
     if (!id) return;
@@ -819,7 +834,7 @@ const ReportEditor: React.FC = () => {
                     <InfoFieldWidget
                       key={idx}
                       field={field}
-                      value={currentValue}
+                      value={fieldName === 'client_name' ? selectedContactId || currentValue : currentValue}
                       onChange={(val) => {
                         setReport((prev) => {
                           if (!prev) return prev;
@@ -832,7 +847,11 @@ const ReportEditor: React.FC = () => {
                                 next.title = val;
                                 break;
                               case 'client_name':
-                                next.clientName = val;
+                                if (field.widget === 'contact_lookup') {
+                                  setSelectedContactId(val);
+                                } else {
+                                  next.clientName = val;
+                                }
                                 break;
                               case 'address':
                                 next.address = val;
@@ -860,6 +879,7 @@ const ReportEditor: React.FC = () => {
                           return next;
                         });
                       }}
+                      onContactChange={fieldName === 'client_name' && field.widget === 'contact_lookup' ? handleContactChange : undefined}
                     />
                   );
                 })
