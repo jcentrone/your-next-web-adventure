@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
-import { Input } from '@/components/ui/input';
 import { MapPin, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,70 +25,21 @@ export function GooglePlacesAutocomplete({
   placeholder = 'Enter address...',
   className,
 }: GooglePlacesAutocompleteProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<any>(null);
-  const onChangeRef = useRef(onChange);
-  const isSelectingFromGoogle = useRef(false);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const preventDialogCloseRef = useRef(false);
-  const [isFocused, setIsFocused] = useState(false);
-
+  const elementRef = useRef<PlaceAutocompleteElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [displayValue, setDisplayValue] = useState(value);
   const { toast } = useToast();
 
-  // keep latest onChange without re-running init effect
+  // Sync external value changes
   useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  // sync external value into input unless we're applying a Google selection
-  useEffect(() => {
-    if (!isSelectingFromGoogle.current) {
-      setDisplayValue(value);
-    }
+    setDisplayValue(value);
   }, [value]);
 
-  // Add document-level event listeners to prevent dialog closing
-  useEffect(() => {
-    const handleDocumentMouseDown = (e: MouseEvent) => {
-      const target = e.target as Element;
-      if (target?.closest('.pac-container')) {
-        console.log('Google Places: Preventing dialog close - mousedown on pac-container');
-        preventDialogCloseRef.current = true;
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        
-        // Reset after a delay
-        setTimeout(() => {
-          preventDialogCloseRef.current = false;
-        }, 500);
-      }
-    };
-
-    const handleDocumentClick = (e: MouseEvent) => {
-      const target = e.target as Element;
-      if (target?.closest('.pac-container')) {
-        console.log('Google Places: Preventing dialog close - click on pac-container');
-        e.stopImmediatePropagation();
-        e.preventDefault();
-      }
-    };
-
-    document.addEventListener('mousedown', handleDocumentMouseDown, true);
-    document.addEventListener('click', handleDocumentClick, true);
-
-    return () => {
-      document.removeEventListener('mousedown', handleDocumentMouseDown, true);
-      document.removeEventListener('click', handleDocumentClick, true);
-    };
-  }, []);
-
-  // initialize Google Autocomplete once
+  // Initialize Google Maps and PlaceAutocompleteElement
   useEffect(() => {
     let isMounted = true;
 
-    const initializeAutocomplete = async () => {
+    const initializePlaceAutocomplete = async () => {
       try {
         setIsLoading(true);
 
@@ -103,41 +53,28 @@ export function GooglePlacesAutocomplete({
         const loader = new Loader({
           apiKey: apiKeyData.apiKey,
           version: 'weekly',
-          libraries: ['places'],
+          libraries: ['places', 'marker'],
         });
 
         await loader.load();
 
         if (!isMounted) return;
 
-        if (inputRef.current && window.google) {
-          autocompleteRef.current = new window.google.maps.places.Autocomplete(
-            inputRef.current,
-            {
-              types: ['address'],
-              fields: [
-                'place_id',
-                'formatted_address',
-                'geometry',
-                'address_components',
-              ],
-            }
-          );
+        // Configure the PlaceAutocompleteElement
+        if (elementRef.current) {
+          elementRef.current.types = ['address'];
+          elementRef.current.fields = [
+            'place_id',
+            'formatted_address', 
+            'geometry',
+            'address_components',
+          ];
 
-          autocompleteRef.current.addListener('place_changed', () => {
-            console.log('Google Places: place_changed event triggered');
-            const place = autocompleteRef.current?.getPlace();
+          // Add event listener for place selection
+          const handlePlaceSelect = (event: PlaceSelectEvent) => {
+            const place = event.detail.place;
             
             if (place?.geometry?.location) {
-              console.log('Google Places: Valid place selected', place.formatted_address);
-              isSelectingFromGoogle.current = true;
-
-              // Clear any pending debounce timeout
-              if (debounceTimeoutRef.current) {
-                clearTimeout(debounceTimeoutRef.current);
-                debounceTimeoutRef.current = null;
-              }
-
               const addressData = {
                 formatted_address: place.formatted_address || '',
                 place_id: place.place_id || '',
@@ -147,32 +84,22 @@ export function GooglePlacesAutocomplete({
               };
 
               setDisplayValue(addressData.formatted_address);
-              onChangeRef.current(addressData);
-
-              // Force hide the Google Places dropdown
-              setTimeout(() => {
-                const pacContainer = document.querySelector('.pac-container');
-                if (pacContainer) {
-                  (pacContainer as HTMLElement).style.display = 'none';
-                }
-              }, 50);
-
-              // Extended timeout to prevent input change conflicts
-              setTimeout(() => {
-                isSelectingFromGoogle.current = false;
-                console.log('Google Places: Selection flag cleared');
-              }, 300);
-            } else {
-              console.log('Google Places: Invalid place selected or no geometry');
+              onChange(addressData);
             }
-          });
+          };
+
+          elementRef.current.addEventListener('gmp-placeselect', handlePlaceSelect);
+
+          // Return cleanup function
+          return () => {
+            elementRef.current?.removeEventListener('gmp-placeselect', handlePlaceSelect);
+          };
         }
       } catch (error) {
         console.error('Error loading Google Maps:', error);
         toast({
           title: 'Error',
-          description:
-            'Failed to load Google Maps. Please enter address manually.',
+          description: 'Failed to load Google Maps. Please enter address manually.',
           variant: 'destructive',
         });
       } finally {
@@ -180,119 +107,47 @@ export function GooglePlacesAutocomplete({
       }
     };
 
-    initializeAutocomplete();
+    initializePlaceAutocomplete();
 
     return () => {
       isMounted = false;
-      if (autocompleteRef.current) {
-        window.google?.maps?.event?.clearInstanceListeners(
-          autocompleteRef.current
-        );
-        autocompleteRef.current = null;
-      }
     };
-    // initialize once; do not add deps that change each render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onChange, toast]);
 
-  const debouncedInputChange = useCallback((value: string) => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    
-    debounceTimeoutRef.current = setTimeout(() => {
-      if (!isSelectingFromGoogle.current) {
-        console.log('Google Places: Debounced input change', value);
-        onInputChange?.(value);
-      }
-    }, 150);
-  }, [onInputChange]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    console.log('Google Places: Input change', newValue, 'isSelecting:', isSelectingFromGoogle.current);
+  const handleInput = (e: React.FormEvent<PlaceAutocompleteElement>) => {
+    const target = e.target as HTMLInputElement;
+    const newValue = target.value;
     setDisplayValue(newValue);
-    
-    if (!isSelectingFromGoogle.current) {
-      debouncedInputChange(newValue);
-    }
+    onInputChange?.(newValue);
   };
-
-  const handleFocus = () => {
-    console.log('Google Places: Input focused');
-    setIsFocused(true);
-  };
-
-  const handleBlur = () => {
-    console.log('Google Places: Input blurred');
-    // Delay blur to allow for dropdown selection
-    setTimeout(() => {
-      setIsFocused(false);
-    }, 200);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      // Prevent form submission when Google Places dropdown is visible
-      const pacContainer = document.querySelector('.pac-container');
-      if (pacContainer && (pacContainer as HTMLElement).style.display !== 'none') {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-    }
-    if (e.key === 'Escape') {
-      // Hide Google Places dropdown and blur input
-      const pacContainer = document.querySelector('.pac-container');
-      if (pacContainer) {
-        (pacContainer as HTMLElement).style.display = 'none';
-      }
-      if (inputRef.current) {
-        inputRef.current.blur();
-      }
-    }
-  };
-
-  // Cleanup debounce timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    };
-  }, []);
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      className="relative"
-    >
     <div className="relative">
-      <div className="relative">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input
-          ref={inputRef}
-          value={displayValue}
-          onChange={handleInputChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          className={`pl-10 ${className || ''}`}
-          disabled={isLoading}
-          autoComplete="off"
-        />
-        {isLoading && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-        )}
-        {isFocused && !isLoading && (
-          <div className="absolute inset-0 pointer-events-none border border-primary/50 rounded-md" />
-        )}
-      </div>
+      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 z-10" />
+      
+      <gmp-place-autocomplete
+        ref={elementRef}
+        style={{
+          width: '100%',
+          height: '40px',
+          paddingLeft: '2.5rem',
+          paddingRight: isLoading ? '2.5rem' : '0.75rem',
+          border: '1px solid hsl(var(--border))',
+          borderRadius: 'calc(var(--radius) - 2px)',
+          backgroundColor: 'hsl(var(--background))',
+          fontSize: '0.875rem',
+          fontFamily: 'inherit',
+          outline: 'none',
+        }}
+        placeholder={placeholder}
+        value={displayValue}
+        onInput={handleInput}
+        className={className}
+      />
+      
+      {isLoading && (
+        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground z-10" />
+      )}
     </div>
-  </form>
   );
 }
