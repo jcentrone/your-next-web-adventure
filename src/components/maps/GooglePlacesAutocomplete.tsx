@@ -30,7 +30,7 @@ export function GooglePlacesAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
+  const isSelectingFromGoogle = useRef(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,6 +66,8 @@ export function GooglePlacesAutocomplete({
             const place = autocompleteRef.current?.getPlace();
             
             if (place && place.geometry && place.geometry.location) {
+              isSelectingFromGoogle.current = true;
+              
               const addressData = {
                 formatted_address: place.formatted_address || '',
                 place_id: place.place_id || '',
@@ -74,8 +76,13 @@ export function GooglePlacesAutocomplete({
                 address_components: place.address_components || []
               };
               
-              setInputValue(place.formatted_address || '');
+              // Call onChange which will update the form value
               onChange(addressData);
+              
+              // Reset the flag after a brief delay
+              setTimeout(() => {
+                isSelectingFromGoogle.current = false;
+              }, 100);
             }
           });
         }
@@ -100,14 +107,12 @@ export function GooglePlacesAutocomplete({
     };
   }, [onChange, toast]);
 
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-    onInputChange?.(newValue);
+    // Only call onInputChange when user is actually typing, not when Google Places updates
+    if (!isSelectingFromGoogle.current) {
+      const newValue = e.target.value;
+      onInputChange?.(newValue);
+    }
   };
 
   return (
@@ -116,7 +121,7 @@ export function GooglePlacesAutocomplete({
         <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           ref={inputRef}
-          value={inputValue}
+          value={value}
           onChange={handleInputChange}
           placeholder={placeholder}
           className={`pl-10 ${className}`}

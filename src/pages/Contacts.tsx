@@ -341,13 +341,13 @@ const Contacts: React.FC = () => {
                         <FormItem>
                           <FormLabel className="text-xs">Address</FormLabel>
                           <FormControl>
-                            <GooglePlacesAutocomplete
-                              value={field.value}
-                              onChange={(addressData) => {
-                                console.log('Address selected:', addressData);
-                                form.setValue('formatted_address', addressData.formatted_address);
-                                form.setValue('place_id', addressData.place_id);
-                                form.setValue('latitude', addressData.latitude);
+                             <GooglePlacesAutocomplete
+                               value={field.value}
+                               onChange={(addressData) => {
+                                 console.log('Address selected:', addressData);
+                                 form.setValue('formatted_address', addressData.formatted_address);
+                                 form.setValue('place_id', addressData.place_id);
+                                 form.setValue('latitude', addressData.latitude);
                                 form.setValue('longitude', addressData.longitude);
                                 form.setValue('address_components', addressData.address_components);
                                 
