@@ -76,7 +76,12 @@ const AuthPage: React.FC = () => {
           data: {
             full_name: fullName,
             phone: phone,
-            license_number: licenseNumber
+            license_number: licenseNumber,
+            // Store organization intent for after email confirmation
+            ...(signupType === "organization" && {
+              organization_name: organizationName,
+              is_organization_admin: true
+            })
           }
         },
       });
@@ -84,49 +89,18 @@ const AuthPage: React.FC = () => {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Wait a moment for the profile to be created by the trigger
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Handle invitation acceptance
+        // Handle invitation acceptance during signup
         if (inviteToken) {
-          try {
-            await acceptInvitation(inviteToken);
-            toast({
-              title: "Invitation accepted!",
-              description: "Check your email to confirm your account, then sign in."
-            });
-          } catch (inviteError: any) {
-            console.error("Failed to accept invitation:", inviteError);
-            toast({
-              title: "Failed to accept invitation",
-              description: inviteError.message
-            });
-          }
-        } else if (signupType === "organization") {
-          // Create organization
-          try {
-            await createOrganization({
-              name: organizationName,
-              email: email,
-              phone: phone,
-              license_number: licenseNumber
-            });
-            toast({
-              title: "Organization created!",
-              description: "Check your email to confirm your account, then sign in."
-            });
-          } catch (orgError: any) {
-            console.error("Failed to create organization:", orgError);
-            toast({
-              title: "Failed to create organization",
-              description: orgError.message
-            });
-          }
+          // For invitations, we'll handle this after email confirmation and sign in
+          toast({
+            title: "Invitation will be processed",
+            description: "Check your email to confirm your account, then sign in to join the organization."
+          });
         } else {
-          // Individual signup
+          // Regular signup - organization will be created after email confirmation
           toast({
             title: "Check your email",
-            description: "Confirm your email to complete signup, then sign in."
+            description: `Confirm your email to complete ${signupType === "organization" ? "organization setup" : "signup"}, then sign in.`
           });
         }
       }
