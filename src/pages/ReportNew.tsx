@@ -19,7 +19,6 @@ import { supabase } from "@/integrations/supabase/client";
 const schema = z.object({
   title: z.string().min(1, "Required"),
   clientName: z.string().min(1, "Required"),
-  address: z.string().min(1, "Required"),
   inspectionDate: z.string().min(1, "Required"),
   contactId: z.string().optional(),
 });
@@ -72,7 +71,7 @@ const ReportNew: React.FC = () => {
           {
             title: values.title,
             clientName: values.clientName,
-            address: values.address,
+            address: contact?.formatted_address || contact?.address || "",
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
           },
@@ -135,19 +134,13 @@ const ReportNew: React.FC = () => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Property Address</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Street, City, State" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+{/* Address now pulled from linked contact */}
+            {contact?.formatted_address && (
+              <div className="p-3 bg-muted rounded-md">
+                <p className="text-sm font-medium">Property Address (from contact):</p>
+                <p className="text-sm text-muted-foreground">{contact.formatted_address}</p>
+              </div>
+            )}
             <FormField
               control={form.control}
               name="inspectionDate"

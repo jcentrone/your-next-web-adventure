@@ -148,21 +148,68 @@ export type Database = {
           },
         ]
       }
+      contact_relationships: {
+        Row: {
+          created_at: string
+          custom_relationship_label: string | null
+          from_contact_id: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          organization_id: string | null
+          relationship_type: string
+          to_contact_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_relationship_label?: string | null
+          from_contact_id: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          organization_id?: string | null
+          relationship_type: string
+          to_contact_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_relationship_label?: string | null
+          from_contact_id?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          organization_id?: string | null
+          relationship_type?: string
+          to_contact_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           address: string | null
+          address_components: Json | null
           city: string | null
           company: string | null
           contact_type: Database["public"]["Enums"]["contact_type"]
           created_at: string
           email: string | null
           first_name: string
+          formatted_address: string | null
           id: string
           is_active: boolean
           last_name: string
+          latitude: number | null
+          longitude: number | null
           notes: string | null
           organization_id: string | null
           phone: string | null
+          place_id: string | null
           state: string | null
           updated_at: string
           user_id: string
@@ -170,18 +217,23 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          address_components?: Json | null
           city?: string | null
           company?: string | null
           contact_type?: Database["public"]["Enums"]["contact_type"]
           created_at?: string
           email?: string | null
           first_name: string
+          formatted_address?: string | null
           id?: string
           is_active?: boolean
           last_name: string
+          latitude?: number | null
+          longitude?: number | null
           notes?: string | null
           organization_id?: string | null
           phone?: string | null
+          place_id?: string | null
           state?: string | null
           updated_at?: string
           user_id: string
@@ -189,18 +241,23 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          address_components?: Json | null
           city?: string | null
           company?: string | null
           contact_type?: Database["public"]["Enums"]["contact_type"]
           created_at?: string
           email?: string | null
           first_name?: string
+          formatted_address?: string | null
           id?: string
           is_active?: boolean
           last_name?: string
+          latitude?: number | null
+          longitude?: number | null
           notes?: string | null
           organization_id?: string | null
           phone?: string | null
+          place_id?: string | null
           state?: string | null
           updated_at?: string
           user_id?: string

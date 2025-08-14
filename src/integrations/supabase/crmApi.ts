@@ -306,3 +306,61 @@ export const activitiesApi = {
     return data as Activity[];
   }
 };
+
+// Contact Relationships API
+export const contactRelationshipsApi = {
+  async create(data: {
+    from_contact_id: string;
+    to_contact_id: string;
+    relationship_type: string;
+    custom_relationship_label?: string;
+    notes?: string;
+  }): Promise<any> {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error('Not authenticated');
+
+    const { data: result, error } = await supabase
+      .from('contact_relationships')
+      .insert({
+        user_id: user.id,
+        ...data,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return result;
+  },
+
+  async getByContactId(contactId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('contact_relationships')
+      .select(`
+        *,
+        from_contact:contacts!contact_relationships_from_contact_id_fkey(id, first_name, last_name, contact_type),
+        to_contact:contacts!contact_relationships_to_contact_id_fkey(id, first_name, last_name, contact_type)
+      `)
+      .or(`from_contact_id.eq.${contactId},to_contact_id.eq.${contactId}`)
+      .eq('is_active', true);
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('contact_relationships')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+};
+
+export const crmApi = {
+  contacts: contactsApi,
+  appointments: appointmentsApi,
+  tasks: tasksApi,
+  activities: activitiesApi,
+  contactRelationships: contactRelationshipsApi,
+};
