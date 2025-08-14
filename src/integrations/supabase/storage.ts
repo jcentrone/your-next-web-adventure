@@ -40,7 +40,15 @@ export async function getSignedUrlFromSupabaseUrl(url: string, expiresInSeconds 
     console.error("Failed to create signed URL", error, { bucket, path });
     return url; // fallback to stored value
   }
-  return data.signedUrl;
+  
+  // Convert relative URL to absolute URL by prepending Supabase storage URL
+  const signedUrl = data.signedUrl;
+  if (signedUrl.startsWith('/')) {
+    const supabaseStorageUrl = `https://qnrqwapbxnplypdirdiq.supabase.co/storage/v1`;
+    return `${supabaseStorageUrl}${signedUrl}`;
+  }
+  
+  return signedUrl;
 }
 
 /**
