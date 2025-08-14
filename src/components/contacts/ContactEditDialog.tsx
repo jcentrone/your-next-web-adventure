@@ -76,6 +76,17 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
     },
   });
 
+  React.useEffect(() => {
+  const swallowPacMouseDown = (e: MouseEvent) => {
+    const el = e.target as HTMLElement | null;
+    if (el && el.closest('.pac-container')) {
+      e.stopPropagation(); // stop at capture phase
+    }
+  };
+  document.addEventListener('mousedown', swallowPacMouseDown, true); // capture=true
+  return () => document.removeEventListener('mousedown', swallowPacMouseDown, true);
+}, []);
+
   const updateMutation = useMutation({
     mutationFn: (data: Partial<Contact>) => {
       console.log('Update mutation called with:', data);
@@ -132,16 +143,17 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="max-w-md max-h-[80vh] p-0"
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onInteractOutside={(e) => {
-          // Prevent closing when interacting with Google Places dropdown
-          const target = e.target as Element;
-          if (target?.closest('.pac-container')) {
-            e.preventDefault();
-          }
-        }}
+      <DialogContent
+          className="max-w-md max-h-[80vh] p-0"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => {
+            const el = e.target as HTMLElement;
+            if (el.closest('.pac-container')) e.preventDefault(); // stop close
+          }}
+          onInteractOutside={(e) => {
+            const el = e.target as HTMLElement;
+            if (el.closest('.pac-container')) e.preventDefault(); // belt & suspenders
+          }}
         >
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Edit Contact</DialogTitle>
