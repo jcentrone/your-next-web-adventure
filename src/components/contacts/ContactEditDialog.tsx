@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -31,6 +31,7 @@ import { GooglePlacesAutocomplete } from '@/components/maps/GooglePlacesAutocomp
 import { useToast } from '@/hooks/use-toast';
 import { crmApi } from '@/integrations/supabase/crmApi';
 import { Contact } from '@/lib/crmSchemas';
+
 
 const formSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -109,34 +110,32 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
     });
   };
 
-  const handleAddressChange = (addressData: any) => {
-    form.setValue('formatted_address', addressData.formatted_address);
-    
-    // Extract city, state, zip from address components
+  const handleAddressChange = useCallback((addressData: any) => {
+    form.setValue('formatted_address', addressData.formatted_address, { shouldDirty: true, shouldTouch: true });
+  
+    // Extract city, state, zip
     const components = addressData.address_components || [];
-    let city = '';
-    let state = '';
-    let zipCode = '';
+    let city = '', state = '', zipCode = '';
+    for (const c of components) {
+      if (c.types.includes('locality')) city = c.long_name;
+      else if (c.types.includes('administrative_area_level_1')) state = c.short_name;
+      else if (c.types.includes('postal_code')) zipCode = c.long_name;
+    }
+    if (city) form.setValue('city', city, { shouldDirty: true });
+    if (state) form.setValue('state', state, { shouldDirty: true });
+    if (zipCode) form.setValue('zip_code', zipCode, { shouldDirty: true });
+  }, [form]);
 
-    components.forEach((component: any) => {
-      const types = component.types;
-      if (types.includes('locality')) {
-        city = component.long_name;
-      } else if (types.includes('administrative_area_level_1')) {
-        state = component.short_name;
-      } else if (types.includes('postal_code')) {
-        zipCode = component.long_name;
-      }
-    });
-
-    if (city) form.setValue('city', city);
-    if (state) form.setValue('state', state);
-    if (zipCode) form.setValue('zip_code', zipCode);
-  };
+  const handleAddressInput = useCallback((val: string) => {
+    form.setValue('formatted_address', val, { shouldDirty: true, shouldTouch: true });
+  }, [form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[80vh] p-0">
+      <DialogContent 
+        className="max-w-md max-h-[80vh] p-0"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        >
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Edit Contact</DialogTitle>
         </DialogHeader>
@@ -251,9 +250,9 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
                     <FormLabel className="text-xs">Address</FormLabel>
                     <FormControl>
                       <GooglePlacesAutocomplete
-                        value={field.value}
-                        onChange={handleAddressChange}
-                        onInputChange={field.onChange}
+                        value={field.value ?? ''}           // still display RHF value
+                        onChange={handleAddressChange}      // memoized
+                        onInputChange={handleAddressInput}  // memoized
                         placeholder="Start typing address..."
                         className="h-8"
                       />
