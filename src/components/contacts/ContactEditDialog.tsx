@@ -135,6 +135,11 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
       <DialogContent 
         className="max-w-md max-h-[80vh] p-0"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          // allow clicks on PAC dropdown outside content without closing or stealing focus
+          const el = e.target as HTMLElement;
+          if (el.closest('.pac-container')) e.preventDefault();
+        }}
         >
         <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Edit Contact</DialogTitle>
