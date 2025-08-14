@@ -91,17 +91,19 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   }, [onClose, stopCamera]);
 
   const confirmCapture = useCallback(() => {
-    if (!capturedImage || !canvasRef.current) return;
+    if (!capturedImage) return;
 
-    canvasRef.current.toBlob((blob) => {
-      if (blob) {
+    // Convert data URL to blob
+    fetch(capturedImage)
+      .then(res => res.blob())
+      .then(blob => {
         const file = new File([blob], `photo-${Date.now()}.jpg`, {
           type: "image/jpeg",
         });
         onCapture(file);
         handleClose();
-      }
-    }, "image/jpeg", 0.8);
+      })
+      .catch(console.error);
   }, [capturedImage, onCapture, handleClose]);
 
   const retakePicture = useCallback(() => {
