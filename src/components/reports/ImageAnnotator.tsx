@@ -54,47 +54,59 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
   useEffect(() => {
     if (!canvasRef.current || !isOpen) return;
 
+    console.log("Initializing canvas with image:", imageUrl);
+
     const canvas = new FabricCanvas(canvasRef.current, {
       width: 800,
       height: 600,
       backgroundColor: "#ffffff",
     });
 
-    // Load image
-    FabricImage.fromURL(imageUrl).then((img) => {
-      const canvasAspect = canvas.width! / canvas.height!;
-      const imageAspect = img.width! / img.height!;
-      
-      let scale;
-      if (imageAspect > canvasAspect) {
-        scale = canvas.width! / img.width!;
-      } else {
-        scale = canvas.height! / img.height!;
-      }
-      
-      img.scale(scale);
-      img.set({
-        left: (canvas.width! - img.getScaledWidth()) / 2,
-        top: (canvas.height! - img.getScaledHeight()) / 2,
-        selectable: false,
-        evented: false,
-      });
-      
-      canvas.add(img);
-      canvas.sendObjectToBack(img);
-      canvas.renderAll();
-    });
-
-    // Load initial annotations if provided
-    if (initialAnnotations) {
-      try {
-        canvas.loadFromJSON(initialAnnotations, () => {
-          canvas.renderAll();
+    // Load image first
+    FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' })
+      .then((img) => {
+        console.log("Image loaded successfully:", img);
+        
+        const canvasAspect = canvas.width! / canvas.height!;
+        const imageAspect = img.width! / img.height!;
+        
+        let scale;
+        if (imageAspect > canvasAspect) {
+          scale = canvas.width! / img.width!;
+        } else {
+          scale = canvas.height! / img.height!;
+        }
+        
+        img.scale(scale);
+        img.set({
+          left: (canvas.width! - img.getScaledWidth()) / 2,
+          top: (canvas.height! - img.getScaledHeight()) / 2,
+          selectable: false,
+          evented: false,
         });
-      } catch (error) {
-        console.error("Failed to load annotations:", error);
-      }
-    }
+        
+        canvas.add(img);
+        canvas.sendObjectToBack(img);
+        canvas.renderAll();
+
+        // Load initial annotations if provided
+        if (initialAnnotations) {
+          try {
+            canvas.loadFromJSON(initialAnnotations).then(() => {
+              canvas.renderAll();
+              saveToHistory();
+            });
+          } catch (error) {
+            console.error("Failed to load annotations:", error);
+            saveToHistory();
+          }
+        } else {
+          saveToHistory();
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load image:", error);
+      });
 
     // Set up drawing brush
     canvas.freeDrawingBrush.color = activeColor;
@@ -105,7 +117,7 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
     return () => {
       canvas.dispose();
     };
-  }, [isOpen, imageUrl, initialAnnotations]);
+  }, [isOpen, imageUrl]);
 
   useEffect(() => {
     if (!fabricCanvas) return;
