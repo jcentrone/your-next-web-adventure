@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +15,7 @@ import {
 
 const Header: React.FC = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const initials = React.useMemo(() => {
     const name = (user?.user_metadata?.full_name ||
@@ -80,8 +81,17 @@ const Header: React.FC = () => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => {
-                      signOut();
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log("Sign out button clicked");
+                      try {
+                        await signOut();
+                        console.log("Sign out completed, navigating to home");
+                        navigate("/");
+                      } catch (error) {
+                        console.error("Sign out failed:", error);
+                      }
                     }}
                   >
                     Sign out
