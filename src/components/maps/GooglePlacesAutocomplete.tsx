@@ -113,6 +113,14 @@ export function GooglePlacesAutocomplete({
               setDisplayValue(addressData.formatted_address);
               onChangeRef.current(addressData);
 
+              // Force hide the Google Places dropdown
+              setTimeout(() => {
+                const pacContainer = document.querySelector('.pac-container');
+                if (pacContainer) {
+                  (pacContainer as HTMLElement).style.display = 'none';
+                }
+              }, 50);
+
               // Extended timeout to prevent input change conflicts
               setTimeout(() => {
                 isSelectingFromGoogle.current = false;
@@ -189,10 +197,20 @@ export function GooglePlacesAutocomplete({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      // Let Google handle Enter key for selection
-      return;
+      // Prevent form submission when Google Places dropdown is visible
+      const pacContainer = document.querySelector('.pac-container');
+      if (pacContainer && (pacContainer as HTMLElement).style.display !== 'none') {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
     }
     if (e.key === 'Escape') {
+      // Hide Google Places dropdown and blur input
+      const pacContainer = document.querySelector('.pac-container');
+      if (pacContainer) {
+        (pacContainer as HTMLElement).style.display = 'none';
+      }
       if (inputRef.current) {
         inputRef.current.blur();
       }
@@ -210,7 +228,10 @@ export function GooglePlacesAutocomplete({
 
   return (
     <form
-      onSubmit={(e) => e.preventDefault()}   // block accidental submit
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       className="relative"
     >
     <div className="relative">
