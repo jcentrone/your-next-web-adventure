@@ -36,14 +36,39 @@ const Header: React.FC = () => {
         <Link to="/" className="font-bold">
           InspectPro
         </Link>
-        <div className="hidden md:flex items-center gap-6">
-          <Link to="/reports" className="text-sm text-muted-foreground hover:text-foreground">Reports</Link>
-          <Link to="/defects-admin" className="text-sm text-muted-foreground hover:text-foreground">Defects</Link>
-          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground">Features</a>
-          <a href="#templates" className="text-sm text-muted-foreground hover:text-foreground">Templates</a>
-          <a href="#offline" className="text-sm text-muted-foreground hover:text-foreground">Offline</a>
-          <a href="#security" className="text-sm text-muted-foreground hover:text-foreground">Security</a>
-        </div>
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+          {user ? (
+            <>
+              <Link to="/dashboard" className="transition-colors hover:text-primary">
+                Dashboard
+              </Link>
+              <Link to="/reports" className="transition-colors hover:text-primary">
+                Reports
+              </Link>
+              <Link to="/contacts" className="transition-colors hover:text-primary">
+                Contacts
+              </Link>
+              <Link to="/calendar" className="transition-colors hover:text-primary">
+                Calendar
+              </Link>
+              <Link to="/tasks" className="transition-colors hover:text-primary">
+                Tasks
+              </Link>
+              <Link to="/defects-admin" className="transition-colors hover:text-primary">
+                Defects
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/" className="transition-colors hover:text-primary">
+                Features
+              </Link>
+              <Link to="/" className="transition-colors hover:text-primary">
+                Templates
+              </Link>
+            </>
+          )}
+        </nav>
         <div className="flex items-center gap-2">
           {!user ? (
             <>
@@ -73,6 +98,9 @@ const Header: React.FC = () => {
                     {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/reports">My Reports</Link>
                   </DropdownMenuItem>
