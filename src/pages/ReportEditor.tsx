@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ZoomIn, Trash2, Upload, ChevronDown, ChevronRight, Wand2, Calendar as CalendarIcon, ImagePlus } from "lucide-react";
+import { ZoomIn, Trash2, Upload, ChevronDown, ChevronRight, Wand2, Calendar as CalendarIcon, ImagePlus, Camera, Edit3 } from "lucide-react";
 import { loadReport as loadLocalReport, saveReport as saveLocalReport } from "@/hooks/useLocalDraft";
 import { useAutosave } from "@/hooks/useAutosave";
 import { SectionKey, SOP_SECTIONS } from "@/constants/sop";
@@ -20,6 +20,8 @@ import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi"
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import { supabase } from "@/integrations/supabase/client";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
+import { CameraCapture } from "@/components/reports/CameraCapture";
+import { ImageAnnotator } from "@/components/reports/ImageAnnotator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -63,6 +65,10 @@ const ReportEditor: React.FC = () => {
   const [aiLoading, setAiLoading] = React.useState(false);
   const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>("");
   const [showDetails, setShowDetails] = React.useState(false);
+  const [cameraOpen, setCameraOpen] = React.useState(false);
+  const [annotatorOpen, setAnnotatorOpen] = React.useState(false);
+  const [annotatorImage, setAnnotatorImage] = React.useState<{ url: string; mediaId: string; findingId: string } | null>(null);
+  const [currentFindingId, setCurrentFindingId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!id) return;
@@ -292,6 +298,157 @@ const ReportEditor: React.FC = () => {
 
   
 
+  const handleCameraCapture = async (file: File) => {
+    if (!currentFindingId) return;
+    
+    const tempId = crypto.randomUUID();
+    const localUrl = URL.createObjectURL(file);
+
+    // Add temporary local preview
+    updateFinding(currentFindingId, {
+      media: [
+        ...activeSection.findings.find(f => f.id === currentFindingId)?.media || [],
+        { id: tempId, url: localUrl, caption: file.name, type: "image" }
+      ],
+    });
+
+    // Set in mediaUrlMap so display works
+    setMediaUrlMap((prev) => ({
+      ...prev,
+      [tempId]: localUrl,
+    }));
+
+    // Upload to Supabase if authenticated
+    if (user) {
+      try {
+        const uploadedMedia = await uploadFindingFiles({
+          userId: user.id,
+          reportId: report.id,
+          findingId: currentFindingId,
+          files: [file]
+        });
+        
+        if (uploadedMedia && uploadedMedia.length > 0) {
+          const media = uploadedMedia[0];
+          const signedUrl = await getSignedUrlFromSupabaseUrl(media.url);
+
+          // Replace temporary with uploaded
+          setReport((prev) => {
+            if (!prev) return prev;
+            const next = { ...prev };
+            const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
+            const finding = next.sections[sIdx].findings.find((x) => x.id === currentFindingId);
+            if (finding) {
+              const mediaItem = finding.media.find((m) => m.id === tempId);
+              if (mediaItem) {
+                mediaItem.url = media.url;
+                mediaItem.type = media.type;
+              }
+            }
+            return next;
+          });
+
+          setMediaUrlMap((prev) => ({
+            ...prev,
+            [tempId]: signedUrl,
+          }));
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Upload failed",
+          description: "Could not upload photo.",
+          variant: "destructive",
+        });
+      }
+    }
+    
+    setCameraOpen(false);
+    setCurrentFindingId(null);
+  };
+
+  const handleAnnotationSave = async (annotations: string, imageBlob: Blob) => {
+    if (!annotatorImage) return;
+
+    const { findingId, mediaId } = annotatorImage;
+    
+    // Create new annotated file
+    const annotatedFile = new File([imageBlob], `annotated-${Date.now()}.jpg`, {
+      type: "image/jpeg",
+    });
+    
+    const tempId = crypto.randomUUID();
+    const localUrl = URL.createObjectURL(imageBlob);
+
+    // Add annotated version
+    updateFinding(findingId, {
+      media: [
+        ...activeSection.findings.find(f => f.id === findingId)?.media || [],
+        { 
+          id: tempId, 
+          url: localUrl, 
+          caption: "Annotated image",
+          type: "image",
+          annotations,
+          isAnnotated: true
+        }
+      ],
+    });
+
+    setMediaUrlMap((prev) => ({
+      ...prev,
+      [tempId]: localUrl,
+    }));
+
+    // Upload annotated version if authenticated
+    if (user) {
+      try {
+        const uploadedMedia = await uploadFindingFiles({
+          userId: user.id,
+          reportId: report.id,
+          findingId,
+          files: [annotatedFile]
+        });
+        
+        if (uploadedMedia && uploadedMedia.length > 0) {
+          const media = uploadedMedia[0];
+          const signedUrl = await getSignedUrlFromSupabaseUrl(media.url);
+
+          setReport((prev) => {
+            if (!prev) return prev;
+            const next = { ...prev };
+            const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
+            const finding = next.sections[sIdx].findings.find((x) => x.id === findingId);
+            if (finding) {
+              const mediaItem = finding.media.find((m) => m.id === tempId);
+              if (mediaItem) {
+                mediaItem.url = media.url;
+                mediaItem.type = media.type;
+              }
+            }
+            return next;
+          });
+
+          setMediaUrlMap((prev) => ({
+            ...prev,
+            [tempId]: signedUrl,
+          }));
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Upload failed", 
+          description: "Could not upload annotated image.",
+          variant: "destructive",
+        });
+      }
+    }
+
+    setAnnotatorOpen(false);
+    setAnnotatorImage(null);
+    toast({ title: "Annotation saved successfully" });
+  };
+
   const finalize = () => {
     setReport((prev) => (prev ? { ...prev, status: "Final" } : prev));
     toast({ title: "Report finalized. Use Preview to print/PDF." });
@@ -488,10 +645,28 @@ const ReportEditor: React.FC = () => {
     <Trash2 className="w-4 h-4 text-red-500" />
   </button>
 
+  {/* Annotate button */}
+  {m.type === "image" && (
+    <button
+      type="button"
+      className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
+      onClick={() => {
+        setAnnotatorImage({
+          url: mediaUrlMap[m.id] || m.url,
+          mediaId: m.id,
+          findingId: f.id
+        });
+        setAnnotatorOpen(true);
+      }}
+    >
+      <Edit3 className="w-4 h-4 text-orange-500" />
+    </button>
+  )}
+
   {/* AI Analysis button */}
   <button
     type="button"
-    className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
+    className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow"
     onClick={() => {
       setAiDialogFindingId(f.id);
       setAiDialogImages([{ id: m.id, url: mediaUrlMap[m.id] || m.url, caption: m.caption }]);
@@ -505,12 +680,13 @@ const ReportEditor: React.FC = () => {
                                 ))}
                             
                                 {/* Add new media */}
-                                <label className="w-24 h-24 border rounded flex items-center justify-center text-sm text-muted-foreground cursor-pointer hover:bg-accent">
-                                  <input
-  type="file"
-  className="hidden"
-  accept="image/*,video/*"
-  onChange={async (e) => {
+                                <div className="flex gap-2">
+                                  <label className="w-24 h-24 border rounded flex items-center justify-center text-sm text-muted-foreground cursor-pointer hover:bg-accent">
+                                    <input
+    type="file"
+    className="hidden"
+    accept="image/*,video/*"
+    onChange={async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -589,8 +765,21 @@ const ReportEditor: React.FC = () => {
   }}
 />
 
-                                  <ImagePlus className="w-6 h-6" />
-                                </label>
+                                    <ImagePlus className="w-6 h-6" />
+                                  </label>
+                                  
+                                  {/* Camera button */}
+                                  <button
+                                    type="button"
+                                    className="w-24 h-24 border rounded flex items-center justify-center text-sm text-muted-foreground hover:bg-accent"
+                                    onClick={() => {
+                                      setCurrentFindingId(f.id);
+                                      setCameraOpen(true);
+                                    }}
+                                  >
+                                    <Camera className="w-6 h-6" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
 
@@ -738,6 +927,32 @@ const ReportEditor: React.FC = () => {
             images={aiDialogImages}
             loading={aiLoading}
             onConfirm={handleAIAnalyze}
+          />
+
+          <CameraCapture
+            isOpen={cameraOpen}
+            onClose={() => {
+              setCameraOpen(false);
+              setCurrentFindingId(null);
+            }}
+            onCapture={handleCameraCapture}
+          />
+
+          <ImageAnnotator
+            isOpen={annotatorOpen}
+            onClose={() => {
+              setAnnotatorOpen(false);
+              setAnnotatorImage(null);
+            }}
+            imageUrl={annotatorImage?.url || ""}
+            initialAnnotations={annotatorImage ? 
+              activeSection.findings
+                .find(f => f.id === annotatorImage.findingId)
+                ?.media.find(m => m.id === annotatorImage.mediaId)
+                ?.annotations || ""
+              : ""
+            }
+            onSave={handleAnnotationSave}
           />
         </main>
       </div>

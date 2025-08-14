@@ -6,6 +6,8 @@ export const MediaSchema = z.object({
   type: z.enum(["image", "video", "audio"]),
   url: z.string(),
   caption: z.string().optional().default(""),
+  annotations: z.string().optional().default(""),
+  isAnnotated: z.boolean().optional().default(false),
 });
 export type Media = z.infer<typeof MediaSchema>;
 
