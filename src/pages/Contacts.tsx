@@ -14,7 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Search, Mail, Phone, Building, MapPin, Edit, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ContactSchema, type Contact } from "@/lib/crmSchemas";
+import { ContactSchema, CreateContactSchema, type Contact } from "@/lib/crmSchemas";
+import { GooglePlacesAutocomplete } from "@/components/maps/GooglePlacesAutocomplete";
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
 
@@ -34,8 +35,8 @@ const Contacts: React.FC = () => {
     enabled: !!user,
   });
 
-  const form = useForm<Contact>({
-    resolver: zodResolver(ContactSchema.omit({ id: true, user_id: true, created_at: true, updated_at: true })),
+  const form = useForm({
+    resolver: zodResolver(CreateContactSchema),
     defaultValues: {
       contact_type: "client",
       first_name: "",
@@ -43,7 +44,11 @@ const Contacts: React.FC = () => {
       email: "",
       phone: "",
       company: "",
-      address: "",
+      formatted_address: "",
+      place_id: "",
+      latitude: undefined,
+      longitude: undefined,
+      address_components: undefined,
       city: "",
       state: "",
       zip_code: "",
@@ -104,16 +109,52 @@ const Contacts: React.FC = () => {
   });
 
   const onSubmit = (data: any) => {
+    console.log('Form submitted with data:', data);
+    console.log('Editing contact:', editingContact);
+    
     if (editingContact) {
+      console.log('Updating contact:', editingContact.id);
       updateMutation.mutate({ id: editingContact.id, updates: data });
     } else {
-      createMutation.mutate({ ...data, user_id: user!.id });
+      console.log('Creating new contact');
+      const contactData = { 
+        ...data, 
+        user_id: user!.id,
+        email: data.email || null,
+        phone: data.phone || null,
+        company: data.company || null,
+        formatted_address: data.formatted_address || null,
+        city: data.city || null,
+        state: data.state || null,
+        zip_code: data.zip_code || null,
+        notes: data.notes || null,
+      };
+      console.log('Contact data to create:', contactData);
+      createMutation.mutate(contactData);
     }
   };
 
   const handleEdit = (contact: Contact) => {
+    console.log('Editing contact:', contact);
     setEditingContact(contact);
-    form.reset(contact);
+    form.reset({
+      contact_type: contact.contact_type,
+      first_name: contact.first_name,
+      last_name: contact.last_name,
+      email: contact.email || "",
+      phone: contact.phone || "",
+      company: contact.company || "",
+      formatted_address: contact.formatted_address || "",
+      place_id: contact.place_id || "",
+      latitude: contact.latitude,
+      longitude: contact.longitude,
+      address_components: contact.address_components,
+      city: contact.city || "",
+      state: contact.state || "",
+      zip_code: contact.zip_code || "",
+      notes: contact.notes || "",
+      is_active: contact.is_active,
+    });
     setIsDialogOpen(true);
   };
 
@@ -157,15 +198,33 @@ const Contacts: React.FC = () => {
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => {
+                console.log('Creating new contact');
                 setEditingContact(null);
-                form.reset();
+                form.reset({
+                  contact_type: "client",
+                  first_name: "",
+                  last_name: "",
+                  email: "",
+                  phone: "",
+                  company: "",
+                  formatted_address: "",
+                  place_id: "",
+                  latitude: undefined,
+                  longitude: undefined,
+                  address_components: undefined,
+                  city: "",
+                  state: "",
+                  zip_code: "",
+                  notes: "",
+                  is_active: true,
+                });
               }}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Contact
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
+            <DialogContent className="max-w-md max-h-[85vh] p-0">
+              <DialogHeader className="px-6 pt-6 pb-2">
                 <DialogTitle>
                   {editingContact ? "Edit Contact" : "Add New Contact"}
                 </DialogTitle>
@@ -174,186 +233,238 @@ const Contacts: React.FC = () => {
                 </DialogDescription>
               </DialogHeader>
               
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="first_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="last_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input type="email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Phone</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="contact_type"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <div className="px-6 pb-6 overflow-y-auto max-h-[calc(85vh-100px)]">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <FormField
+                        control={form.control}
+                        name="first_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">First Name</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
+                              <Input {...field} className="h-8" />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="client">Client</SelectItem>
-                              <SelectItem value="realtor">Realtor</SelectItem>
-                              <SelectItem value="vendor">Vendor</SelectItem>
-                              <SelectItem value="contractor">Contractor</SelectItem>
-                              <SelectItem value="other">Other</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="last_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Last Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-8" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" {...field} className="h-8" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Phone</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-8" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <FormField
+                        control={form.control}
+                        name="contact_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Contact Type</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-8">
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="client">Client</SelectItem>
+                                <SelectItem value="realtor">Realtor</SelectItem>
+                                <SelectItem value="vendor">Vendor</SelectItem>
+                                <SelectItem value="contractor">Contractor</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="company"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Company</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-8" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     <FormField
                       control={form.control}
-                      name="company"
+                      name="formatted_address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Company</FormLabel>
+                          <FormLabel className="text-xs">Address</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <GooglePlacesAutocomplete
+                              value={field.value}
+                              onChange={(addressData) => {
+                                console.log('Address selected:', addressData);
+                                form.setValue('formatted_address', addressData.formatted_address);
+                                form.setValue('place_id', addressData.place_id);
+                                form.setValue('latitude', addressData.latitude);
+                                form.setValue('longitude', addressData.longitude);
+                                form.setValue('address_components', addressData.address_components);
+                                
+                                // Extract city, state, zip from address components
+                                const components = addressData.address_components || [];
+                                let city = '';
+                                let state = '';
+                                let zipCode = '';
+
+                                components.forEach((component: any) => {
+                                  const types = component.types;
+                                  if (types.includes('locality')) {
+                                    city = component.long_name;
+                                  } else if (types.includes('administrative_area_level_1')) {
+                                    state = component.short_name;
+                                  } else if (types.includes('postal_code')) {
+                                    zipCode = component.long_name;
+                                  }
+                                });
+
+                                if (city) form.setValue('city', city);
+                                if (state) form.setValue('state', state);
+                                if (zipCode) form.setValue('zip_code', zipCode);
+                              }}
+                              onInputChange={field.onChange}
+                              placeholder="Start typing address..."
+                              className="h-8"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Address</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <div className="grid grid-cols-3 gap-2">
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">City</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-8" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="state"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">State</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-8" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="zip_code"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">ZIP Code</FormLabel>
+                            <FormControl>
+                              <Input {...field} className="h-8" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                  <div className="grid grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
-                      name="city"
+                      name="notes"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>City</FormLabel>
+                          <FormLabel className="text-xs">Notes</FormLabel>
                           <FormControl>
-                            <Input {...field} />
+                            <Textarea 
+                              {...field} 
+                              rows={2} 
+                              className="resize-none text-sm"
+                              placeholder="Additional notes..."
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="state"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>State</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="zip_code"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>ZIP Code</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Notes</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} rows={3} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                      {editingContact ? "Update" : "Create"} Contact
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+                    <div className="flex justify-end gap-2 pt-3 border-t">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setIsDialogOpen(false)}
+                        className="h-8 px-3"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={createMutation.isPending || updateMutation.isPending}
+                        className="h-8 px-3"
+                      >
+                        {createMutation.isPending || updateMutation.isPending 
+                          ? "Saving..." 
+                          : editingContact ? "Update" : "Create"} Contact
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </div>
             </DialogContent>
           </Dialog>
         </div>
