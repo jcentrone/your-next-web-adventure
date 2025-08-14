@@ -14,7 +14,7 @@ import { Calendar as CalendarIcon, Plus, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AppointmentSchema, type Appointment } from "@/lib/crmSchemas";
+import { AppointmentSchema, type Appointment, ContactSchema } from "@/lib/crmSchemas";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import Seo from "@/components/Seo";
@@ -27,6 +27,7 @@ const Calendar: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [deleteAppointment, setDeleteAppointment] = useState<Appointment | null>(null);
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 
   const { data: appointments = [] } = useQuery({
     queryKey: ["appointments", user?.id],
@@ -80,6 +81,21 @@ const Calendar: React.FC = () => {
     },
   });
 
+  const createContactMutation = useMutation({
+    mutationFn: contactsApi.create,
+    onSuccess: (newContact) => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      toast.success("Contact created successfully");
+      setIsContactDialogOpen(false);
+      contactForm.reset();
+      // Auto-select the newly created contact
+      form.setValue("contact_id", newContact.id);
+    },
+    onError: () => {
+      toast.error("Failed to create contact");
+    },
+  });
+
   const form = useForm({
     resolver: zodResolver(AppointmentSchema.omit({ 
       id: true, 
@@ -98,6 +114,28 @@ const Calendar: React.FC = () => {
     },
   });
 
+  const contactForm = useForm({
+    resolver: zodResolver(ContactSchema.omit({ 
+      id: true, 
+      user_id: true, 
+      created_at: true, 
+      updated_at: true 
+    })),
+    defaultValues: {
+      contact_type: "client",
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      company: "",
+      address: "",
+      city: "",
+      state: "",
+      zip_code: "",
+      notes: "",
+    },
+  });
+
   const onSubmit = (data: any) => {
     const appointmentData = {
       ...data,
@@ -110,6 +148,14 @@ const Calendar: React.FC = () => {
     } else {
       createMutation.mutate(appointmentData);
     }
+  };
+
+  const onContactSubmit = (data: any) => {
+    const contactData = {
+      ...data,
+      user_id: user!.id,
+    };
+    createContactMutation.mutate(contactData);
   };
 
   const handleEdit = (appointment: Appointment) => {
@@ -245,7 +291,7 @@ const Calendar: React.FC = () => {
                                   <SelectValue />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
+                              <SelectContent className="bg-background border shadow-lg z-50">
                                 <SelectItem value="scheduled">Scheduled</SelectItem>
                                 <SelectItem value="confirmed">Confirmed</SelectItem>
                                 <SelectItem value="in_progress">In Progress</SelectItem>
@@ -268,13 +314,28 @@ const Calendar: React.FC = () => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Contact</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select 
+                              onValueChange={(value) => {
+                                if (value === "add_new_contact") {
+                                  setIsContactDialogOpen(true);
+                                } else {
+                                  field.onChange(value);
+                                }
+                              }} 
+                              value={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select a contact" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
+                              <SelectContent className="bg-background border shadow-lg z-50">
+                                <SelectItem value="add_new_contact" className="text-primary font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <Plus className="w-4 h-4" />
+                                    Add New Contact
+                                  </div>
+                                </SelectItem>
                                 {contacts.map((contact) => (
                                   <SelectItem key={contact.id} value={contact.id}>
                                     {contact.first_name} {contact.last_name}
@@ -338,6 +399,130 @@ const Calendar: React.FC = () => {
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Contact Creation Dialog */}
+        <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Add New Contact</DialogTitle>
+            </DialogHeader>
+            <Form {...contactForm}>
+              <form onSubmit={contactForm.handleSubmit(onContactSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={contactForm.control}
+                    name="first_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="First name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={contactForm.control}
+                    name="last_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Last name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={contactForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="Email address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={contactForm.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Phone number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={contactForm.control}
+                  name="company"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Company name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={contactForm.control}
+                  name="contact_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contact Type</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-background border shadow-lg z-50">
+                          <SelectItem value="client">Client</SelectItem>
+                          <SelectItem value="realtor">Realtor</SelectItem>
+                          <SelectItem value="vendor">Vendor</SelectItem>
+                          <SelectItem value="contractor">Contractor</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsContactDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={createContactMutation.isPending}>
+                    {createContactMutation.isPending ? "Creating..." : "Create Contact"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Calendar View */}
