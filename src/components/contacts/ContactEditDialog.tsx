@@ -76,8 +76,13 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<Contact>) => crmApi.contacts.update(contact.id, data),
-    onSuccess: () => {
+    mutationFn: (data: Partial<Contact>) => {
+      console.log('Update mutation called with:', data);
+      console.log('Contact ID:', contact.id);
+      return crmApi.contacts.update(contact.id, data);
+    },
+    onSuccess: (updatedContact) => {
+      console.log('Update successful:', updatedContact);
       toast({
         title: "Success",
         description: "Contact updated successfully",
@@ -87,12 +92,12 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
       onOpenChange(false);
     },
     onError: (error) => {
+      console.error('Update contact error:', error);
       toast({
         title: "Error",
         description: "Failed to update contact",
         variant: "destructive",
       });
-      console.error('Update contact error:', error);
     },
   });
 
@@ -131,22 +136,107 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-md max-h-[80vh] p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <DialogTitle>Edit Contact</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-            <div className="grid grid-cols-2 gap-4">
+        <div className="px-6 pb-6 overflow-y-auto max-h-[calc(80vh-80px)]">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <FormField
+                  control={form.control}
+                  name="first_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">First Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-8" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="last_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Last Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-8" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
-                name="first_name"
+                name="contact_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel className="text-xs">Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-8">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="client">Client</SelectItem>
+                        <SelectItem value="realtor">Realtor</SelectItem>
+                        <SelectItem value="vendor">Vendor</SelectItem>
+                        <SelectItem value="contractor">Contractor</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" {...field} className="h-8" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Phone</FormLabel>
+                      <FormControl>
+                        <Input type="tel" {...field} className="h-8" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Company</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} className="h-8" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -155,184 +245,103 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
 
               <FormField
                 control={form.control}
-                name="last_name"
+                name="formatted_address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel className="text-xs">Address</FormLabel>
                     <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="contact_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select contact type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="client">Client</SelectItem>
-                      <SelectItem value="realtor">Realtor</SelectItem>
-                      <SelectItem value="vendor">Vendor</SelectItem>
-                      <SelectItem value="contractor">Contractor</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" {...field} />
+                      <GooglePlacesAutocomplete
+                        value={field.value}
+                        onChange={handleAddressChange}
+                        onInputChange={field.onChange}
+                        placeholder="Start typing address..."
+                        className="h-8"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input type="tel" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+              <div className="grid grid-cols-3 gap-2">
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">City</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-8" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="company"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">State</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-8" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="formatted_address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <GooglePlacesAutocomplete
-                      value={field.value}
-                      onChange={handleAddressChange}
-                      onInputChange={field.onChange}
-                      placeholder="Start typing address..."
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="zip_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">ZIP</FormLabel>
+                      <FormControl>
+                        <Input {...field} className="h-8" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
-                name="state"
+                name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>State</FormLabel>
+                    <FormLabel className="text-xs">Notes</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Textarea
+                        {...field}
+                        placeholder="Additional notes..."
+                        rows={2}
+                        className="resize-none text-sm"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="zip_code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ZIP Code</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Additional notes about this contact..."
-                      rows={2}
-                      className="resize-none"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? "Updating..." : "Update Contact"}
-              </Button>
-            </div>
-          </form>
-        </Form>
+              <div className="flex justify-end gap-2 pt-3 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="h-8 px-3"
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={updateMutation.isPending} className="h-8 px-3">
+                  {updateMutation.isPending ? "Updating..." : "Update"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );
