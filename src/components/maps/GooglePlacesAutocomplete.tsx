@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import { Input } from '@/components/ui/input';
 import { MapPin, Loader2 } from 'lucide-react';
@@ -30,6 +30,8 @@ export function GooglePlacesAutocomplete({
   const autocompleteRef = useRef<any>(null);
   const onChangeRef = useRef(onChange);
   const isSelectingFromGoogle = useRef(false);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [displayValue, setDisplayValue] = useState(value);
@@ -87,9 +89,18 @@ export function GooglePlacesAutocomplete({
           );
 
           autocompleteRef.current.addListener('place_changed', () => {
+            console.log('Google Places: place_changed event triggered');
             const place = autocompleteRef.current?.getPlace();
+            
             if (place?.geometry?.location) {
+              console.log('Google Places: Valid place selected', place.formatted_address);
               isSelectingFromGoogle.current = true;
+
+              // Clear any pending debounce timeout
+              if (debounceTimeoutRef.current) {
+                clearTimeout(debounceTimeoutRef.current);
+                debounceTimeoutRef.current = null;
+              }
 
               const addressData = {
                 formatted_address: place.formatted_address || '',
@@ -102,10 +113,13 @@ export function GooglePlacesAutocomplete({
               setDisplayValue(addressData.formatted_address);
               onChangeRef.current(addressData);
 
-              // allow input change handlers to skip echo
+              // Extended timeout to prevent input change conflicts
               setTimeout(() => {
                 isSelectingFromGoogle.current = false;
-              }, 100);
+                console.log('Google Places: Selection flag cleared');
+              }, 300);
+            } else {
+              console.log('Google Places: Invalid place selected or no geometry');
             }
           });
         }
@@ -137,13 +151,62 @@ export function GooglePlacesAutocomplete({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const debouncedInputChange = useCallback((value: string) => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    
+    debounceTimeoutRef.current = setTimeout(() => {
+      if (!isSelectingFromGoogle.current) {
+        console.log('Google Places: Debounced input change', value);
+        onInputChange?.(value);
+      }
+    }, 150);
+  }, [onInputChange]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
+    console.log('Google Places: Input change', newValue, 'isSelecting:', isSelectingFromGoogle.current);
     setDisplayValue(newValue);
+    
     if (!isSelectingFromGoogle.current) {
-      onInputChange?.(newValue);
+      debouncedInputChange(newValue);
     }
   };
+
+  const handleFocus = () => {
+    console.log('Google Places: Input focused');
+    setIsFocused(true);
+  };
+
+  const handleBlur = () => {
+    console.log('Google Places: Input blurred');
+    // Delay blur to allow for dropdown selection
+    setTimeout(() => {
+      setIsFocused(false);
+    }, 200);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      // Let Google handle Enter key for selection
+      return;
+    }
+    if (e.key === 'Escape') {
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+    }
+  };
+
+  // Cleanup debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="relative">
@@ -153,12 +216,19 @@ export function GooglePlacesAutocomplete({
           ref={inputRef}
           value={displayValue}
           onChange={handleInputChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className={`pl-10 ${className || ''}`}
           disabled={isLoading}
+          autoComplete="off"
         />
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+        )}
+        {isFocused && !isLoading && (
+          <div className="absolute inset-0 pointer-events-none border border-primary/50 rounded-md" />
         )}
       </div>
     </div>
