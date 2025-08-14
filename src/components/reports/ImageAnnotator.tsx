@@ -66,20 +66,37 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
     setError(null);
     setCanvasReady(false);
 
-    console.log("🎨 Initializing canvas with image:", imageUrl);
+    console.log("🎨 ImageAnnotator: Dialog opened, initializing canvas", { 
+      imageUrl, 
+      canvasElement: !!canvasRef.current,
+      urlType: imageUrl?.startsWith('blob:') ? 'blob' : imageUrl?.includes('supabase') ? 'supabase' : 'other'
+    });
 
-    // Validate image URL first
-    if (!imageUrl || (!imageUrl.startsWith('http') && !imageUrl.startsWith('blob:') && !imageUrl.startsWith('data:'))) {
+    // Enhanced URL validation
+    if (!imageUrl) {
+      setError("No image URL provided");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!imageUrl.startsWith('http') && !imageUrl.startsWith('blob:') && !imageUrl.startsWith('data:')) {
       setError("Invalid image URL format");
       setIsLoading(false);
       return;
     }
 
+    // Create canvas with responsive sizing
+    const containerWidth = Math.min(window.innerWidth * 0.85, 1200);
+    const containerHeight = Math.min(window.innerHeight * 0.7, 800);
+    
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: 800,
-      height: 600,
+      width: containerWidth,
+      height: containerHeight,
       backgroundColor: "#ffffff",
+      selection: true,
     });
+
+    console.log("🎨 Canvas created", { width: containerWidth, height: containerHeight });
 
     // Set up drawing brush early
     canvas.freeDrawingBrush.color = activeColor;
@@ -87,52 +104,159 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
 
     const loadImage = async () => {
       try {
-        console.log("📸 Loading image from URL:", imageUrl);
+        console.log("🖼️ Starting comprehensive image loading process", { imageUrl });
         
-        // Create image element for better error handling
-        const imgElement = new Image();
-        imgElement.crossOrigin = 'anonymous';
-        
-        await new Promise((resolve, reject) => {
-          imgElement.onload = resolve;
-          imgElement.onerror = (e) => {
-            console.error("Image load error:", e);
-            reject(new Error("Failed to load image"));
-          };
-          imgElement.src = imageUrl;
+        // First, test URL accessibility with detailed logging
+        try {
+          console.log("🔍 Testing image URL accessibility...");
+          const testResponse = await fetch(imageUrl, { 
+            method: 'HEAD',
+            mode: 'cors'
+          });
+          console.log("✅ URL accessibility test successful", { 
+            status: testResponse.status, 
+            ok: testResponse.ok,
+            contentType: testResponse.headers.get('content-type'),
+            contentLength: testResponse.headers.get('content-length')
+          });
+        } catch (fetchError) {
+          console.warn("⚠️ URL accessibility test failed (continuing anyway):", fetchError);
+        }
+
+        // Method 1: Try direct Fabric.js loading
+        let img: FabricImage | null = null;
+        try {
+          console.log("🖼️ Attempting Fabric.js direct load...");
+          img = await FabricImage.fromURL(imageUrl, { 
+            crossOrigin: 'anonymous'
+          });
+          console.log("✅ Fabric.js direct load successful", {
+            width: img.width,
+            height: img.height,
+            src: img.getSrc()
+          });
+        } catch (fabricError) {
+          console.warn("⚠️ Fabric.js direct load failed:", fabricError);
+          
+          // Method 2: Fallback to Image element then Fabric
+          try {
+            console.log("🔄 Trying fallback method with Image element...");
+            const imgElement = new Image();
+            imgElement.crossOrigin = 'anonymous';
+            
+            await new Promise((resolve, reject) => {
+              imgElement.onload = () => {
+                console.log("✅ Image element loaded successfully", {
+                  width: imgElement.width,
+                  height: imgElement.height,
+                  naturalWidth: imgElement.naturalWidth,
+                  naturalHeight: imgElement.naturalHeight
+                });
+                resolve(null);
+              };
+              imgElement.onerror = (e) => {
+                console.error("❌ Image element failed to load:", e);
+                reject(new Error("Image element failed to load"));
+              };
+              imgElement.src = imageUrl;
+            });
+
+            // Create Fabric image from loaded element
+            img = await FabricImage.fromElement(imgElement);
+            console.log("✅ Fabric image created from element", {
+              width: img.width,
+              height: img.height
+            });
+          } catch (elementError) {
+            console.error("❌ Image element fallback also failed:", elementError);
+            throw new Error(`All image loading methods failed. Original: ${fabricError.message}, Fallback: ${elementError.message}`);
+          }
+        }
+
+        if (!img) {
+          throw new Error("Failed to create Fabric image object");
+        }
+
+        console.log("🎯 Image loaded successfully, calculating dimensions", {
+          originalWidth: img.width,
+          originalHeight: img.height,
+          canvasWidth: containerWidth,
+          canvasHeight: containerHeight
         });
 
-        console.log("✅ Image loaded successfully, creating Fabric image...");
+        // Calculate scaling to fit canvas while maintaining aspect ratio
+        const imgWidth = img.width || 1;
+        const imgHeight = img.height || 1;
         
-        const img = await FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' });
+        // Leave margin around the image
+        const maxWidth = containerWidth - 40;
+        const maxHeight = containerHeight - 40;
         
-        console.log("✅ Fabric image created:", { width: img.width, height: img.height });
+        const scaleX = maxWidth / imgWidth;
+        const scaleY = maxHeight / imgHeight;
+        const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
         
-        // Calculate scaling to fit canvas
-        const canvasAspect = canvas.width! / canvas.height!;
-        const imageAspect = img.width! / img.height!;
+        const scaledWidth = imgWidth * scale;
+        const scaledHeight = imgHeight * scale;
         
-        let scale;
-        if (imageAspect > canvasAspect) {
-          scale = canvas.width! / img.width!;
-        } else {
-          scale = canvas.height! / img.height!;
-        }
-        
-        img.scale(scale);
+        // Center the image
+        const left = (containerWidth - scaledWidth) / 2;
+        const top = (containerHeight - scaledHeight) / 2;
+
+        console.log("📐 Image positioning calculated", {
+          scale,
+          scaledWidth,
+          scaledHeight,
+          left,
+          top
+        });
+
         img.set({
-          left: (canvas.width! - img.getScaledWidth()) / 2,
-          top: (canvas.height! - img.getScaledHeight()) / 2,
+          left,
+          top,
+          scaleX: scale,
+          scaleY: scale,
           selectable: false,
           evented: false,
           name: 'background-image'
         });
-        
+
         canvas.add(img);
         canvas.sendObjectToBack(img);
+        
+        console.log("🎨 Image added to canvas, rendering...");
         canvas.renderAll();
 
-        console.log("✅ Image added to canvas");
+        // Verify image is visible on canvas
+        setTimeout(() => {
+          const objects = canvas.getObjects();
+          console.log("🔍 Canvas verification after render:", {
+            totalObjects: objects.length,
+            backgroundImage: objects.find(obj => (obj as any).name === 'background-image'),
+            canvasSize: { width: canvas.width, height: canvas.height }
+          });
+          
+          if (objects.length === 0) {
+            console.error("❌ No objects found on canvas after image load");
+            setError("Image was not properly added to canvas");
+            return;
+          }
+
+          const bgImg = objects.find(obj => (obj as any).name === 'background-image');
+          if (!bgImg) {
+            console.error("❌ Background image not found on canvas");
+            setError("Background image not found on canvas");
+            return;
+          }
+
+          console.log("✅ Background image confirmed on canvas", {
+            left: bgImg.left,
+            top: bgImg.top,
+            width: bgImg.getScaledWidth(),
+            height: bgImg.getScaledHeight(),
+            visible: bgImg.visible
+          });
+        }, 100);
 
         // Load initial annotations if provided
         if (initialAnnotations) {
@@ -142,9 +266,20 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
               ? JSON.parse(initialAnnotations) 
               : initialAnnotations;
             
+            // Save the background image reference
+            const backgroundImg = canvas.getObjects().find(obj => (obj as any).name === 'background-image');
+            
+            // Load annotations
             await canvas.loadFromJSON(annotationsData);
+            
+            // Ensure background image is still there and at the back
+            if (backgroundImg) {
+              canvas.add(backgroundImg);
+              canvas.sendObjectToBack(backgroundImg);
+            }
+            
             canvas.renderAll();
-            console.log("✅ Annotations loaded successfully");
+            console.log("✅ Initial annotations loaded successfully");
           } catch (annotationError) {
             console.error("❌ Failed to load annotations:", annotationError);
             toast.error("Failed to load existing annotations");
@@ -156,12 +291,14 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
         setHistory([initialState]);
         setHistoryIndex(0);
         setCanvasReady(true);
+        console.log("🎉 Image annotation setup complete!");
         toast.success("Image loaded and ready for annotation!");
 
       } catch (imageError) {
-        console.error("❌ Failed to load image:", imageError);
-        setError(`Failed to load image: ${imageError.message}`);
-        toast.error("Failed to load image for annotation");
+        console.error("❌ Comprehensive image loading failed:", imageError);
+        const errorMessage = imageError instanceof Error ? imageError.message : "Unknown error occurred";
+        setError(`Failed to load image: ${errorMessage}`);
+        toast.error(`Failed to load image: ${errorMessage}`);
       } finally {
         setIsLoading(false);
       }
