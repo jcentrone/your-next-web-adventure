@@ -209,6 +209,10 @@ export function GooglePlacesAutocomplete({
   }, []);
 
   return (
+    <form
+      onSubmit={(e) => e.preventDefault()}   // block accidental submit
+      className="relative"
+    >
     <div className="relative">
       <div className="relative">
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -232,5 +236,6 @@ export function GooglePlacesAutocomplete({
         )}
       </div>
     </div>
+  </form>
   );
 }
