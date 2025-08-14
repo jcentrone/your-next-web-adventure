@@ -97,6 +97,7 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
   });
 
   const onSubmit = (data: FormValues) => {
+    console.log('Submitting contact update:', data);
     updateMutation.mutate({
       ...data,
       email: data.email || null,
@@ -130,13 +131,13 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Contact</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -309,7 +310,8 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
                     <Textarea
                       {...field}
                       placeholder="Additional notes about this contact..."
-                      rows={3}
+                      rows={2}
+                      className="resize-none"
                     />
                   </FormControl>
                   <FormMessage />
