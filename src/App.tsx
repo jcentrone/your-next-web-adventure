@@ -40,6 +40,7 @@ const App = () => (
               <Route path="/reports/:id" element={lazyLoad(() => import("./pages/ReportEditor"))} />
               <Route path="/reports/:id/preview" element={lazyLoad(() => import("./pages/ReportPreview"))} />
               <Route path="/contacts" element={lazyLoad(() => import("./pages/Contacts"))} />
+              <Route path="/contacts/:id" element={lazyLoad(() => import("./pages/ContactDetail"))} />
               <Route path="/calendar" element={lazyLoad(() => import("./pages/Calendar"))} />
               <Route path="/tasks" element={lazyLoad(() => import("./pages/Tasks"))} />
               <Route path="/defects-admin" element={lazyLoad(() => import("./pages/DefectsAdmin"))} />

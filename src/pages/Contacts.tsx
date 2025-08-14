@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { contactsApi } from "@/integrations/supabase/crmApi";
@@ -388,63 +389,73 @@ const Contacts: React.FC = () => {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {contacts.map((contact) => (
-              <Card key={contact.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">
-                        {contact.first_name} {contact.last_name}
-                      </CardTitle>
-                      {contact.company && (
-                        <CardDescription className="flex items-center gap-1">
-                          <Building className="w-3 h-3" />
-                          {contact.company}
-                        </CardDescription>
-                      )}
+              <Card key={contact.id} className="hover:shadow-md transition-shadow cursor-pointer group">
+                <Link to={`/contacts/${contact.id}`} className="block">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                          {contact.first_name} {contact.last_name}
+                        </CardTitle>
+                        {contact.company && (
+                          <CardDescription className="flex items-center gap-1">
+                            <Building className="w-3 h-3" />
+                            {contact.company}
+                          </CardDescription>
+                        )}
+                      </div>
+                      <Badge className={getContactTypeColor(contact.contact_type)}>
+                        {contact.contact_type}
+                      </Badge>
                     </div>
-                    <Badge className={getContactTypeColor(contact.contact_type)}>
-                      {contact.contact_type}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {contact.email && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="w-3 h-3" />
-                      <a href={`mailto:${contact.email}`} className="hover:text-primary">
-                        {contact.email}
-                      </a>
-                    </div>
-                  )}
-                  {contact.phone && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Phone className="w-3 h-3" />
-                      <a href={`tel:${contact.phone}`} className="hover:text-primary">
-                        {contact.phone}
-                      </a>
-                    </div>
-                  )}
-                  {(contact.address || contact.city || contact.state) && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="w-3 h-3" />
-                      <span>
-                        {[contact.address, contact.city, contact.state].filter(Boolean).join(", ")}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div className="flex justify-end gap-2 pt-2">
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {contact.email && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="w-3 h-3" />
+                        <span className="hover:text-primary">
+                          {contact.email}
+                        </span>
+                      </div>
+                    )}
+                    {contact.phone && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="w-3 h-3" />
+                        <span className="hover:text-primary">
+                          {contact.phone}
+                        </span>
+                      </div>
+                    )}
+                    {(contact.address || contact.city || contact.state) && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="w-3 h-3" />
+                        <span>
+                          {[contact.address, contact.city, contact.state].filter(Boolean).join(", ")}
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Link>
+                
+                <CardContent className="pt-0">
+                  <div className="flex justify-end gap-2" onClick={(e) => e.preventDefault()}>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleEdit(contact)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(contact);
+                      }}
                     >
                       <Edit className="w-3 h-3" />
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDelete(contact)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(contact);
+                      }}
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>

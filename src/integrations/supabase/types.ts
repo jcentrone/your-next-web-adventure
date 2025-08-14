@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -437,6 +437,7 @@ export type Database = {
         Row: {
           address: string
           client_name: string
+          contact_id: string | null
           cover_image: string | null
           created_at: string
           final_comments: string | null
@@ -453,6 +454,7 @@ export type Database = {
         Insert: {
           address: string
           client_name: string
+          contact_id?: string | null
           cover_image?: string | null
           created_at?: string
           final_comments?: string | null
@@ -469,6 +471,7 @@ export type Database = {
         Update: {
           address?: string
           client_name?: string
+          contact_id?: string | null
           cover_image?: string | null
           created_at?: string
           final_comments?: string | null
@@ -483,6 +486,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reports_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reports_organization_id_fkey"
             columns: ["organization_id"]
@@ -642,6 +652,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_contact_with_related_data: {
+        Args: { contact_uuid: string }
+        Returns: Json
+      }
       get_user_organization_id: {
         Args: { user_uuid: string }
         Returns: string

@@ -92,6 +92,7 @@ export async function dbCreateReport(meta: {
   clientName: string;
   address: string;
   inspectionDate: string; // 'YYYY-MM-DD' or ISO
+  contact_id?: string;
 }, userId: string, organizationId?: string): Promise<Report> {
   const id = crypto.randomUUID();
   const sections: Section[] = SOP_SECTIONS.map((s, idx) => ({
@@ -117,6 +118,7 @@ export async function dbCreateReport(meta: {
   const payload = {
     user_id: userId,
     organization_id: organizationId || null,
+    contact_id: meta.contact_id || null,
     ...toDbPayload(report),
     sections,
     id, // preserve generated id so local and remote stay aligned
@@ -195,3 +197,30 @@ export async function dbDeleteReport(id: string): Promise<void> {
     throw error;
   }
 }
+
+export async function dbGetReportsByContactId(contactId: string): Promise<any[]> {
+  const { data, error } = await supabase
+    .from("reports")
+    .select("id, title, client_name, address, inspection_date, status, created_at")
+    .eq("contact_id", contactId)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    title: r.title,
+    clientName: r.client_name,
+    address: r.address,
+    inspection_date: r.inspection_date,
+    status: r.status,
+  }));
+}
+
+export const reportsApi = {
+  dbCreateReport,
+  dbListReports,
+  dbGetReport,
+  dbUpdateReport,
+  dbDeleteReport,
+  getByContactId: dbGetReportsByContactId,
+};

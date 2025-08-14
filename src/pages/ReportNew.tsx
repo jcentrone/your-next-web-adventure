@@ -1,8 +1,9 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { createReport } from "@/hooks/useLocalDraft";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
+import { contactsApi } from "@/integrations/supabase/crmApi";
 import { supabase } from "@/integrations/supabase/client";
 
 const schema = z.object({
@@ -19,6 +21,7 @@ const schema = z.object({
   clientName: z.string().min(1, "Required"),
   address: z.string().min(1, "Required"),
   inspectionDate: z.string().min(1, "Required"),
+  contactId: z.string().optional(),
 });
 
 type Values = z.infer<typeof schema>;
@@ -26,6 +29,16 @@ type Values = z.infer<typeof schema>;
 const ReportNew: React.FC = () => {
   const nav = useNavigate();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const contactId = searchParams.get("contactId");
+
+  // Get contact data if contactId is provided
+  const { data: contact } = useQuery({
+    queryKey: ["contact", contactId],
+    queryFn: () => contactsApi.get(contactId!),
+    enabled: !!contactId && !!user,
+  });
+
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -33,8 +46,17 @@ const ReportNew: React.FC = () => {
       clientName: "",
       address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
+      contactId: contactId || "",
     },
   });
+
+  // Update form when contact data loads
+  useEffect(() => {
+    if (contact) {
+      form.setValue('clientName', `${contact.first_name} ${contact.last_name}`);
+      form.setValue('address', contact.address || "");
+    }
+  }, [contact, form]);
 
   const onSubmit = async (values: Values) => {
     try {
@@ -52,6 +74,7 @@ const ReportNew: React.FC = () => {
             clientName: values.clientName,
             address: values.address,
             inspectionDate: values.inspectionDate,
+            contact_id: values.contactId,
           },
           user.id,
           profile?.organization_id || undefined

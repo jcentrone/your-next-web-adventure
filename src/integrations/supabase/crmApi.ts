@@ -20,7 +20,7 @@ export const contactsApi = {
       .from('contacts')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Contact;
@@ -151,6 +151,17 @@ export const appointmentsApi = {
     
     if (error) throw error;
     return data as Appointment[];
+  },
+
+  async getByContactId(contactId: string): Promise<Appointment[]> {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('contact_id', contactId)
+      .order('appointment_date', { ascending: false });
+
+    if (error) throw error;
+    return data as Appointment[];
   }
 };
 
@@ -236,6 +247,17 @@ export const tasksApi = {
       .lt('due_date', new Date().toISOString())
       .order('due_date', { ascending: true });
     
+    if (error) throw error;
+    return data as Task[];
+  },
+
+  async getByContactId(contactId: string): Promise<Task[]> {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('contact_id', contactId)
+      .order('created_at', { ascending: false });
+
     if (error) throw error;
     return data as Task[];
   }
