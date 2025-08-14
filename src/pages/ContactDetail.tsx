@@ -1,20 +1,49 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { contactsApi, appointmentsApi, tasksApi, activitiesApi } from "@/integrations/supabase/crmApi";
 import { reportsApi } from "@/integrations/supabase/reportsApi";
+import { CreateContactSchema } from "@/lib/crmSchemas";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Plus, Mail, Phone, MapPin, Building2, Calendar, FileText, CheckSquare, Activity } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, Plus, Mail, Phone, MapPin, Building2, Calendar, FileText, CheckSquare, Activity, Edit2, Save, X } from "lucide-react";
 import { format } from "date-fns";
 
 export default function ContactDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
+
+  const form = useForm({
+    resolver: zodResolver(CreateContactSchema),
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      company: "",
+      contact_type: "client",
+      address: "",
+      city: "",
+      state: "",
+      zip_code: "",
+      notes: "",
+    },
+  });
 
   const { data: contact, isLoading: contactLoading } = useQuery({
     queryKey: ["contact", id],
@@ -45,6 +74,53 @@ export default function ContactDetail() {
     queryFn: () => activitiesApi.getForContact(id!),
     enabled: !!id && !!user,
   });
+
+  const updateMutation = useMutation({
+    mutationFn: (updates: any) => contactsApi.update(id!, updates),
+    onSuccess: () => {
+      toast({
+        title: "Contact updated",
+        description: "Contact information has been successfully updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["contact", id] });
+      setIsEditing(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update contact. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = () => {
+    if (contact) {
+      form.reset({
+        first_name: contact.first_name || "",
+        last_name: contact.last_name || "",
+        email: contact.email || "",
+        phone: contact.phone || "",
+        company: contact.company || "",
+        contact_type: contact.contact_type || "client",
+        address: contact.address || "",
+        city: contact.city || "",
+        state: contact.state || "",
+        zip_code: contact.zip_code || "",
+        notes: contact.notes || "",
+      });
+      setIsEditing(true);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    form.reset();
+  };
+
+  const onSubmit = (values: any) => {
+    updateMutation.mutate(values);
+  };
 
   if (contactLoading) {
     return (
@@ -125,66 +201,265 @@ export default function ContactDetail() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Link to={`/reports/new?contactId=${contact.id}`}>
-                  <Button>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Create Report
-                  </Button>
-                </Link>
-                <Link to={`/calendar?contactId=${contact.id}`}>
-                  <Button variant="outline">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Schedule Appointment
-                  </Button>
-                </Link>
+                {!isEditing ? (
+                  <>
+                    <Button variant="outline" size="sm" onClick={handleEdit}>
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Link to={`/reports/new?contactId=${contact.id}`}>
+                      <Button>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Create Report
+                      </Button>
+                    </Link>
+                    <Link to={`/calendar?contactId=${contact.id}`}>
+                      <Button variant="outline">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Schedule Appointment
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" size="sm" onClick={handleCancel}>
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={form.handleSubmit(onSubmit)}
+                      disabled={updateMutation.isPending}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {updateMutation.isPending ? "Saving..." : "Save"}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                {contact.email && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <span>{contact.email}</span>
+            {!isEditing ? (
+              <>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    {contact.email && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Mail className="h-4 w-4" />
+                        <span>{contact.email}</span>
+                      </div>
+                    )}
+                    {contact.phone && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Phone className="h-4 w-4" />
+                        <span>{contact.phone}</span>
+                      </div>
+                    )}
+                    {contact.company && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Building2 className="h-4 w-4" />
+                        <span>{contact.company}</span>
+                      </div>
+                    )}
                   </div>
-                )}
-                {contact.phone && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    <span>{contact.phone}</span>
-                  </div>
-                )}
-                {contact.company && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Building2 className="h-4 w-4" />
-                    <span>{contact.company}</span>
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                {contact.address && (
-                  <div className="flex items-start gap-2 text-muted-foreground">
-                    <MapPin className="h-4 w-4 mt-0.5" />
-                    <div>
-                      <div>{contact.address}</div>
-                      {(contact.city || contact.state || contact.zip_code) && (
+                  <div className="space-y-2">
+                    {contact.address && (
+                      <div className="flex items-start gap-2 text-muted-foreground">
+                        <MapPin className="h-4 w-4 mt-0.5" />
                         <div>
-                          {contact.city && `${contact.city}, `}
-                          {contact.state && `${contact.state} `}
-                          {contact.zip_code}
+                          <div>{contact.address}</div>
+                          {(contact.city || contact.state || contact.zip_code) && (
+                            <div>
+                              {contact.city && `${contact.city}, `}
+                              {contact.state && `${contact.state} `}
+                              {contact.zip_code}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {contact.notes && (
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <h4 className="font-medium mb-2">Notes</h4>
+                    <p className="text-sm text-muted-foreground">{contact.notes}</p>
                   </div>
                 )}
-              </div>
-            </div>
-            {contact.notes && (
-              <div className="mt-4 p-3 bg-muted rounded-lg">
-                <h4 className="font-medium mb-2">Notes</h4>
-                <p className="text-sm text-muted-foreground">{contact.notes}</p>
-              </div>
+              </>
+            ) : (
+              <Form {...form}>
+                <form className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="first_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="last_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="contact_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contact Type</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select contact type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="client">Client</SelectItem>
+                              <SelectItem value="realtor">Realtor</SelectItem>
+                              <SelectItem value="vendor">Vendor</SelectItem>
+                              <SelectItem value="contractor">Contractor</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="company"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="zip_code"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>ZIP Code</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </form>
+              </Form>
             )}
           </CardContent>
         </Card>

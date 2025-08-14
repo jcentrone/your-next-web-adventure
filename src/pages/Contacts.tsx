@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Search, Mail, Phone, Building, MapPin, Edit, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ContactSchema, CreateContactSchema, type Contact } from "@/lib/crmSchemas";
@@ -23,6 +24,7 @@ const Contacts: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
@@ -560,7 +562,7 @@ const Contacts: React.FC = () => {
                       variant="outline"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleEdit(contact);
+                        navigate(`/contacts/${contact.id}`);
                       }}
                     >
                       <Edit className="w-3 h-3" />
