@@ -30,8 +30,16 @@ export function GooglePlacesAutocomplete({
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [displayValue, setDisplayValue] = useState(value);
   const isSelectingFromGoogle = useRef(false);
   const { toast } = useToast();
+
+  // Sync display value with prop value when it changes externally (e.g., form reset)
+  useEffect(() => {
+    if (value !== displayValue && !isSelectingFromGoogle.current) {
+      setDisplayValue(value);
+    }
+  }, [value, displayValue]);
 
   useEffect(() => {
     const initializeAutocomplete = async () => {
@@ -76,6 +84,9 @@ export function GooglePlacesAutocomplete({
                 address_components: place.address_components || []
               };
               
+              // Update display value immediately
+              setDisplayValue(addressData.formatted_address);
+              
               // Call onChange which will update the form value
               onChange(addressData);
               
@@ -108,9 +119,13 @@ export function GooglePlacesAutocomplete({
   }, [onChange, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    
+    // Always update the display value immediately for smooth typing
+    setDisplayValue(newValue);
+    
     // Only call onInputChange when user is actually typing, not when Google Places updates
     if (!isSelectingFromGoogle.current) {
-      const newValue = e.target.value;
       onInputChange?.(newValue);
     }
   };
@@ -121,7 +136,7 @@ export function GooglePlacesAutocomplete({
         <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
           ref={inputRef}
-          value={value}
+          value={displayValue}
           onChange={handleInputChange}
           placeholder={placeholder}
           className={`pl-10 ${className}`}
