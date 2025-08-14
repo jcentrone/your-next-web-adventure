@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 import React, { useEffect, useRef, useState } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ interface GooglePlacesAutocompleteProps {
     place_id: string;
     latitude: number;
     longitude: number;
-    address_components: google.maps.places.AddressComponent[];
+    address_components: google.maps.GeocoderAddressComponent[];
   }) => void;
   onInputChange?: (value: string) => void;
   placeholder?: string;
@@ -84,7 +85,7 @@ export function GooglePlacesAutocomplete({
             place_id: place.place_id ?? '',
             latitude: place.geometry.location.lat(),
             longitude: place.geometry.location.lng(),
-            address_components: (place.address_components ?? []) as google.maps.places.AddressComponent[],
+            address_components: place.address_components ?? [],
           };
 
           setDisplayValue(addressData.formatted_address);
