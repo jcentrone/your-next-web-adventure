@@ -76,16 +76,31 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
     },
   });
 
+  const [isGooglePlacesActive, setIsGooglePlacesActive] = React.useState(false);
+
   React.useEffect(() => {
-  const swallowPacMouseDown = (e: MouseEvent) => {
-    const el = e.target as HTMLElement | null;
-    if (el && el.closest('.pac-container')) {
-      e.stopPropagation(); // stop at capture phase
-    }
-  };
-  document.addEventListener('mousedown', swallowPacMouseDown, true); // capture=true
-  return () => document.removeEventListener('mousedown', swallowPacMouseDown, true);
-}, []);
+    // Enhanced event prevention for Google Places
+    const preventDialogClose = (e: Event) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.closest('.pac-container') || el.closest('.pac-item') || el.classList.contains('pac-item'))) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      }
+    };
+
+    // Add multiple event listeners for comprehensive prevention
+    const events = ['mousedown', 'click', 'pointerdown', 'touchstart'];
+    events.forEach(eventType => {
+      document.addEventListener(eventType, preventDialogClose, { capture: true, passive: false });
+    });
+
+    // Cleanup
+    return () => {
+      events.forEach(eventType => {
+        document.removeEventListener(eventType, preventDialogClose, { capture: true });
+      });
+    };
+  }, []);
 
   const updateMutation = useMutation({
     mutationFn: (data: Partial<Contact>) => {
@@ -122,6 +137,9 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
   };
 
   const handleAddressChange = useCallback((addressData: any) => {
+    // Lock dialog during address selection
+    setIsGooglePlacesActive(true);
+    
     form.setValue('formatted_address', addressData.formatted_address, { shouldDirty: true, shouldTouch: true });
   
     // Extract city, state, zip
@@ -135,10 +153,16 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
     if (city) form.setValue('city', city, { shouldDirty: true });
     if (state) form.setValue('state', state, { shouldDirty: true });
     if (zipCode) form.setValue('zip_code', zipCode, { shouldDirty: true });
+
+    // Unlock after a brief delay to ensure Google's events complete
+    setTimeout(() => setIsGooglePlacesActive(false), 100);
   }, [form]);
 
   const handleAddressInput = useCallback((val: string) => {
+    setIsGooglePlacesActive(true);
     form.setValue('formatted_address', val, { shouldDirty: true, shouldTouch: true });
+    // Reset after typing delay
+    setTimeout(() => setIsGooglePlacesActive(false), 200);
   }, [form]);
 
   return (
@@ -148,11 +172,32 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
           onOpenAutoFocus={(e) => e.preventDefault()}
           onPointerDownOutside={(e) => {
             const el = e.target as HTMLElement;
-            if (el.closest('.pac-container')) e.preventDefault(); // stop close
+            // Enhanced Google Places element detection
+            if (
+              isGooglePlacesActive ||
+              el.closest('.pac-container') ||
+              el.closest('.pac-item') ||
+              el.classList.contains('pac-item') ||
+              el.classList.contains('pac-matched')
+            ) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
           }}
           onInteractOutside={(e) => {
             const el = e.target as HTMLElement;
-            if (el.closest('.pac-container')) e.preventDefault(); // belt & suspenders
+            // Comprehensive interaction prevention
+            if (
+              isGooglePlacesActive ||
+              el.closest('.pac-container') ||
+              el.closest('.pac-item') ||
+              el.classList.contains('pac-item') ||
+              el.classList.contains('pac-matched') ||
+              el.querySelector('.pac-item')
+            ) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
           }}
         >
         <DialogHeader className="px-6 pt-6 pb-2">
@@ -269,9 +314,11 @@ export function ContactEditDialog({ contact, open, onOpenChange }: ContactEditDi
                     <FormLabel className="text-xs">Address</FormLabel>
                     <FormControl>
                       <GooglePlacesAutocomplete
-                        value={field.value ?? ''}           // still display RHF value
-                        onChange={handleAddressChange}      // memoized
-                        onInputChange={handleAddressInput}  // memoized
+                        value={field.value ?? ''}
+                        onChange={handleAddressChange}
+                        onInputChange={handleAddressInput}
+                        onFocus={() => setIsGooglePlacesActive(true)}
+                        onBlur={() => setIsGooglePlacesActive(false)}
                         placeholder="Start typing address..."
                         className="h-8"
                       />

@@ -16,6 +16,8 @@ interface GooglePlacesAutocompleteProps {
     address_components: google.maps.GeocoderAddressComponent[];
   }) => void;
   onInputChange?: (value: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   placeholder?: string;
   className?: string;
 }
@@ -24,6 +26,8 @@ export function GooglePlacesAutocomplete({
   value = '',
   onChange,
   onInputChange,
+  onFocus,
+  onBlur,
   placeholder = 'Enter address...',
   className,
 }: GooglePlacesAutocompleteProps) {
@@ -80,16 +84,19 @@ export function GooglePlacesAutocomplete({
           const place = autocompleteRef.current?.getPlace();
           if (!place?.geometry?.location || !place.formatted_address) return;
 
-          const addressData = {
-            formatted_address: place.formatted_address,
-            place_id: place.place_id ?? '',
-            latitude: place.geometry.location.lat(),
-            longitude: place.geometry.location.lng(),
-            address_components: place.address_components ?? [],
-          };
+          // Add small delay to ensure all Google events complete before dialog interaction
+          setTimeout(() => {
+            const addressData = {
+              formatted_address: place.formatted_address,
+              place_id: place.place_id ?? '',
+              latitude: place.geometry.location.lat(),
+              longitude: place.geometry.location.lng(),
+              address_components: place.address_components ?? [],
+            };
 
-          setDisplayValue(addressData.formatted_address);
-          onChangeRef.current(addressData);
+            setDisplayValue(addressData.formatted_address);
+            onChangeRef.current(addressData);
+          }, 50);
         });
       } catch (err) {
         console.error('Error loading Google Maps:', err);
@@ -139,6 +146,13 @@ export function GooglePlacesAutocomplete({
         value={displayValue}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
+        onFocus={() => {
+          onFocus?.();
+        }}
+        onBlur={() => {
+          // Delay blur to allow place selection
+          setTimeout(() => onBlur?.(), 150);
+        }}
         placeholder={placeholder}
         className={`pl-10 ${className || ''}`}
         disabled={isLoading}
