@@ -89,7 +89,7 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="flex gap-2">
             <Button asChild>
-              <Link to="/appointments/new">
+              <Link to="/calendar">
                 <Plus className="w-4 h-4 mr-2" />
                 New Appointment
               </Link>

@@ -2,30 +2,30 @@ import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tasksApi, contactsApi, appointmentsApi } from "@/integrations/supabase/crmApi";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, CheckSquare, Clock, AlertTriangle, Calendar, User, Edit, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CheckSquare, Plus, Edit, Trash2, Clock } from "lucide-react";
+import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TaskSchema, type Task } from "@/lib/crmSchemas";
-import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import Seo from "@/components/Seo";
 
 const Tasks: React.FC = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deleteTask, setDeleteTask] = useState<Task | null>(null);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks", user?.id],
@@ -45,54 +45,31 @@ const Tasks: React.FC = () => {
     enabled: !!user,
   });
 
-  const form = useForm<Task>({
-    resolver: zodResolver(TaskSchema.omit({ id: true, user_id: true, created_at: true, updated_at: true })),
-    defaultValues: {
-      title: "",
-      description: "",
-      priority: "medium",
-      status: "pending",
-      due_date: null,
-      contact_id: null,
-      appointment_id: null,
-      report_id: null,
-      assigned_to: null,
-    },
-  });
-
   const createMutation = useMutation({
     mutationFn: tasksApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({ title: "Task created successfully" });
+      toast.success("Task created successfully");
       setIsDialogOpen(false);
       form.reset();
     },
-    onError: (error) => {
-      toast({ 
-        title: "Error creating task", 
-        description: error.message, 
-        variant: "destructive" 
-      });
+    onError: () => {
+      toast.error("Failed to create task");
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<Task> }) =>
-      tasksApi.update(id, updates),
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      tasksApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({ title: "Task updated successfully" });
+      toast.success("Task updated successfully");
       setIsDialogOpen(false);
       setEditingTask(null);
       form.reset();
     },
-    onError: (error) => {
-      toast({ 
-        title: "Error updating task", 
-        description: error.message, 
-        variant: "destructive" 
-      });
+    onError: () => {
+      toast.error("Failed to update task");
     },
   });
 
@@ -100,56 +77,88 @@ const Tasks: React.FC = () => {
     mutationFn: tasksApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({ title: "Task deleted successfully" });
+      toast.success("Task deleted successfully");
+      setDeleteTask(null);
     },
-    onError: (error) => {
-      toast({ 
-        title: "Error deleting task", 
-        description: error.message, 
-        variant: "destructive" 
-      });
+    onError: () => {
+      toast.error("Failed to delete task");
+    },
+  });
+
+  const toggleCompleteMutation = useMutation({
+    mutationFn: ({ id, completed }: { id: string; completed: boolean }) => 
+      tasksApi.update(id, { 
+        status: completed ? "completed" : "pending",
+        completed_at: completed ? new Date().toISOString() : null
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("Task status updated");
+    },
+    onError: () => {
+      toast.error("Failed to update task status");
+    },
+  });
+
+  const form = useForm({
+    resolver: zodResolver(TaskSchema.omit({ 
+      id: true, 
+      user_id: true, 
+      created_at: true, 
+      updated_at: true,
+      completed_at: true
+    })),
+    defaultValues: {
+      title: "",
+      description: "",
+      priority: "medium",
+      status: "pending",
+      due_date: "",
+      contact_id: "",
+      appointment_id: "",
     },
   });
 
   const onSubmit = (data: any) => {
     const taskData = {
       ...data,
-      due_date: data.due_date || null,
+      user_id: user!.id,
       contact_id: data.contact_id || null,
       appointment_id: data.appointment_id || null,
-      report_id: data.report_id || null,
-      assigned_to: data.assigned_to || null,
+      due_date: data.due_date || null,
     };
 
     if (editingTask) {
-      updateMutation.mutate({ id: editingTask.id, updates: taskData });
+      updateMutation.mutate({ id: editingTask.id, data: taskData });
     } else {
-      createMutation.mutate({ ...taskData, user_id: user!.id });
+      createMutation.mutate(taskData);
     }
   };
 
   const handleEdit = (task: Task) => {
     setEditingTask(task);
     form.reset({
-      ...task,
-      due_date: task.due_date ? new Date(task.due_date).toISOString().slice(0, 16) : null,
+      title: task.title,
+      description: task.description || "",
+      priority: task.priority,
+      status: task.status,
+      due_date: task.due_date ? format(new Date(task.due_date), "yyyy-MM-dd") : "",
+      contact_id: task.contact_id || "",
+      appointment_id: task.appointment_id || "",
     });
     setIsDialogOpen(true);
   };
 
   const handleDelete = (task: Task) => {
-    if (confirm(`Are you sure you want to delete "${task.title}"?`)) {
-      deleteMutation.mutate(task.id);
-    }
+    setDeleteTask(task);
   };
 
   const handleToggleComplete = (task: Task) => {
-    const newStatus = task.status === "completed" ? "pending" : "completed";
-    const updates: Partial<Task> = { 
-      status: newStatus,
-      completed_at: newStatus === "completed" ? new Date().toISOString() : null 
-    };
-    updateMutation.mutate({ id: task.id, updates });
+    const isCompleted = task.status === "completed";
+    toggleCompleteMutation.mutate({ 
+      id: task.id, 
+      completed: !isCompleted 
+    });
   };
 
   const getPriorityColor = (priority: string) => {
@@ -170,9 +179,9 @@ const Tasks: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-blue-100 text-blue-800";
-      case "in_progress":
         return "bg-yellow-100 text-yellow-800";
+      case "in_progress":
+        return "bg-blue-100 text-blue-800";
       case "completed":
         return "bg-green-100 text-green-800";
       case "cancelled":
@@ -183,75 +192,64 @@ const Tasks: React.FC = () => {
   };
 
   const filterTasksByStatus = (status: string) => {
+    if (status === "all") return tasks;
     return tasks.filter(task => task.status === status);
   };
 
-  const TaskCard = ({ task }: { task: any }) => (
-    <Card key={task.id} className="hover:shadow-md transition-shadow">
+  const TaskCard = ({ task }: { task: Task }) => (
+    <Card className="relative">
       <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-start gap-3 flex-1">
-            <Checkbox
-              checked={task.status === "completed"}
-              onCheckedChange={() => handleToggleComplete(task)}
-              className="mt-1"
-            />
-            <div className="flex-1">
-              <h4 className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
+        <div className="flex items-start justify-between">
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={task.status === "completed"}
+                onChange={() => handleToggleComplete(task)}
+                className="rounded"
+              />
+              <h3 className={`font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
                 {task.title}
-              </h4>
-              {task.description && (
-                <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
-              )}
+              </h3>
             </div>
+            
+            {task.description && (
+              <p className="text-sm text-muted-foreground">{task.description}</p>
+            )}
+            
+            <div className="flex flex-wrap gap-2">
+              <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
+              <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
+            </div>
+            
+            {task.due_date && (
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                Due: {format(new Date(task.due_date), "MMM d, yyyy")}
+              </p>
+            )}
+            
+            {(task as any).contact && (
+              <p className="text-sm text-muted-foreground">
+                Contact: {(task as any).contact.first_name} {(task as any).contact.last_name}
+              </p>
+            )}
+            
+            {(task as any).appointment && (
+              <p className="text-sm text-muted-foreground">
+                Appointment: {(task as any).appointment.title}
+              </p>
+            )}
           </div>
+          
           <div className="flex gap-2">
-            <Badge className={getPriorityColor(task.priority)}>{task.priority}</Badge>
-            <Badge className={getStatusColor(task.status)}>{task.status}</Badge>
+            <Button size="sm" variant="ghost" onClick={() => handleEdit(task)}>
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => handleDelete(task)}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </div>
-        </div>
-
-        <div className="space-y-1 text-sm text-muted-foreground">
-          {task.due_date && (
-            <div className="flex items-center gap-2">
-              <Calendar className="w-3 h-3" />
-              Due: {format(new Date(task.due_date), "MMM d, yyyy")}
-              {new Date(task.due_date) < new Date() && task.status !== "completed" && (
-                <AlertTriangle className="w-3 h-3 text-red-500" />
-              )}
-            </div>
-          )}
-          
-          {task.contact && (
-            <div className="flex items-center gap-2">
-              <User className="w-3 h-3" />
-              {task.contact.first_name} {task.contact.last_name}
-            </div>
-          )}
-          
-          {task.appointment && (
-            <div className="flex items-center gap-2">
-              <Clock className="w-3 h-3" />
-              {task.appointment.title}
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-end gap-1 mt-3">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleEdit(task)}
-          >
-            <Edit className="w-3 h-3" />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleDelete(task)}
-          >
-            <Trash2 className="w-3 h-3" />
-          </Button>
         </div>
       </CardContent>
     </Card>
@@ -261,7 +259,7 @@ const Tasks: React.FC = () => {
     <>
       <Seo 
         title="Tasks - InspectPro"
-        description="Manage your inspection business tasks and stay organized."
+        description="Manage your inspection tasks, track progress, and stay organized with your business activities."
       />
       
       <div className="container mx-auto p-6 space-y-6">
@@ -269,10 +267,9 @@ const Tasks: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
             <p className="text-muted-foreground">
-              Manage your inspection business tasks and stay organized.
+              Manage your tasks and stay organized
             </p>
           </div>
-          
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => {
@@ -283,16 +280,12 @@ const Tasks: React.FC = () => {
                 New Task
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>
-                  {editingTask ? "Edit Task" : "New Task"}
+                  {editingTask ? "Edit Task" : "Create Task"}
                 </DialogTitle>
-                <DialogDescription>
-                  {editingTask ? "Update task details" : "Create a new task for your business"}
-                </DialogDescription>
               </DialogHeader>
-              
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
@@ -308,7 +301,7 @@ const Tasks: React.FC = () => {
                       </FormItem>
                     )}
                   />
-
+                  
                   <FormField
                     control={form.control}
                     name="description"
@@ -316,134 +309,135 @@ const Tasks: React.FC = () => {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Task description" {...field} rows={3} />
+                          <Textarea placeholder="Task description" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="priority"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Priority</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="low">Low</SelectItem>
-                              <SelectItem value="medium">Medium</SelectItem>
-                              <SelectItem value="high">High</SelectItem>
-                              <SelectItem value="urgent">Urgent</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="in_progress">In Progress</SelectItem>
-                              <SelectItem value="completed">Completed</SelectItem>
-                              <SelectItem value="cancelled">Cancelled</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="due_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Due Date</FormLabel>
+                  <FormField
+                    control={form.control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Priority</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <Input type="datetime-local" {...field} value={field.value || ""} />
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                          <SelectContent>
+                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="urgent">Urgent</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="contact_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Related Contact</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a contact" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="">No contact</SelectItem>
-                              {contacts.map((contact) => (
-                                <SelectItem key={contact.id} value={contact.id}>
-                                  {contact.first_name} {contact.last_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="appointment_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Related Appointment</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select an appointment" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="">No appointment</SelectItem>
-                              {appointments.map((appointment) => (
-                                <SelectItem key={appointment.id} value={appointment.id}>
-                                  {appointment.title}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <FormField
+                    control={form.control}
+                    name="due_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Due Date (Optional)</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="contact_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Related Contact (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a contact" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {contacts.map((contact) => (
+                              <SelectItem key={contact.id} value={contact.id}>
+                                {contact.first_name} {contact.last_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="appointment_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Related Appointment (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select an appointment" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {appointments.map((appointment) => (
+                              <SelectItem key={appointment.id} value={appointment.id}>
+                                {appointment.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                      {editingTask ? "Update" : "Create"} Task
+                    <Button type="submit">
+                      {editingTask ? "Update" : "Create"}
                     </Button>
                   </div>
                 </form>
@@ -452,52 +446,79 @@ const Tasks: React.FC = () => {
           </Dialog>
         </div>
 
-        <Tabs defaultValue="all" className="space-y-4">
+        <Tabs defaultValue="all" className="space-y-6">
           <TabsList>
             <TabsTrigger value="all">All Tasks ({tasks.length})</TabsTrigger>
-            <TabsTrigger value="pending">Pending ({filterTasksByStatus("pending").length})</TabsTrigger>
-            <TabsTrigger value="in_progress">In Progress ({filterTasksByStatus("in_progress").length})</TabsTrigger>
-            <TabsTrigger value="completed">Completed ({filterTasksByStatus("completed").length})</TabsTrigger>
+            <TabsTrigger value="pending">
+              Pending ({filterTasksByStatus("pending").length})
+            </TabsTrigger>
+            <TabsTrigger value="in_progress">
+              In Progress ({filterTasksByStatus("in_progress").length})
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Completed ({filterTasksByStatus("completed").length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all">
             {isLoading ? (
               <div className="text-center py-8">Loading tasks...</div>
             ) : tasks.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">No tasks yet</p>
-                  <Button onClick={() => setIsDialogOpen(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Task
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="text-center py-8">
+                <CheckSquare className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Get started by creating a new task.
+                </p>
+              </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {tasks.map((task) => <TaskCard key={task.id} task={task} />)}
+                {tasks.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="pending">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filterTasksByStatus("pending").map((task) => <TaskCard key={task.id} task={task} />)}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="in_progress">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filterTasksByStatus("in_progress").map((task) => <TaskCard key={task.id} task={task} />)}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="completed">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filterTasksByStatus("completed").map((task) => <TaskCard key={task.id} task={task} />)}
-            </div>
-          </TabsContent>
+          {["pending", "in_progress", "completed"].map((status) => (
+            <TabsContent key={status} value={status}>
+              {filterTasksByStatus(status).length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckSquare className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">
+                    No {status.replace("_", " ")} tasks
+                  </h3>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filterTasksByStatus(status).map((task) => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          ))}
         </Tabs>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deleteTask} onOpenChange={() => setDeleteTask(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Task</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{deleteTask?.title}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteTask && deleteMutation.mutate(deleteTask.id)}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </>
   );

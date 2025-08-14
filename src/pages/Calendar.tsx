@@ -2,32 +2,32 @@ import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { appointmentsApi, contactsApi } from "@/integrations/supabase/crmApi";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Plus, Calendar as CalendarIcon, Clock, MapPin, User, Edit, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Edit, Trash2 } from "lucide-react";
+import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppointmentSchema, type Appointment } from "@/lib/crmSchemas";
-import { useToast } from "@/hooks/use-toast";
-import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
+import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import Seo from "@/components/Seo";
 
 const Calendar: React.FC = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [deleteAppointment, setDeleteAppointment] = useState<Appointment | null>(null);
 
-  const { data: appointments = [], isLoading } = useQuery({
+  const { data: appointments = [] } = useQuery({
     queryKey: ["appointments", user?.id],
     queryFn: () => appointmentsApi.list(user!.id),
     enabled: !!user,
@@ -39,53 +39,31 @@ const Calendar: React.FC = () => {
     enabled: !!user,
   });
 
-  const form = useForm<Appointment>({
-    resolver: zodResolver(AppointmentSchema.omit({ id: true, user_id: true, created_at: true, updated_at: true })),
-    defaultValues: {
-      title: "",
-      description: "",
-      appointment_date: new Date().toISOString(),
-      duration_minutes: 120,
-      location: "",
-      status: "scheduled",
-      contact_id: null,
-      report_id: null,
-    },
-  });
-
   const createMutation = useMutation({
     mutationFn: appointmentsApi.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      toast({ title: "Appointment created successfully" });
+      toast.success("Appointment created successfully");
       setIsDialogOpen(false);
       form.reset();
     },
-    onError: (error) => {
-      toast({ 
-        title: "Error creating appointment", 
-        description: error.message, 
-        variant: "destructive" 
-      });
+    onError: () => {
+      toast.error("Failed to create appointment");
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<Appointment> }) =>
-      appointmentsApi.update(id, updates),
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      appointmentsApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      toast({ title: "Appointment updated successfully" });
+      toast.success("Appointment updated successfully");
       setIsDialogOpen(false);
       setEditingAppointment(null);
       form.reset();
     },
-    onError: (error) => {
-      toast({ 
-        title: "Error updating appointment", 
-        description: error.message, 
-        variant: "destructive" 
-      });
+    onError: () => {
+      toast.error("Failed to update appointment");
     },
   });
 
@@ -93,38 +71,62 @@ const Calendar: React.FC = () => {
     mutationFn: appointmentsApi.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
-      toast({ title: "Appointment deleted successfully" });
+      toast.success("Appointment deleted successfully");
+      setDeleteAppointment(null);
     },
-    onError: (error) => {
-      toast({ 
-        title: "Error deleting appointment", 
-        description: error.message, 
-        variant: "destructive" 
-      });
+    onError: () => {
+      toast.error("Failed to delete appointment");
+    },
+  });
+
+  const form = useForm({
+    resolver: zodResolver(AppointmentSchema.omit({ 
+      id: true, 
+      user_id: true, 
+      created_at: true, 
+      updated_at: true 
+    })),
+    defaultValues: {
+      title: "",
+      description: "",
+      appointment_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+      duration_minutes: 120,
+      location: "",
+      contact_id: "",
+      status: "scheduled",
     },
   });
 
   const onSubmit = (data: any) => {
+    const appointmentData = {
+      ...data,
+      user_id: user!.id,
+      contact_id: data.contact_id || null,
+    };
+
     if (editingAppointment) {
-      updateMutation.mutate({ id: editingAppointment.id, updates: data });
+      updateMutation.mutate({ id: editingAppointment.id, data: appointmentData });
     } else {
-      createMutation.mutate({ ...data, user_id: user!.id });
+      createMutation.mutate(appointmentData);
     }
   };
 
   const handleEdit = (appointment: Appointment) => {
     setEditingAppointment(appointment);
     form.reset({
-      ...appointment,
-      appointment_date: new Date(appointment.appointment_date).toISOString().slice(0, 16),
+      title: appointment.title,
+      description: appointment.description || "",
+      appointment_date: format(new Date(appointment.appointment_date), "yyyy-MM-dd'T'HH:mm"),
+      duration_minutes: appointment.duration_minutes || 120,
+      location: appointment.location || "",
+      contact_id: appointment.contact_id || "",
+      status: appointment.status,
     });
     setIsDialogOpen(true);
   };
 
   const handleDelete = (appointment: Appointment) => {
-    if (confirm(`Are you sure you want to delete "${appointment.title}"?`)) {
-      deleteMutation.mutate(appointment.id);
-    }
+    setDeleteAppointment(appointment);
   };
 
   const getStatusColor = (status: string) => {
@@ -133,30 +135,26 @@ const Calendar: React.FC = () => {
         return "bg-blue-100 text-blue-800";
       case "confirmed":
         return "bg-green-100 text-green-800";
-      case "in_progress":
-        return "bg-yellow-100 text-yellow-800";
       case "completed":
         return "bg-gray-100 text-gray-800";
       case "cancelled":
         return "bg-red-100 text-red-800";
-      case "rescheduled":
-        return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const selectedDateAppointments = appointments.filter(appointment =>
-    isSameDay(new Date(appointment.appointment_date), selectedDate)
+  // Filter appointments for selected date
+  const selectedDateAppointments = appointments.filter(appointment => 
+    format(new Date(appointment.appointment_date), "yyyy-MM-dd") === 
+    format(selectedDate, "yyyy-MM-dd")
   );
-
-  const appointmentDates = appointments.map(apt => new Date(apt.appointment_date));
 
   return (
     <>
       <Seo 
         title="Calendar - InspectPro"
-        description="View and manage your inspection appointments in a calendar view."
+        description="Manage your inspection appointments and schedule with an integrated calendar system."
       />
       
       <div className="container mx-auto p-6 space-y-6">
@@ -164,39 +162,25 @@ const Calendar: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Calendar</h1>
             <p className="text-muted-foreground">
-              View and manage your inspection appointments.
+              Manage your appointments and schedule
             </p>
           </div>
-          
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button onClick={() => {
                 setEditingAppointment(null);
-                form.reset({
-                  title: "",
-                  description: "",
-                  appointment_date: format(selectedDate, "yyyy-MM-dd'T'HH:mm"),
-                  duration_minutes: 120,
-                  location: "",
-                  status: "scheduled",
-                  contact_id: null,
-                  report_id: null,
-                });
+                form.reset();
               }}>
                 <Plus className="w-4 h-4 mr-2" />
                 New Appointment
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>
-                  {editingAppointment ? "Edit Appointment" : "New Appointment"}
+                  {editingAppointment ? "Edit Appointment" : "Create Appointment"}
                 </DialogTitle>
-                <DialogDescription>
-                  {editingAppointment ? "Update appointment details" : "Schedule a new inspection appointment"}
-                </DialogDescription>
               </DialogHeader>
-              
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
@@ -206,98 +190,69 @@ const Calendar: React.FC = () => {
                       <FormItem>
                         <FormLabel>Title</FormLabel>
                         <FormControl>
-                          <Input placeholder="Home Inspection" {...field} />
+                          <Input placeholder="Appointment title" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="appointment_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date & Time</FormLabel>
+                        <FormControl>
+                          <Input type="datetime-local" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="appointment_date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Date & Time</FormLabel>
-                          <FormControl>
-                            <Input type="datetime-local" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="duration_minutes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Duration (minutes)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              {...field} 
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="duration_minutes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duration (minutes)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            {...field} 
+                            onChange={(e) => field.onChange(parseInt(e.target.value))} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="contact_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a contact" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="">No contact</SelectItem>
-                              {contacts.map((contact) => (
-                                <SelectItem key={contact.id} value={contact.id}>
-                                  {contact.first_name} {contact.last_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="scheduled">Scheduled</SelectItem>
-                              <SelectItem value="confirmed">Confirmed</SelectItem>
-                              <SelectItem value="in_progress">In Progress</SelectItem>
-                              <SelectItem value="completed">Completed</SelectItem>
-                              <SelectItem value="cancelled">Cancelled</SelectItem>
-                              <SelectItem value="rescheduled">Rescheduled</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="contact_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a contact" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {contacts.map((contact) => (
+                              <SelectItem key={contact.id} value={contact.id}>
+                                {contact.first_name} {contact.last_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
@@ -306,7 +261,7 @@ const Calendar: React.FC = () => {
                       <FormItem>
                         <FormLabel>Location</FormLabel>
                         <FormControl>
-                          <Input placeholder="Property address" {...field} />
+                          <Input placeholder="Appointment location" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -320,19 +275,49 @@ const Calendar: React.FC = () => {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Additional notes..." {...field} rows={3} />
+                          <Textarea placeholder="Additional details" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="scheduled">Scheduled</SelectItem>
+                            <SelectItem value="confirmed">Confirmed</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="rescheduled">Rescheduled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                      {editingAppointment ? "Update" : "Create"} Appointment
+                    <Button type="submit">
+                      {editingAppointment ? "Update" : "Create"}
                     </Button>
                   </div>
                 </form>
@@ -341,99 +326,72 @@ const Calendar: React.FC = () => {
           </Dialog>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Calendar */}
-          <Card className="lg:col-span-2">
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Simple Calendar - showing current month appointments */}
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5" />
-                {format(selectedDate, "MMMM yyyy")}
+                Appointments
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <CalendarComponent
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-                modifiers={{
-                  hasAppointment: appointmentDates,
-                }}
-                modifiersStyles={{
-                  hasAppointment: {
-                    backgroundColor: "hsl(var(--primary))",
-                    color: "hsl(var(--primary-foreground))",
-                    fontWeight: "bold",
-                  },
-                }}
-                className="rounded-md border-0"
-              />
+              <div className="space-y-2">
+                <Input 
+                  type="date" 
+                  value={format(selectedDate, "yyyy-MM-dd")}
+                  onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                />
+                <p className="text-sm text-muted-foreground">
+                  {selectedDateAppointments.length} appointment(s) on {format(selectedDate, "MMMM d, yyyy")}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Appointments for Selected Date */}
+          {/* Appointments for selected date */}
           <Card>
             <CardHeader>
-              <CardTitle>
-                {format(selectedDate, "EEEE, MMMM d")}
-              </CardTitle>
-              <CardDescription>
-                {selectedDateAppointments.length} appointment{selectedDateAppointments.length !== 1 ? 's' : ''}
-              </CardDescription>
+              <CardTitle>Selected Date Appointments</CardTitle>
             </CardHeader>
             <CardContent>
               {selectedDateAppointments.length === 0 ? (
-                <div className="text-center py-6 text-muted-foreground">
-                  No appointments scheduled
-                </div>
+                <p className="text-muted-foreground text-center py-4">
+                  No appointments for this date
+                </p>
               ) : (
                 <div className="space-y-3">
-                  {selectedDateAppointments
-                    .sort((a, b) => new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime())
-                    .map((appointment: any) => (
-                    <div key={appointment.id} className="p-3 bg-muted/50 rounded-lg space-y-2">
-                      <div className="flex items-start justify-between">
+                  {selectedDateAppointments.map((appointment) => (
+                    <div key={appointment.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                      <div className="flex-1">
                         <h4 className="font-medium">{appointment.title}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(appointment.appointment_date), "h:mm a")}
+                          {appointment.location && ` • ${appointment.location}`}
+                        </p>
+                        {(appointment as any).contact && (
+                          <p className="text-sm text-muted-foreground">
+                            {(appointment as any).contact.first_name} {(appointment as any).contact.last_name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
                         <Badge className={getStatusColor(appointment.status)}>
                           {appointment.status}
                         </Badge>
-                      </div>
-                      
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-3 h-3" />
-                          {format(new Date(appointment.appointment_date), "h:mm a")} 
-                          ({appointment.duration_minutes}min)
-                        </div>
-                        
-                        {appointment.contact && (
-                          <div className="flex items-center gap-2">
-                            <User className="w-3 h-3" />
-                            {appointment.contact.first_name} {appointment.contact.last_name}
-                          </div>
-                        )}
-                        
-                        {appointment.location && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-3 h-3" />
-                            {appointment.location}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex justify-end gap-1 pt-2">
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => handleEdit(appointment)}
                         >
-                          <Edit className="w-3 h-3" />
+                          <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => handleDelete(appointment)}
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -443,6 +401,83 @@ const Calendar: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* All Appointments List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>All Appointments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {appointments.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                No appointments yet. Create your first appointment to get started.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {appointments.map((appointment) => (
+                  <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{appointment.title}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {format(new Date(appointment.appointment_date), "MMM d, yyyy 'at' h:mm a")}
+                        {appointment.location && ` • ${appointment.location}`}
+                      </p>
+                      {(appointment as any).contact && (
+                        <p className="text-sm text-muted-foreground">
+                          {(appointment as any).contact.first_name} {(appointment as any).contact.last_name}
+                        </p>
+                      )}
+                      {appointment.description && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {appointment.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(appointment.status)}>
+                        {appointment.status}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleEdit(appointment)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(appointment)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deleteAppointment} onOpenChange={() => setDeleteAppointment(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Appointment</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{deleteAppointment?.title}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteAppointment && deleteMutation.mutate(deleteAppointment.id)}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </>
   );
