@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { contactsApi, appointmentsApi, tasksApi, activitiesApi } from "@/integrations/supabase/crmApi";
 import { reportsApi } from "@/integrations/supabase/reportsApi";
 import { CreateContactSchema } from "@/lib/crmSchemas";
+import { GooglePlacesAutocomplete } from "@/components/maps/GooglePlacesAutocomplete";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Mail, Phone, MapPin, Building2, Calendar, FileText, CheckSquare, Activity, Edit2, Save, X } from "lucide-react";
@@ -37,11 +38,16 @@ export default function ContactDetail() {
       phone: "",
       company: "",
       contact_type: "client",
-      address: "",
+      formatted_address: "",
+      place_id: "",
+      latitude: undefined,
+      longitude: undefined,
+      address_components: undefined,
       city: "",
       state: "",
       zip_code: "",
       notes: "",
+      is_active: true,
     },
   });
 
@@ -103,11 +109,16 @@ export default function ContactDetail() {
         phone: contact.phone || "",
         company: contact.company || "",
         contact_type: contact.contact_type || "client",
-        address: contact.address || "",
+        formatted_address: contact.formatted_address || "",
+        place_id: contact.place_id || "",
+        latitude: contact.latitude,
+        longitude: contact.longitude,
+        address_components: contact.address_components,
         city: contact.city || "",
         state: contact.state || "",
         zip_code: contact.zip_code || "",
         notes: contact.notes || "",
+        is_active: contact.is_active,
       });
       setIsEditing(true);
     }
@@ -264,11 +275,11 @@ export default function ContactDetail() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    {contact.address && (
+                    {contact.formatted_address && (
                       <div className="flex items-start gap-2 text-muted-foreground">
                         <MapPin className="h-4 w-4 mt-0.5" />
                         <div>
-                          <div>{contact.address}</div>
+                          <div>{contact.formatted_address}</div>
                           {(contact.city || contact.state || contact.zip_code) && (
                             <div>
                               {contact.city && `${contact.city}, `}
@@ -391,12 +402,48 @@ export default function ContactDetail() {
 
                   <FormField
                     control={form.control}
-                    name="address"
+                    name="formatted_address"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Address</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <GooglePlacesAutocomplete
+                            value={field.value}
+                            onChange={(addressData) => {
+                              // Update the display field and all related fields when Google selection is made
+                              field.onChange(addressData.formatted_address);
+                              form.setValue('place_id', addressData.place_id);
+                              form.setValue('latitude', addressData.latitude);
+                              form.setValue('longitude', addressData.longitude);
+                              form.setValue('address_components', addressData.address_components);
+                              
+                              // Extract city, state, zip from address components
+                              const components = addressData.address_components || [];
+                              let city = '';
+                              let state = '';
+                              let zipCode = '';
+
+                              components.forEach((component: any) => {
+                                const types = component.types;
+                                if (types.includes('locality')) {
+                                  city = component.long_name;
+                                } else if (types.includes('administrative_area_level_1')) {
+                                  state = component.short_name;
+                                } else if (types.includes('postal_code')) {
+                                  zipCode = component.long_name;
+                                }
+                              });
+
+                              if (city) form.setValue('city', city);
+                              if (state) form.setValue('state', state);
+                              if (zipCode) form.setValue('zip_code', zipCode);
+                            }}
+                            onInputChange={(value) => {
+                              // Update form field only for typed input, preserving smooth typing
+                              field.onChange(value);
+                            }}
+                            placeholder="Start typing address..."
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
