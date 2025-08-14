@@ -43,7 +43,6 @@ const ReportNew: React.FC = () => {
     defaultValues: {
       title: "",
       clientName: "",
-      address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactId: contactId || "",
     },
@@ -53,7 +52,6 @@ const ReportNew: React.FC = () => {
   useEffect(() => {
     if (contact) {
       form.setValue('clientName', `${contact.first_name} ${contact.last_name}`);
-      form.setValue('address', contact.address || "");
     }
   }, [contact, form]);
 
@@ -84,7 +82,7 @@ const ReportNew: React.FC = () => {
         const report = createReport({
           title: values.title,
           clientName: values.clientName,
-          address: values.address,
+          address: contact?.formatted_address || contact?.address || "",
           inspectionDate: new Date(values.inspectionDate).toISOString(),
         });
         toast({ title: "Report created (local draft)" });
