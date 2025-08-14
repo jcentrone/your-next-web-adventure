@@ -18,6 +18,7 @@ import { AppointmentSchema, type Appointment } from "@/lib/crmSchemas";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import Seo from "@/components/Seo";
+import { CalendarGrid } from "@/components/calendar/CalendarGrid";
 
 const Calendar: React.FC = () => {
   const { user } = useAuth();
@@ -326,33 +327,30 @@ const Calendar: React.FC = () => {
           </Dialog>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Simple Calendar - showing current month appointments */}
-          <Card>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Calendar View */}
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5" />
-                Appointments
+                Calendar View
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <Input 
-                  type="date" 
-                  value={format(selectedDate, "yyyy-MM-dd")}
-                  onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                />
-                <p className="text-sm text-muted-foreground">
-                  {selectedDateAppointments.length} appointment(s) on {format(selectedDate, "MMMM d, yyyy")}
-                </p>
-              </div>
+              <CalendarGrid 
+                appointments={appointments} 
+                selectedDate={selectedDate}
+                onDateSelect={setSelectedDate}
+              />
             </CardContent>
           </Card>
 
           {/* Appointments for selected date */}
           <Card>
             <CardHeader>
-              <CardTitle>Selected Date Appointments</CardTitle>
+              <CardTitle>
+                {format(selectedDate, "MMMM d, yyyy")}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {selectedDateAppointments.length === 0 ? (
@@ -369,9 +367,9 @@ const Calendar: React.FC = () => {
                           {format(new Date(appointment.appointment_date), "h:mm a")}
                           {appointment.location && ` • ${appointment.location}`}
                         </p>
-                        {(appointment as any).contact && (
+                        {(appointment as any).contacts && (
                           <p className="text-sm text-muted-foreground">
-                            {(appointment as any).contact.first_name} {(appointment as any).contact.last_name}
+                            {(appointment as any).contacts.first_name} {(appointment as any).contacts.last_name}
                           </p>
                         )}
                       </div>

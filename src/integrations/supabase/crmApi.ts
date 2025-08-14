@@ -161,14 +161,16 @@ export const tasksApi = {
       .from('tasks')
       .select(`
         *,
-        contact:contacts(first_name, last_name),
-        appointment:appointments(title, appointment_date),
-        assigned_user:profiles!tasks_assigned_to_fkey(full_name)
+        contacts(first_name, last_name),
+        appointments(title, appointment_date)
       `)
       .or(`user_id.eq.${userId},assigned_to.eq.${userId}`)
-      .order('due_date', { ascending: true });
+      .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching tasks:', error);
+      throw error;
+    }
     return data as Task[];
   },
 

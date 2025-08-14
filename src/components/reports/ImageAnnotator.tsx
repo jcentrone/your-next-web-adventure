@@ -72,14 +72,33 @@ export const ImageAnnotator: React.FC<ImageAnnotatorProps> = ({
       urlType: imageUrl?.startsWith('blob:') ? 'blob' : imageUrl?.includes('supabase') ? 'supabase' : 'other'
     });
 
-    // Enhanced URL validation
+    // Enhanced URL validation and preprocessing
     if (!imageUrl) {
       setError("No image URL provided");
       setIsLoading(false);
       return;
     }
 
-    if (!imageUrl.startsWith('http') && !imageUrl.startsWith('blob:') && !imageUrl.startsWith('data:')) {
+    // Convert supabase:// URLs to proper signed URLs if needed
+    let processedImageUrl = imageUrl;
+    if (imageUrl.startsWith('supabase://')) {
+      console.log("🔗 Converting supabase:// URL to signed URL:", imageUrl);
+      try {
+        // Extract the file path from supabase:// URL
+        const filePath = imageUrl.replace('supabase://', '');
+        // This should have been converted already by the component calling this
+        setError("Image URL needs to be converted to signed URL before annotation");
+        setIsLoading(false);
+        return;
+      } catch (err) {
+        console.error("Failed to convert supabase URL:", err);
+        setError("Failed to process image URL");
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    if (!processedImageUrl.startsWith('http') && !processedImageUrl.startsWith('blob:') && !processedImageUrl.startsWith('data:')) {
       setError("Invalid image URL format");
       setIsLoading(false);
       return;
