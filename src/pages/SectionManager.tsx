@@ -75,7 +75,7 @@ export default function SectionManager() {
           customSections={customSections}
           customFields={customFields}
           onAddSection={() => setSectionDialogOpen(true)}
-          className="flex gap-2"
+          
         />
         
         <SectionFieldsPanel

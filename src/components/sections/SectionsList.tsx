@@ -64,7 +64,7 @@ export function SectionsList({
             return (
               <Card
                 key={sectionKey}
-                className={`p-3 cursor-pointer transition-colors hover:bg-accent ${
+                className={`p-2 mb-2 cursor-pointer transition-colors hover:bg-accent ${
                   isSelected ? "bg-accent border-primary" : ""
                 }`}
                 onClick={() => onSectionSelect(sectionKey)}
