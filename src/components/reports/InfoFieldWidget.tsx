@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -80,7 +80,65 @@ export function InfoFieldWidget({ field, value, onChange, onContactChange }: Inf
                   return contact ? `${contact.first_name} ${contact.last_name}` : value;
                 })()
                 : "Select a contact..."
-              }
+  }
+
+  if (widget === "multiselect" && options.length > 0) {
+    const selectedValues = value ? value.split(',').filter(v => v.trim()) : [];
+    
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label className="text-sm font-medium">
+            {label}
+            {required && <span className="text-destructive">*</span>}
+          </Label>
+          {sop_ref && (
+            <Badge variant="secondary" className="text-xs">
+              {sop_ref}
+            </Badge>
+          )}
+        </div>
+        
+        {/* Selected items */}
+        {selectedValues.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {selectedValues.map((selectedValue, index) => (
+              <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                {selectedValue}
+                <X 
+                  className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                  onClick={() => {
+                    const newValues = selectedValues.filter(v => v !== selectedValue);
+                    onChange(newValues.join(','));
+                  }}
+                />
+              </Badge>
+            ))}
+          </div>
+        )}
+        
+        <Select
+          onValueChange={(newValue) => {
+            if (newValue && !selectedValues.includes(newValue)) {
+              const newValues = [...selectedValues, newValue];
+              onChange(newValues.join(','));
+            }
+          }}
+        >
+          <SelectTrigger className="bg-background">
+            <SelectValue placeholder="Select options..." />
+          </SelectTrigger>
+          <SelectContent className="bg-background border z-50">
+            {options.filter(option => !selectedValues.includes(option)).map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
             </SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-background border z-50">
