@@ -540,8 +540,26 @@ const ReportEditor: React.FC = () => {
                     <p className="text-xs text-muted-foreground font-medium mb-2 px-3">Custom Sections</p>
                   </div>
                   {customSections.map((cs) => {
-                    const sec = report.sections.find((x) => x.key === cs.section_key);
-                    if (!sec) return null;
+                    // Find or create the section in the report
+                    let sec = report.sections.find((x) => x.key === cs.section_key);
+                    if (!sec) {
+                      // Auto-create the custom section if it doesn't exist
+                      sec = {
+                        id: `${cs.section_key}_${Date.now()}`,
+                        key: cs.section_key as SectionKey,
+                        title: cs.title,
+                        findings: [],
+                        info: {}
+                      };
+                      // Add it to the report
+                      setReport(prev => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          sections: [...prev.sections, sec!]
+                        };
+                      });
+                    }
                     const count = sec.findings.length;
                     return (
                       <button
