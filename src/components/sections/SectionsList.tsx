@@ -28,7 +28,8 @@ export function SectionsList({
   const getSectionTitle = (sectionKey: string) => {
     const customSection = customSections.find(s => s.section_key === sectionKey);
     if (customSection) return customSection.title;
-    return SOP_SECTIONS[sectionKey as keyof typeof SOP_SECTIONS] || sectionKey;
+    const standardSection = SOP_SECTIONS.find(s => s.key === sectionKey);
+    return standardSection?.name || sectionKey;
   };
 
   const isCustomSection = (sectionKey: string) => {
@@ -36,7 +37,7 @@ export function SectionsList({
   };
 
   // Get all sections (standard + custom)
-  const standardSectionKeys = Object.keys(SOP_SECTIONS);
+  const standardSectionKeys = SOP_SECTIONS.map(s => s.key);
   const customSectionKeys = customSections.map(s => s.section_key);
   const allSectionKeys = [...standardSectionKeys, ...customSectionKeys];
 

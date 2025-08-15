@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { InfoFieldWidget } from "@/components/reports/InfoFieldWidget";
 import { toast } from "@/components/ui/use-toast";
 import DefectPicker from "@/components/reports/DefectPicker";
-import { useSectionGuidance } from "@/hooks/useSectionGuidance";
+import { useEnhancedSectionGuidance } from "@/hooks/useEnhancedSectionGuidance";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
@@ -55,7 +55,7 @@ const ReportEditor: React.FC = () => {
   const { id } = useParams();
   const nav = useNavigate();
   const { user } = useAuth();
-  const { guidance } = useSectionGuidance();
+  const { guidance } = useEnhancedSectionGuidance();
   const [report, setReport] = React.useState<Report | null>(null);
   const [active, setActive] = React.useState<string | null>(null);
   const [activeTab, setActiveTab] = React.useState<"info" | "observations">("info");
@@ -501,13 +501,20 @@ const ReportEditor: React.FC = () => {
           <div className="rounded-lg border p-3">
             <h2 className="font-medium mb-3">Sections</h2>
             <nav className="space-y-1">
-              <button
-                className={`w-full flex items-center justify-between text-left text-sm rounded-md px-3 py-2 border ${showDetails ? "bg-accent" : "bg-background"}`}
-                onClick={() => setShowDetails(true)}
-              >
-                <span className="truncate">Report Details</span>
-              </button>
               {SOP_SECTIONS.map((s) => {
+                // Handle Report Details section specially
+                if (s.key === 'report_details') {
+                  return (
+                    <button
+                      key={s.key}
+                      className={`w-full flex items-center justify-between text-left text-sm rounded-md px-3 py-2 border ${showDetails ? "bg-accent" : "bg-background"}`}
+                      onClick={() => setShowDetails(true)}
+                    >
+                      <span className="truncate">{s.name}</span>
+                    </button>
+                  );
+                }
+                
                 const sec = report.sections.find((x) => x.key === s.key)!;
                 const count = sec.findings.length;
                 return (
