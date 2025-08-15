@@ -80,6 +80,20 @@ export function InfoFieldWidget({ field, value, onChange, onContactChange }: Inf
                   return contact ? `${contact.first_name} ${contact.last_name}` : value;
                 })()
                 : "Select a contact..."
+              }
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent className="bg-background border z-50">
+            {contacts.map((contact) => (
+              <SelectItem key={contact.id} value={contact.id}>
+                {contact.first_name} {contact.last_name}
+                {contact.company && ` (${contact.company})`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
   }
 
   if (widget === "multiselect" && options.length > 0) {
@@ -132,20 +146,6 @@ export function InfoFieldWidget({ field, value, onChange, onContactChange }: Inf
             {options.filter(option => !selectedValues.includes(option)).map((option) => (
               <SelectItem key={option} value={option}>
                 {option}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    );
-  }
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="bg-background border z-50">
-            {contacts.map((contact) => (
-              <SelectItem key={contact.id} value={contact.id}>
-                {contact.first_name} {contact.last_name}
-                {contact.company && ` (${contact.company})`}
               </SelectItem>
             ))}
           </SelectContent>
