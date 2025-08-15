@@ -659,6 +659,54 @@ export type Database = {
           },
         ]
       }
+      user_custom_fields: {
+        Row: {
+          created_at: string
+          field_label: string
+          field_name: string
+          id: string
+          is_active: boolean
+          options: Json | null
+          organization_id: string | null
+          required: boolean
+          section_key: string
+          sort_order: number
+          updated_at: string
+          user_id: string
+          widget_type: string
+        }
+        Insert: {
+          created_at?: string
+          field_label: string
+          field_name: string
+          id?: string
+          is_active?: boolean
+          options?: Json | null
+          organization_id?: string | null
+          required?: boolean
+          section_key: string
+          sort_order?: number
+          updated_at?: string
+          user_id: string
+          widget_type: string
+        }
+        Update: {
+          created_at?: string
+          field_label?: string
+          field_name?: string
+          id?: string
+          is_active?: boolean
+          options?: Json | null
+          organization_id?: string | null
+          required?: boolean
+          section_key?: string
+          sort_order?: number
+          updated_at?: string
+          user_id?: string
+          widget_type?: string
+        }
+        Relationships: []
+      }
       user_custom_sections: {
         Row: {
           created_at: string

@@ -57,6 +57,9 @@ const Header: React.FC = () => {
               <Link to="/defects-admin" className="transition-colors hover:text-primary">
                 Defects
               </Link>
+              <Link to="/section-manager" className="transition-colors hover:text-primary">
+                Section Manager
+              </Link>
             </>
           ) : (
             <>
@@ -106,6 +109,9 @@ const Header: React.FC = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/profile">Profile Settings</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/section-manager">Section Manager</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
