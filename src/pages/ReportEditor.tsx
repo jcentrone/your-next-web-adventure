@@ -27,6 +27,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { useCustomSections } from "@/hooks/useCustomSections";
+import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
+import { Plus } from "lucide-react";
 
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 type Severity = typeof SEVERITIES[number];
@@ -71,6 +74,10 @@ const ReportEditor: React.FC = () => {
   const [annotatorImage, setAnnotatorImage] = React.useState<{ url: string; mediaId: string; findingId: string } | null>(null);
   const [currentFindingId, setCurrentFindingId] = React.useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = React.useState<string>("");
+  const [customSectionDialogOpen, setCustomSectionDialogOpen] = React.useState(false);
+  
+  // Custom sections hook
+  const { customSections, loadCustomSections } = useCustomSections();
 
   // Handle contact change to update address automatically
   const handleContactChange = React.useCallback((contact: any) => {
@@ -103,6 +110,8 @@ const ReportEditor: React.FC = () => {
         sections: [...r.sections],
       } as Report;
       const existingKeys = new Set(rr.sections.map((s) => s.key));
+      
+      // Add standard SOP sections
       SOP_SECTIONS.forEach((s) => {
         if (!existingKeys.has(s.key as SectionKey)) {
           rr.sections.push({
@@ -113,11 +122,24 @@ const ReportEditor: React.FC = () => {
           } as any);
         }
       });
+      
+      // Add custom sections from database
+      customSections.forEach((cs) => {
+        if (!existingKeys.has(cs.section_key as SectionKey)) {
+          rr.sections.push({
+            id: `${rr.id}-sec-${cs.section_key}`,
+            key: cs.section_key as SectionKey,
+            title: cs.title,
+            findings: [],
+            info: {},
+          } as any);
+        }
+      });
       setReport(rr);
       setActive(rr.sections[0]?.id ?? null);
     };
     load();
-  }, [id, nav, user]);
+  }, [id, nav, user, customSections]);
 
   useAutosave({
     value: report,
@@ -503,6 +525,45 @@ const ReportEditor: React.FC = () => {
                   </button>
                 );
               })}
+              
+              {/* Custom Sections */}
+              {customSections.length > 0 && (
+                <>
+                  <div className="border-t pt-2 mt-2">
+                    <p className="text-xs text-muted-foreground font-medium mb-2 px-3">Custom Sections</p>
+                  </div>
+                  {customSections.map((cs) => {
+                    const sec = report.sections.find((x) => x.key === cs.section_key);
+                    if (!sec) return null;
+                    const count = sec.findings.length;
+                    return (
+                      <button
+                        key={cs.id}
+                        className={`w-full flex items-center justify-between text-left text-sm rounded-md px-3 py-2 border ${active === sec.id ? "bg-accent" : "bg-background"}`}
+                        onClick={() => { setShowDetails(false); setActive(sec.id); }}
+                      >
+                        <span className="truncate">{cs.title}</span>
+                        {count > 0 && (
+                          <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-secondary text-[10px]">
+                            {count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+              
+              {/* Add Section Button */}
+              {user && (
+                <button
+                  className="w-full flex items-center gap-2 text-left text-sm rounded-md px-3 py-2 border border-dashed border-muted-foreground/50 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                  onClick={() => setCustomSectionDialogOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Add Section</span>
+                </button>
+              )}
             </nav>
           </div>
         </aside>
@@ -973,6 +1034,16 @@ const ReportEditor: React.FC = () => {
               : ""
             }
             onSave={handleAnnotationSave}
+          />
+          
+          <CustomSectionDialog
+            open={customSectionDialogOpen}
+            onOpenChange={setCustomSectionDialogOpen}
+            userId={user?.id || ""}
+            onSectionCreated={() => {
+              loadCustomSections();
+              setCustomSectionDialogOpen(false);
+            }}
           />
         </main>
       </div>

@@ -659,6 +659,42 @@ export type Database = {
           },
         ]
       }
+      user_custom_sections: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          organization_id: string | null
+          section_key: string
+          sort_order: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string | null
+          section_key: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string | null
+          section_key?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_defects: {
         Row: {
           created_at: string
