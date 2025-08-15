@@ -68,7 +68,7 @@ export default function SectionManager() {
         description="Manage custom sections and fields for your inspection reports"
       />
       
-      <div className="h-screen flex">
+      <div className="h-screen flex gap-2">
         <SectionsList
           selectedSection={selectedSection}
           onSectionSelect={setSelectedSection}
