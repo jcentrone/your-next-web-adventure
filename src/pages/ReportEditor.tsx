@@ -22,7 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { contactsApi } from "@/integrations/supabase/crmApi";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
-import { ImageAnnotator } from "@/components/reports/ImageAnnotator";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -756,14 +756,18 @@ const ReportEditor: React.FC = () => {
     <button
       type="button"
       className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
-      onClick={() => {
-        setAnnotatorImage({
-          url: mediaUrlMap[m.id] || m.url,
-          mediaId: m.id,
-          findingId: f.id
-        });
-        setAnnotatorOpen(true);
-      }}
+                       onClick={() => {
+                        const currentFinding = activeSection?.findings.find(f => 
+                          f.media.some(media => media.id === m.id)
+                        );
+                        
+                        if (!currentFinding) {
+                          toast({ title: "Error", description: "Could not find the finding for this media item", variant: "destructive" });
+                          return;
+                        }
+                        
+                        nav(`/reports/${id}/annotate/${currentFinding.id}/${m.id}`);
+                      }}
     >
       <Edit3 className="w-4 h-4 text-orange-500" />
     </button>
@@ -1049,22 +1053,6 @@ const ReportEditor: React.FC = () => {
             onCapture={handleCameraCapture}
           />
 
-          <ImageAnnotator
-            isOpen={annotatorOpen}
-            onClose={() => {
-              setAnnotatorOpen(false);
-              setAnnotatorImage(null);
-            }}
-            imageUrl={annotatorImage?.url || ""}
-            initialAnnotations={annotatorImage ? 
-              activeSection.findings
-                .find(f => f.id === annotatorImage.findingId)
-                ?.media.find(m => m.id === annotatorImage.mediaId)
-                ?.annotations || ""
-              : ""
-            }
-            onSave={handleAnnotationSave}
-          />
           
           <CustomSectionDialog
             open={customSectionDialogOpen}
