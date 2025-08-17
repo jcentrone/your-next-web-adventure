@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 const schema = z.object({
   title: z.string().min(1, "Required"),
   clientName: z.string().min(1, "Required"),
+  address: z.string().min(1, "Address is required"),
   inspectionDate: z.string().min(1, "Required"),
   contactId: z.string().optional(),
 });
@@ -51,6 +52,7 @@ const ReportNew: React.FC = () => {
     defaultValues: {
       title: "",
       clientName: "",
+      address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactId: contactId || "",
     },
@@ -60,6 +62,10 @@ const ReportNew: React.FC = () => {
   useEffect(() => {
     if (contact) {
       form.setValue('clientName', `${contact.first_name} ${contact.last_name}`);
+      const contactAddress = contact.formatted_address || contact.address || "";
+      if (contactAddress) {
+        form.setValue('address', contactAddress);
+      }
     }
   }, [contact, form]);
 
@@ -77,7 +83,7 @@ const ReportNew: React.FC = () => {
           {
             title: values.title,
             clientName: values.clientName,
-            address: contact?.formatted_address || contact?.address || "",
+            address: values.address,
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
           },
@@ -90,7 +96,7 @@ const ReportNew: React.FC = () => {
         const report = createReport({
           title: values.title,
           clientName: values.clientName,
-          address: contact?.formatted_address || contact?.address || "",
+          address: values.address,
           inspectionDate: new Date(values.inspectionDate).toISOString(),
         });
         toast({ title: "Report created (local draft)" });
@@ -142,6 +148,10 @@ const ReportNew: React.FC = () => {
                           const selectedContact = contacts.find(c => c.id === contactId);
                           if (selectedContact) {
                             form.setValue('clientName', `${selectedContact.first_name} ${selectedContact.last_name}`);
+                            const contactAddress = selectedContact.formatted_address || selectedContact.address || "";
+                            if (contactAddress) {
+                              form.setValue('address', contactAddress);
+                            }
                           }
                         }}
                       >
@@ -183,13 +193,23 @@ const ReportNew: React.FC = () => {
                 </FormItem>
               )}
             />
-{/* Address now pulled from linked contact */}
-            {contact?.formatted_address && (
-              <div className="p-3 bg-muted rounded-md">
-                <p className="text-sm font-medium">Property Address (from contact):</p>
-                <p className="text-sm text-muted-foreground">{contact.formatted_address}</p>
-              </div>
-            )}
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property Address</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter the property address for inspection"
+                      className="min-h-[80px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="inspectionDate"
