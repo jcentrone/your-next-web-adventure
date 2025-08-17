@@ -8,10 +8,14 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { dbListReports, dbDeleteReport } from "@/integrations/supabase/reportsApi";
+import { ReportsListView } from "@/components/reports/ReportsListView";
+import { ReportsCardView } from "@/components/reports/ReportsCardView";
+import { ReportsViewToggle } from "@/components/reports/ReportsViewToggle";
 
 const ReportsList: React.FC = () => {
   const { user } = useAuth();
   const [localItems, setLocalItems] = React.useState(listLocalReports());
+  const [view, setView] = React.useState<"list" | "card">("list"); // Default to list view
 
   const { data: remoteItems, refetch, isLoading } = useQuery({
     queryKey: ["reports", user?.id],
@@ -55,9 +59,12 @@ const ReportsList: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 py-10">
         <header className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-semibold">Inspection Reports</h1>
-          <Button asChild>
-            <Link to="/reports/new">New Report</Link>
-          </Button>
+          <div className="flex items-center gap-4">
+            <ReportsViewToggle view={view} onViewChange={setView} />
+            <Button asChild>
+              <Link to="/reports/new">New Report</Link>
+            </Button>
+          </div>
         </header>
         {user && isLoading ? (
           <div className="rounded-lg border p-8 text-center">
@@ -71,29 +78,11 @@ const ReportsList: React.FC = () => {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {items.map((r) => (
-              <article key={r.id} className="rounded-lg border p-4">
-                <h2 className="font-medium">{r.title}</h2>
-                <p className="text-sm text-muted-foreground">
-                  {/* inspectionDate is ISO; show local date */}
-                  {new Date(r.inspectionDate).toLocaleDateString()} • {/* @ts-ignore clientName exists on both shapes */}
-                  {r.clientName}
-                </p>
-                <div className="mt-4 flex items-center gap-2">
-                  <Button asChild size="sm">
-                    <Link to={`/reports/${r.id}`}>Open</Link>
-                  </Button>
-                  <Button asChild size="sm" variant="outline">
-                    <Link to={`/reports/${r.id}/preview`}>Preview</Link>
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => onDelete(r.id)}>
-                    Delete
-                  </Button>
-                </div>
-              </article>
-            ))}
-          </div>
+          view === "list" ? (
+            <ReportsListView reports={items} onDelete={onDelete} />
+          ) : (
+            <ReportsCardView reports={items} onDelete={onDelete} />
+          )
         )}
       </section>
     </>
