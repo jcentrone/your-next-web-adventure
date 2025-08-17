@@ -238,6 +238,23 @@ export default function ImageAnnotation() {
     }
   }, [activeTool, activeColor, fabricCanvas]);
 
+  // Handle color changes for selected objects
+  useEffect(() => {
+    if (!fabricCanvas || !canvasReady) return;
+
+    const selectedObjects = fabricCanvas.getActiveObjects();
+    if (selectedObjects.length > 0) {
+      selectedObjects.forEach(obj => {
+        if (obj.type === 'textbox' || obj.type === 'i-text') {
+          obj.set('fill', activeColor);
+        } else if (obj.type === 'rect' || obj.type === 'circle' || obj.type === 'line' || obj.type === 'group') {
+          obj.set('stroke', activeColor);
+        }
+      });
+      fabricCanvas.renderAll();
+    }
+  }, [activeColor, fabricCanvas, canvasReady]);
+
   const saveToHistory = () => {
     if (!fabricCanvas || !canvasReady) return;
     
@@ -315,10 +332,12 @@ export default function ImageAnnotation() {
           fontFamily: "Arial",
         });
         fabricCanvas.add(text);
+        fabricCanvas.setActiveObject(text);
+        fabricCanvas.renderAll();
         fabricCanvas.off("mouse:down", handler);
         setActiveTool("select");
         saveToHistory();
-        toast.success("Text added");
+        toast.success("Text added - double click to edit");
       };
       fabricCanvas.on("mouse:down", handler);
     } else if (tool === "rectangle") {
