@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import Seo from "@/components/Seo";
 import { CalendarGrid } from "@/components/calendar/CalendarGrid";
+import AppointmentPreviewDialog from "@/components/calendar/AppointmentPreviewDialog";
 
 const Calendar: React.FC = () => {
   const { user } = useAuth();
@@ -28,6 +29,7 @@ const Calendar: React.FC = () => {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [deleteAppointment, setDeleteAppointment] = useState<Appointment | null>(null);
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+  const [previewAppointment, setPreviewAppointment] = useState<Appointment | null>(null);
 
   const { data: appointments = [] } = useQuery({
     queryKey: ["appointments", user?.id],
@@ -557,7 +559,8 @@ const Calendar: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {selectedDateAppointments.map((appointment) => (
-                    <div key={appointment.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div key={appointment.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
+                         onClick={() => setPreviewAppointment(appointment)}>
                       <div className="flex-1">
                         <h4 className="font-medium">{appointment.title}</h4>
                         <p className="text-sm text-muted-foreground">
@@ -577,14 +580,20 @@ const Calendar: React.FC = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleEdit(appointment)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(appointment);
+                          }}
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleDelete(appointment)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(appointment);
+                          }}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -610,7 +619,8 @@ const Calendar: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {appointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
+                       onClick={() => setPreviewAppointment(appointment)}>
                     <div className="flex-1">
                       <h4 className="font-medium">{appointment.title}</h4>
                       <p className="text-sm text-muted-foreground">
@@ -635,14 +645,20 @@ const Calendar: React.FC = () => {
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleEdit(appointment)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(appointment);
+                        }}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDelete(appointment)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(appointment);
+                        }}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -653,6 +669,14 @@ const Calendar: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Appointment Preview Dialog */}
+        <AppointmentPreviewDialog
+          appointment={previewAppointment}
+          isOpen={!!previewAppointment}
+          onOpenChange={(open) => !open && setPreviewAppointment(null)}
+          contact={(previewAppointment as any)?.contacts || (previewAppointment as any)?.contact}
+        />
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={!!deleteAppointment} onOpenChange={() => setDeleteAppointment(null)}>
