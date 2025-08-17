@@ -3,31 +3,54 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, Trash2, Mail, Phone, Building, MapPin } from "lucide-react";
+import { Edit, Trash2, Mail, Phone, Building, MapPin, ChevronUp, ChevronDown } from "lucide-react";
 
 interface ContactsListViewProps {
   contacts: any[];
   onEdit: (contact: any) => void;
   onDelete: (contact: any) => void;
   getContactTypeColor: (type: string) => string;
+  sortField: string | null;
+  sortDirection: "asc" | "desc";
+  onSort: (field: string) => void;
 }
 
 export const ContactsListView: React.FC<ContactsListViewProps> = ({ 
   contacts, 
   onEdit, 
   onDelete, 
-  getContactTypeColor 
+  getContactTypeColor,
+  sortField,
+  sortDirection,
+  onSort
 }) => {
+  const SortableHeader = ({ field, children }: { field: string; children: React.ReactNode }) => (
+    <TableHead 
+      className="cursor-pointer hover:bg-muted/50 select-none"
+      onClick={() => onSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortField === field && (
+          sortDirection === "asc" ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )
+        )}
+      </div>
+    </TableHead>
+  );
   return (
     <div className="border rounded-lg">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Company</TableHead>
+            <SortableHeader field="name">Name</SortableHeader>
+            <SortableHeader field="contact_type">Type</SortableHeader>
+            <SortableHeader field="company">Company</SortableHeader>
             <TableHead>Contact Info</TableHead>
-            <TableHead>Location</TableHead>
+            <SortableHeader field="location">Location</SortableHeader>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>

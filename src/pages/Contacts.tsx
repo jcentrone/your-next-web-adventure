@@ -22,6 +22,7 @@ import Seo from "@/components/Seo";
 import { ContactsViewToggle } from "@/components/contacts/ContactsViewToggle";
 import { ContactsListView } from "@/components/contacts/ContactsListView";
 import { ContactsCardView } from "@/components/contacts/ContactsCardView";
+import { ContactsFilter } from "@/components/contacts/ContactsFilter";
 
 const Contacts: React.FC = () => {
   const { user } = useAuth();
@@ -32,6 +33,9 @@ const Contacts: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [view, setView] = useState<"list" | "card">("list");
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ["contacts", user?.id, searchQuery],
@@ -62,6 +66,71 @@ const Contacts: React.FC = () => {
       is_active: true,
     },
   });
+
+  // Filter and sort contacts
+  const filteredAndSortedContacts = React.useMemo(() => {
+    let filtered = contacts?.filter(contact => {
+      const fullName = `${contact.first_name} ${contact.last_name}`.toLowerCase();
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = fullName.includes(query) || 
+             contact.email?.toLowerCase().includes(query) ||
+             contact.phone?.includes(query) ||
+             contact.company?.toLowerCase().includes(query);
+      
+      const matchesType = !selectedType || contact.contact_type === selectedType;
+      
+      return matchesSearch && matchesType;
+    }) || [];
+
+    // Sort contacts
+    if (sortField) {
+      filtered = [...filtered].sort((a, b) => {
+        let aValue: string | number;
+        let bValue: string | number;
+
+        switch (sortField) {
+          case "name":
+            aValue = `${a.first_name} ${a.last_name}`.toLowerCase();
+            bValue = `${b.first_name} ${b.last_name}`.toLowerCase();
+            break;
+          case "contact_type":
+            aValue = a.contact_type?.toLowerCase() || "";
+            bValue = b.contact_type?.toLowerCase() || "";
+            break;
+          case "company":
+            aValue = a.company?.toLowerCase() || "";
+            bValue = b.company?.toLowerCase() || "";
+            break;
+          case "location":
+            aValue = `${a.city || ""} ${a.state || ""}`.toLowerCase().trim();
+            bValue = `${b.city || ""} ${b.state || ""}`.toLowerCase().trim();
+            break;
+          default:
+            return 0;
+        }
+
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          const comparison = aValue.localeCompare(bValue);
+          return sortDirection === "asc" ? comparison : -comparison;
+        }
+        
+        if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [contacts, searchQuery, selectedType, sortField, sortDirection]);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   const createMutation = useMutation({
     mutationFn: contactsApi.create,
@@ -483,8 +552,8 @@ const Contacts: React.FC = () => {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="flex items-center gap-2">
+        {/* Search and Filter */}
+        <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
@@ -494,16 +563,21 @@ const Contacts: React.FC = () => {
               className="pl-10"
             />
           </div>
+          <ContactsFilter
+            selectedType={selectedType}
+            onTypeChange={setSelectedType}
+            getContactTypeColor={getContactTypeColor}
+          />
         </div>
 
-        {/* Contacts Grid */}
+        {/* Contacts Display */}
         {isLoading ? (
           <div className="text-center py-8">Loading contacts...</div>
-        ) : contacts.length === 0 ? (
+        ) : filteredAndSortedContacts.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
               <p className="text-muted-foreground mb-4">
-                {searchQuery ? "No contacts found matching your search" : "No contacts yet"}
+                {searchQuery || selectedType ? "No contacts found matching your criteria" : "No contacts yet"}
               </p>
               <Button onClick={() => setIsDialogOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -514,14 +588,17 @@ const Contacts: React.FC = () => {
         ) : (
           view === "list" ? (
             <ContactsListView
-              contacts={contacts}
+              contacts={filteredAndSortedContacts}
               onEdit={handleEdit}
               onDelete={handleDelete}
               getContactTypeColor={getContactTypeColor}
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSort={handleSort}
             />
           ) : (
             <ContactsCardView
-              contacts={contacts}
+              contacts={filteredAndSortedContacts}
               onEdit={handleEdit}
               onDelete={handleDelete}
               getContactTypeColor={getContactTypeColor}
