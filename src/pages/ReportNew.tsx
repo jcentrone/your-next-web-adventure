@@ -204,6 +204,9 @@ const ReportNew: React.FC = () => {
               )}
             />
             <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => nav(-1)}>
+                Cancel
+              </Button>
               <Button type="submit">Create & Continue</Button>
             </div>
           </form>
