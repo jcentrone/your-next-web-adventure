@@ -6,7 +6,8 @@ import { dbListReports } from "@/integrations/supabase/reportsApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, FileText, CheckSquare, Users, Plus, Clock, AlertTriangle } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Calendar, FileText, CheckSquare, Users, Plus, Clock, AlertTriangle, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import Seo from "@/components/Seo";
@@ -87,20 +88,35 @@ const Dashboard: React.FC = () => {
               Welcome back! Here's what's happening with your inspection business.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button asChild>
-              <Link to="/calendar">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
                 <Plus className="w-4 h-4 mr-2" />
-                New Appointment
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/reports/new">
-                <FileText className="w-4 h-4 mr-2" />
-                New Report
-              </Link>
-            </Button>
-          </div>
+                New
+                <ChevronDown className="w-4 h-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link to="/reports/new" className="flex items-center">
+                  <FileText className="w-4 h-4 mr-2" />
+                  New Report
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/calendar" className="flex items-center">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  New Appointment
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/tasks" className="flex items-center">
+                  <CheckSquare className="w-4 h-4 mr-2" />
+                  New Task
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Quick Stats */}
