@@ -121,9 +121,11 @@ export default function ImageAnnotation() {
       selection: true,
     });
 
-    // Set up drawing brush
-    canvas.freeDrawingBrush.color = activeColor;
-    canvas.freeDrawingBrush.width = 3;
+    // Set up drawing brush - check if it exists first
+    if (canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.color = activeColor;
+      canvas.freeDrawingBrush.width = 3;
+    }
 
     const loadImage = async () => {
       try {
