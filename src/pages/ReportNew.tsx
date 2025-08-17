@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createReport } from "@/hooks/useLocalDraft";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +31,13 @@ const ReportNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
+
+  // Get all contacts for lookup
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts", user?.id],
+    queryFn: () => contactsApi.list(user!.id),
+    enabled: !!user,
+  });
 
   // Get contact data if contactId is provided
   const { data: contact } = useQuery({
@@ -121,12 +129,55 @@ const ReportNew: React.FC = () => {
             />
             <FormField
               control={form.control}
-              name="clientName"
+              name="contactId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Name</FormLabel>
+                  <FormLabel>Client Contact</FormLabel>
                   <FormControl>
-                    <Input placeholder="Client full name" {...field} />
+                    <div className="space-y-2">
+                      <Select
+                        value={field.value}
+                        onValueChange={(contactId) => {
+                          field.onChange(contactId);
+                          const selectedContact = contacts.find(c => c.id === contactId);
+                          if (selectedContact) {
+                            form.setValue('clientName', `${selectedContact.first_name} ${selectedContact.last_name}`);
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a contact or add new...">
+                            {field.value && contacts.length > 0 ? 
+                              (() => {
+                                const contact = contacts.find(c => c.id === field.value);
+                                return contact ? `${contact.first_name} ${contact.last_name}` : field.value;
+                              })() : "Select a contact..."
+                            }
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="add-new" className="font-medium text-primary">
+                            + Add New Contact
+                          </SelectItem>
+                          {contacts.map((contact) => (
+                            <SelectItem key={contact.id} value={contact.id}>
+                              {contact.first_name} {contact.last_name}
+                              {contact.email && <span className="text-muted-foreground ml-2">({contact.email})</span>}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {field.value === "add-new" && (
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => nav('/contacts/new')}
+                        >
+                          Go to Add New Contact
+                        </Button>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
