@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SOP_SECTIONS } from "@/constants/sop";
 import { Report, ReportSchema, Section } from "@/lib/reportSchemas";
 
-type ReportListItem = Pick<Report, "id" | "title" | "clientName" | "inspectionDate" | "status">;
+type ReportListItem = Pick<Report, "id" | "title" | "clientName" | "inspectionDate" | "status"> & { archived?: boolean };
 
 function toDbPayload(report: Report) {
   return {
@@ -138,12 +138,20 @@ export async function dbCreateReport(meta: {
   return fromDbRow(data);
 }
 
-export async function dbListReports(userId: string): Promise<ReportListItem[]> {
-  const { data, error } = await (supabase as any)
+export async function dbListReports(userId: string, includeArchived: boolean = false): Promise<ReportListItem[]> {
+  let selectQuery = "id,title,client_name,inspection_date,status,archived";
+  
+  const query = supabase
     .from("reports")
-    .select("id,title,client_name,inspection_date,status")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+    .select(selectQuery)
+    .eq("user_id", userId);
+  
+  // If not including archived, filter them out
+  if (!includeArchived) {
+    query.eq("archived", false);
+  }
+  
+  const { data, error } = await query.order("created_at", { ascending: false });
 
   if (error) {
     console.error("dbListReports error", error);
@@ -156,6 +164,7 @@ export async function dbListReports(userId: string): Promise<ReportListItem[]> {
     clientName: r.client_name,
     inspectionDate: new Date(`${r.inspection_date}T00:00:00Z`).toISOString(),
     status: r.status,
+    archived: r.archived || false,
   }));
 }
 
@@ -198,11 +207,24 @@ export async function dbDeleteReport(id: string): Promise<void> {
   }
 }
 
+export async function dbArchiveReport(id: string, archived: boolean = true): Promise<void> {
+  const { error } = await supabase
+    .from("reports")
+    .update({ archived })
+    .eq("id", id);
+  
+  if (error) {
+    console.error("dbArchiveReport error", error);
+    throw error;
+  }
+}
+
 export async function dbGetReportsByContactId(contactId: string): Promise<any[]> {
   const { data, error } = await supabase
     .from("reports")
     .select("id, title, client_name, address, inspection_date, status, created_at")
     .eq("contact_id", contactId)
+    .eq("archived", false) // Only show non-archived reports in contact view
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -222,5 +244,6 @@ export const reportsApi = {
   dbGetReport,
   dbUpdateReport,
   dbDeleteReport,
+  dbArchiveReport,
   getByContactId: dbGetReportsByContactId,
 };

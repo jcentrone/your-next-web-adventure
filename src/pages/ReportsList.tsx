@@ -7,26 +7,39 @@ import { listReports as listLocalReports, deleteReport as deleteLocalReport } fr
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { dbListReports, dbDeleteReport } from "@/integrations/supabase/reportsApi";
+import { dbListReports, dbDeleteReport, dbArchiveReport } from "@/integrations/supabase/reportsApi";
 import { ReportsListView } from "@/components/reports/ReportsListView";
 import { ReportsCardView } from "@/components/reports/ReportsCardView";
 import { ReportsViewToggle } from "@/components/reports/ReportsViewToggle";
+import { ReportsFilterToggle } from "@/components/reports/ReportsFilterToggle";
 
 const ReportsList: React.FC = () => {
   const { user } = useAuth();
   const [localItems, setLocalItems] = React.useState(listLocalReports());
   const [view, setView] = React.useState<"list" | "card">("list"); // Default to list view
+  const [showArchived, setShowArchived] = React.useState(false);
 
   const { data: remoteItems, refetch, isLoading } = useQuery({
-    queryKey: ["reports", user?.id],
+    queryKey: ["reports", user?.id, showArchived],
     queryFn: async () => {
       if (!user) return null;
-      return await dbListReports(user.id);
+      return await dbListReports(user.id, showArchived);
+    },
+    enabled: !!user,
+  });
+
+  // Get archived count for badge
+  const { data: archivedItems } = useQuery({
+    queryKey: ["reports", user?.id, "archived"],
+    queryFn: async () => {
+      if (!user) return [];
+      return await dbListReports(user.id, true);
     },
     enabled: !!user,
   });
 
   const items = user ? remoteItems || [] : localItems;
+  const archivedCount = archivedItems?.filter(item => item.archived).length || 0;
 
   const onDelete = async (id: string) => {
     try {
@@ -44,6 +57,19 @@ const ReportsList: React.FC = () => {
     }
   };
 
+  const onArchive = async (id: string, archived: boolean) => {
+    try {
+      if (user) {
+        await dbArchiveReport(id, archived);
+        await refetch();
+        toast({ title: archived ? "Report archived" : "Report restored" });
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Failed to update report", description: e?.message || "Please try again." });
+    }
+  };
+
   return (
     <>
       <Seo
@@ -58,8 +84,17 @@ const ReportsList: React.FC = () => {
       />
       <section className="max-w-7xl mx-auto px-4 py-10">
         <header className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-semibold">Inspection Reports</h1>
+          <h1 className="text-2xl font-semibold">
+            {showArchived ? "Archived Reports" : "Inspection Reports"}
+          </h1>
           <div className="flex items-center gap-4">
+            {user && (
+              <ReportsFilterToggle 
+                showArchived={showArchived} 
+                onToggle={setShowArchived}
+                archivedCount={archivedCount}
+              />
+            )}
             <ReportsViewToggle view={view} onViewChange={setView} />
             <Button asChild>
               <Link to="/reports/new">New Report</Link>
@@ -72,16 +107,20 @@ const ReportsList: React.FC = () => {
           </div>
         ) : items.length === 0 ? (
           <div className="rounded-lg border p-8 text-center">
-            <p className="mb-4 text-muted-foreground">No reports yet.</p>
-            <Button asChild>
-              <Link to="/reports/new">Create your first report</Link>
-            </Button>
+            <p className="mb-4 text-muted-foreground">
+              {showArchived ? "No archived reports." : "No reports yet."}
+            </p>
+            {!showArchived && (
+              <Button asChild>
+                <Link to="/reports/new">Create your first report</Link>
+              </Button>
+            )}
           </div>
         ) : (
           view === "list" ? (
-            <ReportsListView reports={items} onDelete={onDelete} />
+            <ReportsListView reports={items} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
           ) : (
-            <ReportsCardView reports={items} onDelete={onDelete} />
+            <ReportsCardView reports={items} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
           )
         )}
       </section>

@@ -493,6 +493,7 @@ export type Database = {
       reports: {
         Row: {
           address: string
+          archived: boolean
           client_name: string
           contact_id: string | null
           cover_image: string | null
@@ -510,6 +511,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          archived?: boolean
           client_name: string
           contact_id?: string | null
           cover_image?: string | null
@@ -527,6 +529,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          archived?: boolean
           client_name?: string
           contact_id?: string | null
           cover_image?: string | null

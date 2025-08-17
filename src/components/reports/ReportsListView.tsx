@@ -2,14 +2,21 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Eye, Trash2 } from "lucide-react";
+import { FileText, Eye, Trash2, Archive, ArchiveRestore } from "lucide-react";
 
 interface ReportsListViewProps {
   reports: any[];
   onDelete: (id: string) => void;
+  onArchive?: (id: string, archived: boolean) => void;
+  showArchived?: boolean;
 }
 
-export const ReportsListView: React.FC<ReportsListViewProps> = ({ reports, onDelete }) => {
+export const ReportsListView: React.FC<ReportsListViewProps> = ({ 
+  reports, 
+  onDelete, 
+  onArchive, 
+  showArchived = false 
+}) => {
   return (
     <div className="space-y-2">
       {reports.map((report) => (
@@ -28,22 +35,46 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({ reports, onDel
                     {report.status}
                   </Badge>
                 )}
+                {report.archived && (
+                  <Badge variant="outline" className="text-xs">
+                    <Archive className="h-3 w-3 mr-1" />
+                    Archived
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <Button asChild size="sm" variant="outline">
-              <Link to={`/reports/${report.id}`}>
-                <FileText className="h-4 w-4 mr-1" />
-                Edit
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline">
-              <Link to={`/reports/${report.id}/preview`}>
-                <Eye className="h-4 w-4 mr-1" />
-                Preview
-              </Link>
-            </Button>
+            {!report.archived && (
+              <>
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/reports/${report.id}`}>
+                    <FileText className="h-4 w-4 mr-1" />
+                    Edit
+                  </Link>
+                </Button>
+                <Button asChild size="sm" variant="outline">
+                  <Link to={`/reports/${report.id}/preview`}>
+                    <Eye className="h-4 w-4 mr-1" />
+                    Preview
+                  </Link>
+                </Button>
+              </>
+            )}
+            {onArchive && (
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => onArchive(report.id, !report.archived)}
+                title={report.archived ? "Restore report" : "Archive report"}
+              >
+                {report.archived ? (
+                  <ArchiveRestore className="h-4 w-4" />
+                ) : (
+                  <Archive className="h-4 w-4" />
+                )}
+              </Button>
+            )}
             <Button 
               size="sm" 
               variant="ghost" 
