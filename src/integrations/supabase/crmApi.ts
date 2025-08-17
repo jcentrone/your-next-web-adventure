@@ -173,7 +173,8 @@ export const tasksApi = {
       .select(`
         *,
         contacts(first_name, last_name),
-        appointments(title, appointment_date)
+        appointments(title, appointment_date),
+        reports(title, status)
       `)
       .or(`user_id.eq.${userId},assigned_to.eq.${userId}`)
       .order('created_at', { ascending: false });

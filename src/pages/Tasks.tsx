@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tasksApi, contactsApi, appointmentsApi } from "@/integrations/supabase/crmApi";
+import { reportsApi } from "@/integrations/supabase/reportsApi";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,8 @@ const Tasks: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [customTaskType, setCustomTaskType] = useState("");
+  const [showCustomTaskType, setShowCustomTaskType] = useState(false);
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks", user?.id],
@@ -51,6 +54,12 @@ const Tasks: React.FC = () => {
   const { data: appointments = [] } = useQuery({
     queryKey: ["appointments", user?.id],
     queryFn: () => appointmentsApi.list(user!.id),
+    enabled: !!user,
+  });
+
+  const { data: reports = [] } = useQuery({
+    queryKey: ["reports", user?.id],
+    queryFn: () => reportsApi.dbListReports(user!.id),
     enabled: !!user,
   });
 
@@ -122,18 +131,23 @@ const Tasks: React.FC = () => {
       description: "",
       priority: "medium",
       status: "pending",
+      task_type: "",
       due_date: "",
       contact_id: "",
       appointment_id: "",
+      report_id: "",
     },
   });
 
   const onSubmit = (data: any) => {
+    const finalTaskType = data.task_type === "Other" ? customTaskType : data.task_type;
     const taskData = {
       ...data,
       user_id: user!.id,
       contact_id: data.contact_id || null,
       appointment_id: data.appointment_id || null,
+      report_id: data.report_id || null,
+      task_type: finalTaskType || null,
       due_date: data.due_date || null,
     };
 
@@ -146,15 +160,42 @@ const Tasks: React.FC = () => {
 
   const handleEdit = (task: Task) => {
     setEditingTask(task);
-    form.reset({
-      title: task.title,
-      description: task.description || "",
-      priority: task.priority,
-      status: task.status,
-      due_date: task.due_date ? format(new Date(task.due_date), "yyyy-MM-dd") : "",
-      contact_id: task.contact_id || "",
-      appointment_id: task.appointment_id || "",
-    });
+    const taskType = (task as any).task_type || "";
+    const predefinedTypes = [
+      "Scheduling & Access", "On-Site Inspection", "Report Drafting & QA",
+      "Client/Agent Communication", "Billing & Payments", "Equipment/Vehicle Maintenance",
+      "Marketing & Reviews"
+    ];
+    
+    if (taskType && !predefinedTypes.includes(taskType)) {
+      setShowCustomTaskType(true);
+      setCustomTaskType(taskType);
+      form.reset({
+        title: task.title,
+        description: task.description || "",
+        priority: task.priority,
+        status: task.status,
+        task_type: "Other",
+        due_date: task.due_date ? format(new Date(task.due_date), "yyyy-MM-dd") : "",
+        contact_id: task.contact_id || "",
+        appointment_id: task.appointment_id || "",
+        report_id: task.report_id || "",
+      });
+    } else {
+      setShowCustomTaskType(false);
+      setCustomTaskType("");
+      form.reset({
+        title: task.title,
+        description: task.description || "",
+        priority: task.priority,
+        status: task.status,
+        task_type: taskType,
+        due_date: task.due_date ? format(new Date(task.due_date), "yyyy-MM-dd") : "",
+        contact_id: task.contact_id || "",
+        appointment_id: task.appointment_id || "",
+        report_id: task.report_id || "",
+      });
+    }
     setIsDialogOpen(true);
   };
 
@@ -456,6 +497,8 @@ const Tasks: React.FC = () => {
             <DialogTrigger asChild>
               <Button onClick={() => {
                 setEditingTask(null);
+                setShowCustomTaskType(false);
+                setCustomTaskType("");
                 form.reset();
               }}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -537,6 +580,56 @@ const Tasks: React.FC = () => {
 
                       <FormField
                         control={form.control}
+                        name="task_type"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Task Type</FormLabel>
+                            <Select 
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                setShowCustomTaskType(value === "Other");
+                                if (value !== "Other") {
+                                  setCustomTaskType("");
+                                }
+                              }} 
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select task type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Scheduling & Access">Scheduling & Access</SelectItem>
+                                <SelectItem value="On-Site Inspection">On-Site Inspection</SelectItem>
+                                <SelectItem value="Report Drafting & QA">Report Drafting & QA</SelectItem>
+                                <SelectItem value="Client/Agent Communication">Client/Agent Communication</SelectItem>
+                                <SelectItem value="Billing & Payments">Billing & Payments</SelectItem>
+                                <SelectItem value="Equipment/Vehicle Maintenance">Equipment/Vehicle Maintenance</SelectItem>
+                                <SelectItem value="Marketing & Reviews">Marketing & Reviews</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {showCustomTaskType && (
+                        <FormItem>
+                          <FormLabel>Custom Task Type</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter custom task type" 
+                              value={customTaskType}
+                              onChange={(e) => setCustomTaskType(e.target.value)}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+
+                      <FormField
+                        control={form.control}
                         name="due_date"
                         render={({ field }) => (
                           <FormItem>
@@ -611,6 +704,31 @@ const Tasks: React.FC = () => {
                                 {appointments.map((appointment) => (
                                   <SelectItem key={appointment.id} value={appointment.id}>
                                     {appointment.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="report_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Related Report (Optional)</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a report" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {reports.map((report: any) => (
+                                  <SelectItem key={report.id} value={report.id}>
+                                    {report.title}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
