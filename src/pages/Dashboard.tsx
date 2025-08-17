@@ -300,9 +300,15 @@ const Dashboard: React.FC = () => {
                   ))}
                 </div>
               )}
-              <div className="mt-4">
-                <Button variant="outline" className="w-full" asChild>
+              <div className="mt-4 flex gap-2">
+                <Button variant="outline" className="flex-1" asChild>
                   <Link to="/reports">View All Reports</Link>
+                </Button>
+                <Button className="flex-1" asChild>
+                  <Link to="/reports/new">
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Report
+                  </Link>
                 </Button>
               </div>
             </CardContent>
