@@ -19,6 +19,9 @@ import { ContactSchema, CreateContactSchema, type Contact } from "@/lib/crmSchem
 import { GooglePlacesAutocomplete } from "@/components/maps/GooglePlacesAutocomplete";
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
+import { ContactsViewToggle } from "@/components/contacts/ContactsViewToggle";
+import { ContactsListView } from "@/components/contacts/ContactsListView";
+import { ContactsCardView } from "@/components/contacts/ContactsCardView";
 
 const Contacts: React.FC = () => {
   const { user } = useAuth();
@@ -28,6 +31,7 @@ const Contacts: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [view, setView] = useState<"list" | "card">("list");
 
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ["contacts", user?.id, searchQuery],
@@ -197,35 +201,37 @@ const Contacts: React.FC = () => {
             </p>
           </div>
           
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => {
-                console.log('Creating new contact');
-                setEditingContact(null);
-                form.reset({
-                  contact_type: "client",
-                  first_name: "",
-                  last_name: "",
-                  email: "",
-                  phone: "",
-                  company: "",
-                  formatted_address: "",
-                  place_id: "",
-                  latitude: undefined,
-                  longitude: undefined,
-                  address_components: undefined,
-                  city: "",
-                  state: "",
-                  zip_code: "",
-                  notes: "",
-                  is_active: true,
-                });
-              }}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Contact
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[85vh] p-0">
+          <div className="flex items-center gap-2">
+            <ContactsViewToggle view={view} onViewChange={setView} />
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => {
+                  console.log('Creating new contact');
+                  setEditingContact(null);
+                  form.reset({
+                    contact_type: "client",
+                    first_name: "",
+                    last_name: "",
+                    email: "",
+                    phone: "",
+                    company: "",
+                    formatted_address: "",
+                    place_id: "",
+                    latitude: undefined,
+                    longitude: undefined,
+                    address_components: undefined,
+                    city: "",
+                    state: "",
+                    zip_code: "",
+                    notes: "",
+                    is_active: true,
+                  });
+                }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Contact
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md max-h-[85vh] p-0">
               <DialogHeader className="px-6 pt-6 pb-2">
                 <DialogTitle>
                   {editingContact ? "Edit Contact" : "Add New Contact"}
@@ -473,7 +479,8 @@ const Contacts: React.FC = () => {
                 </Form>
               </div>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         {/* Search */}
@@ -505,83 +512,21 @@ const Contacts: React.FC = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {contacts.map((contact) => (
-              <Card key={contact.id} className="hover:shadow-md transition-shadow cursor-pointer group">
-                <Link to={`/contacts/${contact.id}`} className="block">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                          {contact.first_name} {contact.last_name}
-                        </CardTitle>
-                        {contact.company && (
-                          <CardDescription className="flex items-center gap-1">
-                            <Building className="w-3 h-3" />
-                            {contact.company}
-                          </CardDescription>
-                        )}
-                      </div>
-                      <Badge className={getContactTypeColor(contact.contact_type)}>
-                        {contact.contact_type}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {contact.email && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Mail className="w-3 h-3" />
-                        <span className="hover:text-primary">
-                          {contact.email}
-                        </span>
-                      </div>
-                    )}
-                    {contact.phone && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Phone className="w-3 h-3" />
-                        <span className="hover:text-primary">
-                          {contact.phone}
-                        </span>
-                      </div>
-                    )}
-                    {(contact.address || contact.city || contact.state) && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <MapPin className="w-3 h-3" />
-                        <span>
-                          {[contact.address, contact.city, contact.state].filter(Boolean).join(", ")}
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Link>
-                
-                <CardContent className="pt-0">
-                  <div className="flex justify-end gap-2" onClick={(e) => e.preventDefault()}>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/contacts/${contact.id}`);
-                      }}
-                    >
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(contact);
-                      }}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          view === "list" ? (
+            <ContactsListView
+              contacts={contacts}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              getContactTypeColor={getContactTypeColor}
+            />
+          ) : (
+            <ContactsCardView
+              contacts={contacts}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              getContactTypeColor={getContactTypeColor}
+            />
+          )
         )}
       </div>
     </>
