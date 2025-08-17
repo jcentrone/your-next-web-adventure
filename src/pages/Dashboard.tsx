@@ -153,7 +153,7 @@ const Dashboard: React.FC = () => {
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{overdueTasks.length}</div>
+              <div className={`text-2xl font-bold ${overdueTasks.length > 0 ? 'text-red-600' : 'text-foreground'}`}>{overdueTasks.length}</div>
               <p className="text-xs text-muted-foreground">Tasks need attention</p>
             </CardContent>
           </Card>
