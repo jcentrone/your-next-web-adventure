@@ -30,6 +30,12 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span>{report.clientName}</span>
                 <span>{new Date(report.inspectionDate).toLocaleDateString()}</span>
+                <Badge 
+                  variant="outline" 
+                  className="text-xs"
+                >
+                  {report.reportType === "wind_mitigation" ? "Wind Mitigation" : "Home Inspection"}
+                </Badge>
                 {report.status && (
                   <Badge variant={report.status === "Final" ? "default" : "secondary"} className="text-xs">
                     {report.status}

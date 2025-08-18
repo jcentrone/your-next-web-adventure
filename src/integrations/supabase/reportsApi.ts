@@ -3,7 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { SOP_SECTIONS } from "@/constants/sop";
 import { Report, ReportSchema, Section } from "@/lib/reportSchemas";
 
-type ReportListItem = Pick<Report, "id" | "title" | "clientName" | "inspectionDate" | "status"> & { archived?: boolean };
+type ReportListItem = {
+  id: string;
+  title: string;
+  clientName: string;
+  inspectionDate: string;
+  status: "Draft" | "Final";
+  reportType: "home_inspection" | "wind_mitigation";
+  archived?: boolean;
+};
 
 function toDbPayload(report: Report) {
   return {
@@ -174,7 +182,7 @@ export async function dbCreateReport(meta: {
 }
 
 export async function dbListReports(userId: string, includeArchived: boolean = false): Promise<ReportListItem[]> {
-  let selectQuery = "id,title,client_name,inspection_date,status,archived";
+  let selectQuery = "id,title,client_name,inspection_date,status,archived,report_type";
   
   const query = supabase
     .from("reports")
@@ -200,6 +208,7 @@ export async function dbListReports(userId: string, includeArchived: boolean = f
     inspectionDate: new Date(`${r.inspection_date}T00:00:00Z`).toISOString(),
     status: r.status,
     archived: r.archived || false,
+    reportType: r.report_type || "home_inspection",
   }));
 }
 

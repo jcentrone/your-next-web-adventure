@@ -18,6 +18,7 @@ const ReportsList: React.FC = () => {
   const [localItems, setLocalItems] = React.useState(listLocalReports());
   const [view, setView] = React.useState<"list" | "card">("list"); // Default to list view
   const [showArchived, setShowArchived] = React.useState(false);
+  const [reportTypeFilter, setReportTypeFilter] = React.useState<"all" | "home_inspection" | "wind_mitigation">("all");
 
   const { data: remoteItems, refetch, isLoading } = useQuery({
     queryKey: ["reports", user?.id, showArchived],
@@ -40,6 +41,12 @@ const ReportsList: React.FC = () => {
 
   const items = user ? remoteItems || [] : localItems;
   const archivedCount = archivedItems?.filter(item => item.archived).length || 0;
+  
+  // Filter items by report type
+  const filteredItems = items.filter((item: any) => {
+    if (reportTypeFilter === "all") return true;
+    return item.reportType === reportTypeFilter;
+  });
 
   const onDelete = async (id: string) => {
     try {
@@ -93,6 +100,8 @@ const ReportsList: React.FC = () => {
                 showArchived={showArchived} 
                 onToggle={setShowArchived}
                 archivedCount={archivedCount}
+                reportType={reportTypeFilter}
+                onReportTypeChange={setReportTypeFilter}
               />
             )}
             <ReportsViewToggle view={view} onViewChange={setView} />
@@ -105,10 +114,12 @@ const ReportsList: React.FC = () => {
           <div className="rounded-lg border p-8 text-center">
             <p className="text-muted-foreground">Loading...</p>
           </div>
-        ) : items.length === 0 ? (
+        ) : filteredItems.length === 0 ? (
           <div className="rounded-lg border p-8 text-center">
             <p className="mb-4 text-muted-foreground">
-              {showArchived ? "No archived reports." : "No reports yet."}
+              {showArchived ? "No archived reports." : 
+               reportTypeFilter !== "all" ? `No ${reportTypeFilter === "wind_mitigation" ? "wind mitigation" : "home inspection"} reports found.` : 
+               "No reports yet."}
             </p>
             {!showArchived && (
               <Button asChild>
@@ -118,9 +129,9 @@ const ReportsList: React.FC = () => {
           </div>
         ) : (
           view === "list" ? (
-            <ReportsListView reports={items} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
+            <ReportsListView reports={filteredItems} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
           ) : (
-            <ReportsCardView reports={items} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
+            <ReportsCardView reports={filteredItems} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
           )
         )}
       </section>
