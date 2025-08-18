@@ -503,16 +503,15 @@ const ReportEditor: React.FC = () => {
 
   const excludedKeys = ["finalize", "reportDetails", "summary"];
 
-  // Show wind mitigation editor for wind mitigation reports
   if (report && report.reportType === "wind_mitigation") {
-    const WindMitigationMainEditor = React.lazy(() => import("@/components/reports/WindMitigationMainEditor"));
+    const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
     
     return (
       <>
         <Seo title={`${report.title} | Wind Mitigation Editor`} />
         <div className="max-w-4xl mx-auto px-4 py-6">
           <React.Suspense fallback={<div>Loading...</div>}>
-            <WindMitigationMainEditor 
+            <WindMitigationEditor 
               report={report} 
               onUpdate={setReport} 
             />
