@@ -91,6 +91,7 @@ const ReportNew: React.FC = () => {
             address: values.address,
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
+            reportType: "home_inspection",
           },
           user.id,
           profile?.organization_id || undefined

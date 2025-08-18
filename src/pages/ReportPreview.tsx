@@ -143,7 +143,7 @@ const ReportPreview: React.FC = () => {
 
   // Resolve signed URLs for all media in the report (only when authenticated)
   React.useEffect(() => {
-    if (!user || !report) return;
+    if (!user || !report || report.reportType !== "home_inspection") return;
     const allMedia = report.sections.flatMap((s) => s.findings.flatMap((f) => f.media));
     const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
 
@@ -184,6 +184,18 @@ const ReportPreview: React.FC = () => {
 
   const tpl = PREVIEW_TEMPLATES[report.previewTemplate] || PREVIEW_TEMPLATES.classic;
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
+  
+  // Only show preview for home inspection reports for now
+  if (report.reportType !== "home_inspection") {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-10 text-center">
+        <h1 className="text-2xl font-bold mb-4">Wind Mitigation Report Preview</h1>
+        <p className="text-muted-foreground">Preview for wind mitigation reports is coming soon.</p>
+        <Button onClick={() => nav(`/reports/${report.id}`)} className="mt-4">Back to Editor</Button>
+      </div>
+    );
+  }
+  
   const summary = report.sections.flatMap((s) =>
     s.findings.filter((f) => f.includeInSummary || f.severity === "Safety" || f.severity === "Major" || f.severity === "Moderate" || f.severity === "Minor" || f.severity === "Maintenance" || f.severity === "Info")
   );

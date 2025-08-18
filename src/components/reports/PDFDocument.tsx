@@ -13,6 +13,15 @@ interface PDFDocumentProps {
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
   ({ report, mediaUrlMap, coverUrl }, ref) => {
+    // Only render PDFs for home inspection reports for now
+    if (report.reportType !== "home_inspection") {
+      return (
+        <div className="p-8 text-center">
+          <p>PDF generation for wind mitigation reports is coming soon.</p>
+        </div>
+      );
+    }
+
     const tpl = PREVIEW_TEMPLATES[report.previewTemplate] || PREVIEW_TEMPLATES.classic;
     const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
     

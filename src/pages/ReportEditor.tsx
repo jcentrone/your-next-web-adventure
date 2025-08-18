@@ -104,39 +104,47 @@ const ReportEditor: React.FC = () => {
       }
       if (!r) return nav("/reports");
 
-      const rr: Report = {
-        ...r,
-        finalComments: (r as any).finalComments ?? "",
-        sections: [...r.sections],
-      } as Report;
-      const existingKeys = new Set(rr.sections.map((s) => s.key));
+      // Handle different report types
+      if (r.reportType === "wind_mitigation") {
+        setReport(r);
+        return; // Skip sections processing for wind mitigation
+      }
+
+      // For home inspection reports, add missing sections
+      if (r.reportType === "home_inspection") {
+        const rr = r as any;
+        const existingKeys = new Set(rr.sections.map((s: any) => s.key));
       
-      // Add standard SOP sections
-      SOP_SECTIONS.forEach((s) => {
-        if (!existingKeys.has(s.key as SectionKey)) {
-          rr.sections.push({
-            id: `${rr.id}-sec-${s.key}`,
-            key: s.key as SectionKey,
-            title: s.name,
-            findings: [],
-          } as any);
-        }
-      });
-      
-      // Add custom sections from database
-      customSections.forEach((cs) => {
-        if (!existingKeys.has(cs.section_key as SectionKey)) {
-          rr.sections.push({
-            id: `${rr.id}-sec-${cs.section_key}`,
-            key: cs.section_key as SectionKey,
-            title: cs.title,
-            findings: [],
-            info: {},
-          } as any);
-        }
-      });
-      setReport(rr);
-      setActive(rr.sections[0]?.id ?? null);
+        // Add standard SOP sections for home inspection reports only
+        SOP_SECTIONS.forEach((s) => {
+          if (!existingKeys.has(s.key as SectionKey)) {
+            rr.sections.push({
+              id: `${rr.id}-sec-${s.key}`,
+              key: s.key as SectionKey,
+              title: s.name,
+              findings: [],
+            });
+          }
+        });
+        
+        // Add custom sections from database
+        customSections.forEach((cs) => {
+          if (!existingKeys.has(cs.section_key as SectionKey)) {
+            rr.sections.push({
+              id: `${rr.id}-sec-${cs.section_key}`,
+              key: cs.section_key as SectionKey,
+              title: cs.title,
+              findings: [],
+              info: {},
+            });
+          }
+        });
+        setReport(rr);
+        setActive(rr.sections[0]?.id ?? null);
+      } else {
+        // For wind mitigation reports, just set as is
+        setReport(r);
+      }
     };
     load();
   }, [id, nav, user, customSections]);
@@ -158,7 +166,7 @@ const ReportEditor: React.FC = () => {
   });
 
   const activeSection = React.useMemo(() => {
-    if (!report) return undefined;
+    if (!report || report.reportType !== "home_inspection") return undefined;
     return report.sections.find((s) => s.id === active) ?? report.sections[0];
   }, [report, active]);
 
@@ -206,7 +214,7 @@ const ReportEditor: React.FC = () => {
 
   const updateFinding = (fid: string, patch: Partial<Finding>) => {
     setReport((prev) => {
-      if (!prev) return prev;
+      if (!prev || prev.reportType !== "home_inspection" || !activeSection) return prev;
       const next = { ...prev };
       const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
       if (sIdx === -1) return prev;
@@ -218,9 +226,10 @@ const ReportEditor: React.FC = () => {
   };
 
   const addFinding = () => {
+    if (!activeSection) return;
     const fid = crypto.randomUUID();
     setReport((prev) => {
-      if (!prev) return prev;
+      if (!prev || prev.reportType !== "home_inspection") return prev;
       const next = { ...prev };
       const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
       next.sections[sIdx].findings.unshift({
@@ -238,8 +247,9 @@ const ReportEditor: React.FC = () => {
   };
 
   const removeFinding = (fid: string) => {
+    if (!activeSection) return;
     setReport((prev) => {
-      if (!prev) return prev;
+      if (!prev || prev.reportType !== "home_inspection") return prev;
       const next = { ...prev };
       const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
       next.sections[sIdx].findings = next.sections[sIdx].findings.filter((f) => f.id !== fid);
@@ -371,7 +381,7 @@ const ReportEditor: React.FC = () => {
 
           // Replace temporary with uploaded
           setReport((prev) => {
-            if (!prev) return prev;
+            if (!prev || prev.reportType !== "home_inspection" || !activeSection) return prev;
             const next = { ...prev };
             const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
             const finding = next.sections[sIdx].findings.find((x) => x.id === currentFindingId);
@@ -452,7 +462,7 @@ const ReportEditor: React.FC = () => {
           const signedUrl = await getSignedUrlFromSupabaseUrl(media.url);
 
           setReport((prev) => {
-            if (!prev) return prev;
+            if (!prev || prev.reportType !== "home_inspection" || !activeSection) return prev;
             const next = { ...prev };
             const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
             const finding = next.sections[sIdx].findings.find((x) => x.id === findingId);
@@ -493,6 +503,29 @@ const ReportEditor: React.FC = () => {
 
   const excludedKeys = ["finalize", "reportDetails", "summary"];
 
+  // Show wind mitigation editor for wind mitigation reports
+  if (report && report.reportType === "wind_mitigation") {
+    const WindMitigationMainEditor = React.lazy(() => import("@/components/reports/WindMitigationMainEditor"));
+    
+    return (
+      <>
+        <Seo title={`${report.title} | Wind Mitigation Editor`} />
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <WindMitigationMainEditor 
+              report={report} 
+              onUpdate={setReport} 
+            />
+          </React.Suspense>
+        </div>
+      </>
+    );
+  }
+
+  // Make sure we have activeSection for home inspection reports
+  if (!activeSection && report?.reportType === "home_inspection") {
+    return null;
+  }
   return (
     <>
       <Seo title={`${report.title} | Report Editor`} />
@@ -520,7 +553,8 @@ const ReportEditor: React.FC = () => {
               
               {/* All other SOP sections */}
               {SOP_SECTIONS.filter(s => s.key !== 'report_details').map((s) => {
-                const sec = report.sections.find((x) => x.key === s.key)!;
+                const sec = report.reportType === "home_inspection" ? report.sections.find((x) => x.key === s.key) : null;
+                if (!sec) return null;
                 const count = sec.findings.length;
                 return (
                   <button
@@ -546,7 +580,7 @@ const ReportEditor: React.FC = () => {
                   </div>
                   {customSections.map((cs) => {
                     // Find or create the section in the report
-                    let sec = report.sections.find((x) => x.key === cs.section_key);
+                    let sec = report.reportType === "home_inspection" ? report.sections.find((x) => x.key === cs.section_key) : null;
                     if (!sec) {
                       // Auto-create the custom section if it doesn't exist
                       sec = {
@@ -558,7 +592,7 @@ const ReportEditor: React.FC = () => {
                       };
                       // Add it to the report
                       setReport(prev => {
-                        if (!prev) return prev;
+                        if (!prev || prev.reportType !== "home_inspection") return prev;
                         return {
                           ...prev,
                           sections: [...prev.sections, sec!]
@@ -639,7 +673,7 @@ const ReportEditor: React.FC = () => {
                           value={activeSection.info?.[fieldName] || ""}
                           onChange={(val) => {
                             setReport((prev) => {
-                              if (!prev) return prev;
+                              if (!prev || prev.reportType !== "home_inspection") return prev;
                               const next = { ...prev };
                               const sec = next.sections.find(s => s.id === activeSection.id);
                               if (!sec) return prev;
@@ -844,7 +878,7 @@ const ReportEditor: React.FC = () => {
 
       // 4️⃣ Replace temporary local preview with the signed URL
       setReport((prev) => {
-        if (!prev) return prev;
+        if (!prev || prev.reportType !== "home_inspection" || !activeSection) return prev;
         const next = { ...prev };
         const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
         const finding = next.sections[sIdx].findings.find((x) => x.id === f.id);
@@ -909,7 +943,7 @@ const ReportEditor: React.FC = () => {
               {guidance['report_details']?.infoFields?.length > 0 ? (
                 guidance['report_details'].infoFields.map((field, idx) => {
                   const fieldName = typeof field === "string" ? field : field.name;
-                  const reportDetailsSection = report.sections.find(s => s.key === 'report_details');
+                  const reportDetailsSection = report.reportType === "home_inspection" ? report.sections.find(s => s.key === 'report_details') : null;
                   
                   // Handle report-level fields vs section info fields
                   const isReportLevelField = ['title', 'client_name', 'address', 'inspection_date'].includes(fieldName);
@@ -957,19 +991,21 @@ const ReportEditor: React.FC = () => {
                             }
                           } else {
                             // Update section info fields
-                            let sec = next.sections.find(s => s.key === 'report_details');
-                            if (!sec) {
-                              // Create report_details section if it doesn't exist
-                              sec = {
-                                id: `${prev.id}-sec-report-details`,
-                                key: 'report_details' as any,
-                                title: 'Report Details',
-                                findings: [],
-                                info: {}
-                              };
-                              next.sections.push(sec);
+                            if (next.reportType === "home_inspection") {
+                              let sec = next.sections.find(s => s.key === 'report_details');
+                              if (!sec) {
+                                // Create report_details section if it doesn't exist
+                                sec = {
+                                  id: `${prev.id}-sec-report-details`,
+                                  key: 'report_details' as any,
+                                  title: 'Report Details',
+                                  findings: [],
+                                  info: {}
+                                };
+                                next.sections.push(sec);
+                              }
+                              sec.info = { ...(sec.info || {}), [fieldName]: val };
                             }
-                            sec.info = { ...(sec.info || {}), [fieldName]: val };
                           }
                           return next;
                         });
@@ -1003,9 +1039,10 @@ const ReportEditor: React.FC = () => {
             onOpenChange={setPickerOpen}
             sectionKey={activeSection.key}
             onInsert={(tpl) => {
+              if (!activeSection) return;
               const fid = crypto.randomUUID();
               setReport((prev) => {
-                if (!prev) return prev;
+                if (!prev || prev.reportType !== "home_inspection") return prev;
                 const next = { ...prev };
                 const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
                 next.sections[sIdx].findings.unshift({

@@ -68,7 +68,7 @@ export default function ImageAnnotation() {
 
   // Find the specific media item
   const mediaItem = React.useMemo(() => {
-    if (!report || !findingId || !mediaId) return null;
+    if (!report || !findingId || !mediaId || report.reportType !== "home_inspection") return null;
     
     for (const section of report.sections) {
       const finding = section.findings.find(f => f.id === findingId);
@@ -435,14 +435,16 @@ export default function ImageAnnotation() {
 
       // Update the media item
       const updatedReport = { ...report };
-      for (const section of updatedReport.sections) {
-        const finding = section.findings.find(f => f.id === findingId);
-        if (finding) {
-          const media = finding.media.find(m => m.id === mediaId);
-          if (media) {
-            media.annotations = annotations;
-            media.isAnnotated = true;
-            break;
+      if (updatedReport.reportType === "home_inspection") {
+        for (const section of updatedReport.sections) {
+          const finding = section.findings.find(f => f.id === findingId);
+          if (finding) {
+            const media = finding.media.find(m => m.id === mediaId);
+            if (media) {
+              media.annotations = annotations;
+              media.isAnnotated = true;
+              break;
+            }
           }
         }
       }
