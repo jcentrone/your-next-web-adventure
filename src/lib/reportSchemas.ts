@@ -40,7 +40,8 @@ export const SectionSchema = z.object({
 });
 export type Section = z.infer<typeof SectionSchema>;
 
-export const ReportSchema = z.object({
+// Base schema for common report fields
+export const BaseReportSchema = z.object({
   id: z.string(),
   title: z.string().min(1, "Report title is required"),
   clientName: z.string().min(1, "Client name is required"),
@@ -50,6 +51,52 @@ export const ReportSchema = z.object({
   finalComments: z.string().optional().default(""),
   coverImage: z.string().optional().default(""),
   previewTemplate: z.enum(["classic", "modern", "minimal"]).default("classic"),
+  reportType: z.enum(["home_inspection", "wind_mitigation"]),
+});
+
+// Home Inspection Report Schema (original)
+export const HomeInspectionReportSchema = BaseReportSchema.extend({
+  reportType: z.literal("home_inspection"),
   sections: z.array(SectionSchema),
 });
+
+// Wind Mitigation Question Schemas
+export const WindMitigationAnswerSchema = z.object({
+  questionId: z.string(),
+  selectedOption: z.string().optional(),
+  fields: z.record(z.any()).optional().default({}),
+  coverings: z.array(z.object({
+    type: z.string(),
+    fields: z.record(z.any()).default({})
+  })).optional().default([]),
+  openingProtection: z.record(z.string()).optional().default({}),
+  glazedOverall: z.string().optional(),
+  nonGlazedSubclass: z.string().optional(),
+});
+
+export const WindMitigationDataSchema = z.object({
+  answers: z.array(WindMitigationAnswerSchema).default([]),
+  inspectorComments: z.string().optional().default(""),
+});
+
+// Wind Mitigation Report Schema
+export const WindMitigationReportSchema = BaseReportSchema.extend({
+  reportType: z.literal("wind_mitigation"),
+  reportData: WindMitigationDataSchema,
+});
+
+// Union type for all report types
+export const ReportSchema = z.discriminatedUnion("reportType", [
+  HomeInspectionReportSchema,
+  WindMitigationReportSchema,
+]);
+
+export type BaseReport = z.infer<typeof BaseReportSchema>;
+export type HomeInspectionReport = z.infer<typeof HomeInspectionReportSchema>;
+export type WindMitigationReport = z.infer<typeof WindMitigationReportSchema>;
+export type WindMitigationData = z.infer<typeof WindMitigationDataSchema>;
+export type WindMitigationAnswer = z.infer<typeof WindMitigationAnswerSchema>;
 export type Report = z.infer<typeof ReportSchema>;
+
+// Legacy type for backwards compatibility
+export type { HomeInspectionReport as LegacyReport };

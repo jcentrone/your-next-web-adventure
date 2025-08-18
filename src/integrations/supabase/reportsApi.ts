@@ -13,32 +13,16 @@ function toDbPayload(report: Report) {
     inspection_date: report.inspectionDate.slice(0, 10), // 'YYYY-MM-DD'
     status: report.status,
     final_comments: report.finalComments || null,
-    sections: report.sections,
     cover_image: report.coverImage || null,
     preview_template: report.previewTemplate || 'classic',
+    report_type: report.reportType,
   };
 }
 
 function fromDbRow(row: any): Report {
-  // Clean up sections data to ensure media objects have required fields
-  const cleanSections = (row.sections || []).map((section: any) => ({
-    ...section,
-    findings: (section.findings || []).map((finding: any) => ({
-      ...finding,
-      media: (finding.media || []).map((media: any) => {
-        // Ensure each media item has required fields with fallbacks
-        const cleanMedia = {
-          id: media.id || crypto.randomUUID(),
-          url: media.url || "",
-          caption: media.caption || "",
-          type: media.type || inferMediaType(media.url) || "image",
-        };
-        return cleanMedia;
-      }),
-    })),
-  }));
+  const reportType = row.report_type || "home_inspection";
 
-  const base: Report = {
+  let base: any = {
     id: row.id,
     title: row.title,
     clientName: row.client_name,
@@ -48,8 +32,32 @@ function fromDbRow(row: any): Report {
     finalComments: row.final_comments || "",
     coverImage: row.cover_image || "",
     previewTemplate: row.preview_template || "classic",
-    sections: cleanSections,
+    reportType,
   };
+
+  if (reportType === "home_inspection") {
+    // Clean up sections data to ensure media objects have required fields
+    const cleanSections = (row.sections || []).map((section: any) => ({
+      ...section,
+      findings: (section.findings || []).map((finding: any) => ({
+        ...finding,
+        media: (finding.media || []).map((media: any) => {
+          // Ensure each media item has required fields with fallbacks
+          const cleanMedia = {
+            id: media.id || crypto.randomUUID(),
+            url: media.url || "",
+            caption: media.caption || "",
+            type: media.type || inferMediaType(media.url) || "image",
+          };
+          return cleanMedia;
+        }),
+      })),
+    }));
+
+    base.sections = cleanSections;
+  } else if (reportType === "wind_mitigation") {
+    base.reportData = row.report_data || { answers: [], inspectorComments: "" };
+  }
   
   const parsed = ReportSchema.safeParse(base);
   if (!parsed.success) {
@@ -93,34 +101,61 @@ export async function dbCreateReport(meta: {
   address: string;
   inspectionDate: string; // 'YYYY-MM-DD' or ISO
   contact_id?: string;
+  reportType: "home_inspection" | "wind_mitigation";
 }, userId: string, organizationId?: string): Promise<Report> {
   const id = crypto.randomUUID();
-  const sections: Section[] = SOP_SECTIONS.map((s, idx) => ({
-    id: `${id}-sec-${idx + 1}`,
-    key: s.key as any,
-    title: s.name,
-    findings: [],
-  }));
 
-  const report: Report = {
-    id,
-    title: meta.title,
-    clientName: meta.clientName,
-    address: meta.address,
-    inspectionDate: new Date(meta.inspectionDate).toISOString(),
-    status: "Draft",
-    finalComments: "",
-    coverImage: "",
-    previewTemplate: "classic",
-    sections,
-  };
+  let report: Report;
+
+  if (meta.reportType === "home_inspection") {
+    const sections: Section[] = SOP_SECTIONS.map((s, idx) => ({
+      id: `${id}-sec-${idx + 1}`,
+      key: s.key as any,
+      title: s.name,
+      findings: [],
+    }));
+
+    report = {
+      id,
+      title: meta.title,
+      clientName: meta.clientName,
+      address: meta.address,
+      inspectionDate: new Date(meta.inspectionDate).toISOString(),
+      status: "Draft",
+      finalComments: "",
+      coverImage: "",
+      previewTemplate: "classic",
+      reportType: "home_inspection",
+      sections,
+    };
+  } else {
+    // Wind mitigation report
+    report = {
+      id,
+      title: meta.title,
+      clientName: meta.clientName,
+      address: meta.address,
+      inspectionDate: new Date(meta.inspectionDate).toISOString(),
+      status: "Draft",
+      finalComments: "",
+      coverImage: "",
+      previewTemplate: "classic",
+      reportType: "wind_mitigation",
+      reportData: {
+        answers: [],
+        inspectorComments: "",
+      },
+    };
+  }
 
   const payload = {
     user_id: userId,
     organization_id: organizationId || null,
     contact_id: meta.contact_id || null,
     ...toDbPayload(report),
-    sections,
+    report_type: meta.reportType,
+    report_data: report.reportType === "wind_mitigation" ? report.reportData : null,
+    sections: report.reportType === "home_inspection" ? report.sections : null,
     id, // preserve generated id so local and remote stay aligned
   };
 

@@ -29,6 +29,11 @@ type Values = z.infer<typeof schema>;
 
 const ReportNew: React.FC = () => {
   const nav = useNavigate();
+  
+  // Redirect to report type selector
+  React.useEffect(() => {
+    nav('/reports/select-type');
+  }, [nav]);
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
@@ -108,132 +113,7 @@ const ReportNew: React.FC = () => {
     }
   };
 
-  return (
-    <>
-      <Seo
-        title="New Report | Home Inspection"
-        description="Create a new home inspection report with preloaded SOP sections."
-        canonical={window.location.origin + "/reports/new"}
-        jsonLd={{ "@context": "https://schema.org", "@type": "CreateAction", name: "Create Report" }}
-      />
-      <section className="max-w-2xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-semibold mb-6">New Inspection Report</h1>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Report Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 123 Main St Inspection" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="contactId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Client Contact</FormLabel>
-                  <FormControl>
-                    <div className="space-y-2">
-                      <Select
-                        value={field.value}
-                        onValueChange={(contactId) => {
-                          field.onChange(contactId);
-                          const selectedContact = contacts.find(c => c.id === contactId);
-                          if (selectedContact) {
-                            form.setValue('clientName', `${selectedContact.first_name} ${selectedContact.last_name}`);
-                            const contactAddress = selectedContact.formatted_address || selectedContact.address || "";
-                            if (contactAddress) {
-                              form.setValue('address', contactAddress);
-                            }
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a contact or add new...">
-                            {field.value && contacts.length > 0 ? 
-                              (() => {
-                                const contact = contacts.find(c => c.id === field.value);
-                                return contact ? `${contact.first_name} ${contact.last_name}` : field.value;
-                              })() : "Select a contact..."
-                            }
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="add-new" className="font-medium text-primary">
-                            + Add New Contact
-                          </SelectItem>
-                          {contacts.map((contact) => (
-                            <SelectItem key={contact.id} value={contact.id}>
-                              {contact.first_name} {contact.last_name}
-                              {contact.email && <span className="text-muted-foreground ml-2">({contact.email})</span>}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {field.value === "add-new" && (
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => nav('/contacts/new')}
-                        >
-                          Go to Add New Contact
-                        </Button>
-                      )}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Property Address</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Enter the property address for inspection"
-                      className="min-h-[80px]"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="inspectionDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Inspection Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => nav(-1)}>
-                Cancel
-              </Button>
-              <Button type="submit">Create & Continue</Button>
-            </div>
-          </form>
-        </Form>
-      </section>
-    </>
-  );
+  return null; // This will redirect to the report type selector
 };
 
 export default ReportNew;

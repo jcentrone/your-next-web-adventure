@@ -60,27 +60,52 @@ export function createReport(meta: {
   clientName: string;
   address: string;
   inspectionDate: string;
+  reportType?: "home_inspection" | "wind_mitigation";
 }): Report {
   const id = crypto.randomUUID();
-  const sections: Section[] = SOP_SECTIONS.map((s, idx) => ({
-    id: `${id}-sec-${idx + 1}`,
-    key: s.key as any,
-    title: s.name,
-    findings: [],
-  }));
+  const reportType = meta.reportType || "home_inspection";
 
-  const report: Report = {
-    id,
-    title: meta.title,
-    clientName: meta.clientName,
-    address: meta.address,
-    inspectionDate: meta.inspectionDate,
-    status: "Draft",
-    finalComments: "",
-    coverImage: "",
-    previewTemplate: "classic",
-    sections,
-  };
+  let report: Report;
+
+  if (reportType === "home_inspection") {
+    const sections: Section[] = SOP_SECTIONS.map((s, idx) => ({
+      id: `${id}-sec-${idx + 1}`,
+      key: s.key as any,
+      title: s.name,
+      findings: [],
+    }));
+
+    report = {
+      id,
+      title: meta.title,
+      clientName: meta.clientName,
+      address: meta.address,
+      inspectionDate: meta.inspectionDate,
+      status: "Draft",
+      finalComments: "",
+      coverImage: "",
+      previewTemplate: "classic",
+      reportType: "home_inspection",
+      sections,
+    };
+  } else {
+    report = {
+      id,
+      title: meta.title,
+      clientName: meta.clientName,
+      address: meta.address,
+      inspectionDate: meta.inspectionDate,
+      status: "Draft",
+      finalComments: "",
+      coverImage: "",
+      previewTemplate: "classic",
+      reportType: "wind_mitigation",
+      reportData: {
+        answers: [],
+        inspectorComments: "",
+      },
+    };
+  }
   saveReport(report);
   return report;
 }
