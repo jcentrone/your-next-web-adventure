@@ -16,6 +16,8 @@ interface WindMitigationEditorProps {
 }
 
 const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onUpdate }) => {
+  console.log("WindMitigationEditor render", { reportId: report.id, reportData: report.reportData });
+  
   const form = useForm({
     resolver: zodResolver(WindMitigationDataSchema),
     defaultValues: report.reportData || { answers: [], inspectorComments: "" },
@@ -23,13 +25,15 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onU
 
   const { watch, control } = form;
   
-  // Watch all form values for auto-save
-  const watchedValues = watch();
-
-  // Auto-save functionality
+  // Temporarily disable autosave to debug the issue
+  // const watchedValues = watch();
+  
+  // Auto-save functionality - DISABLED FOR NOW
+  /*
   useAutosave({
     value: watchedValues,
     onSave: (data) => {
+      console.log("Autosave triggered", data);
       const updatedReport = {
         ...report,
         reportData: data,
@@ -38,6 +42,7 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onU
     },
     delay: 1000,
   });
+  */
 
   const questions = WIND_MITIGATION_QUESTIONS.questions;
 
