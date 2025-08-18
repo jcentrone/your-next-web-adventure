@@ -505,7 +505,7 @@ export type Database = {
           preview_template: string
           report_data: Json | null
           report_type: string | null
-          sections: Json
+          sections: Json | null
           status: Database["public"]["Enums"]["report_status"]
           title: string
           updated_at: string
@@ -525,7 +525,7 @@ export type Database = {
           preview_template?: string
           report_data?: Json | null
           report_type?: string | null
-          sections?: Json
+          sections?: Json | null
           status?: Database["public"]["Enums"]["report_status"]
           title: string
           updated_at?: string
@@ -545,7 +545,7 @@ export type Database = {
           preview_template?: string
           report_data?: Json | null
           report_type?: string | null
-          sections?: Json
+          sections?: Json | null
           status?: Database["public"]["Enums"]["report_status"]
           title?: string
           updated_at?: string
