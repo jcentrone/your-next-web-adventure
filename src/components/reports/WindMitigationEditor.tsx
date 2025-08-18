@@ -21,11 +21,14 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onU
     defaultValues: report.reportData || { answers: [], inspectorComments: "" },
   });
 
-  const { watch, control, getValues } = form;
+  const { watch, control } = form;
+  
+  // Watch all form values for auto-save
+  const watchedValues = watch();
 
   // Auto-save functionality
   useAutosave({
-    value: getValues(),
+    value: watchedValues,
     onSave: (data) => {
       const updatedReport = {
         ...report,
