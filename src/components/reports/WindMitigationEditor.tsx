@@ -25,11 +25,9 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onU
 
   const { watch, control } = form;
   
-  // Temporarily disable autosave to debug the issue
-  // const watchedValues = watch();
+  const watchedValues = watch();
   
-  // Auto-save functionality - DISABLED FOR NOW
-  /*
+  // Auto-save functionality
   useAutosave({
     value: watchedValues,
     onSave: (data) => {
@@ -42,7 +40,6 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onU
     },
     delay: 1000,
   });
-  */
 
   const questions = WIND_MITIGATION_QUESTIONS.questions;
 
