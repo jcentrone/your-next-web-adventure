@@ -44,6 +44,7 @@ const App = () => (
               <Route path="/reports/:id/preview" element={lazyLoad(() => import("./pages/ReportPreview"))} />
               <Route path="/reports/:reportId/annotate/:findingId/:mediaId" element={lazyLoad(() => import("./pages/ImageAnnotation"))} />
               <Route path="/contacts" element={lazyLoad(() => import("./pages/Contacts"))} />
+              <Route path="/contacts/new" element={lazyLoad(() => import("./pages/ContactNew"))} />
               <Route path="/contacts/:id" element={lazyLoad(() => import("./pages/ContactDetail"))} />
               <Route path="/calendar" element={lazyLoad(() => import("./pages/Calendar"))} />
               <Route path="/tasks" element={lazyLoad(() => import("./pages/Tasks"))} />

@@ -272,41 +272,16 @@ const Contacts: React.FC = () => {
           
           <div className="flex items-center gap-2">
             <ContactsViewToggle view={view} onViewChange={setView} />
+            <Button onClick={() => navigate("/contacts/new")}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Contact
+            </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => {
-                  console.log('Creating new contact');
-                  setEditingContact(null);
-                  form.reset({
-                    contact_type: "client",
-                    first_name: "",
-                    last_name: "",
-                    email: "",
-                    phone: "",
-                    company: "",
-                    formatted_address: "",
-                    place_id: "",
-                    latitude: undefined,
-                    longitude: undefined,
-                    address_components: undefined,
-                    city: "",
-                    state: "",
-                    zip_code: "",
-                    notes: "",
-                    is_active: true,
-                  });
-                }}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Contact
-                </Button>
-              </DialogTrigger>
               <DialogContent className="max-w-md max-h-[85vh] p-0">
               <DialogHeader className="px-6 pt-6 pb-2">
-                <DialogTitle>
-                  {editingContact ? "Edit Contact" : "Add New Contact"}
-                </DialogTitle>
+                <DialogTitle>Edit Contact</DialogTitle>
                 <DialogDescription>
-                  {editingContact ? "Update contact information" : "Create a new contact for your business"}
+                  Update contact information
                 </DialogDescription>
               </DialogHeader>
               
@@ -579,7 +554,7 @@ const Contacts: React.FC = () => {
               <p className="text-muted-foreground mb-4">
                 {searchQuery || selectedType ? "No contacts found matching your criteria" : "No contacts yet"}
               </p>
-              <Button onClick={() => setIsDialogOpen(true)}>
+              <Button onClick={() => navigate("/contacts/new")}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add Your First Contact
               </Button>
