@@ -305,6 +305,37 @@ export const activitiesApi = {
     
     if (error) throw error;
     return data as Activity[];
+  },
+
+  async trackActivity(params: {
+    userId: string;
+    activity_type: 'call' | 'email' | 'meeting' | 'note' | 'task_completed' | 'appointment_created' | 'report_delivered' | 'report_created' | 'contact_created';
+    title: string;
+    description?: string;
+    contact_id?: string;
+    appointment_id?: string;
+    report_id?: string;
+    task_id?: string;
+    organization_id?: string;
+  }): Promise<Activity> {
+    const { data, error } = await supabase
+      .from('activities')
+      .insert({
+        user_id: params.userId,
+        activity_type: params.activity_type,
+        title: params.title,
+        description: params.description,
+        contact_id: params.contact_id,
+        appointment_id: params.appointment_id,
+        report_id: params.report_id,
+        task_id: params.task_id,
+        organization_id: params.organization_id,
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as Activity;
   }
 };
 
