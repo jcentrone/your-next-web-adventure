@@ -838,6 +838,8 @@ export type Database = {
         | "task_completed"
         | "appointment_created"
         | "report_delivered"
+        | "report_created"
+        | "contact_created"
       appointment_status:
         | "scheduled"
         | "confirmed"
@@ -1004,6 +1006,8 @@ export const Constants = {
         "task_completed",
         "appointment_created",
         "report_delivered",
+        "report_created",
+        "contact_created",
       ],
       appointment_status: [
         "scheduled",

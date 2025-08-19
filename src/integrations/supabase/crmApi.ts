@@ -34,6 +34,20 @@ export const contactsApi = {
       .single();
     
     if (error) throw error;
+    
+    // Track activity
+    try {
+      await activitiesApi.trackActivity({
+        userId: contact.user_id,
+        activity_type: 'contact_created',
+        title: `Created contact: ${contact.first_name} ${contact.last_name}`,
+        description: `New ${contact.contact_type} contact added`,
+        contact_id: data.id,
+      });
+    } catch (activityError) {
+      console.warn('Failed to track contact creation activity:', activityError);
+    }
+    
     return data as Contact;
   },
 
@@ -112,6 +126,21 @@ export const appointmentsApi = {
       .single();
     
     if (error) throw error;
+    
+    // Track activity
+    try {
+      await activitiesApi.trackActivity({
+        userId: appointment.user_id,
+        activity_type: 'appointment_created',
+        title: `Created appointment: ${appointment.title}`,
+        description: `Scheduled for ${new Date(appointment.appointment_date).toLocaleDateString()}`,
+        appointment_id: data.id,
+        contact_id: appointment.contact_id,
+      });
+    } catch (activityError) {
+      console.warn('Failed to track appointment creation activity:', activityError);
+    }
+    
     return data as Appointment;
   },
 
@@ -223,6 +252,23 @@ export const tasksApi = {
       .single();
     
     if (error) throw error;
+    
+    // Track completion activity
+    if (updates.status === 'completed' && data.user_id) {
+      try {
+        await activitiesApi.trackActivity({
+          userId: data.user_id,
+          activity_type: 'task_completed',
+          title: `Completed task: ${data.title}`,
+          description: updates.description || data.description,
+          task_id: data.id,
+          contact_id: data.contact_id,
+        });
+      } catch (activityError) {
+        console.warn('Failed to track task completion activity:', activityError);
+      }
+    }
+    
     return data as Task;
   },
 
@@ -322,7 +368,7 @@ export const activitiesApi = {
       .from('activities')
       .insert({
         user_id: params.userId,
-        activity_type: params.activity_type,
+        activity_type: params.activity_type as any,
         title: params.title,
         description: params.description,
         contact_id: params.contact_id,

@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { activitiesApi } from "@/integrations/supabase/crmApi";
 import { SOP_SECTIONS } from "@/constants/sop";
 import { Report, ReportSchema, Section } from "@/lib/reportSchemas";
 
@@ -176,6 +177,21 @@ export async function dbCreateReport(meta: {
   if (error) {
     console.error("dbCreateReport error", error);
     throw error;
+  }
+
+  // Track activity
+  try {
+    await activitiesApi.trackActivity({
+      userId,
+      activity_type: 'report_created',
+      title: `Created ${meta.reportType === 'wind_mitigation' ? 'Wind Mitigation' : 'Home Inspection'} report: ${meta.title}`,
+      description: `Report for ${meta.clientName} at ${meta.address}`,
+      report_id: data.id,
+      contact_id: meta.contact_id,
+      organization_id: organizationId,
+    });
+  } catch (activityError) {
+    console.warn('Failed to track report creation activity:', activityError);
   }
 
   return fromDbRow(data);

@@ -90,7 +90,7 @@ export const ActivitySchema = z.object({
   appointment_id: z.string().nullable().optional(),
   report_id: z.string().nullable().optional(),
   task_id: z.string().nullable().optional(),
-  activity_type: z.enum(["call", "email", "meeting", "note", "task_completed", "appointment_created", "report_delivered"]),
+  activity_type: z.enum(["call", "email", "meeting", "note", "task_completed", "appointment_created", "report_delivered", "report_created", "contact_created"]),
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   created_at: z.string(),
