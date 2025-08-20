@@ -107,8 +107,6 @@ export const WindMitigationDataSchema = z.object({
         glazedOverall: z.string().optional(),
         nonGlazedSubclass: z.string().optional()
     }).optional().default({}),
-
-    inspectorComments: z.string().optional().default(""),
 });
 
 // Wind Mitigation Report Schema

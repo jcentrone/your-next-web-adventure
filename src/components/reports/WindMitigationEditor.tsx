@@ -30,7 +30,6 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
             "5_roof_geometry": {},
             "6_secondary_water_resistance": {},
             "7_opening_protection": {},
-            inspectorComments: ""
         },
     });
 
