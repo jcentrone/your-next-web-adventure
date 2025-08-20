@@ -113,18 +113,27 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         console.log(`🔗 Mapping ${dataKey} = "${value}" → PDF field "${pdfFieldName}"`);
 
         try {
-            if (typeof value === "boolean") {
+            const field = form.getField(pdfFieldName as never);
+            if ("check" in field && "uncheck" in field) {
                 const checkbox = form.getCheckBox(pdfFieldName as never);
-                if (value) {
-                    checkbox.check();
+                if (typeof value === "boolean") {
+                    if (value) {
+                        checkbox.check();
+                    } else {
+                        checkbox.uncheck();
+                    }
+                } else if (value) {
+                    // Attempt to check using export value if provided
+                    (checkbox as any).check(value);
                 } else {
                     checkbox.uncheck();
                 }
                 console.log(`✅ Set checkbox "${pdfFieldName}" to ${value}`);
-            } else {
-                const field = form.getTextField(pdfFieldName as never);
-                field.setText(String(value));
+            } else if ("setText" in field) {
+                (field as any).setText(String(value));
                 console.log(`✅ Set text field "${pdfFieldName}" to "${value}"`);
+            } else {
+                console.warn(`⚠️ Unsupported field type for '${pdfFieldName}'`);
             }
         } catch (err) {
             console.warn(

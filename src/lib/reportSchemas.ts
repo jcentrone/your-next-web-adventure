@@ -103,10 +103,27 @@ export const WindMitigationDataSchema = z.object({
 
     // Question 7: Opening Protection
     "7_opening_protection": z.object({
-        openingProtection: z.record(z.string()).optional().default({}),
+        openingProtection: z
+            .record(
+                z.object({
+                    NA: z.boolean().optional().default(false),
+                    A: z.boolean().optional().default(false),
+                    B: z.boolean().optional().default(false),
+                    C: z.boolean().optional().default(false),
+                    D: z.boolean().optional().default(false),
+                    N: z.boolean().optional().default(false),
+                    X: z.boolean().optional().default(false),
+                })
+            )
+            .optional()
+            .default({}),
         glazedOverall: z.string().optional(),
-        nonGlazedSubclass: z.string().optional()
-    }).optional().default({}),
+        nonGlazedSubclass: z.string().optional(),
+    })
+        .optional()
+        .default({}),
+
+    inspectorComments: z.string().optional().default(""),
 });
 
 // Wind Mitigation Report Schema
