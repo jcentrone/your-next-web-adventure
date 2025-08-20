@@ -12,7 +12,7 @@ import { Finding, Report, Media } from "@/lib/reportSchemas";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { InfoFieldWidget } from "@/components/reports/InfoFieldWidget";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import DefectPicker from "@/components/reports/DefectPicker";
 import { useEnhancedSectionGuidance } from "@/hooks/useEnhancedSectionGuidance";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +30,9 @@ import { cn } from "@/lib/utils";
 import { useCustomSections } from "@/hooks/useCustomSections";
 import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { Plus } from "lucide-react";
+
+// Lazy load wind mitigation editor at module level
+const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
 
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 type Severity = typeof SEVERITIES[number];
@@ -504,8 +507,6 @@ const ReportEditor: React.FC = () => {
   const excludedKeys = ["finalize", "reportDetails", "summary"];
 
   if (report && report.reportType === "wind_mitigation") {
-    const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
-    
     return (
       <>
         <Seo title={`${report.title} | Wind Mitigation Editor`} />
