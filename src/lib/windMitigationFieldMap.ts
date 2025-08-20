@@ -3,6 +3,12 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     // --- Owner Info ---
     clientName: "Owner Name",
     address: "Address",
+    phoneHome: "Home Phone",
+    phoneWork: "Work Phone",
+    phoneCell: "Cell Phone",
+    email: "Email",
+    insuranceCompany: "Insurance Company",
+    policyNumber: "Policy",
     
     // --- Inspection Info ---
     inspectionDate: "Inspection Date",

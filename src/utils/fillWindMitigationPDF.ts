@@ -57,32 +57,33 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
     const pdfDoc = await PDFDocument.load(formPdfBytes);
     const form = pdfDoc.getForm();
 
-    console.log("📋 All PDF fields and current values:");
-    form.getFields().forEach((field) => {
-        const name = field.getName();
-        let value: any;
-
-        try {
-            // Try text first
-            if ("getText" in field) {
-                value = (field as any).getText();
-            }
-            // Try checkbox state
-            else if ("isChecked" in field) {
-                value = (field as any).isChecked();
-            }
-        } catch {
-            value = "(unreadable)";
-        }
-
-        console.log(`- ${name}:`, value);
-    });
+    // console.log("📋 All PDF fields and current values:");
+    // form.getFields().forEach((field) => {
+    //     const name = field.getName();
+    //     let value: any;
+    //
+    //     try {
+    //         // Try text first
+    //         if ("getText" in field) {
+    //             value = (field as any).getText();
+    //         }
+    //         // Try checkbox state
+    //         else if ("isChecked" in field) {
+    //             value = (field as any).isChecked();
+    //         }
+    //     } catch {
+    //         value = "(unreadable)";
+    //     }
+    //
+    //     console.log(`- ${name}:`, value);
+    // });
 
     // Create a data object that includes both report properties and flattened reportData
     const dataToMap = {
         clientName: report.clientName,
         address: report.address,
         inspectionDate: report.inspectionDate ? new Date(report.inspectionDate).toLocaleDateString() : '',
+
         ...flattenObject(report.reportData || {})
     };
     
