@@ -75,6 +75,27 @@ function fromDbRow(row: any): Report {
       "6_secondary_water_resistance": {},
       "7_opening_protection": {},
     };
+
+    // Normalize opening protection data - older reports may store single string values
+    const openingProtection =
+      base.reportData?.["7_opening_protection"]?.openingProtection;
+    if (openingProtection && typeof openingProtection === "object") {
+      for (const key of Object.keys(openingProtection)) {
+        const value = openingProtection[key];
+        if (typeof value === "string") {
+          openingProtection[key] = {
+            NA: false,
+            A: false,
+            B: false,
+            C: false,
+            D: false,
+            N: false,
+            X: false,
+            [value]: true,
+          };
+        }
+      }
+    }
   }
   
   const parsed = ReportSchema.safeParse(base);
