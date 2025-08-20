@@ -7,8 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { WIND_MITIGATION_QUESTIONS } from "@/constants/windMitigationQuestions";
 
 interface OpeningProtectionQuestionProps {
-  control: Control<any>;
-  watch: any;
+  control: Control<Record<string, unknown>>;
+  watch: (field: string) => unknown;
 }
 
 export const OpeningProtectionQuestion: React.FC<OpeningProtectionQuestionProps> = ({ control, watch }) => {
@@ -41,25 +41,45 @@ export const OpeningProtectionQuestion: React.FC<OpeningProtectionQuestionProps>
                       <FormField
                         control={control}
                         name={`7_opening_protection.openingProtection.${openingType.key}`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="text-xs">
-                                  <SelectValue placeholder="Select level" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {question.protection_levels.map((level) => (
-                                  <SelectItem key={level.code} value={level.code} className="text-xs">
-                                    {level.code} - {level.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        render={({ field }) => {
+                          const selectedLevel =
+                            Object.entries(field.value || {}).find(([, v]) => v)?.[0] || "";
+
+                          const handleChange = (val: string) => {
+                            const updated = question.protection_levels.reduce(
+                              (acc, level) => {
+                                const key = level.code.replace("/", "");
+                                acc[key] = key === val;
+                                return acc;
+                              },
+                              {} as Record<string, boolean>
+                            );
+                            field.onChange(updated);
+                          };
+
+                          return (
+                            <FormItem>
+                              <Select onValueChange={handleChange} value={selectedLevel}>
+                                <FormControl>
+                                  <SelectTrigger className="text-xs">
+                                    <SelectValue placeholder="Select level" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {question.protection_levels.map((level) => {
+                                    const key = level.code.replace("/", "");
+                                    return (
+                                      <SelectItem key={key} value={key} className="text-xs">
+                                        {level.code} - {level.label}
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
                       />
                     </td>
                   </tr>
