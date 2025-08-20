@@ -14,7 +14,7 @@ interface RoofCoveringQuestionProps {
 
 export const RoofCoveringQuestion: React.FC<RoofCoveringQuestionProps> = ({ control, watch }) => {
   const question = WIND_MITIGATION_QUESTIONS.questions[1]; // Roof covering question
-  const selectedCoverings = watch("2_roof_covering.coverings") || [];
+  const selectedCoverings = watch("2_roof_covering.coverings");
   const overall_compliance = watch("2_roof_covering.overall_compliance");
 
   return (
@@ -70,7 +70,7 @@ export const RoofCoveringQuestion: React.FC<RoofCoveringQuestionProps> = ({ cont
         </div>
 
         {/* Overall Compliance */}
-        {selectedCoverings.length > 0 && (
+        {Object.values(selectedCoverings || {}).some((c) => c?.selected) && (
           <div className="pt-4 border-t">
             <FormField
               control={control}
