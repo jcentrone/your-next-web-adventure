@@ -60,22 +60,51 @@ export const HomeInspectionReportSchema = BaseReportSchema.extend({
   sections: z.array(SectionSchema),
 });
 
-// Wind Mitigation Question Schemas
-export const WindMitigationAnswerSchema = z.object({
-  questionId: z.string(),
-  selectedOption: z.string().optional(),
-  fields: z.record(z.any()).optional().default({}),
-  coverings: z.array(z.object({
-    type: z.string(),
-    fields: z.record(z.any()).default({})
-  })).optional().default([]),
-  openingProtection: z.record(z.string()).optional().default({}),
-  glazedOverall: z.string().optional(),
-  nonGlazedSubclass: z.string().optional(),
-});
-
+// Wind Mitigation Data Schema - matches the form field structure
 export const WindMitigationDataSchema = z.object({
-  answers: z.array(WindMitigationAnswerSchema).default([]),
+  // Question 1: Building Code
+  "1_building_code": z.object({
+    selectedOption: z.string().optional(),
+    fields: z.record(z.any()).optional().default({})
+  }).optional().default({}),
+  
+  // Question 2: Roof Covering  
+  "2_roof_covering": z.object({
+    coverings: z.record(z.object({
+      checked: z.boolean().optional(),
+      fields: z.record(z.any()).optional().default({})
+    })).optional().default({}),
+    overall_compliance: z.string().optional()
+  }).optional().default({}),
+  
+  // Questions 3-6: Generic questions
+  "3_roof_deck_attachment": z.object({
+    selectedOption: z.string().optional(),
+    fields: z.record(z.any()).optional().default({})
+  }).optional().default({}),
+  
+  "4_roof_to_wall_attachment": z.object({
+    selectedOption: z.string().optional(),
+    fields: z.record(z.any()).optional().default({})
+  }).optional().default({}),
+  
+  "5_roof_geometry": z.object({
+    selectedOption: z.string().optional(),
+    fields: z.record(z.any()).optional().default({})
+  }).optional().default({}),
+  
+  "6_secondary_water_resistance": z.object({
+    selectedOption: z.string().optional(),
+    fields: z.record(z.any()).optional().default({})
+  }).optional().default({}),
+  
+  // Question 7: Opening Protection
+  "7_opening_protection": z.object({
+    openingProtection: z.record(z.string()).optional().default({}),
+    glazedOverall: z.string().optional(),
+    nonGlazedSubclass: z.string().optional()
+  }).optional().default({}),
+  
   inspectorComments: z.string().optional().default(""),
 });
 
@@ -95,7 +124,6 @@ export type BaseReport = z.infer<typeof BaseReportSchema>;
 export type HomeInspectionReport = z.infer<typeof HomeInspectionReportSchema>;
 export type WindMitigationReport = z.infer<typeof WindMitigationReportSchema>;
 export type WindMitigationData = z.infer<typeof WindMitigationDataSchema>;
-export type WindMitigationAnswer = z.infer<typeof WindMitigationAnswerSchema>;
 export type Report = z.infer<typeof ReportSchema>;
 
 // Legacy type for backwards compatibility

@@ -65,7 +65,16 @@ function fromDbRow(row: any): Report {
 
     base.sections = cleanSections;
   } else if (reportType === "wind_mitigation") {
-    base.reportData = row.report_data || { answers: [], inspectorComments: "" };
+    base.reportData = row.report_data || {
+      "1_building_code": {},
+      "2_roof_covering": {},
+      "3_roof_deck_attachment": {},
+      "4_roof_to_wall_attachment": {},
+      "5_roof_geometry": {},
+      "6_secondary_water_resistance": {},
+      "7_opening_protection": {},
+      inspectorComments: "",
+    };
   }
   
   const parsed = ReportSchema.safeParse(base);
@@ -151,7 +160,13 @@ export async function dbCreateReport(meta: {
       previewTemplate: "classic",
       reportType: "wind_mitigation",
       reportData: {
-        answers: [],
+        "1_building_code": {},
+        "2_roof_covering": {},
+        "3_roof_deck_attachment": {},
+        "4_roof_to_wall_attachment": {},
+        "5_roof_geometry": {},
+        "6_secondary_water_resistance": {},
+        "7_opening_protection": {},
         inspectorComments: "",
       },
     };

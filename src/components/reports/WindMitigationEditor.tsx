@@ -20,7 +20,16 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onU
   
   const form = useForm({
     resolver: zodResolver(WindMitigationDataSchema),
-    defaultValues: report.reportData || { answers: [], inspectorComments: "" },
+    defaultValues: report.reportData || {
+      "1_building_code": {},
+      "2_roof_covering": {},
+      "3_roof_deck_attachment": {},
+      "4_roof_to_wall_attachment": {},
+      "5_roof_geometry": {},
+      "6_secondary_water_resistance": {},
+      "7_opening_protection": {},
+      inspectorComments: ""
+    },
   });
 
   const { watch, control } = form;
