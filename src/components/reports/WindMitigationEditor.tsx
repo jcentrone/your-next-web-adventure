@@ -36,7 +36,7 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
 
     const {watch, control, handleSubmit, getValues} = form;
 
-    const handleSave = () => {
+    const handleSave = async () => {
         try {
             console.log("Save button clicked");
             const currentValues = form.getValues();
@@ -48,7 +48,7 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
             };
 
             console.log("Updated report:", updatedReport);
-            const savedReport = dbUpdateReport(updatedReport);
+            const savedReport = await dbUpdateReport(updatedReport);
             console.log("✅ Report saved to DB:", savedReport);
             onUpdate(updatedReport);
 
@@ -60,7 +60,7 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
             console.error("Error saving wind mitigation report:", error);
             toast({
                 title: "Save failed",
-                description: "There was an error saving the report. Please try again.",
+                description: error instanceof Error ? error.message : "There was an error saving the report. Please try again.",
                 variant: "destructive",
             });
         }
