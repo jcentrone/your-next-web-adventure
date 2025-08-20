@@ -33,16 +33,22 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onU
     },
   });
 
-  const { watch, control, handleSubmit } = form;
+  const { watch, control, handleSubmit, getValues } = form;
   
-  const handleSave = handleSubmit((data) => {
+  const handleSave = () => {
     try {
-      console.log("Manual save triggered", data);
+      console.log("Save button clicked");
+      const currentValues = getValues();
+      console.log("Current form values:", currentValues);
+      
       const updatedReport = {
         ...report,
-        reportData: data,
+        reportData: currentValues,
       };
+      
+      console.log("Updated report:", updatedReport);
       onUpdate(updatedReport);
+      
       toast({
         title: "Report saved",
         description: "Wind mitigation report has been saved successfully.",
@@ -55,7 +61,7 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onU
         variant: "destructive",
       });
     }
-  });
+  };
 
   const questions = WIND_MITIGATION_QUESTIONS.questions;
 
