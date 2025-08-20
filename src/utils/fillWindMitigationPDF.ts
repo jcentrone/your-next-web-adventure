@@ -60,6 +60,9 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
     const form = pdfDoc.getForm();
     console.log("📄 Available PDF fields:", form.getFields().map((f: any) => f.getName()));
 
+    // Surface mapping/debug information as soon as the form is loaded
+    debugFieldMapping(report, form);
+
     // console.log("📋 All PDF fields and current values:");
     // form.getFields().forEach((field) => {
     //     const name = field.getName();
@@ -92,8 +95,6 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
 
     console.log("🔑 Data to map:", dataToMap);
     console.log("🔑 Flattened data keys:", Object.keys(dataToMap));
-
-    debugFieldMapping(dataToMap, form);
 
     // 🔎 Debug: show what's being flattened vs mapped
     const unmappedKeys = Object.keys(dataToMap).filter(
