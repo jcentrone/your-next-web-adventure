@@ -41,6 +41,7 @@ export function debugFieldMapping(reportData: Record<string, any>, pdfForm: any)
 
     // 3. Keys in map but not in PDF form fields
     const pdfFields = pdfForm.getFields().map((f: any) => f.getName());
+    console.log("📄 PDF field names:", pdfFields);
     const missingInPdf = Object.values(WIND_MITIGATION_FIELD_MAP).filter(
         (fieldName) => !pdfFields.includes(fieldName)
     );
@@ -57,6 +58,7 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
     const formPdfBytes = await fetch(formUrl).then((res) => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(formPdfBytes);
     const form = pdfDoc.getForm();
+    console.log("📄 Available PDF fields:", form.getFields().map((f: any) => f.getName()));
 
     // console.log("📋 All PDF fields and current values:");
     // form.getFields().forEach((field) => {
@@ -87,9 +89,11 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
 
         ...flattenObject(report.reportData || {}, "reportData")
     };
-    
+
     console.log("🔑 Data to map:", dataToMap);
     console.log("🔑 Flattened data keys:", Object.keys(dataToMap));
+
+    debugFieldMapping(dataToMap, form);
 
     // 🔎 Debug: show what's being flattened vs mapped
     const unmappedKeys = Object.keys(dataToMap).filter(
@@ -104,6 +108,30 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
     );
     if (mapKeysWithoutData.length) {
         console.warn("⚠️ Map keys with no data:", mapKeysWithoutData);
+    }
+
+    // Handle Building Code (Q1) separately
+    const buildingCode = report.reportData?.["1_building_code"];
+    if (buildingCode?.selectedOption) {
+        const option = String(buildingCode.selectedOption).toUpperCase();
+        const checkboxName = `buildingCode${option}`;
+        try {
+            form.getCheckBox(checkboxName as never).check();
+            console.log(`✅ Checked building code option "${option}" → "${checkboxName}"`);
+        } catch (err) {
+            console.warn(`⚠️ Could not check building code option "${option}"`, err);
+        }
+
+        const yearBuilt = buildingCode.fields?.year_built;
+        if (yearBuilt) {
+            const yearFieldName = `buildingCode${option}YearBuilt`;
+            try {
+                form.getTextField(yearFieldName as never).setText(String(yearBuilt));
+                console.log(`✅ Set "${yearFieldName}" to "${yearBuilt}"`);
+            } catch (err) {
+                console.warn(`⚠️ Could not set year built for option "${option}"`, err);
+            }
+        }
     }
 
     for (const [dataKey, pdfFieldName] of Object.entries(WIND_MITIGATION_FIELD_MAP)) {
