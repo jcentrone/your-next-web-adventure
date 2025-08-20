@@ -2,6 +2,13 @@
 import {PDFDocument} from "pdf-lib";
 import {WIND_MITIGATION_FIELD_MAP} from "@/lib/windMitigationFieldMap";
 
+// Keys that are handled manually elsewhere in the code (e.g. custom logic
+// for building code options) and should be ignored when reporting unmapped
+// data keys.
+const MANUALLY_HANDLED_KEY_PREFIXES = [
+    "reportData.1_building_code",
+];
+
 function flattenObject(obj: any, prefix = ""): Record<string, any> {
     if (!obj || typeof obj !== "object") {
         return {}; // nothing to flatten
@@ -27,8 +34,12 @@ export function debugFieldMapping(reportData: Record<string, any>, pdfForm: any)
     const dataKeys = Object.keys(flatData);
     const mapKeys = Object.keys(WIND_MITIGATION_FIELD_MAP);
 
-    // 1. Keys in data but not mapped
-    const unmappedDataKeys = dataKeys.filter((k) => !mapKeys.includes(k));
+    // 1. Keys in data but not mapped, excluding those handled manually
+    const unmappedDataKeys = dataKeys.filter(
+        (k) =>
+            !mapKeys.includes(k) &&
+            !MANUALLY_HANDLED_KEY_PREFIXES.some((prefix) => k.startsWith(prefix))
+    );
     if (unmappedDataKeys.length > 0) {
         console.warn("⚠️ Unmapped data keys:", unmappedDataKeys);
     }
@@ -98,7 +109,9 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
 
     // 🔎 Debug: show what's being flattened vs mapped
     const unmappedKeys = Object.keys(dataToMap).filter(
-        (k) => !(k in WIND_MITIGATION_FIELD_MAP)
+        (k) =>
+            !(k in WIND_MITIGATION_FIELD_MAP) &&
+            !MANUALLY_HANDLED_KEY_PREFIXES.some((prefix) => k.startsWith(prefix))
     );
     if (unmappedKeys.length) {
         console.warn("⚠️ Unmapped data keys:", unmappedKeys);
