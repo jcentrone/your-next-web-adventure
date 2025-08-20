@@ -3,7 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { WindMitigationReport, WindMitigationDataSchema } from "@/lib/reportSchemas";
 import { Form } from "@/components/ui/form";
-import { useAutosave } from "@/hooks/useAutosave";
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 import { WIND_MITIGATION_QUESTIONS } from "@/constants/windMitigationQuestions";
 import { BuildingCodeQuestion } from "./windmitigation/BuildingCodeQuestion";
 import { RoofCoveringQuestion } from "./windmitigation/RoofCoveringQuestion";
@@ -32,31 +33,42 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({ report, onU
     },
   });
 
-  const { watch, control } = form;
+  const { watch, control, handleSubmit } = form;
   
-  const watchedValues = watch();
-  
-  // Auto-save functionality
-  useAutosave({
-    value: watchedValues,
-    onSave: (data) => {
-      console.log("Autosave triggered", data);
+  const handleSave = handleSubmit((data) => {
+    try {
+      console.log("Manual save triggered", data);
       const updatedReport = {
         ...report,
         reportData: data,
       };
       onUpdate(updatedReport);
-    },
-    delay: 1000,
+      toast({
+        title: "Report saved",
+        description: "Wind mitigation report has been saved successfully.",
+      });
+    } catch (error) {
+      console.error("Error saving wind mitigation report:", error);
+      toast({
+        title: "Save failed",
+        description: "There was an error saving the report. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 
   const questions = WIND_MITIGATION_QUESTIONS.questions;
 
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">{WIND_MITIGATION_QUESTIONS.form_name}</h1>
-        <p className="text-sm text-muted-foreground">Form {WIND_MITIGATION_QUESTIONS.version}</p>
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold">{WIND_MITIGATION_QUESTIONS.form_name}</h1>
+          <p className="text-sm text-muted-foreground">Form {WIND_MITIGATION_QUESTIONS.version}</p>
+        </div>
+        <Button onClick={handleSave} className="shrink-0">
+          Save Report
+        </Button>
       </div>
 
       <Form {...form}>

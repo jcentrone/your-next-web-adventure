@@ -130,18 +130,6 @@ const ReportEditor: React.FC = () => {
           }
         });
         
-        // Add custom sections from database
-        customSections.forEach((cs) => {
-          if (!existingKeys.has(cs.section_key as SectionKey)) {
-            rr.sections.push({
-              id: `${rr.id}-sec-${cs.section_key}`,
-              key: cs.section_key as SectionKey,
-              title: cs.title,
-              findings: [],
-              info: {},
-            });
-          }
-        });
         setReport(rr);
         setActive(rr.sections[0]?.id ?? null);
       } else {
@@ -150,7 +138,36 @@ const ReportEditor: React.FC = () => {
       }
     };
     load();
-  }, [id, nav, user, customSections]);
+  }, [id, nav, user]);
+
+  // Separate effect for adding custom sections to avoid infinite re-renders
+  React.useEffect(() => {
+    if (!report || report.reportType !== "home_inspection" || !customSections.length) return;
+    
+    const rr = report as any;
+    const existingKeys = new Set(rr.sections.map((s: any) => s.key));
+    const newSections: any[] = [];
+    
+    // Add custom sections from database
+    customSections.forEach((cs) => {
+      if (!existingKeys.has(cs.section_key as SectionKey)) {
+        newSections.push({
+          id: `${rr.id}-sec-${cs.section_key}`,
+          key: cs.section_key as SectionKey,
+          title: cs.title,
+          findings: [],
+          info: {},
+        });
+      }
+    });
+    
+    if (newSections.length > 0) {
+      setReport(prev => prev ? {
+        ...prev,
+        sections: [...(prev as any).sections, ...newSections]
+      } : prev);
+    }
+  }, [customSections, report?.id]);
 
   useAutosave({
     value: report,
