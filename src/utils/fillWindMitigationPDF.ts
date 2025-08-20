@@ -49,8 +49,9 @@ export function debugFieldMapping(reportData: Record<string, any>, pdfForm: any)
     console.log("✅ Debug check complete");
 }
 
-export async function fillWindMitigationPDF(reportData: any): Promise<Blob> {
-    // ✅ Now we expect *just* reportData
+export async function fillWindMitigationPDF(report: any): Promise<Blob> {
+    console.log("🔍 fillWindMitigationPDF called with:", report);
+    
     const formUrl = "/templates/wind_mitigation_template.pdf";
     const formPdfBytes = await fetch(formUrl).then((res) => res.arrayBuffer());
     const pdfDoc = await PDFDocument.load(formPdfBytes);
@@ -77,12 +78,19 @@ export async function fillWindMitigationPDF(reportData: any): Promise<Blob> {
         console.log(`- ${name}:`, value);
     });
 
+    // Create a data object that includes both report properties and flattened reportData
+    const dataToMap = {
+        clientName: report.clientName,
+        address: report.address,
+        inspectionDate: report.inspectionDate ? new Date(report.inspectionDate).toLocaleDateString() : '',
+        ...flattenObject(report.reportData || {})
+    };
+    
+    console.log("🔑 Data to map:", dataToMap);
+    console.log("🔑 Flattened data keys:", Object.keys(dataToMap));
 
-    const flatData = flattenObject(reportData);
-    console.log("🔑 Flattened data keys:", Object.keys(flatData));
-
-    // 🔎 Debug: show what’s being flattened vs mapped
-    const unmappedKeys = Object.keys(flatData).filter(
+    // 🔎 Debug: show what's being flattened vs mapped
+    const unmappedKeys = Object.keys(dataToMap).filter(
         (k) => !(k in WIND_MITIGATION_FIELD_MAP)
     );
     if (unmappedKeys.length) {
@@ -90,23 +98,27 @@ export async function fillWindMitigationPDF(reportData: any): Promise<Blob> {
     }
 
     const mapKeysWithoutData = Object.keys(WIND_MITIGATION_FIELD_MAP).filter(
-        (k) => flatData[k] === undefined
+        (k) => dataToMap[k] === undefined
     );
     if (mapKeysWithoutData.length) {
         console.warn("⚠️ Map keys with no data:", mapKeysWithoutData);
     }
 
     for (const [dataKey, pdfFieldName] of Object.entries(WIND_MITIGATION_FIELD_MAP)) {
-        const value = flatData[dataKey];
+        const value = dataToMap[dataKey];
         if (value === undefined || value === null) continue;
+
+        console.log(`🔗 Mapping ${dataKey} = "${value}" → PDF field "${pdfFieldName}"`);
 
         try {
             if (typeof value === "boolean") {
                 const checkbox = form.getCheckBox(pdfFieldName as never);
                 value ? checkbox.check() : checkbox.uncheck();
+                console.log(`✅ Set checkbox "${pdfFieldName}" to ${value}`);
             } else {
                 const field = form.getTextField(pdfFieldName as never);
                 field.setText(String(value));
+                console.log(`✅ Set text field "${pdfFieldName}" to "${value}"`);
             }
         } catch (err) {
             console.warn(
