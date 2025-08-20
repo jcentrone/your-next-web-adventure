@@ -25,7 +25,7 @@ function toDbPayload(report: Report) {
     cover_image: report.coverImage || null,
     preview_template: report.previewTemplate || 'classic',
     report_type: report.reportType,
-  };
+    report_data: report.reportType === "wind_mitigation" ? report.reportData : null,  };
 }
 
 function fromDbRow(row: any): Report {
@@ -41,6 +41,7 @@ function fromDbRow(row: any): Report {
     finalComments: row.final_comments || "",
     coverImage: row.cover_image || "",
     previewTemplate: row.preview_template || "classic",
+    reportData: row.report_data ?? {},
     reportType,
   };
 
@@ -260,6 +261,7 @@ export async function dbGetReport(id: string): Promise<Report | null> {
 
 export async function dbUpdateReport(report: Report): Promise<Report> {
   const payload = toDbPayload(report);
+  console.log("dbUpdateReport payload", payload);
   const { data, error } = await (supabase as any)
     .from("reports")
     .update(payload)
