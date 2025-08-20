@@ -1,5 +1,5 @@
 import React from "react";
-import { Control } from "react-hook-form";
+import { Control, UseFormWatch } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -8,14 +8,14 @@ import { WIND_MITIGATION_QUESTIONS } from "@/constants/windMitigationQuestions";
 import { WindMitigationQuestionField } from "./WindMitigationQuestionField";
 
 interface RoofCoveringQuestionProps {
-  control: Control<any>;
-  watch: any;
+  control: Control<Record<string, unknown>>;
+  watch: UseFormWatch<Record<string, unknown>>;
 }
 
 export const RoofCoveringQuestion: React.FC<RoofCoveringQuestionProps> = ({ control, watch }) => {
   const question = WIND_MITIGATION_QUESTIONS.questions[1]; // Roof covering question
   const selectedCoverings = watch("2_roof_covering.coverings") || [];
-  const overallCompliance = watch("2_roof_covering.overallCompliance");
+  const overall_compliance = watch("2_roof_covering.overall_compliance");
 
   return (
     <Card>
@@ -74,7 +74,7 @@ export const RoofCoveringQuestion: React.FC<RoofCoveringQuestionProps> = ({ cont
           <div className="pt-4 border-t">
             <FormField
               control={control}
-              name="2_roof_covering.overallCompliance"
+              name="2_roof_covering.overall_compliance"
               render={({ field }) => (
                 <FormItem className="space-y-3">
                   <FormLabel className="text-sm font-medium">Overall Compliance Assessment:</FormLabel>

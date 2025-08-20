@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {PDFDocument} from "pdf-lib";
 import {WIND_MITIGATION_FIELD_MAP} from "@/lib/windMitigationFieldMap";
 
@@ -84,7 +85,7 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         address: report.address,
         inspectionDate: report.inspectionDate ? new Date(report.inspectionDate).toLocaleDateString() : '',
 
-        ...flattenObject(report.reportData || {})
+        ...flattenObject(report.reportData || {}, "reportData")
     };
     
     console.log("🔑 Data to map:", dataToMap);
@@ -114,7 +115,11 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         try {
             if (typeof value === "boolean") {
                 const checkbox = form.getCheckBox(pdfFieldName as never);
-                value ? checkbox.check() : checkbox.uncheck();
+                if (value) {
+                    checkbox.check();
+                } else {
+                    checkbox.uncheck();
+                }
                 console.log(`✅ Set checkbox "${pdfFieldName}" to ${value}`);
             } else {
                 const field = form.getTextField(pdfFieldName as never);
