@@ -2,7 +2,9 @@
 export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     // --- Owner Info ---
     clientName: "Owner Name",
-    address: "Address",
+    street: "Address",
+    city: "City",
+    zip: "zipCode",
     phoneHome: "Home Phone",
     phoneWork: "Work Phone",
     phoneCell: "Cell Phone",

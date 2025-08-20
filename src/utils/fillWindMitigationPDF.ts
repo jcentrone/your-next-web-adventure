@@ -9,6 +9,13 @@ const MANUALLY_HANDLED_KEY_PREFIXES = [
     "reportData.1_building_code",
 ];
 
+function parseAddress(full: string): {street: string; city: string; state: string; zip: string} {
+    const [street = "", city = "", stateZip = ""] =
+        (full || "").split(",").map((p) => p.trim());
+    const [state = "", zip = ""] = stateZip.split(/\s+/);
+    return {street, city, state, zip};
+}
+
 function flattenObject(obj: any, prefix = ""): Record<string, any> {
     if (!obj || typeof obj !== "object") {
         return {}; // nothing to flatten
@@ -96,10 +103,16 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
     // });
 
     // Create a data object that includes both report properties and flattened reportData
+    const {street, city, zip} = parseAddress(report.address || "");
+
     const dataToMap = {
         clientName: report.clientName,
-        address: report.address,
-        inspectionDate: report.inspectionDate ? new Date(report.inspectionDate).toLocaleDateString() : '',
+        street,
+        city,
+        zip,
+        inspectionDate: report.inspectionDate
+            ? new Date(report.inspectionDate).toLocaleDateString()
+            : '',
 
         ...flattenObject(report.reportData || {}, "reportData")
     };
