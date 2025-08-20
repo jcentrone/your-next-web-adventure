@@ -60,6 +60,4 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     "reportData.7_opening_protection.openingProtection.entry_doors_non_glazed": "oplB2",
     "reportData.7_opening_protection.openingProtection.garage_doors_non_glazed": "oplB3",
 
-    // --- Inspector Comments ---
-    "reportData.inspectorComments": "Inspector Comments",
 };
