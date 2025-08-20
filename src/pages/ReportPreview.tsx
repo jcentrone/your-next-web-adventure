@@ -97,7 +97,7 @@ const ReportPreview: React.FC = () => {
     const handleWindMitigationDownload = async () => {
         if (!report) return;
         try {
-            const pdfBlob = await fillWindMitigationPDF(report); // pass in report data
+            const pdfBlob = await fillWindMitigationPDF(report || {}); // pass in report data
             const url = URL.createObjectURL(pdfBlob);
 
             const link = document.createElement("a");
