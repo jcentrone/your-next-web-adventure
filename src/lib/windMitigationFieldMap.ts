@@ -22,6 +22,10 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     "reportData.2_roof_covering.coverings.other.selected": "6 Other",
 
     // --- Roof Covering Compliance Details ---
+    // Asphalt/Fiberglass Shingle
+    "reportData.2_roof_covering.coverings.asphalt_fiberglass_shingle.fields.permit_application_date": "shinglePermitDate",
+    "reportData.2_roof_covering.coverings.asphalt_fiberglass_shingle.fields.fbc_or_mdc_product_approval_number": "shingleFbcMdcNumb",
+    "reportData.2_roof_covering.coverings.asphalt_fiberglass_shingle.fields.year_of_original_install_or_replacement": "shingleInstallReplaceDate",
     "reportData.2_roof_covering.coverings.asphalt_fiberglass_shingle.no_information_provided_for_compliance": "shingleNoCompliance",
     "reportData.2_roof_covering.coverings.concrete_clay_tile.no_information_provided_for_compliance": "clayNoCompliance",
     "reportData.2_roof_covering.coverings.metal.no_information_provided_for_compliance": "metalNoCompliance",
