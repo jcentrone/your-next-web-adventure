@@ -61,8 +61,6 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     // --- Secondary Water Resistance (Q6) ---
 
     // --- Opening Protection (Q7) ---
-    "reportData.7_opening_protection.glazedOverall": "oplA",
-    "reportData.7_opening_protection.nonGlazedSubclass": "oplB",
     // Opening Protection Levels per Opening Type
     "reportData.7_opening_protection.openingProtection.windows_or_entry_doors_glazed.NA": "windowDoorNA",
     "reportData.7_opening_protection.openingProtection.windows_or_entry_doors_glazed.A": "windowDoorA",
