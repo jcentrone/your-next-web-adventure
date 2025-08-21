@@ -503,6 +503,12 @@ export type Database = {
           inspection_date: string
           organization_id: string | null
           preview_template: string
+          phone_home: string | null
+          phone_work: string | null
+          phone_cell: string | null
+          insurance_company: string | null
+          policy_number: string | null
+          email: string | null
           report_data: Json | null
           report_type: string | null
           sections: Json | null
@@ -523,6 +529,12 @@ export type Database = {
           inspection_date: string
           organization_id?: string | null
           preview_template?: string
+          phone_home?: string | null
+          phone_work?: string | null
+          phone_cell?: string | null
+          insurance_company?: string | null
+          policy_number?: string | null
+          email?: string | null
           report_data?: Json | null
           report_type?: string | null
           sections?: Json | null
@@ -543,6 +555,12 @@ export type Database = {
           inspection_date?: string
           organization_id?: string | null
           preview_template?: string
+          phone_home?: string | null
+          phone_work?: string | null
+          phone_cell?: string | null
+          insurance_company?: string | null
+          policy_number?: string | null
+          email?: string | null
           report_data?: Json | null
           report_type?: string | null
           sections?: Json | null

@@ -110,6 +110,12 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         street,
         city,
         zip,
+        phoneHome: report.phoneHome,
+        phoneWork: report.phoneWork,
+        phoneCell: report.phoneCell,
+        email: report.email,
+        insuranceCompany: report.insuranceCompany,
+        policyNumber: report.policyNumber,
         inspectionDate: report.inspectionDate
             ? new Date(report.inspectionDate).toLocaleDateString()
             : '',

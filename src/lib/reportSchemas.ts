@@ -130,6 +130,12 @@ export const WindMitigationDataSchema = z.object({
 export const WindMitigationReportSchema = BaseReportSchema.extend({
     reportType: z.literal("wind_mitigation"),
     reportData: WindMitigationDataSchema,
+    phoneHome: z.string().optional(),
+    phoneWork: z.string().optional(),
+    phoneCell: z.string().optional(),
+    insuranceCompany: z.string().optional(),
+    policyNumber: z.string().optional(),
+    email: z.string().optional(),
 });
 
 // Union type for all report types

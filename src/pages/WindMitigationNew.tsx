@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ContactLookup from "@/components/contacts/ContactLookup";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
@@ -22,6 +22,12 @@ const schema = z.object({
   address: z.string().min(1, "Address is required"),
   inspectionDate: z.string().min(1, "Required"),
   contactId: z.string().optional(),
+  phoneHome: z.string().optional(),
+  phoneWork: z.string().optional(),
+  phoneCell: z.string().optional(),
+  insuranceCompany: z.string().optional(),
+  policyNumber: z.string().optional(),
+  email: z.string().email().optional().or(z.literal("")),
 });
 
 type Values = z.infer<typeof schema>;
@@ -31,13 +37,6 @@ const WindMitigationNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
-
-  // Get all contacts for lookup
-  const { data: contacts = [] } = useQuery({
-    queryKey: ["contacts", user?.id],
-    queryFn: () => contactsApi.list(user!.id),
-    enabled: !!user,
-  });
 
   // Get contact data if contactId is provided
   const { data: contact } = useQuery({
@@ -54,6 +53,12 @@ const WindMitigationNew: React.FC = () => {
       address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactId: contactId || "",
+      phoneHome: "",
+      phoneWork: "",
+      phoneCell: "",
+      insuranceCompany: "",
+      policyNumber: "",
+      email: "",
     },
   });
 
@@ -64,6 +69,17 @@ const WindMitigationNew: React.FC = () => {
       const contactAddress = contact.formatted_address || contact.address || "";
       if (contactAddress) {
         form.setValue('address', contactAddress);
+      }
+      if (contact.phone) {
+        form.setValue('phoneHome', contact.phone);
+        form.setValue('phoneWork', contact.phone);
+        form.setValue('phoneCell', contact.phone);
+      }
+      if (contact.email) {
+        form.setValue('email', contact.email);
+      }
+      if (contact.company) {
+        form.setValue('insuranceCompany', contact.company);
       }
     }
   }, [contact, form]);
@@ -86,6 +102,12 @@ const WindMitigationNew: React.FC = () => {
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
             reportType: "wind_mitigation",
+            phoneHome: values.phoneHome,
+            phoneWork: values.phoneWork,
+            phoneCell: values.phoneCell,
+            insuranceCompany: values.insuranceCompany,
+            policyNumber: values.policyNumber,
+            email: values.email,
           },
           user.id,
           profile?.organization_id || undefined
@@ -138,54 +160,108 @@ const WindMitigationNew: React.FC = () => {
                 <FormItem>
                   <FormLabel>Client Contact</FormLabel>
                   <FormControl>
-                    <div className="space-y-2">
-                      <Select
-                        value={field.value}
-                        onValueChange={(contactId) => {
-                          field.onChange(contactId);
-                          const selectedContact = contacts.find(c => c.id === contactId);
-                          if (selectedContact) {
-                            form.setValue('clientName', `${selectedContact.first_name} ${selectedContact.last_name}`);
-                            const contactAddress = selectedContact.formatted_address || selectedContact.address || "";
-                            if (contactAddress) {
-                              form.setValue('address', contactAddress);
-                            }
+                    <ContactLookup
+                      value={field.value}
+                      onChange={(contactId, selectedContact) => {
+                        field.onChange(contactId);
+                        if (selectedContact) {
+                          form.setValue('clientName', `${selectedContact.first_name} ${selectedContact.last_name}`);
+                          const contactAddress = selectedContact.formatted_address || selectedContact.address || "";
+                          if (contactAddress) {
+                            form.setValue('address', contactAddress);
                           }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a contact or add new...">
-                            {field.value && contacts.length > 0 ? 
-                              (() => {
-                                const contact = contacts.find(c => c.id === field.value);
-                                return contact ? `${contact.first_name} ${contact.last_name}` : field.value;
-                              })() : "Select a contact..."
-                            }
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="add-new" className="font-medium text-primary">
-                            + Add New Contact
-                          </SelectItem>
-                          {contacts.map((contact) => (
-                            <SelectItem key={contact.id} value={contact.id}>
-                              {contact.first_name} {contact.last_name}
-                              {contact.email && <span className="text-muted-foreground ml-2">({contact.email})</span>}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {field.value === "add-new" && (
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => nav('/contacts/new')}
-                        >
-                          Go to Add New Contact
-                        </Button>
-                      )}
-                    </div>
+                          if (selectedContact.phone) {
+                            form.setValue('phoneHome', selectedContact.phone);
+                            form.setValue('phoneWork', selectedContact.phone);
+                            form.setValue('phoneCell', selectedContact.phone);
+                          }
+                          if (selectedContact.email) {
+                            form.setValue('email', selectedContact.email);
+                          }
+                          if (selectedContact.company) {
+                            form.setValue('insuranceCompany', selectedContact.company);
+                          }
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phoneHome"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Home Phone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Home phone" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phoneWork"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Work Phone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Work phone" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phoneCell"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cell Phone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Cell phone" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="Email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="insuranceCompany"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Insurance Company</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Insurance company" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="policyNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Policy Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Policy number" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
