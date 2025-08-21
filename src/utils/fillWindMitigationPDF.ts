@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {PDFDocument} from "pdf-lib";
 import {WIND_MITIGATION_FIELD_MAP} from "@/lib/windMitigationFieldMap";
+import {dbGetReport} from "@/integrations/supabase/reportsApi";
+import {loadReport} from "@/hooks/useLocalDraft";
+import {supabase} from "@/integrations/supabase/client";
+import {toast} from "@/components/ui/use-toast";
 
 // Keys that are handled manually elsewhere in the code (e.g. custom logic
 // for building code options) and should be ignored when reporting unmapped
@@ -452,4 +456,43 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
 
     const pdfBytes = await pdfDoc.save();
     return new Blob([pdfBytes], {type: "application/pdf"});
+}
+
+export async function downloadWindMitigationReport(reportId: string) {
+    try {
+        const {data: {user}} = await supabase.auth.getUser();
+        let report: any | null = null;
+        if (user) {
+            report = await dbGetReport(reportId);
+        } else {
+            report = loadReport(reportId);
+        }
+        if (!report) {
+            toast({
+                title: "Report not found",
+                description: "Could not find report data.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const pdfBlob = await fillWindMitigationPDF(report);
+        const url = URL.createObjectURL(pdfBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "wind_mitigation_report.pdf";
+        link.click();
+        URL.revokeObjectURL(url);
+        toast({
+            title: "PDF Generated",
+            description: "Your Wind Mitigation Report has been generated successfully.",
+        });
+    } catch (error) {
+        console.error(error);
+        toast({
+            title: "PDF Generation Failed",
+            description: "Could not generate Wind Mitigation Report.",
+            variant: "destructive",
+        });
+    }
 }
