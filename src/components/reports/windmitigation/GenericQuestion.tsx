@@ -16,6 +16,7 @@ interface Question {
   id: string;
   prompt: string;
   options?: QuestionOption[];
+  fields?: any[];
   minimal_conditions_for_B_C_D?: string;
 }
 
@@ -54,6 +55,21 @@ export const GenericQuestion: React.FC<GenericQuestionProps> = ({
         )}
       </CardHeader>
       <CardContent className="space-y-4">
+        {question.fields && (
+          <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+            {question.fields.map((field) => (
+              <WindMitigationQuestionField
+                key={field.name}
+                field={field}
+                control={control}
+                questionId={question.id}
+                optionCode="question"
+                watch={watch}
+              />
+            ))}
+          </div>
+        )}
+
         <FormField
           control={control}
           name={`${question.id}.selectedOption` as any}
