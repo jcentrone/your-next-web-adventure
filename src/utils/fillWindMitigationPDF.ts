@@ -7,6 +7,7 @@ import {WIND_MITIGATION_FIELD_MAP} from "@/lib/windMitigationFieldMap";
 // data keys.
 const MANUALLY_HANDLED_KEY_PREFIXES = [
     "reportData.1_building_code",
+    "reportData.2_roof_covering.overall_compliance",
 ];
 
 function parseAddress(full: string): {street: string; city: string; state: string; zip: string} {
@@ -164,6 +165,32 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
             } catch (err) {
                 console.warn(`⚠️ Could not set year built for option "${option}"`, err);
             }
+        }
+    }
+
+    // Handle Roof Covering Overall Compliance (Q2)
+    const roofCoveringValue = report.reportData?.["2_roof_covering"]?.overall_compliance;
+    if (roofCoveringValue) {
+        const option = String(roofCoveringValue).toUpperCase();
+        const checkboxName = `roofCovering${option}`;
+        try {
+            const checkbox = form.getCheckBox(checkboxName as never);
+            checkbox.check();
+            ["A", "B", "C", "D"].forEach((letter) => {
+                if (letter !== option) {
+                    try {
+                        form.getCheckBox(`roofCovering${letter}` as never).uncheck();
+                    } catch (err) {
+                        // Ignore missing checkboxes
+                    }
+                }
+            });
+            console.log(`✅ Checked roof covering compliance option "${option}"`);
+        } catch (err) {
+            console.warn(
+                `⚠️ Could not check roof covering compliance option "${option}"`,
+                err
+            );
         }
     }
 
