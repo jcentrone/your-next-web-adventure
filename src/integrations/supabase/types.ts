@@ -568,6 +568,7 @@ export type Database = {
           client_name: string
           contact_id: string | null
           cover_image: string | null
+          cover_page_id: string | null
           created_at: string
           email: string | null
           final_comments: string | null
@@ -594,6 +595,7 @@ export type Database = {
           client_name: string
           contact_id?: string | null
           cover_image?: string | null
+          cover_page_id?: string | null
           created_at?: string
           email?: string | null
           final_comments?: string | null
@@ -620,6 +622,7 @@ export type Database = {
           client_name?: string
           contact_id?: string | null
           cover_image?: string | null
+          cover_page_id?: string | null
           created_at?: string
           email?: string | null
           final_comments?: string | null
@@ -646,6 +649,13 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_cover_page_id_fkey"
+            columns: ["cover_page_id"]
+            isOneToOne: false
+            referencedRelation: "cover_pages"
             referencedColumns: ["id"]
           },
           {

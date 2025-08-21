@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ContactLookup from "@/components/contacts/ContactLookup";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
 import { contactsApi } from "@/integrations/supabase/crmApi";
 import { supabase } from "@/integrations/supabase/client";
+import useCoverPages from "@/hooks/useCoverPages";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -30,6 +32,7 @@ const schema = z.object({
   insuranceCompany: z.string().optional(),
   policyNumber: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
+  coverPageId: z.string().optional(),
 });
 
 type Values = z.infer<typeof schema>;
@@ -39,6 +42,7 @@ const WindMitigationNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
+  const { coverPages, assignments } = useCoverPages();
 
   // Get contact data if contactId is provided
   const { data: contact } = useQuery({
@@ -63,6 +67,7 @@ const WindMitigationNew: React.FC = () => {
       insuranceCompany: "",
       policyNumber: "",
       email: "",
+      coverPageId: "",
     },
   });
 
@@ -87,6 +92,13 @@ const WindMitigationNew: React.FC = () => {
       }
     }
   }, [contact, form]);
+
+  useEffect(() => {
+    const assigned = assignments.find(a => a.report_type === "wind_mitigation");
+    if (assigned) {
+      form.setValue("coverPageId", assigned.cover_page_id);
+    }
+  }, [assignments, form]);
 
   const onSubmit = async (values: Values) => {
     try {
@@ -114,6 +126,7 @@ const WindMitigationNew: React.FC = () => {
             insuranceCompany: values.insuranceCompany,
             policyNumber: values.policyNumber,
             email: values.email,
+            coverPageId: values.coverPageId,
           },
           user.id,
           profile?.organization_id || undefined
@@ -326,6 +339,29 @@ const WindMitigationNew: React.FC = () => {
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="coverPageId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cover Page</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select cover page" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {coverPages.map(cp => (
+                        <SelectItem key={cp.id} value={cp.id}>{cp.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
