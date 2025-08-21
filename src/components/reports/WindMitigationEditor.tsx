@@ -10,6 +10,7 @@ import {BuildingCodeQuestion} from "./windmitigation/BuildingCodeQuestion";
 import {RoofCoveringQuestion} from "./windmitigation/RoofCoveringQuestion";
 import {OpeningProtectionQuestion} from "./windmitigation/OpeningProtectionQuestion";
 import {GenericQuestion} from "./windmitigation/GenericQuestion";
+import {RoofToWallQuestion} from "./windmitigation/RoofToWallQuestion";
 import {dbUpdateReport} from "@/integrations/supabase/reportsApi.ts";
 
 interface WindMitigationEditorProps {
@@ -87,16 +88,32 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
                     {/* Question 2: Roof Covering */}
                     <RoofCoveringQuestion control={control} watch={watch}/>
 
-                    {/* Questions 3-6: Generic questions */}
-                    {questions.slice(2, 6).map((question, index) => (
-                        <GenericQuestion
-                            key={question.id}
-                            question={question}
-                            questionNumber={index + 3}
-                            control={control}
-                            watch={watch}
-                        />
-                    ))}
+                    {/* Question 3: Roof Deck Attachment */}
+                    <GenericQuestion
+                        question={questions[2]}
+                        questionNumber={3}
+                        control={control}
+                        watch={watch}
+                    />
+
+                    {/* Question 4: Roof-to-Wall Attachment */}
+                    <RoofToWallQuestion control={control} watch={watch} />
+
+                    {/* Question 5: Roof Geometry */}
+                    <GenericQuestion
+                        question={questions[4]}
+                        questionNumber={5}
+                        control={control}
+                        watch={watch}
+                    />
+
+                    {/* Question 6: Secondary Water Resistance */}
+                    <GenericQuestion
+                        question={questions[5]}
+                        questionNumber={6}
+                        control={control}
+                        watch={watch}
+                    />
 
                     {/* Question 7: Opening Protection */}
                     <OpeningProtectionQuestion control={control} watch={watch}/>
