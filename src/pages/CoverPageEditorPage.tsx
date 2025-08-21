@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,68 +42,95 @@ export default function CoverPageEditorPage() {
   const editing = !!id;
   const coverPage = editing ? coverPages.find((cp) => cp.id === id) : undefined;
 
-  const [name, setName] = useState("");
-  const [template, setTemplate] = useState("default");
-  const [color, setColor] = useState("#000000");
-  const [text, setText] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [reportTypes, setReportTypes] = useState<string[]>([]);
+  interface CoverPageForm {
+    name: string;
+    template: string;
+    color: string;
+    text: string;
+    imageUrl: string;
+    reportTypes: string[];
+  }
+
+  const { register, handleSubmit, watch, setValue, reset } = useForm<CoverPageForm>({
+    defaultValues: {
+      name: "",
+      template: "default",
+      color: "#000000",
+      text: "",
+      imageUrl: "",
+      reportTypes: [],
+    },
+  });
+
+  const name = watch("name");
+  const template = watch("template");
+  const color = watch("color");
+  const text = watch("text");
+  const imageUrl = watch("imageUrl");
+  const reportTypes = watch("reportTypes");
 
   useEffect(() => {
     if (coverPage) {
-      setName(coverPage.name || "");
-      setTemplate(coverPage.template_slug || "default");
-      setColor(coverPage.color_palette_key || "#000000");
-      setText((coverPage.text_content as string) || "");
-      setImageUrl(coverPage.image_url || "");
       const assigned = assignments
         .filter((a) => a.cover_page_id === coverPage.id)
         .map((a) => a.report_type);
-      setReportTypes(assigned);
+      reset({
+        name: coverPage.name || "",
+        template: coverPage.template_slug || "default",
+        color: coverPage.color_palette_key || "#000000",
+        text: (coverPage.text_content as string) || "",
+        imageUrl: coverPage.image_url || "",
+        reportTypes: assigned,
+      });
     }
-  }, [coverPage, assignments]);
+  }, [coverPage, assignments, reset]);
 
   const toggleReportType = (rt: string) => {
-    setReportTypes((prev) =>
-      prev.includes(rt) ? prev.filter((t) => t !== rt) : [...prev, rt],
-    );
+    const current = watch("reportTypes");
+    if (current.includes(rt)) {
+      setValue(
+        "reportTypes",
+        current.filter((t) => t !== rt),
+      );
+    } else {
+      setValue("reportTypes", [...current, rt]);
+    }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = handleSubmit(async (data) => {
     if (editing && coverPage) {
       await updateCoverPage(coverPage.id, {
-        name,
-        template_slug: template,
-        color_palette_key: color,
-        text_content: text,
-        image_url: imageUrl,
+        name: data.name,
+        template_slug: data.template,
+        color_palette_key: data.color,
+        text_content: data.text,
+        image_url: data.imageUrl,
       });
       const current = assignments
         .filter((a) => a.cover_page_id === coverPage.id)
         .map((a) => a.report_type);
       for (const rt of current) {
-        if (!reportTypes.includes(rt)) {
+        if (!data.reportTypes.includes(rt)) {
           await removeAssignmentFromReportType(rt);
         }
       }
-      for (const rt of reportTypes) {
+      for (const rt of data.reportTypes) {
         await assignCoverPageToReportType(rt, coverPage.id);
       }
     } else {
       const newCp = await createCoverPage({
-        name,
-        template_slug: template,
-        color_palette_key: color,
-        text_content: text,
-        image_url: imageUrl,
+        name: data.name,
+        template_slug: data.template,
+        color_palette_key: data.color,
+        text_content: data.text,
+        image_url: data.imageUrl,
       });
-      for (const rt of reportTypes) {
+      for (const rt of data.reportTypes) {
         await assignCoverPageToReportType(rt, newCp.id);
       }
     }
     navigate("/cover-page-manager");
-  };
+  });
 
   return (
     <>
@@ -122,15 +150,11 @@ export default function CoverPageEditorPage() {
           <form onSubmit={handleSave} className="space-y-4">
             <div>
               <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+              <Input id="name" {...register("name")}/>
             </div>
             <div>
               <Label>Template</Label>
-              <Select value={template} onValueChange={setTemplate}>
+              <Select value={template} onValueChange={(val) => setValue("template", val)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -145,29 +169,15 @@ export default function CoverPageEditorPage() {
             </div>
             <div>
               <Label htmlFor="text">Text</Label>
-              <Textarea
-                id="text"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-              />
+              <Textarea id="text" {...register("text")} />
             </div>
             <div>
               <Label htmlFor="color">Color</Label>
-              <Input
-                id="color"
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-              />
+              <Input id="color" type="color" {...register("color")} />
             </div>
             <div>
               <Label htmlFor="imageUrl">Image URL</Label>
-              <Input
-                id="imageUrl"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://"
-              />
+              <Input id="imageUrl" {...register("imageUrl")} placeholder="https://" />
             </div>
             <div className="space-y-2">
               <Label>Report Types</Label>
