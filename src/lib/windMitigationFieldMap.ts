@@ -5,6 +5,8 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     street: "Address",
     city: "City",
     zip: "zipCode",
+    county: "county",
+    ofStories: "ofStories",
     phoneHome: "Home Phone",
     phoneWork: "Work Phone",
     phoneCell: "Cell Phone",
