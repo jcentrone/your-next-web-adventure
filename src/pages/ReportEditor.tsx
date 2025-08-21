@@ -30,6 +30,8 @@ import { cn } from "@/lib/utils";
 import { useCustomSections } from "@/hooks/useCustomSections";
 import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { Plus } from "lucide-react";
+import useCoverPages from "@/hooks/useCoverPages";
+import { Label } from "@/components/ui/label";
 
 // Lazy load wind mitigation editor at module level
 const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
@@ -78,9 +80,10 @@ const ReportEditor: React.FC = () => {
   const [currentFindingId, setCurrentFindingId] = React.useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = React.useState<string>("");
   const [customSectionDialogOpen, setCustomSectionDialogOpen] = React.useState(false);
-  
+
   // Custom sections hook
   const { customSections, loadCustomSections } = useCustomSections();
+  const { coverPages, assignments } = useCoverPages();
 
   // Handle contact change to update address automatically
   const handleContactChange = React.useCallback((contact: any) => {
@@ -168,6 +171,15 @@ const ReportEditor: React.FC = () => {
       } : prev);
     }
   }, [customSections, report?.id]);
+
+  React.useEffect(() => {
+    if (!report) return;
+    if (report.coverPageId) return;
+    const assigned = assignments.find(a => a.report_type === report.reportType);
+    if (assigned) {
+      setReport(prev => prev ? { ...prev, coverPageId: assigned.cover_page_id } : prev);
+    }
+  }, [assignments, report?.reportType, report?.id]);
 
   useAutosave({
     value: report,
@@ -1034,6 +1046,27 @@ const ReportEditor: React.FC = () => {
               ) : (
                 <p className="text-sm text-muted-foreground">No report details fields configured.</p>
               )}
+              <div className="space-y-2">
+                <Label>Cover Page</Label>
+                <Select
+                  value={report.coverPageId || ""}
+                  onValueChange={(val) =>
+                    setReport((prev) => (prev ? { ...prev, coverPageId: val } : prev))
+                  }
+                >
+                  <SelectTrigger className="w-[250px]">
+                    <SelectValue placeholder="Select cover page" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {coverPages.map((cp) => (
+                      <SelectItem key={cp.id} value={cp.id}>
+                        {cp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </section>
           )}
 
