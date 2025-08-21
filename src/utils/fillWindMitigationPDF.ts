@@ -12,6 +12,8 @@ const MANUALLY_HANDLED_KEY_PREFIXES = [
     "reportData.4_roof_to_wall_attachment.selectedOption",
     "reportData.5_roof_geometry",
     "reportData.6_secondary_water_resistance.selectedOption",
+    "reportData.7_opening_protection.glazedOverall",
+    "reportData.7_opening_protection.nonGlazedSubclass",
 ];
 
 function parseAddress(full: string): {street: string; city: string; state: string; zip: string} {
@@ -333,6 +335,70 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         } catch (err) {
             console.warn(
                 `⚠️ Could not check secondary water resistance option "${option}"`,
+                err
+            );
+        }
+    }
+
+    // Handle Opening Protection (Q7)
+    const openingProtection = report.reportData?.["7_opening_protection"];
+
+    const glazedOverall = openingProtection?.glazedOverall;
+    if (glazedOverall) {
+        const option = String(glazedOverall).toUpperCase();
+        try {
+            const checkbox = form.getCheckBox(`opl${option}` as never);
+            checkbox.check();
+            ["A", "B", "C", "N", "X"].forEach((letter) => {
+                if (letter !== option) {
+                    try {
+                        form.getCheckBox(`opl${letter}` as never).uncheck();
+                    } catch {
+                        // Ignore missing checkboxes
+                    }
+                }
+            });
+            console.log(`✅ Checked glazed overall option "${option}"`);
+        } catch (err) {
+            console.warn(`⚠️ Could not check glazed overall option "${option}"`, err);
+        }
+    }
+
+    const nonGlazedSubclass = openingProtection?.nonGlazedSubclass;
+    if (nonGlazedSubclass) {
+        const normalized = String(nonGlazedSubclass)
+            .toUpperCase()
+            .replace(/\./g, "");
+        const subclasses = [
+            "A1",
+            "A2",
+            "A3",
+            "B1",
+            "B2",
+            "B3",
+            "C1",
+            "C2",
+            "C3",
+            "N1",
+            "N2",
+            "N3",
+        ];
+        try {
+            const checkbox = form.getCheckBox(`opl${normalized}` as never);
+            checkbox.check();
+            subclasses.forEach((code) => {
+                if (code !== normalized) {
+                    try {
+                        form.getCheckBox(`opl${code}` as never).uncheck();
+                    } catch {
+                        // Ignore missing checkboxes
+                    }
+                }
+            });
+            console.log(`✅ Checked non-glazed subclass option "${normalized}"`);
+        } catch (err) {
+            console.warn(
+                `⚠️ Could not check non-glazed subclass option "${normalized}"`,
                 err
             );
         }
