@@ -3,6 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { CoverPagePreview } from "@/components/cover-pages/CoverPagePreview";
 import {
   CoverPageForm,
@@ -105,8 +113,26 @@ export default function CoverPageEditorPage() {
           onClick={() => navigate("/cover-page-manager")}
           className="mb-4"
         >
-          Back
+          Back to Cover Pages
         </Button>
+        <Breadcrumb className="mb-4">
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                onClick={() => navigate("/cover-page-manager")}
+                className="cursor-pointer"
+              >
+                Cover Pages
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                {editing ? "Edit" : "New"} Cover Page
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <form onSubmit={handleSave} className="space-y-4">
             <CoverPageFormFields form={form} />
@@ -116,7 +142,7 @@ export default function CoverPageEditorPage() {
                 variant="outline"
                 onClick={() => navigate("/cover-page-manager")}
               >
-                Back
+                Back to Cover Pages
               </Button>
               <Button type="submit">Save</Button>
             </div>
