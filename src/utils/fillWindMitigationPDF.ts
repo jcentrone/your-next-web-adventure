@@ -362,8 +362,15 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
                 }
                 console.log(`✅ Set checkbox "${pdfFieldName}" to ${value}`);
             } else if ("setText" in field) {
-                (field as any).setText(String(value));
-                console.log(`✅ Set text field "${pdfFieldName}" to "${value}"`);
+                if (typeof value === "boolean") {
+                    (field as any).setText(value ? "X" : "");
+                    console.log(
+                        `✅ Set text field "${pdfFieldName}" to "${value ? "X" : ""}"`
+                    );
+                } else {
+                    (field as any).setText(String(value));
+                    console.log(`✅ Set text field "${pdfFieldName}" to "${value}"`);
+                }
             } else {
                 console.warn(`⚠️ Unsupported field type for '${pdfFieldName}'`);
             }
