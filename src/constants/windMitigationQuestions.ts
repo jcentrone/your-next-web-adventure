@@ -140,23 +140,26 @@ export const WIND_MITIGATION_QUESTIONS = {
     },
     {
       "id": "4_roof_to_wall_attachment",
-      "prompt": "What is the WEAKEST roof-to-wall connection?",
-      "minimal_conditions_for_B_C_D": "All visible metal connectors secured to truss/rafter with ≥3 nails; attached to wall top plate or embedded in bond beam with <1/2\" gap; blocking ≤1.5\"; free of severe corrosion.",
+      "prompt": "Roof to Wall Attachment: What is the WEAKEST roof to wall connection? (Do not include attachment of hip/valley jacks within 5 feet of the inside or outside corner of the roof in determination of WEAKEST type)",
+      "minimal_conditions_for_B_C_D": "Minimal conditions to qualify for categories B, C, or D. All visible metal connectors are: Secured to truss/rafter with a minimum of three (3) nails, and Attached to the wall top plate of the wall framing, or embedded in the bond beam, with less than a ½\" gap from the blocking or truss/rafter and blocked no more than 1.5\" of the truss/rafter, and free of visible severe corrosion.",
       "options": [
-        { "code": "A", "label": "Toe nails or connectors not meeting minimal conditions" },
+        { 
+          "code": "A", 
+          "label": "Toe Nails - Truss/rafter anchored to top plate of wall using nails driven at an angle through the truss/rafter and attached to the top plate of the wall, or Metal connectors that do not meet the minimal conditions or requirements of B, C, or D" 
+        },
         {
           "code": "B",
-          "label": "Clips: do not wrap over top OR strap wraps but does not meet C/D nail positions; ≥3 nails"
+          "label": "Clips - Metal connectors that do not wrap over the top of the truss/rafter, or Metal connectors with a minimum of 1 strap that wraps over the top of the truss/rafter and does not meet the nail position requirements of C or D, but is secured with a minimum of 3 nails."
         },
         {
           "code": "C",
-          "label": "Single wraps: single strap wraps over top; ≥2 nails front and ≥1 nail opposing"
+          "label": "Single Wraps - Metal connectors consisting of a single strap that wraps over the top of the truss/rafter and is secured with a minimum of 2 nails on the front side and a minimum of 1 nail on the opposing side."
         },
         {
           "code": "D",
-          "label": "Double wraps (two straps each side with ≥2 nails front and ≥1 opposing) OR single strap secured both sides with ≥3 nails each side to top plate"
+          "label": "Double Wraps - Metal Connectors consisting of 2 separate straps that are attached to the wall frame, or embedded in the bond beam, on either side of the truss/rafter where each strap wraps over the top of the truss/rafter and is secured with a minimum of 2 nails on the front side, and a minimum of 1 nail on the opposing side, or Metal connectors consisting of a single strap that wraps over the top of the truss/rafter, is secured to the wall on both sides, and is secured to the top plate with a minimum of three nails on each side."
         },
-        { "code": "E", "label": "Structural: anchor bolts structurally connected or reinforced concrete roof" },
+        { "code": "E", "label": "Structural - Anchor bolts structurally connected or reinforced concrete roof." },
         { "code": "F", "label": "Other", "fields": [{ "name": "description", "type": "string" }] },
         { "code": "G", "label": "Unknown or unidentified" },
         { "code": "H", "label": "No attic access" }
