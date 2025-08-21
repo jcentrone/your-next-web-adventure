@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {PDFDocument} from "pdf-lib";
+import {PDFDocument, StandardFonts, rgb} from "pdf-lib";
 import {WIND_MITIGATION_FIELD_MAP} from "@/lib/windMitigationFieldMap";
 import {dbGetReport} from "@/integrations/supabase/reportsApi";
 import {loadReport} from "@/hooks/useLocalDraft";
 import {supabase} from "@/integrations/supabase/client";
 import {toast} from "@/components/ui/use-toast";
+import {getSignedUrlFromSupabaseUrl, isSupabaseUrl} from "@/integrations/supabase/storage";
 
 // Keys that are handled manually elsewhere in the code (e.g. custom logic
 // for building code options) and should be ignored when reporting unmapped
@@ -43,6 +44,17 @@ function flattenObject(obj: any, prefix = ""): Record<string, any> {
         }
         return acc;
     }, {} as Record<string, any>);
+}
+
+function hexToRgb(hex: string) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) {
+        return {r: 0, g: 0, b: 0};
+    }
+    const r = parseInt(result[1], 16) / 255;
+    const g = parseInt(result[2], 16) / 255;
+    const b = parseInt(result[3], 16) / 255;
+    return {r, g, b};
 }
 
 export function debugFieldMapping(reportData: Record<string, any>, pdfForm: any) {
@@ -451,6 +463,71 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
                 `⚠️ Could not set PDF field '${pdfFieldName}' from data key '${dataKey}'`,
                 err
             );
+        }
+    }
+
+    if (report.coverPageId) {
+        try {
+            const {data: cp, error} = await supabase
+                .from("cover_pages")
+                .select("color_palette_key, text_content, image_url")
+                .eq("id", report.coverPageId)
+                .single();
+            if (!error && cp) {
+                let imageUrl = cp.image_url || "";
+                if (imageUrl && isSupabaseUrl(imageUrl)) {
+                    imageUrl = await getSignedUrlFromSupabaseUrl(imageUrl);
+                }
+
+                const firstPage = pdfDoc.getPage(0);
+                const {width, height} = firstPage.getSize();
+                const cover = pdfDoc.insertPage(0, [width, height]);
+
+                cover.drawRectangle({x: 0, y: 0, width, height, color: rgb(1, 1, 1)});
+
+                const bandHeight = 150;
+                const {r, g, b} = hexToRgb(cp.color_palette_key || "#000000");
+                cover.drawRectangle({x: 0, y: height - bandHeight, width, height: bandHeight, color: rgb(r, g, b)});
+
+                if (imageUrl) {
+                    const imgBytes = await fetch(imageUrl).then((res) => res.arrayBuffer());
+                    let img;
+                    if (imageUrl.toLowerCase().endsWith(".png")) {
+                        img = await pdfDoc.embedPng(imgBytes);
+                    } else {
+                        img = await pdfDoc.embedJpg(imgBytes);
+                    }
+                    const scale = Math.min(width / img.width, bandHeight / img.height);
+                    const imgWidth = img.width * scale;
+                    const imgHeight = img.height * scale;
+                    cover.drawImage(img, {
+                        x: (width - imgWidth) / 2,
+                        y: height - bandHeight + (bandHeight - imgHeight) / 2,
+                        width: imgWidth,
+                        height: imgHeight,
+                    });
+                }
+
+                const titleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+                const textFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                cover.drawText(report.title || "", {
+                    x: 40,
+                    y: height - bandHeight - 60,
+                    size: 24,
+                    font: titleFont,
+                });
+                const textContent = typeof cp.text_content === "string" ? cp.text_content : "";
+                textContent.split(/\r?\n/).forEach((line: string, idx: number) => {
+                    cover.drawText(line, {
+                        x: 40,
+                        y: height - bandHeight - 90 - idx * 16,
+                        size: 12,
+                        font: textFont,
+                    });
+                });
+            }
+        } catch (err) {
+            console.warn("⚠️ Could not load cover page", err);
         }
     }
 
