@@ -11,6 +11,7 @@ const MANUALLY_HANDLED_KEY_PREFIXES = [
     "reportData.3_roof_deck_attachment.selectedOption",
     "reportData.4_roof_to_wall_attachment.selectedOption",
     "reportData.5_roof_geometry",
+    "reportData.6_secondary_water_resistance.selectedOption",
 ];
 
 function parseAddress(full: string): {street: string; city: string; state: string; zip: string} {
@@ -309,6 +310,31 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
                     console.warn("⚠️ Could not set total roof area", err);
                 }
             }
+        }
+    }
+
+    // Handle Secondary Water Resistance (Q6)
+    const swrValue = report.reportData?.["6_secondary_water_resistance"]?.selectedOption;
+    if (swrValue) {
+        const option = String(swrValue).toUpperCase();
+        try {
+            const checkbox = form.getCheckBox(`swr${option}` as never);
+            checkbox.check();
+            ["A", "B", "C"].forEach((letter) => {
+                if (letter !== option) {
+                    try {
+                        form.getCheckBox(`swr${letter}` as never).uncheck();
+                    } catch {
+                        // Ignore missing checkboxes
+                    }
+                }
+            });
+            console.log(`✅ Checked secondary water resistance option "${option}"`);
+        } catch (err) {
+            console.warn(
+                `⚠️ Could not check secondary water resistance option "${option}"`,
+                err
+            );
         }
     }
 
