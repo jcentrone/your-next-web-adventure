@@ -60,6 +60,33 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## Managing Cover Pages
+
+The app supports fully customizable cover pages for reports.
+
+### Creating a cover page
+
+1. From the header, open **Cover Page Manager** or visit `/cover-page-manager`.
+2. Click **New Cover Page**.
+3. Enter a name and choose a **Template** (Default or Modern).
+4. Pick a color, add optional text and an image URL.
+5. Select the report types this cover page should apply to.
+6. Save to create the cover page.
+
+### Editing and assigning
+
+* On the Cover Page Manager page, click **Edit** next to any cover page to change its
+  template, color palette, text, image, or assigned report types.
+* Use the **Report Type Assignments** section to set the default cover page for
+  **Home Inspection** or **Wind Mitigation** reports.
+* When creating a new report, you can also choose a cover page from the **Cover Page**
+  dropdown.
+
+### Generating PDFs with a cover page
+
+After a cover page is assigned, generate a report PDF from the report preview. The
+selected cover page will appear at the beginning of the PDF.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/069944d1-052a-41dd-b482-c41df0da3591) and click on Share -> Publish.
