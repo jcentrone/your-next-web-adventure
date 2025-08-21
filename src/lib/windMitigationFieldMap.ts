@@ -59,7 +59,6 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     "reportData.2_roof_covering.coverings.other.no_information_provided_for_compliance": "otherNoCompliance",
     "reportData.2_roof_covering.coverings.other.description": "otherRoofCoveringType",
     // --- Secondary Water Resistance (Q6) ---
-    "reportData.6_secondary_water_resistance.selectedOption": "swrA",
 
     // --- Opening Protection (Q7) ---
     "reportData.7_opening_protection.glazedOverall": "oplA",
