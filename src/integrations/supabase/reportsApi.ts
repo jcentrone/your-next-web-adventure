@@ -25,7 +25,14 @@ function toDbPayload(report: Report) {
     cover_image: report.coverImage || null,
     preview_template: report.previewTemplate || 'classic',
     report_type: report.reportType,
-    report_data: report.reportType === "wind_mitigation" ? report.reportData : null,  };
+    report_data: report.reportType === "wind_mitigation" ? report.reportData : null,
+    phone_home: (report as any).phoneHome || null,
+    phone_work: (report as any).phoneWork || null,
+    phone_cell: (report as any).phoneCell || null,
+    insurance_company: (report as any).insuranceCompany || null,
+    policy_number: (report as any).policyNumber || null,
+    email: (report as any).email || null,
+  };
 }
 
 function fromDbRow(row: any): Report {
@@ -43,6 +50,12 @@ function fromDbRow(row: any): Report {
     previewTemplate: row.preview_template || "classic",
     reportData: row.report_data ?? {},
     reportType,
+    phoneHome: row.phone_home || "",
+    phoneWork: row.phone_work || "",
+    phoneCell: row.phone_cell || "",
+    insuranceCompany: row.insurance_company || "",
+    policyNumber: row.policy_number || "",
+    email: row.email || "",
   };
 
   if (reportType === "home_inspection") {
@@ -141,6 +154,12 @@ export async function dbCreateReport(meta: {
   inspectionDate: string; // 'YYYY-MM-DD' or ISO
   contact_id?: string;
   reportType: "home_inspection" | "wind_mitigation";
+  phoneHome?: string;
+  phoneWork?: string;
+  phoneCell?: string;
+  insuranceCompany?: string;
+  policyNumber?: string;
+  email?: string;
 }, userId: string, organizationId?: string): Promise<Report> {
   const id = crypto.randomUUID();
 
@@ -180,6 +199,12 @@ export async function dbCreateReport(meta: {
       coverImage: "",
       previewTemplate: "classic",
       reportType: "wind_mitigation",
+      phoneHome: meta.phoneHome || "",
+      phoneWork: meta.phoneWork || "",
+      phoneCell: meta.phoneCell || "",
+      insuranceCompany: meta.insuranceCompany || "",
+      policyNumber: meta.policyNumber || "",
+      email: meta.email || "",
       reportData: {
         "1_building_code": {},
         "2_roof_covering": {},
