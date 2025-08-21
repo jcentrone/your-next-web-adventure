@@ -6,10 +6,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { WIND_MITIGATION_QUESTIONS } from "@/constants/windMitigationQuestions";
 import { WindMitigationQuestionField } from "./WindMitigationQuestionField";
+import { WindMitigationData } from "@/lib/reportSchemas";
 
 interface RoofCoveringQuestionProps {
-  control: Control<Record<string, unknown>>;
-  watch: UseFormWatch<Record<string, unknown>>;
+  control: Control<WindMitigationData>;
+  watch: UseFormWatch<WindMitigationData>;
 }
 
 export const RoofCoveringQuestion: React.FC<RoofCoveringQuestionProps> = ({ control, watch }) => {
@@ -70,7 +71,7 @@ export const RoofCoveringQuestion: React.FC<RoofCoveringQuestionProps> = ({ cont
         </div>
 
         {/* Overall Compliance */}
-        {Object.values(selectedCoverings || {}).some((c) => c?.selected) && (
+        {selectedCoverings && Object.values(selectedCoverings).some((c: any) => c?.selected) && (
           <div className="pt-4 border-t">
             <FormField
               control={control}

@@ -1,7 +1,7 @@
 import React from "react";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {WindMitigationDataSchema, WindMitigationReport} from "@/lib/reportSchemas";
+import {WindMitigationDataSchema, WindMitigationReport, WindMitigationData} from "@/lib/reportSchemas";
 import {Form} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
 import {toast} from "@/hooks/use-toast";
@@ -20,7 +20,7 @@ interface WindMitigationEditorProps {
 const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUpdate}) => {
     console.log("WindMitigationEditor render", {reportId: report.id, reportData: report.reportData});
 
-    const form = useForm({
+    const form = useForm<WindMitigationData>({
         resolver: zodResolver(WindMitigationDataSchema),
         defaultValues: report.reportData || {
             "1_building_code": {},

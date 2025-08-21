@@ -498,17 +498,17 @@ export type Database = {
           contact_id: string | null
           cover_image: string | null
           created_at: string
+          email: string | null
           final_comments: string | null
           id: string
           inspection_date: string
+          insurance_company: string | null
           organization_id: string | null
-          preview_template: string
+          phone_cell: string | null
           phone_home: string | null
           phone_work: string | null
-          phone_cell: string | null
-          insurance_company: string | null
           policy_number: string | null
-          email: string | null
+          preview_template: string
           report_data: Json | null
           report_type: string | null
           sections: Json | null
@@ -524,17 +524,17 @@ export type Database = {
           contact_id?: string | null
           cover_image?: string | null
           created_at?: string
+          email?: string | null
           final_comments?: string | null
           id?: string
           inspection_date: string
+          insurance_company?: string | null
           organization_id?: string | null
-          preview_template?: string
+          phone_cell?: string | null
           phone_home?: string | null
           phone_work?: string | null
-          phone_cell?: string | null
-          insurance_company?: string | null
           policy_number?: string | null
-          email?: string | null
+          preview_template?: string
           report_data?: Json | null
           report_type?: string | null
           sections?: Json | null
@@ -550,17 +550,17 @@ export type Database = {
           contact_id?: string | null
           cover_image?: string | null
           created_at?: string
+          email?: string | null
           final_comments?: string | null
           id?: string
           inspection_date?: string
+          insurance_company?: string | null
           organization_id?: string | null
-          preview_template?: string
+          phone_cell?: string | null
           phone_home?: string | null
           phone_work?: string | null
-          phone_cell?: string | null
-          insurance_company?: string | null
           policy_number?: string | null
-          email?: string | null
+          preview_template?: string
           report_data?: Json | null
           report_type?: string | null
           sections?: Json | null

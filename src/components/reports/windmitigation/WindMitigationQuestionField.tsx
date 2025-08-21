@@ -10,6 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { WindMitigationData } from "@/lib/reportSchemas";
 
 interface QuestionField {
   name: string;
@@ -20,7 +21,7 @@ interface QuestionField {
 
 interface WindMitigationQuestionFieldProps {
   field: QuestionField;
-  control: Control<any>;
+  control: Control<WindMitigationData>;
   questionId: string;
   optionCode?: string;
   coveringType?: string;
@@ -67,7 +68,7 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
         return (
           <FormField
             control={control}
-            name={fieldName}
+            name={fieldName as any}
             render={({ field: formField }) => (
               <FormItem className="flex flex-col">
                 <FormLabel className="text-sm font-medium">
@@ -112,7 +113,7 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
         return (
           <FormField
             control={control}
-            name={fieldName}
+            name={fieldName as any}
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium">
@@ -138,7 +139,7 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
         return (
           <FormField
             control={control}
-            name={fieldName}
+            name={fieldName as any}
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium">
@@ -162,7 +163,7 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
         return field.name === "description" ? (
           <FormField
             control={control}
-            name={fieldName}
+            name={fieldName as any}
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium">
@@ -181,7 +182,7 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
         ) : (
           <FormField
             control={control}
-            name={fieldName}
+            name={fieldName as any}
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium">
@@ -202,7 +203,7 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
         return (
           <FormField
             control={control}
-            name={fieldName}
+            name={fieldName as any}
             render={({ field: formField }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>

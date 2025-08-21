@@ -5,9 +5,10 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { WIND_MITIGATION_QUESTIONS } from "@/constants/windMitigationQuestions";
 import { WindMitigationQuestionField } from "./WindMitigationQuestionField";
+import { WindMitigationData } from "@/lib/reportSchemas";
 
 interface BuildingCodeQuestionProps {
-  control: Control<any>;
+  control: Control<WindMitigationData>;
   watch: any;
 }
 

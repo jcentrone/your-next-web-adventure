@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { WindMitigationQuestionField } from "./WindMitigationQuestionField";
+import { WindMitigationData } from "@/lib/reportSchemas";
 
 interface QuestionOption {
   code: string;
@@ -21,7 +22,7 @@ interface Question {
 interface GenericQuestionProps {
   question: any; // Use any since the question structure varies between types
   questionNumber: number;
-  control: Control<any>;
+  control: Control<WindMitigationData>;
   watch: any;
 }
 
@@ -55,7 +56,7 @@ export const GenericQuestion: React.FC<GenericQuestionProps> = ({
       <CardContent className="space-y-4">
         <FormField
           control={control}
-          name={`${question.id}.selectedOption`}
+          name={`${question.id}.selectedOption` as any}
           render={({ field }) => (
             <FormItem className="space-y-3">
               <FormControl>

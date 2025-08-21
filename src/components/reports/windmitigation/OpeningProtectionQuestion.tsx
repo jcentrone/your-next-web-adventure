@@ -5,9 +5,10 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WIND_MITIGATION_QUESTIONS } from "@/constants/windMitigationQuestions";
+import { WindMitigationData } from "@/lib/reportSchemas";
 
 interface OpeningProtectionQuestionProps {
-  control: Control<Record<string, unknown>>;
+  control: Control<WindMitigationData>;
   watch: (field: string) => unknown;
 }
 
