@@ -67,7 +67,7 @@ const WindMitigationNew: React.FC = () => {
       insuranceCompany: "",
       policyNumber: "",
       email: "",
-      coverPageId: "",
+      coverPageId: "none",
     },
   });
 
@@ -126,7 +126,7 @@ const WindMitigationNew: React.FC = () => {
             insuranceCompany: values.insuranceCompany,
             policyNumber: values.policyNumber,
             email: values.email,
-            coverPageId: values.coverPageId,
+            coverPageId: values.coverPageId === "none" ? undefined : values.coverPageId,
           },
           user.id,
           profile?.organization_id || undefined
@@ -349,14 +349,14 @@ const WindMitigationNew: React.FC = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cover Page</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || "none"}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select cover page" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {coverPages.map(cp => (
                         <SelectItem key={cp.id} value={cp.id}>{cp.name}</SelectItem>
                       ))}

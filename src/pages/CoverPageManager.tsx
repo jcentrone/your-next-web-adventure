@@ -84,10 +84,10 @@ export default function CoverPageManager() {
   };
 
   const currentAssignment = (rt: string) =>
-    assignments.find((a) => a.report_type === rt)?.cover_page_id || "";
+    assignments.find((a) => a.report_type === rt)?.cover_page_id || "none";
 
   const handleReportTypeChange = async (rt: string, coverPageId: string) => {
-    if (!coverPageId) {
+    if (coverPageId === "none") {
       await removeAssignmentFromReportType(rt);
     } else {
       await assignCoverPageToReportType(rt, coverPageId);
@@ -120,7 +120,7 @@ export default function CoverPageManager() {
                   <SelectValue placeholder="Select cover page" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {coverPages.map((cp) => (
                     <SelectItem key={cp.id} value={cp.id}>
                       {cp.name}
