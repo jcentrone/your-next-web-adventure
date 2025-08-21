@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Eye, Trash2, Archive, ArchiveRestore } from "lucide-react";
+import {downloadWindMitigationReport} from "@/utils/fillWindMitigationPDF";
 
 interface ReportsListViewProps {
   reports: any[];
@@ -59,12 +60,22 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
                     Edit
                   </Link>
                 </Button>
-                <Button asChild size="sm" variant="outline">
-                  <Link to={`/reports/${report.id}/preview`}>
-                    <Eye className="h-4 w-4 mr-1" />
-                    Preview
-                  </Link>
-                </Button>
+                {report.reportType === "wind_mitigation" ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadWindMitigationReport(report.id)}
+                  >
+                    Download
+                  </Button>
+                ) : (
+                  <Button asChild size="sm" variant="outline">
+                    <Link to={`/reports/${report.id}/preview`}>
+                      <Eye className="h-4 w-4 mr-1" />
+                      Preview
+                    </Link>
+                  </Button>
+                )}
               </>
             )}
             {onArchive && (

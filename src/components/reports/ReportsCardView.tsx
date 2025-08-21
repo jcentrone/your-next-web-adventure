@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Archive, ArchiveRestore } from "lucide-react";
+import {downloadWindMitigationReport} from "@/utils/fillWindMitigationPDF";
 
 interface ReportsCardViewProps {
   reports: any[];
@@ -41,9 +42,19 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
                 <Button asChild size="sm">
                   <Link to={`/reports/${r.id}`}>Open</Link>
                 </Button>
-                <Button asChild size="sm" variant="outline">
-                  <Link to={`/reports/${r.id}/preview`}>Preview</Link>
-                </Button>
+                {r.reportType === "wind_mitigation" ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadWindMitigationReport(r.id)}
+                  >
+                    Download
+                  </Button>
+                ) : (
+                  <Button asChild size="sm" variant="outline">
+                    <Link to={`/reports/${r.id}/preview`}>Preview</Link>
+                  </Button>
+                )}
               </>
             )}
             {onArchive && (
