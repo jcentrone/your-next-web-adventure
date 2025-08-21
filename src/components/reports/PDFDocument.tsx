@@ -4,15 +4,22 @@ import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
 import { AlertTriangle, AlertCircle, AlertOctagon, Info, Wrench, MinusCircle } from "lucide-react";
 import ReportDetailsSection from "./ReportDetailsSection";
 import SectionInfoDisplay from "./SectionInfoDisplay";
+import { CoverPagePreview } from "@/components/cover-pages/CoverPagePreview";
 
 interface PDFDocumentProps {
   report: Report;
   mediaUrlMap: Record<string, string>;
   coverUrl: string;
+  coverPage?: {
+    title: string;
+    text?: string;
+    color: string;
+    imageUrl?: string | null;
+  };
 }
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
-  ({ report, mediaUrlMap, coverUrl }, ref) => {
+  ({ report, mediaUrlMap, coverUrl, coverPage }, ref) => {
     // Only render PDFs for home inspection reports for now
     if (report.reportType !== "home_inspection") {
       return (
@@ -65,6 +72,11 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
     return (
       <div ref={ref} className="pdf-document">
+        {coverPage && (
+          <section className="pdf-page-break flex justify-center">
+            <CoverPagePreview {...coverPage} />
+          </section>
+        )}
         <article className={tpl.container}>
           {/* Cover Page */}
           <section className={`${tpl.cover} pdf-page-break`}>

@@ -7,6 +7,8 @@ import {useAuth} from "@/contexts/AuthContext";
 import {dbGetReport, dbUpdateReport} from "@/integrations/supabase/reportsApi";
 import {Report} from "@/lib/reportSchemas";
 import {getSignedUrlFromSupabaseUrl, isSupabaseUrl} from "@/integrations/supabase/storage";
+import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
+import {CoverPagePreview} from "@/components/cover-pages/CoverPagePreview";
 import {Badge} from "@/components/ui/badge";
 import {PREVIEW_TEMPLATES} from "@/constants/previewTemplates";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
@@ -83,6 +85,7 @@ const ReportPreview: React.FC = () => {
     const [report, setReport] = React.useState<Report | null>(null);
     const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
     const [coverUrl, setCoverUrl] = React.useState<string>("");
+    const [coverPage, setCoverPage] = React.useState<{ color: string; text?: string; imageUrl?: string } | null>(null);
     const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
     const pdfRef = React.useRef<HTMLDivElement>(null);
 
@@ -214,6 +217,33 @@ const ReportPreview: React.FC = () => {
                     if (!cancelled) setCoverUrl(report.coverImage);
                 }
             }
+            // cover page
+            if (report.coverPageId) {
+                try {
+                    const pages = await coverPagesApi.getCoverPages(user.id);
+                    const cp = pages.find((p) => p.id === report.coverPageId);
+                    if (cp) {
+                        let imageUrl = cp.image_url || undefined;
+                        if (imageUrl && isSupabaseUrl(imageUrl)) {
+                            imageUrl = await getSignedUrlFromSupabaseUrl(imageUrl);
+                        }
+                        if (!cancelled) {
+                            setCoverPage({
+                                color: cp.color_palette_key || "#000000",
+                                text: (cp.text_content as string) || "",
+                                imageUrl,
+                            });
+                        }
+                    } else if (!cancelled) {
+                        setCoverPage(null);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    if (!cancelled) setCoverPage(null);
+                }
+            } else if (!cancelled) {
+                setCoverPage(null);
+            }
         })();
 
         return () => {
@@ -314,6 +344,16 @@ const ReportPreview: React.FC = () => {
                     {isGeneratingPDF ? 'Generating PDF...' : 'Download PDF'}
                 </Button>
             </div>
+            {coverPage && (
+                <section className="page-break flex justify-center">
+                    <CoverPagePreview
+                        title={report.title}
+                        text={coverPage.text}
+                        color={coverPage.color}
+                        imageUrl={coverPage.imageUrl}
+                    />
+                </section>
+            )}
             <article className={tpl.container}>
                 {/* Cover Page */}
                 <section className={`${tpl.cover} page-break`}>
@@ -449,6 +489,12 @@ const ReportPreview: React.FC = () => {
                     report={report}
                     mediaUrlMap={mediaUrlMap}
                     coverUrl={coverUrl}
+                    coverPage={coverPage ? {
+                        title: report.title,
+                        text: coverPage.text,
+                        color: coverPage.color,
+                        imageUrl: coverPage.imageUrl
+                    } : undefined}
                 />
             </div>
         </>
