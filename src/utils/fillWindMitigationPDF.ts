@@ -8,6 +8,8 @@ import {WIND_MITIGATION_FIELD_MAP} from "@/lib/windMitigationFieldMap";
 const MANUALLY_HANDLED_KEY_PREFIXES = [
     "reportData.1_building_code",
     "reportData.2_roof_covering.overall_compliance",
+    "reportData.3_roof_deck_attachment.selectedOption",
+    "reportData.4_roof_to_wall_attachment.selectedOption",
 ];
 
 function parseAddress(full: string): {street: string; city: string; state: string; zip: string} {
@@ -189,6 +191,56 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         } catch (err) {
             console.warn(
                 `⚠️ Could not check roof covering compliance option "${option}"`,
+                err
+            );
+        }
+    }
+
+    // Handle Roof Deck Attachment (Q3)
+    const roofDeckValue = report.reportData?.["3_roof_deck_attachment"]?.selectedOption;
+    if (roofDeckValue) {
+        const option = String(roofDeckValue).toUpperCase();
+        try {
+            const checkbox = form.getCheckBox(`roofDeck${option}` as never);
+            checkbox.check();
+            ["A", "B", "C", "D", "E", "F", "G"].forEach((letter) => {
+                if (letter !== option) {
+                    try {
+                        form.getCheckBox(`roofDeck${letter}` as never).uncheck();
+                    } catch (err) {
+                        // Ignore missing checkboxes
+                    }
+                }
+            });
+            console.log(`✅ Checked roof deck attachment option "${option}"`);
+        } catch (err) {
+            console.warn(
+                `⚠️ Could not check roof deck attachment option "${option}"`,
+                err
+            );
+        }
+    }
+
+    // Handle Roof to Wall Attachment (Q4)
+    const roofWallValue = report.reportData?.["4_roof_to_wall_attachment"]?.selectedOption;
+    if (roofWallValue) {
+        const option = String(roofWallValue).toUpperCase();
+        try {
+            const checkbox = form.getCheckBox(`roofWall${option}` as never);
+            checkbox.check();
+            ["A", "B", "C", "D", "E", "F", "G", "H"].forEach((letter) => {
+                if (letter !== option) {
+                    try {
+                        form.getCheckBox(`roofWall${letter}` as never).uncheck();
+                    } catch (err) {
+                        // Ignore missing checkboxes
+                    }
+                }
+            });
+            console.log(`✅ Checked roof to wall attachment option "${option}"`);
+        } catch (err) {
+            console.warn(
+                `⚠️ Could not check roof to wall attachment option "${option}"`,
                 err
             );
         }

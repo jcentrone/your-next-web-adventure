@@ -58,12 +58,6 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     "reportData.2_roof_covering.coverings.other.year_of_original_install_or_replacement": "clayTileInstallReplaceDate",
     "reportData.2_roof_covering.coverings.other.no_information_provided_for_compliance": "otherNoCompliance",
 
-    // --- Roof Deck Attachments (Q3) ---
-    "reportData.3_roof_deck_attachment.selectedOption": "roofDeckA",
-
-    // --- Roof to Wall Attachment (Q4) ---
-    "reportData.4_roof_to_wall_attachment.selectedOption": "roofWallA",
-
     // --- Roof Geometry (Q5) ---
     "reportData.5_roof_geometry.selectedOption": "roofGeometryA",
     "reportData.5_roof_geometry.fields.total_roof_system_perimeter_ft": "roofGeometryB",
