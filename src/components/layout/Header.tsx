@@ -60,6 +60,9 @@ const Header: React.FC = () => {
               <Link to="/section-manager" className="transition-colors hover:text-primary">
                 Section Manager
               </Link>
+              <Link to="/cover-page-manager" className="transition-colors hover:text-primary">
+                Cover Pages
+              </Link>
             </>
           ) : (
             <>
@@ -112,6 +115,9 @@ const Header: React.FC = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/section-manager">Section Manager</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/cover-page-manager">Cover Page Manager</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
