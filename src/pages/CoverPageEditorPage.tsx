@@ -3,29 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { CoverPagePreview } from "@/components/cover-pages/CoverPagePreview";
+import {
+  CoverPageForm,
+  CoverPageFormFields,
+} from "@/components/cover-pages/CoverPageFormFields";
 import useCoverPages from "@/hooks/useCoverPages";
-
-const TEMPLATES = [
-  { value: "default", label: "Default" },
-  { value: "modern", label: "Modern" },
-];
-
-const REPORT_TYPES = [
-  { value: "home_inspection", label: "Home Inspection" },
-  { value: "wind_mitigation", label: "Wind Mitigation" },
-];
 
 export default function CoverPageEditorPage() {
   const navigate = useNavigate();
@@ -42,16 +25,7 @@ export default function CoverPageEditorPage() {
   const editing = !!id;
   const coverPage = editing ? coverPages.find((cp) => cp.id === id) : undefined;
 
-  interface CoverPageForm {
-    name: string;
-    template: string;
-    color: string;
-    text: string;
-    imageUrl: string;
-    reportTypes: string[];
-  }
-
-  const { register, handleSubmit, watch, setValue, reset } = useForm<CoverPageForm>({
+  const form = useForm<CoverPageForm>({
     defaultValues: {
       name: "",
       template: "default",
@@ -61,13 +35,12 @@ export default function CoverPageEditorPage() {
       reportTypes: [],
     },
   });
+  const { handleSubmit, watch, reset } = form;
 
   const name = watch("name");
-  const template = watch("template");
   const color = watch("color");
   const text = watch("text");
   const imageUrl = watch("imageUrl");
-  const reportTypes = watch("reportTypes");
 
   useEffect(() => {
     if (coverPage) {
@@ -84,18 +57,6 @@ export default function CoverPageEditorPage() {
       });
     }
   }, [coverPage, assignments, reset]);
-
-  const toggleReportType = (rt: string) => {
-    const current = watch("reportTypes");
-    if (current.includes(rt)) {
-      setValue(
-        "reportTypes",
-        current.filter((t) => t !== rt),
-      );
-    } else {
-      setValue("reportTypes", [...current, rt]);
-    }
-  };
 
   const handleSave = handleSubmit(async (data) => {
     if (editing && coverPage) {
@@ -148,52 +109,7 @@ export default function CoverPageEditorPage() {
         </Button>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <form onSubmit={handleSave} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" {...register("name")}/>
-            </div>
-            <div>
-              <Label>Template</Label>
-              <Select value={template} onValueChange={(val) => setValue("template", val)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TEMPLATES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="text">Text</Label>
-              <Textarea id="text" {...register("text")} />
-            </div>
-            <div>
-              <Label htmlFor="color">Color</Label>
-              <Input id="color" type="color" {...register("color")} />
-            </div>
-            <div>
-              <Label htmlFor="imageUrl">Image URL</Label>
-              <Input id="imageUrl" {...register("imageUrl")} placeholder="https://" />
-            </div>
-            <div className="space-y-2">
-              <Label>Report Types</Label>
-              {REPORT_TYPES.map((rt) => (
-                <div key={rt.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`rt-${rt.value}`}
-                    checked={reportTypes.includes(rt.value)}
-                    onCheckedChange={() => toggleReportType(rt.value)}
-                  />
-                  <label htmlFor={`rt-${rt.value}`} className="text-sm">
-                    {rt.label}
-                  </label>
-                </div>
-              ))}
-            </div>
+            <CoverPageFormFields form={form} />
             <div className="flex gap-2">
               <Button
                 type="button"
