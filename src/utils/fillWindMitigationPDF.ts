@@ -10,6 +10,7 @@ const MANUALLY_HANDLED_KEY_PREFIXES = [
     "reportData.2_roof_covering.overall_compliance",
     "reportData.3_roof_deck_attachment.selectedOption",
     "reportData.4_roof_to_wall_attachment.selectedOption",
+    "reportData.5_roof_geometry",
 ];
 
 function parseAddress(full: string): {street: string; city: string; state: string; zip: string} {
@@ -243,6 +244,71 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
                 `⚠️ Could not check roof to wall attachment option "${option}"`,
                 err
             );
+        }
+    }
+
+    // Handle Roof Geometry (Q5)
+    const geom = report.reportData?.["5_roof_geometry"];
+    if (geom?.selectedOption) {
+        const option = String(geom.selectedOption).toUpperCase();
+        try {
+            const checkbox = form.getCheckBox(`roofGeometry${option}` as never);
+            checkbox.check();
+            ["A", "B", "C"].forEach((letter) => {
+                if (letter !== option) {
+                    try {
+                        form.getCheckBox(`roofGeometry${letter}` as never).uncheck();
+                    } catch {
+                        // Ignore missing checkboxes
+                    }
+                }
+            });
+            console.log(`✅ Checked roof geometry option "${option}"`);
+        } catch (err) {
+            console.warn(`⚠️ Could not check roof geometry option "${option}"`, err);
+        }
+
+        const fields = geom.fields || {};
+        if (option === "A") {
+            if (fields.total_roof_system_perimeter_ft) {
+                try {
+                    form
+                        .getTextField("feet Total roof system perimeter" as never)
+                        .setText(String(fields.total_roof_system_perimeter_ft));
+                } catch (err) {
+                    console.warn("⚠️ Could not set total roof system perimeter", err);
+                }
+            }
+            if (fields.non_hip_feature_total_length_ft) {
+                try {
+                    form
+                        .getTextField("Total length of nonhip features" as never)
+                        .setText(String(fields.non_hip_feature_total_length_ft));
+                } catch (err) {
+                    console.warn("⚠️ Could not set non-hip feature total length", err);
+                }
+            }
+        } else if (option === "B") {
+            if (fields.area_lt_2to12_sqft) {
+                try {
+                    form
+                        .getTextField(
+                            "less than 212 Roof area with slope less than 212" as never
+                        )
+                        .setText(String(fields.area_lt_2to12_sqft));
+                } catch (err) {
+                    console.warn("⚠️ Could not set low slope area", err);
+                }
+            }
+            if (fields.total_roof_area_sqft) {
+                try {
+                    form
+                        .getTextField("sq ft Total roof area" as never)
+                        .setText(String(fields.total_roof_area_sqft));
+                } catch (err) {
+                    console.warn("⚠️ Could not set total roof area", err);
+                }
+            }
         }
     }
 

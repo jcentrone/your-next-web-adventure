@@ -58,12 +58,6 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     "reportData.2_roof_covering.coverings.other.year_of_original_install_or_replacement": "otherInstallReplaceDate",
     "reportData.2_roof_covering.coverings.other.no_information_provided_for_compliance": "otherNoCompliance",
     "reportData.2_roof_covering.coverings.other.description": "otherRoofCoveringType",
-
-    // --- Roof Geometry (Q5) ---
-    "reportData.5_roof_geometry.selectedOption": "roofGeometryA",
-    "reportData.5_roof_geometry.fields.total_roof_system_perimeter_ft": "roofGeometryB",
-    "reportData.5_roof_geometry.fields.non_hip_feature_total_length_ft": "roofGeometryC",
-
     // --- Secondary Water Resistance (Q6) ---
     "reportData.6_secondary_water_resistance.selectedOption": "swrA",
 
