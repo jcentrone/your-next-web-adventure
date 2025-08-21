@@ -1,11 +1,8 @@
-import { useState } from "react";
 import Seo from "@/components/Seo";
 import { CoverPageList } from "@/components/cover-pages/CoverPageList";
-import { CoverPageEditor } from "@/components/cover-pages/CoverPageEditor";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import useCoverPages from "@/hooks/useCoverPages";
-import type { CoverPage } from "@/integrations/supabase/coverPagesApi";
 
 const REPORT_TYPES = [
   { value: "home_inspection", label: "Home Inspection" },
@@ -16,72 +13,9 @@ export default function CoverPageManager() {
   const {
     coverPages,
     assignments,
-    createCoverPage,
-    updateCoverPage,
     assignCoverPageToReportType,
     removeAssignmentFromReportType,
   } = useCoverPages();
-
-  const [editorOpen, setEditorOpen] = useState(false);
-  const [editing, setEditing] = useState<CoverPage | undefined>();
-  const [initialReportTypes, setInitialReportTypes] = useState<string[]>([]);
-
-  const handleCreate = () => {
-    setEditing(undefined);
-    setInitialReportTypes([]);
-    setEditorOpen(true);
-  };
-
-  const handleEdit = (cp: CoverPage) => {
-    setEditing(cp);
-    const assigned = assignments
-      .filter((a) => a.cover_page_id === cp.id)
-      .map((a) => a.report_type);
-    setInitialReportTypes(assigned);
-    setEditorOpen(true);
-  };
-
-  const handleSave = async (data: {
-    name: string;
-    templateSlug?: string;
-    colorPaletteKey?: string;
-    textContent?: string;
-    imageUrl?: string;
-    reportTypes: string[];
-  }) => {
-    if (editing) {
-      await updateCoverPage(editing.id, {
-        name: data.name,
-        template_slug: data.templateSlug,
-        color_palette_key: data.colorPaletteKey,
-        text_content: data.textContent,
-        image_url: data.imageUrl,
-      });
-      const current = assignments
-        .filter((a) => a.cover_page_id === editing.id)
-        .map((a) => a.report_type);
-      for (const rt of current) {
-        if (!data.reportTypes.includes(rt)) {
-          await removeAssignmentFromReportType(rt);
-        }
-      }
-      for (const rt of data.reportTypes) {
-        await assignCoverPageToReportType(rt, editing.id);
-      }
-    } else {
-      const newCp = await createCoverPage({
-        name: data.name,
-        template_slug: data.templateSlug,
-        color_palette_key: data.colorPaletteKey,
-        text_content: data.textContent,
-        image_url: data.imageUrl,
-      });
-      for (const rt of data.reportTypes) {
-        await assignCoverPageToReportType(rt, newCp.id);
-      }
-    }
-    setEditorOpen(false);
-  };
 
   const currentAssignment = (rt: string) =>
     assignments.find((a) => a.report_type === rt)?.cover_page_id || "none";
@@ -101,11 +35,7 @@ export default function CoverPageManager() {
         description="Manage custom cover pages for your reports"
       />
       <div className="max-w-4xl mx-auto p-4 space-y-8">
-        <CoverPageList
-          coverPages={coverPages}
-          onEdit={handleEdit}
-          onCreate={handleCreate}
-        />
+        <CoverPageList coverPages={coverPages} />
 
         <div className="space-y-4">
           <h2 className="text-xl font-bold">Report Type Assignments</h2>
@@ -132,13 +62,6 @@ export default function CoverPageManager() {
           ))}
         </div>
 
-        <CoverPageEditor
-          open={editorOpen}
-          onOpenChange={setEditorOpen}
-          coverPage={editing}
-          initialReportTypes={initialReportTypes}
-          onSave={handleSave}
-        />
       </div>
     </>
   );
