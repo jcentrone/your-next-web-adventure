@@ -46,6 +46,8 @@ export const BaseReportSchema = z.object({
     title: z.string().min(1, "Report title is required"),
     clientName: z.string().min(1, "Client name is required"),
     address: z.string().min(1, "Address is required"),
+    county: z.string().optional(),
+    ofStories: z.string().optional(),
     inspectionDate: z.string(), // ISO
     status: z.enum(["Draft", "Final"]).default("Draft"),
     finalComments: z.string().optional().default(""),

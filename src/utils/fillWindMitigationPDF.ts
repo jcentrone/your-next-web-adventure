@@ -117,6 +117,8 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         street,
         city,
         zip,
+        county: report.county,
+        ofStories: report.ofStories,
         phoneHome: report.phoneHome,
         phoneWork: report.phoneWork,
         phoneCell: report.phoneCell,

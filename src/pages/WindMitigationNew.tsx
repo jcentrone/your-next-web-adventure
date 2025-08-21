@@ -20,6 +20,8 @@ const schema = z.object({
   title: z.string().min(1, "Required"),
   clientName: z.string().min(1, "Required"),
   address: z.string().min(1, "Address is required"),
+  county: z.string().optional(),
+  ofStories: z.string().optional(),
   inspectionDate: z.string().min(1, "Required"),
   contactId: z.string().optional(),
   phoneHome: z.string().optional(),
@@ -51,6 +53,8 @@ const WindMitigationNew: React.FC = () => {
       title: "",
       clientName: "",
       address: "",
+      county: "",
+      ofStories: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactId: contactId || "",
       phoneHome: "",
@@ -102,6 +106,8 @@ const WindMitigationNew: React.FC = () => {
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
             reportType: "wind_mitigation",
+            county: values.county,
+            ofStories: values.ofStories,
             phoneHome: values.phoneHome,
             phoneWork: values.phoneWork,
             phoneCell: values.phoneCell,
@@ -122,9 +128,10 @@ const WindMitigationNew: React.FC = () => {
         });
         nav('/auth');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      toast({ title: "Failed to create report", description: e?.message || "Please try again." });
+      const message = e instanceof Error ? e.message : "Please try again.";
+      toast({ title: "Failed to create report", description: message });
     }
   };
 
@@ -262,6 +269,32 @@ const WindMitigationNew: React.FC = () => {
                   <FormLabel>Policy Number</FormLabel>
                   <FormControl>
                     <Input placeholder="Policy number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="county"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>County</FormLabel>
+                  <FormControl>
+                    <Input placeholder="County" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="ofStories"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Number of Stories</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Number of stories" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

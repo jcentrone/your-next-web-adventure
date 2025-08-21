@@ -26,6 +26,8 @@ function toDbPayload(report: Report) {
     preview_template: report.previewTemplate || 'classic',
     report_type: report.reportType,
     report_data: report.reportType === "wind_mitigation" ? report.reportData : null,
+    county: (report as any).county || null,
+    ofStories: (report as any).ofStories || null,
     phone_home: (report as any).phoneHome || null,
     phone_work: (report as any).phoneWork || null,
     phone_cell: (report as any).phoneCell || null,
@@ -43,6 +45,8 @@ function fromDbRow(row: any): Report {
     title: row.title,
     clientName: row.client_name,
     address: row.address,
+    county: row.county || "",
+    ofStories: row.ofStories || "",
     inspectionDate: new Date(`${row.inspection_date}T00:00:00Z`).toISOString(),
     status: row.status,
     finalComments: row.final_comments || "",
@@ -154,6 +158,8 @@ export async function dbCreateReport(meta: {
   inspectionDate: string; // 'YYYY-MM-DD' or ISO
   contact_id?: string;
   reportType: "home_inspection" | "wind_mitigation";
+  county?: string;
+  ofStories?: string;
   phoneHome?: string;
   phoneWork?: string;
   phoneCell?: string;
@@ -178,6 +184,8 @@ export async function dbCreateReport(meta: {
       title: meta.title,
       clientName: meta.clientName,
       address: meta.address,
+      county: meta.county || "",
+      ofStories: meta.ofStories || "",
       inspectionDate: new Date(meta.inspectionDate).toISOString(),
       status: "Draft",
       finalComments: "",
@@ -193,6 +201,8 @@ export async function dbCreateReport(meta: {
       title: meta.title,
       clientName: meta.clientName,
       address: meta.address,
+      county: meta.county || "",
+      ofStories: meta.ofStories || "",
       inspectionDate: new Date(meta.inspectionDate).toISOString(),
       status: "Draft",
       finalComments: "",
