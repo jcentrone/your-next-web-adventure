@@ -84,14 +84,16 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
                     <div className="space-y-2">
                         <Label>Cover Page</Label>
                         <Select
-                            value={report.coverPageId || ""}
-                            onValueChange={(val) => onUpdate({...report, coverPageId: val})}
+                            value={report.coverPageId || "none"}
+                            onValueChange={(val) =>
+                                onUpdate({ ...report, coverPageId: val === "none" ? undefined : val })
+                            }
                         >
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Select cover page" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">None</SelectItem>
+                                <SelectItem value="none">None</SelectItem>
                                 {coverPages.map((cp) => (
                                     <SelectItem key={cp.id} value={cp.id}>
                                         {cp.name}

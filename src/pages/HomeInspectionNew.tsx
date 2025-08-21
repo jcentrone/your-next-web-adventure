@@ -58,7 +58,7 @@ const HomeInspectionNew: React.FC = () => {
       address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactId: contactId || "",
-      coverPageId: "",
+      coverPageId: "none",
     },
   });
 
@@ -98,7 +98,7 @@ const HomeInspectionNew: React.FC = () => {
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
             reportType: "home_inspection",
-            coverPageId: values.coverPageId,
+            coverPageId: values.coverPageId === "none" ? undefined : values.coverPageId,
           },
           user.id,
           profile?.organization_id || undefined
@@ -112,7 +112,7 @@ const HomeInspectionNew: React.FC = () => {
           address: values.address,
           inspectionDate: new Date(values.inspectionDate).toISOString(),
           reportType: "home_inspection",
-          coverPageId: values.coverPageId,
+          coverPageId: values.coverPageId === "none" ? undefined : values.coverPageId,
         });
         toast({ title: "Home inspection report created (local draft)" });
         nav(`/reports/${report.id}`);
@@ -244,14 +244,14 @@ const HomeInspectionNew: React.FC = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cover Page</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || "none"}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select cover page" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {coverPages.map(cp => (
                         <SelectItem key={cp.id} value={cp.id}>{cp.name}</SelectItem>
                       ))}

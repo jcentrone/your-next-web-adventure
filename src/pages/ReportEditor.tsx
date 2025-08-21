@@ -1049,16 +1049,18 @@ const ReportEditor: React.FC = () => {
               <div className="space-y-2">
                 <Label>Cover Page</Label>
                 <Select
-                  value={report.coverPageId || ""}
+                  value={report.coverPageId || "none"}
                   onValueChange={(val) =>
-                    setReport((prev) => (prev ? { ...prev, coverPageId: val } : prev))
+                    setReport((prev) =>
+                      prev ? { ...prev, coverPageId: val === "none" ? undefined : val } : prev
+                    )
                   }
                 >
                   <SelectTrigger className="w-[250px]">
                     <SelectValue placeholder="Select cover page" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {coverPages.map((cp) => (
                       <SelectItem key={cp.id} value={cp.id}>
                         {cp.name}
