@@ -30,8 +30,8 @@ export const OpeningProtectionQuestion: React.FC<OpeningProtectionQuestionProps>
             <table className="w-full border-collapse border border-border">
               <thead>
                 <tr className="bg-muted/50">
-                  <th className="border border-border p-2 text-left text-xs font-medium">Opening Type</th>
-                  <th className="border border-border p-2 text-left text-xs font-medium">Protection Level</th>
+                  <th className="border border-border p-2 text-left text-xs font-medium w-20">Opening Type</th>
+                  <th className="border border-border p-2 text-left text-xs font-medium w-80">Protection Level</th>
                 </tr>
               </thead>
               <tbody>
