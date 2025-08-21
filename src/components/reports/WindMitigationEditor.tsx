@@ -4,6 +4,8 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {WindMitigationData, WindMitigationDataSchema, WindMitigationReport} from "@/lib/reportSchemas";
 import {Form} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
+import {Label} from "@/components/ui/label";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {toast} from "@/hooks/use-toast";
 import {WIND_MITIGATION_QUESTIONS} from "@/constants/windMitigationQuestions";
 import {BuildingCodeQuestion} from "./windmitigation/BuildingCodeQuestion";
@@ -12,6 +14,7 @@ import {OpeningProtectionQuestion} from "./windmitigation/OpeningProtectionQuest
 import {GenericQuestion} from "./windmitigation/GenericQuestion";
 import {RoofToWallQuestion} from "./windmitigation/RoofToWallQuestion";
 import {dbUpdateReport} from "@/integrations/supabase/reportsApi.ts";
+import useCoverPages from "@/hooks/useCoverPages";
 
 interface WindMitigationEditorProps {
     report: WindMitigationReport;
@@ -34,7 +37,9 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
         },
     });
 
-    const {watch, control, handleSubmit, getValues} = form;
+    const {watch, control} = form;
+
+    const {coverPages} = useCoverPages();
 
     const handleSave = async () => {
         try {
@@ -75,9 +80,30 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
                     <h1 className="text-2xl font-bold">{WIND_MITIGATION_QUESTIONS.form_name}</h1>
                     <p className="text-sm text-muted-foreground">Form {WIND_MITIGATION_QUESTIONS.version}</p>
                 </div>
-                <Button onClick={handleSave} className="shrink-0">
-                    Save Report
-                </Button>
+                <div className="flex items-center gap-2">
+                    <div className="space-y-2">
+                        <Label>Cover Page</Label>
+                        <Select
+                            value={report.coverPageId || ""}
+                            onValueChange={(val) => onUpdate({...report, coverPageId: val})}
+                        >
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select cover page" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">None</SelectItem>
+                                {coverPages.map((cp) => (
+                                    <SelectItem key={cp.id} value={cp.id}>
+                                        {cp.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button onClick={handleSave} className="shrink-0">
+                        Save Report
+                    </Button>
+                </div>
             </div>
 
             <Form {...form}>
