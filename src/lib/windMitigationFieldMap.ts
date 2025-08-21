@@ -31,32 +31,33 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     "reportData.2_roof_covering.coverings.asphalt_fiberglass_shingle.no_information_provided_for_compliance": "shingleNoCompliance",
     // --- Clay/Concrete Tile ---
     "reportData.2_roof_covering.coverings.concrete_clay_tile.permit_application_date": "clayTilePermitDate",
-    "reportData.2_roof_covering.coverings.concrete_clay_tile.fbc_or_mdc_product_approval_number": "clayTileFbcMdcNumb",
-    "reportData.2_roof_covering.coverings.concrete_clay_tile.year_of_original_install_or_replacement": "clayTileInstallReplaceDate",
+    "reportData.2_roof_covering.coverings.concrete_clay_tile.fbc_or_mdc_product_approval_number": "clayTileFbcMbcNumb",
+    "reportData.2_roof_covering.coverings.concrete_clay_tile.year_of_original_install_or_replacement": "clayInstallReplaceDate",
     "reportData.2_roof_covering.coverings.concrete_clay_tile.no_information_provided_for_compliance": "clayNoCompliance",
     // --- Metal ---
-    "reportData.2_roof_covering.coverings.metal.permit_application_date": "clayTilePermitDate",
-    "reportData.2_roof_covering.coverings.metal.fbc_or_mdc_product_approval_number": "clayTileFbcMdcNumb",
-    "reportData.2_roof_covering.coverings.metal.year_of_original_install_or_replacement": "clayTileInstallReplaceDate",
+    "reportData.2_roof_covering.coverings.metal.permit_application_date": "metalPermitDate",
+    "reportData.2_roof_covering.coverings.metal.fbc_or_mdc_product_approval_number": "metalFbcMbcNumb",
+    "reportData.2_roof_covering.coverings.metal.year_of_original_install_or_replacement": "metalInstallReplaceDate",
     "reportData.2_roof_covering.coverings.metal.no_information_provided_for_compliance": "metalNoCompliance",
 
     // --- Built-Up ---
-    "reportData.2_roof_covering.coverings.built_up.permit_application_date": "clayTilePermitDate",
-    "reportData.2_roof_covering.coverings.built_up.fbc_or_mdc_product_approval_number": "clayTileFbcMdcNumb",
-    "reportData.2_roof_covering.coverings.built_up.year_of_original_install_or_replacement": "clayTileInstallReplaceDate",
+    "reportData.2_roof_covering.coverings.built_up.permit_application_date": "builtUpPermitDate",
+    "reportData.2_roof_covering.coverings.built_up.fbc_or_mdc_product_approval_number": "builtUpFbcMdcNumb",
+    "reportData.2_roof_covering.coverings.built_up.year_of_original_install_or_replacement": "builtUpInstallReplaceDate",
     "reportData.2_roof_covering.coverings.built_up.no_information_provided_for_compliance": "builtUpNoCompliance",
 
     // --- Membrane ---
-    "reportData.2_roof_covering.coverings.membrane.permit_application_date": "clayTilePermitDate",
-    "reportData.2_roof_covering.coverings.membrane.fbc_or_mdc_product_approval_number": "clayTileFbcMdcNumb",
-    "reportData.2_roof_covering.coverings.membrane.year_of_original_install_or_replacement": "clayTileInstallReplaceDate",
+    "reportData.2_roof_covering.coverings.membrane.permit_application_date": "membranePermitDate",
+    "reportData.2_roof_covering.coverings.membrane.fbc_or_mdc_product_approval_number": "membraneFbcMdcNumb",
+    "reportData.2_roof_covering.coverings.membrane.year_of_original_install_or_replacement": "membraneInstallReplaceDate",
     "reportData.2_roof_covering.coverings.membrane.no_information_provided_for_compliance": "membraneNoCompliance",
 
     // --- Other ---
-    "reportData.2_roof_covering.coverings.other.permit_application_date": "clayTilePermitDate",
-    "reportData.2_roof_covering.coverings.other.fbc_or_mdc_product_approval_number": "clayTileFbcMdcNumb",
-    "reportData.2_roof_covering.coverings.other.year_of_original_install_or_replacement": "clayTileInstallReplaceDate",
+    "reportData.2_roof_covering.coverings.other.permit_application_date": "otherPermitDate",
+    "reportData.2_roof_covering.coverings.other.fbc_or_mdc_product_approval_number": "otherFbcMdcNumb",
+    "reportData.2_roof_covering.coverings.other.year_of_original_install_or_replacement": "otherInstallReplaceDate",
     "reportData.2_roof_covering.coverings.other.no_information_provided_for_compliance": "otherNoCompliance",
+    "reportData.2_roof_covering.coverings.other.description": "otherRoofCoveringType",
 
     // --- Roof Geometry (Q5) ---
     "reportData.5_roof_geometry.selectedOption": "roofGeometryA",
