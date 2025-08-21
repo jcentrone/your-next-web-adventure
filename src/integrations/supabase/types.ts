@@ -265,6 +265,77 @@ export type Database = {
         }
         Relationships: []
       }
+      cover_page_assignments: {
+        Row: {
+          cover_page_id: string
+          created_at: string
+          id: string
+          report_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cover_page_id: string
+          created_at?: string
+          id?: string
+          report_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cover_page_id?: string
+          created_at?: string
+          id?: string
+          report_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_cover_page_assignments_cover_page"
+            columns: ["cover_page_id"]
+            isOneToOne: false
+            referencedRelation: "cover_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cover_pages: {
+        Row: {
+          color_palette_key: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+          template_slug: string | null
+          text_content: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color_palette_key?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          template_slug?: string | null
+          text_content?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color_palette_key?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          template_slug?: string | null
+          text_content?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       defects: {
         Row: {
           created_at: string
