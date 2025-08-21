@@ -58,6 +58,18 @@ export const WIND_MITIGATION_FIELD_MAP: Record<string, string> = {
     "reportData.2_roof_covering.coverings.other.year_of_original_install_or_replacement": "otherInstallReplaceDate",
     "reportData.2_roof_covering.coverings.other.no_information_provided_for_compliance": "otherNoCompliance",
     "reportData.2_roof_covering.coverings.other.description": "otherRoofCoveringType",
+
+    // --- Roof to Wall Attachment (Q4) ---
+    "reportData.4_roof_to_wall_attachment.fields.roof_wall_min_1": "roofWallMin1",
+    "reportData.4_roof_to_wall_attachment.fields.roof_wall_min_2": "roofWallMin2",
+    "reportData.4_roof_to_wall_attachment.fields.roof_wall_min_3": "roofWallMin3",
+    "reportData.4_roof_to_wall_attachment.fields.roof_wall_a_1": "roofWallA1",
+    "reportData.4_roof_to_wall_attachment.fields.roof_wall_a_2": "roofWallA2",
+    "reportData.4_roof_to_wall_attachment.fields.roof_wall_b_1": "roofWallB1",
+    "reportData.4_roof_to_wall_attachment.fields.roof_wall_b_2": "roofWallB2",
+    "reportData.4_roof_to_wall_attachment.fields.roof_wall_d_1": "roofWallD1",
+    "reportData.4_roof_to_wall_attachment.fields.roof_wall_d_2": "roofWallD2",
+
     // --- Secondary Water Resistance (Q6) ---
 
     // --- Opening Protection (Q7) ---

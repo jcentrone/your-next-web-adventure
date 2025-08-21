@@ -17,6 +17,7 @@ interface QuestionField {
   type: string;
   format?: string;
   visible_if?: any;
+  label?: string;
 }
 
 interface WindMitigationQuestionFieldProps {
@@ -72,7 +73,7 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
             render={({ field: formField }) => (
               <FormItem className="flex flex-col">
                 <FormLabel className="text-sm font-medium">
-                  {field.name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                  {field.label ?? field.name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
                 </FormLabel>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -117,7 +118,7 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium">
-                  {field.name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                  {field.label ?? field.name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -143,8 +144,8 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
             render={({ field: formField }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium">
-                  {field.name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
-                </FormLabel>
+                    {field.label ?? field.name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                  </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -213,8 +214,8 @@ export const WindMitigationQuestionField: React.FC<WindMitigationQuestionFieldPr
                   />
                 </FormControl>
                 <FormLabel className="text-sm font-medium">
-                  {field.name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
-                </FormLabel>
+                    {field.label ?? field.name.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase())}
+                  </FormLabel>
                 <FormMessage />
               </FormItem>
             )}
