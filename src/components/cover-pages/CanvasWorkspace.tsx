@@ -35,12 +35,12 @@ export function CanvasWorkspace({
       <div className="flex items-center justify-center min-h-full">
         <div
           ref={workspaceRef}
-          className={showRulers ? "relative m-8 p-8" : "relative m-8"}
+          className={showRulers ? "relative m-8 pl-8 pt-8" : "relative m-8"}
         >
           {showRulers && (
             <>
               {/* Horizontal Ruler */}
-              <div className="absolute top-0 left-0 right-0 h-8 bg-gray-200 border-b border-gray-300 z-20 pointer-events-none">
+              <div className="absolute top-0 left-0 right-0 h-8 bg-gray-200 border-b border-gray-300 z-30 pointer-events-none">
                 <div className="relative h-full">
                   {Array.from({ length: 41 }, (_, i) => i * 20).map((mark) => (
                     <div
@@ -59,7 +59,7 @@ export function CanvasWorkspace({
               </div>
 
               {/* Vertical Ruler */}
-              <div className="absolute top-0 left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-20 pointer-events-none">
+              <div className="absolute top-0 left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-30 pointer-events-none">
                 <div className="relative w-full h-full">
                   {Array.from({ length: 51 }, (_, i) => i * 20).map((mark) => (
                     <div
@@ -78,7 +78,7 @@ export function CanvasWorkspace({
               </div>
 
               {/* Corner */}
-              <div className="absolute top-0 left-0 w-8 h-8 bg-gray-200 border-r border-b border-gray-300 z-20 pointer-events-none" />
+              <div className="absolute top-0 left-0 w-8 h-8 bg-gray-200 border-r border-b border-gray-300 z-30 pointer-events-none" />
             </>
           )}
 

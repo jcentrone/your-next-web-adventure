@@ -1221,7 +1221,7 @@ export default function CoverPageEditorPage() {
           showGrid={showGrid}
           showRulers={showRulers}
         />
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
           <EditorToolbar
               onUndo={undo}
               onRedo={redo}
