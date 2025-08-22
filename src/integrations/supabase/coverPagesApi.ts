@@ -8,6 +8,7 @@ export interface CoverPage {
   template_slug: string | null;
   color_palette_key: string | null;
   text_content: Json;
+  design_json: Json;
   image_url: string | null;
   created_at: string;
   updated_at: string;
@@ -41,6 +42,7 @@ export async function createCoverPage(
     template_slug?: string | null;
     color_palette_key?: string | null;
     text_content?: Json;
+    design_json?: Json;
     image_url?: string | null;
   }
 ): Promise<CoverPage> {
@@ -52,6 +54,7 @@ export async function createCoverPage(
       template_slug: payload.template_slug ?? null,
       color_palette_key: payload.color_palette_key ?? null,
       text_content: payload.text_content ?? {},
+      design_json: payload.design_json ?? {},
       image_url: payload.image_url ?? null,
     })
     .select()
@@ -70,7 +73,7 @@ export async function updateCoverPage(
   updates: Partial<
     Pick<
       CoverPage,
-      "name" | "template_slug" | "color_palette_key" | "text_content" | "image_url"
+      "name" | "template_slug" | "color_palette_key" | "text_content" | "design_json" | "image_url"
     >
   >
 ): Promise<CoverPage> {
