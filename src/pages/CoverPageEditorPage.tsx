@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Canvas as FabricCanvas,
   Rect,
@@ -11,15 +13,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import useCoverPages from "@/hooks/useCoverPages";
 
 const TEMPLATES: Record<string, string> = {
   default: "#ffffff",
   blue: "#ebf8ff",
 };
 
+const REPORT_TYPES = [
+  { value: "home_inspection", label: "Home Inspection" },
+  { value: "wind_mitigation", label: "Wind Mitigation" },
+];
+
 const GRID_SIZE = 20;
 
 type CanvasObject = Rect | Textbox | FabricImage | Group;
+
+interface FormValues {
+  name: string;
+  template: keyof typeof TEMPLATES;
+  reportTypes: string[];
+}
 
 export default function CoverPageEditorPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,7 +43,22 @@ export default function CoverPageEditorPage() {
   const [zoom, setZoom] = useState(1);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [template, setTemplate] = useState<keyof typeof TEMPLATES>("default");
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const {
+    createCoverPage,
+    updateCoverPage,
+    assignments,
+    assignCoverPageToReportType,
+    removeAssignmentFromReportType,
+    coverPages,
+  } = useCoverPages();
+  const form = useForm<FormValues>({
+    defaultValues: { name: "", template: "default", reportTypes: [] },
+  });
+  const { register, handleSubmit, setValue, watch } = form;
+  const template = watch("template") as keyof typeof TEMPLATES;
+  const reportTypes = watch("reportTypes");
 
   const pushHistory = () => {
     if (!canvas) return;
@@ -94,6 +124,25 @@ export default function CoverPageEditorPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [template]);
+
+  useEffect(() => {
+    if (!canvas || !id) return;
+    const cp = coverPages.find((c) => c.id === id);
+    if (!cp) return;
+    setValue("name", cp.name);
+    setValue("template", (cp.template_slug as keyof typeof TEMPLATES) || "default");
+    const selected = Object.entries(assignments)
+      .filter(([_, cpId]) => cpId === id)
+      .map(([rt]) => rt);
+    setValue("reportTypes", selected);
+    (async () => {
+      await canvas.loadFromJSON(cp.design_json || {});
+      canvas.renderAll();
+      const json = JSON.stringify(canvas.toJSON());
+      setHistory([json]);
+      setHistoryIndex(0);
+    })();
+  }, [canvas, id, coverPages, assignments, setValue]);
 
   useEffect(() => {
     if (canvas) {
@@ -185,6 +234,56 @@ export default function CoverPageEditorPage() {
     if (file) addImage(file);
   };
 
+  const toggleReportType = (rt: string) => {
+    const current = watch("reportTypes");
+    if (current.includes(rt)) {
+      setValue(
+        "reportTypes",
+        current.filter((t: string) => t !== rt),
+      );
+    } else {
+      setValue("reportTypes", [...current, rt]);
+    }
+  };
+
+  const onSubmit = async (values: FormValues) => {
+    if (!canvas) return;
+    const design = canvas.toJSON();
+    let coverPageId = id;
+    if (id) {
+      await updateCoverPage({
+        id,
+        updates: {
+          name: values.name,
+          template_slug: values.template,
+          design_json: design,
+        },
+      });
+    } else {
+      const cp = await createCoverPage({
+        name: values.name,
+        template_slug: values.template,
+        design_json: design,
+      });
+      coverPageId = cp.id;
+    }
+
+    const assigned = Object.entries(assignments)
+      .filter(([_, cpId]) => cpId === coverPageId)
+      .map(([rt]) => rt);
+    for (const rt of values.reportTypes) {
+      if (!assigned.includes(rt)) {
+        await assignCoverPageToReportType(rt, coverPageId!);
+      }
+    }
+    for (const rt of assigned) {
+      if (!values.reportTypes.includes(rt)) {
+        await removeAssignmentFromReportType(rt);
+      }
+    }
+    navigate("/cover-page-manager");
+  };
+
   const updateSelected = (prop: string, value: unknown) => {
     if (!selected || !canvas) return;
     (selected as unknown as FabricObject).set(prop as never, value as never);
@@ -218,25 +317,44 @@ export default function CoverPageEditorPage() {
 
   return (
     <div className="flex h-full">
-        <div className="w-48 p-2 border-r space-y-2">
+      <div className="w-64 p-2 border-r space-y-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
           <div>
-            <Label htmlFor="template">Template</Label>
-            <select
-              id="template"
-              className="w-full border rounded"
-              value={template}
-              onChange={(e) => setTemplate(e.target.value as keyof typeof TEMPLATES)}
-            >
-              {Object.keys(TEMPLATES).map((key) => (
-                <option key={key} value={key}>
-                  {key}
-                </option>
-              ))}
-            </select>
+            <Label htmlFor="name">Name</Label>
+            <Input id="name" {...register("name")} />
           </div>
-          <Button onClick={addRect} className="w-full">
-            Rectangle
+          <div className="space-y-1">
+            <Label>Report Types</Label>
+            {REPORT_TYPES.map((rt) => (
+              <div key={rt.value} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`rt-${rt.value}`}
+                  checked={reportTypes.includes(rt.value)}
+                  onCheckedChange={() => toggleReportType(rt.value)}
+                />
+                <label htmlFor={`rt-${rt.value}`} className="text-sm">
+                  {rt.label}
+                </label>
+              </div>
+            ))}
+          </div>
+          <Button type="submit" className="w-full">
+            Save
           </Button>
+        </form>
+        <div>
+          <Label htmlFor="template">Template</Label>
+          <select id="template" className="w-full border rounded" {...register("template")}> 
+            {Object.keys(TEMPLATES).map((key) => (
+              <option key={key} value={key}>
+                {key}
+              </option>
+            ))}
+          </select>
+        </div>
+        <Button onClick={addRect} className="w-full">
+          Rectangle
+        </Button>
         <Button onClick={addText} className="w-full">
           Text
         </Button>
