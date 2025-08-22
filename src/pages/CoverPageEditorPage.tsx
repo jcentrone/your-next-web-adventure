@@ -21,6 +21,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import useCoverPages from "@/hooks/useCoverPages";
+import useImageLibrary from "@/hooks/useImageLibrary";
 import {
   AlignCenter,
   AlignLeft,
@@ -33,6 +34,7 @@ import {
   Redo2,
   Table as TableIcon,
   Square,
+  Trash2,
   Undo2,
   ZoomIn,
   ZoomOut,
@@ -84,6 +86,7 @@ export default function CoverPageEditorPage() {
   const template = watch("template") as keyof typeof TEMPLATES;
   const reportTypes = watch("reportTypes");
   const [bgColor, setBgColor] = useState(TEMPLATES[template]);
+  const { images, uploadImage, deleteImage } = useImageLibrary();
 
   const pushHistory = () => {
     if (!canvas) return;
@@ -213,18 +216,23 @@ export default function CoverPageEditorPage() {
     pushHistory();
   };
 
+  const addImageFromUrl = (url: string) => {
+    if (!canvas) return;
+    FabricImage.fromURL(url, (img) => {
+      img.set({ left: 150, top: 150, scaleX: 0.5, scaleY: 0.5 });
+      canvas.add(img);
+      canvas.setActiveObject(img);
+      canvas.renderAll();
+      pushHistory();
+    });
+  };
+
   const addImage = (file: File) => {
     if (!canvas) return;
     const reader = new FileReader();
     reader.onload = () => {
       const url = reader.result as string;
-      FabricImage.fromURL(url, (img) => {
-        img.set({ left: 150, top: 150, scaleX: 0.5, scaleY: 0.5 });
-        canvas.add(img);
-        canvas.setActiveObject(img);
-        canvas.renderAll();
-        pushHistory();
-      });
+      addImageFromUrl(url);
     };
     reader.readAsDataURL(file);
   };
@@ -262,9 +270,12 @@ export default function CoverPageEditorPage() {
     pushHistory();
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) addImage(file);
+    if (file) {
+      addImage(file);
+      await uploadImage(file);
+    }
   };
 
   const toggleReportType = (rt: string) => {
@@ -504,6 +515,31 @@ export default function CoverPageEditorPage() {
                 Image Upload
               </Label>
               <Input id="image-upload" type="file" onChange={handleImageUpload} />
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {images.map((img) => (
+                  <div
+                    key={img.path}
+                    className="relative group"
+                    onClick={() => addImageFromUrl(img.url)}
+                  >
+                    <img
+                      src={img.url}
+                      alt={img.name}
+                      className="h-20 w-full object-cover cursor-pointer"
+                    />
+                    <button
+                      type="button"
+                      className="absolute top-1 right-1 rounded-full bg-white p-1 text-red-500 opacity-0 group-hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteImage(img.path);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="graphics">
