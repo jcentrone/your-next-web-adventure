@@ -51,7 +51,6 @@ import {
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { icons as lucideIcons } from "lucide";
-import { openmojis } from "openmoji";
 
 
 const TEMPLATES: Record<string, string> = {
@@ -103,6 +102,16 @@ export default function CoverPageEditorPage() {
   const { images, uploadImage, deleteImage } = useImageLibrary();
   const [iconSearch, setIconSearch] = useState("");
   const [clipartSearch, setClipartSearch] = useState("");
+  const [openmojis, setOpenmojis] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch(
+      "https://cdn.jsdelivr.net/npm/openmoji@16.0.0/data/openmoji.json"
+    )
+      .then((res) => res.json())
+      .then(setOpenmojis)
+      .catch(() => setOpenmojis([]));
+  }, []);
 
 
   const pushHistory = () => {
