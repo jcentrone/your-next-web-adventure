@@ -14,12 +14,9 @@ export interface CoverPage {
 }
 
 export interface CoverPageAssignment {
-  id: string;
   user_id: string;
   report_type: string;
   cover_page_id: string;
-  created_at: string;
-  updated_at: string;
 }
 
 export async function getCoverPages(userId: string): Promise<CoverPage[]> {
@@ -102,11 +99,11 @@ export async function deleteCoverPage(id: string): Promise<void> {
 }
 
 export async function getCoverPageAssignments(
-  userId: string
-): Promise<CoverPageAssignment[]> {
+  userId: string,
+): Promise<Record<string, string>> {
   const { data, error } = await supabase
     .from("cover_page_assignments")
-    .select("*")
+    .select("report_type, cover_page_id")
     .eq("user_id", userId);
 
   if (error) {
@@ -114,59 +111,46 @@ export async function getCoverPageAssignments(
     throw error;
   }
 
-  return (data || []) as CoverPageAssignment[];
+  const assignments: Record<string, string> = {};
+  for (const row of (data || []) as {
+    report_type: string;
+    cover_page_id: string;
+  }[]) {
+    assignments[row.report_type] = row.cover_page_id;
+  }
+  return assignments;
 }
 
-export async function createCoverPageAssignment(
+export async function setCoverPageAssignment(
   userId: string,
   reportType: string,
-  coverPageId: string
-): Promise<CoverPageAssignment> {
-  const { data, error } = await supabase
+  coverPageId: string,
+): Promise<void> {
+  const { error } = await supabase
     .from("cover_page_assignments")
-    .insert({
-      user_id: userId,
-      report_type: reportType,
-      cover_page_id: coverPageId,
-    })
-    .select()
-    .single();
+    .upsert(
+      { user_id: userId, report_type: reportType, cover_page_id: coverPageId },
+      { onConflict: "user_id,report_type" },
+    );
 
   if (error) {
-    console.error("Error creating cover page assignment:", error);
+    console.error("Error setting cover page assignment:", error);
     throw error;
   }
-
-  return data as CoverPageAssignment;
 }
 
-export async function updateCoverPageAssignment(
-  id: string,
-  updates: Partial<Pick<CoverPageAssignment, "report_type" | "cover_page_id">>
-): Promise<CoverPageAssignment> {
-  const { data, error } = await supabase
-    .from("cover_page_assignments")
-    .update(updates)
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Error updating cover page assignment:", error);
-    throw error;
-  }
-
-  return data as CoverPageAssignment;
-}
-
-export async function deleteCoverPageAssignment(id: string): Promise<void> {
+export async function clearCoverPageAssignment(
+  userId: string,
+  reportType: string,
+): Promise<void> {
   const { error } = await supabase
     .from("cover_page_assignments")
     .delete()
-    .eq("id", id);
+    .eq("user_id", userId)
+    .eq("report_type", reportType);
 
   if (error) {
-    console.error("Error deleting cover page assignment:", error);
+    console.error("Error clearing cover page assignment:", error);
     throw error;
   }
 }
@@ -177,7 +161,6 @@ export const coverPagesApi = {
   updateCoverPage,
   deleteCoverPage,
   getCoverPageAssignments,
-  createCoverPageAssignment,
-  updateCoverPageAssignment,
-  deleteCoverPageAssignment,
+  setCoverPageAssignment,
+  clearCoverPageAssignment,
 };

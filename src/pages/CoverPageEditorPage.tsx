@@ -52,9 +52,9 @@ export default function CoverPageEditorPage() {
 
   useEffect(() => {
     if (coverPage) {
-      const assigned = assignments
-        .filter((a) => a.cover_page_id === coverPage.id)
-        .map((a) => a.report_type);
+      const assigned = Object.entries(assignments)
+        .filter(([_, id]) => id === coverPage.id)
+        .map(([rt]) => rt);
       reset({
         name: coverPage.name || "",
         template: coverPage.template_slug || "default",
@@ -75,9 +75,9 @@ export default function CoverPageEditorPage() {
         text_content: data.text,
         image_url: data.imageUrl,
       });
-      const current = assignments
-        .filter((a) => a.cover_page_id === coverPage.id)
-        .map((a) => a.report_type);
+      const current = Object.entries(assignments)
+        .filter(([_, id]) => id === coverPage.id)
+        .map(([rt]) => rt);
       for (const rt of current) {
         if (!data.reportTypes.includes(rt)) {
           await removeAssignmentFromReportType(rt);

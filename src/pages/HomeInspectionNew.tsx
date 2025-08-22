@@ -74,9 +74,9 @@ const HomeInspectionNew: React.FC = () => {
   }, [contact, form]);
 
   useEffect(() => {
-    const assigned = assignments.find(a => a.report_type === "home_inspection");
-    if (assigned) {
-      form.setValue("coverPageId", assigned.cover_page_id);
+    const assignedId = assignments["home_inspection"];
+    if (assignedId) {
+      form.setValue("coverPageId", assignedId);
     }
   }, [assignments, form]);
 
