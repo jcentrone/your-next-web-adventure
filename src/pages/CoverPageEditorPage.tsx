@@ -46,6 +46,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { EditorToolbar } from "@/components/cover-pages/EditorToolbar";
+import { CanvasWorkspace } from "@/components/cover-pages/CanvasWorkspace";
 import * as LucideIcons from "lucide-react";
 import { icons as lucideIcons } from "lucide";
 import { COLOR_PALETTES, type ColorPalette } from "@/constants/colorPalettes";
@@ -96,7 +97,6 @@ interface FormValues {
 export default function CoverPageEditorPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const gridRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
   const [selectedObjects, setSelectedObjects] = useState<FabricObject[]>([]);
   const [selected, setSelected] = useState<CanvasObject | null>(null);
@@ -131,6 +131,7 @@ export default function CoverPageEditorPage() {
   const [palette, setPalette] = useState<ColorPalette>(COLOR_PALETTES[0]);
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const [showGrid, setShowGrid] = useState(true);
+  const [showRulers, setShowRulers] = useState(false);
 
   const handleCopy = () => {
     if (!canvas || selectedObjects.length === 0) return;
@@ -279,20 +280,6 @@ export default function CoverPageEditorPage() {
     });
     setCanvas(c);
 
-    // grid background
-    const gridBg = document.createElement("div");
-    gridBg.style.position = "absolute";
-    gridBg.style.left = "0";
-    gridBg.style.top = "0";
-    gridBg.style.width = "816px";
-    gridBg.style.height = "1056px";
-    gridBg.style.pointerEvents = "none";
-    gridBg.style.backgroundSize = `${GRID_SIZE}px ${GRID_SIZE}px`;
-    gridBg.style.backgroundImage =
-      "linear-gradient(to right, #e5e7eb 1px, transparent 1px)," +
-      "linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)";
-    canvasElement.parentElement?.appendChild(gridBg);
-    gridRef.current = gridBg;
     const initialJson = JSON.stringify(c.toJSON());
     setHistory([initialJson]);
     setHistoryIndex(0);
@@ -333,8 +320,6 @@ export default function CoverPageEditorPage() {
     });
 
     return () => {
-      canvasElement.parentElement?.removeChild(gridBg);
-      gridRef.current = null;
       c.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -343,12 +328,6 @@ export default function CoverPageEditorPage() {
   useEffect(() => {
     setBgColor(TEMPLATES[template]);
   }, [template]);
-
-  useEffect(() => {
-    if (gridRef.current) {
-      gridRef.current.style.display = showGrid ? "block" : "none";
-    }
-  }, [showGrid]);
 
   useEffect(() => {
     if (canvas) {
@@ -822,11 +801,6 @@ export default function CoverPageEditorPage() {
   const zoomOut = () => setZoom((z) => z / 1.1);
 
   useEffect(() => {
-    if (!canvas) return;
-    canvas.setZoom(fitScale * zoom);
-  }, [fitScale, zoom, canvas]);
-
-  useEffect(() => {
     const updateScale = () => {
       const wrapper = wrapperRef.current;
       if (!wrapper) return;
@@ -1240,23 +1214,13 @@ export default function CoverPageEditorPage() {
         ref={wrapperRef}
         className="flex-1 relative flex h-full items-center justify-center overflow-auto p-8"
       >
-        <div
-            className="relative border-2 border-blue-500 box-border"
-            style={{
-              // width: 816,
-              // height: 1056,
-              transform: `scale(${fitScale * zoom})`,
-              // transformOrigin: "top left",
-            }}
-        >
-          <canvas ref={canvasRef} className="block"/>
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full rotate-90">
-    11"
-  </span>
-          <span className="absolute bottom-0 left-1/2 translate-y-full -translate-x-1/2">
-    8.5"
-  </span>
-        </div>
+        <CanvasWorkspace
+          canvasRef={canvasRef}
+          canvas={canvas}
+          zoom={fitScale * zoom}
+          showGrid={showGrid}
+          showRulers={showRulers}
+        />
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
           <EditorToolbar
               onUndo={undo}
@@ -1269,6 +1233,11 @@ export default function CoverPageEditorPage() {
               onZoomChange={setZoom}
               showGrid={showGrid}
               onToggleGrid={() => setShowGrid(!showGrid)}
+              showRulers={showRulers}
+              onToggleRulers={() => {
+                console.log("Toggle rulers:", showRulers, "→", !showRulers);
+                setShowRulers(!showRulers);
+              }}
               selectedObjects={selectedObjects}
             onCopy={handleCopy}
             onDelete={handleDelete}
