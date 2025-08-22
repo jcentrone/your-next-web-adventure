@@ -33,16 +33,16 @@ export function CanvasWorkspace({
         {showRulers && (
           <>
             {/* Horizontal Ruler */}
-            <div className="absolute top-0 left-0 right-0 h-8 bg-background border-b border-border z-10">
+            <div className="absolute top-0 left-0 right-0 h-8 bg-gray-200 border-b border-gray-300 z-20 pointer-events-none">
               <div className="relative h-full">
                 {Array.from({ length: 41 }, (_, i) => i * 20).map((mark) => (
                   <div
                     key={mark}
-                    className="absolute top-0 h-full border-l border-border/50"
+                    className="absolute top-0 h-full border-l border-gray-300/50"
                     style={{ left: `${mark * zoom}px` }}
                   >
                     {mark % 100 === 0 && (
-                      <span className="absolute top-1 left-1 text-xs text-muted-foreground">
+                      <span className="absolute top-1 left-1 text-xs text-gray-500">
                         {mark}
                       </span>
                     )}
@@ -52,16 +52,16 @@ export function CanvasWorkspace({
             </div>
 
             {/* Vertical Ruler */}
-            <div className="absolute top-0 left-0 bottom-0 w-8 bg-background border-r border-border z-10">
+            <div className="absolute top-0 left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-20 pointer-events-none">
               <div className="relative w-full h-full">
                 {Array.from({ length: 51 }, (_, i) => i * 20).map((mark) => (
                   <div
                     key={mark}
-                    className="absolute left-0 w-full border-t border-border/50"
+                    className="absolute left-0 w-full border-t border-gray-300/50"
                     style={{ top: `${mark * zoom}px` }}
                   >
                     {mark % 100 === 0 && (
-                      <span className="absolute top-1 left-1 text-xs text-muted-foreground transform -rotate-90 origin-top-left">
+                      <span className="absolute top-1 left-1 text-xs text-gray-500 transform -rotate-90 origin-top-left">
                         {mark}
                       </span>
                     )}
@@ -71,7 +71,7 @@ export function CanvasWorkspace({
             </div>
 
             {/* Corner */}
-            <div className="absolute top-0 left-0 w-8 h-8 bg-background border-r border-b border-border z-20" />
+            <div className="absolute top-0 left-0 w-8 h-8 bg-gray-200 border-r border-b border-gray-300 z-20 pointer-events-none" />
           </>
         )}
 
