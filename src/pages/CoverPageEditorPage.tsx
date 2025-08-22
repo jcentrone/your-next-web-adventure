@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { icons as lucideIcons } from "lucide";
+import { COLOR_PALETTES, type ColorPalette } from "@/constants/colorPalettes";
 
 
 const TEMPLATES: Record<string, string> = {
@@ -116,6 +117,7 @@ export default function CoverPageEditorPage() {
   const [tableRows, setTableRows] = useState(2);
   const [tableCols, setTableCols] = useState(2);
   const [tableBorderColor, setTableBorderColor] = useState("#000000");
+  const [palette, setPalette] = useState<ColorPalette>(COLOR_PALETTES[0]);
 
   useEffect(() => {
     fetch(
@@ -232,8 +234,8 @@ export default function CoverPageEditorPage() {
       top: 100,
       width: 100,
       height: 100,
-      fill: "rgba(0,0,0,0.1)",
-      stroke: "#000",
+      fill: palette.colors[0],
+      stroke: palette.colors[1] || palette.colors[0],
     });
     canvas.add(rect);
     canvas.setActiveObject(rect);
@@ -247,8 +249,8 @@ export default function CoverPageEditorPage() {
       left: 100,
       top: 100,
       radius: 50,
-      fill: "rgba(0,0,0,0.1)",
-      stroke: "#000",
+      fill: palette.colors[0],
+      stroke: palette.colors[1] || palette.colors[0],
       strokeWidth: 2,
     });
     canvas.add(circle);
@@ -273,8 +275,8 @@ export default function CoverPageEditorPage() {
     const star = new Polygon(points, {
       left: 100,
       top: 100,
-      fill: "rgba(0,0,0,0.1)",
-      stroke: "#000",
+      fill: palette.colors[0],
+      stroke: palette.colors[1] || palette.colors[0],
       strokeWidth: 2,
     });
     canvas.add(star);
@@ -293,8 +295,8 @@ export default function CoverPageEditorPage() {
     const triangle = new Polygon(points, {
       left: 100,
       top: 100,
-      fill: "rgba(0,0,0,0.1)",
-      stroke: "#000",
+      fill: palette.colors[0],
+      stroke: palette.colors[1] || palette.colors[0],
       strokeWidth: 2,
     });
     canvas.add(triangle);
@@ -317,8 +319,8 @@ export default function CoverPageEditorPage() {
     const polygon = new Polygon(points, {
       left: 100,
       top: 100,
-      fill: "rgba(0,0,0,0.1)",
-      stroke: "#000",
+      fill: palette.colors[0],
+      stroke: palette.colors[1] || palette.colors[0],
       strokeWidth: 2,
     });
     canvas.add(polygon);
@@ -330,7 +332,7 @@ export default function CoverPageEditorPage() {
   const addArrow = () => {
     if (!canvas) return;
     const line = new Line([0, 0, 80, 0], {
-      stroke: "#000",
+      stroke: palette.colors[1] || palette.colors[0],
       strokeWidth: 2,
     });
     const head = new Polygon(
@@ -339,7 +341,11 @@ export default function CoverPageEditorPage() {
         { x: 60, y: -10 },
         { x: 60, y: 10 },
       ],
-      { fill: "#000", stroke: "#000", strokeWidth: 2 }
+      {
+        fill: palette.colors[1] || palette.colors[0],
+        stroke: palette.colors[1] || palette.colors[0],
+        strokeWidth: 2,
+      }
     );
     const arrow = new Group([line, head], { left: 100, top: 100 });
     canvas.add(arrow);
@@ -351,7 +357,7 @@ export default function CoverPageEditorPage() {
   const addBidirectionalArrow = () => {
     if (!canvas) return;
     const line = new Line([0, 0, 80, 0], {
-      stroke: "#000",
+      stroke: palette.colors[1] || palette.colors[0],
       strokeWidth: 2,
     });
     const headRight = new Polygon(
@@ -360,7 +366,11 @@ export default function CoverPageEditorPage() {
         { x: 60, y: -10 },
         { x: 60, y: 10 },
       ],
-      { fill: "#000", stroke: "#000", strokeWidth: 2 }
+      {
+        fill: palette.colors[1] || palette.colors[0],
+        stroke: palette.colors[1] || palette.colors[0],
+        strokeWidth: 2,
+      }
     );
     const headLeft = new Polygon(
       [
@@ -368,7 +378,11 @@ export default function CoverPageEditorPage() {
         { x: 20, y: -10 },
         { x: 20, y: 10 },
       ],
-      { fill: "#000", stroke: "#000", strokeWidth: 2 }
+      {
+        fill: palette.colors[1] || palette.colors[0],
+        stroke: palette.colors[1] || palette.colors[0],
+        strokeWidth: 2,
+      }
     );
     const arrow = new Group([line, headLeft, headRight], {
       left: 100,
@@ -394,7 +408,12 @@ export default function CoverPageEditorPage() {
       .join("")}</svg>`;
     loadSVGFromString(svg, (objects, options) => {
       const obj = FabricUtil.groupSVGElements(objects, options);
-      obj.set({ left: 100, top: 100, stroke: "#000", fill: "none" });
+      obj.set({
+        left: 100,
+        top: 100,
+        stroke: palette.colors[1] || palette.colors[0],
+        fill: "none",
+      });
       canvas.add(obj);
       canvas.setActiveObject(obj);
       canvas.renderAll();
@@ -417,6 +436,22 @@ export default function CoverPageEditorPage() {
     });
   };
 
+  const applyPalette = (p: ColorPalette) => {
+    setPalette(p);
+    if (!canvas) return;
+    const [fillColor, strokeColor, , textColor] = p.colors;
+    canvas.getObjects().forEach((obj) => {
+      if (obj.type === "textbox") {
+        obj.set("fill", textColor || fillColor);
+      } else {
+        if ("fill" in obj) obj.set("fill", fillColor);
+        if ("stroke" in obj) obj.set("stroke", strokeColor || fillColor);
+      }
+    });
+    canvas.renderAll();
+    pushHistory();
+  };
+
 
   const addText = () => {
     if (!canvas) return;
@@ -424,7 +459,7 @@ export default function CoverPageEditorPage() {
       left: 120,
       top: 120,
       fontSize: 24,
-      fill: "#000000",
+      fill: palette.colors[3] || palette.colors[0],
     });
     canvas.add(text);
     canvas.setActiveObject(text);
@@ -957,6 +992,25 @@ export default function CoverPageEditorPage() {
                   </option>
                 ))}
               </select>
+              <div className="mt-4 space-y-2">
+                {COLOR_PALETTES.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => applyPalette(p)}
+                    className={`flex w-full items-center gap-2 rounded border p-1 ${
+                      palette.id === p.id ? "border-black" : "border-transparent"
+                    }`}
+                  >
+                    <div className="flex flex-1 overflow-hidden rounded">
+                      {p.colors.map((c) => (
+                        <div key={c} className="h-6 w-full" style={{ backgroundColor: c }} />
+                      ))}
+                    </div>
+                    <span className="text-xs">{p.name}</span>
+                  </button>
+                ))}
+              </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="background">
