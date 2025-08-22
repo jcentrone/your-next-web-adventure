@@ -466,70 +466,7 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         }
     }
 
-    if (report.coverPageId) {
-        try {
-            const {data: cp, error} = await supabase
-                .from("cover_pages")
-                .select("color_palette_key, text_content, image_url")
-                .eq("id", report.coverPageId)
-                .single();
-            if (!error && cp) {
-                let imageUrl = cp.image_url || "";
-                if (imageUrl && isSupabaseUrl(imageUrl)) {
-                    imageUrl = await getSignedUrlFromSupabaseUrl(imageUrl);
-                }
-
-                const firstPage = pdfDoc.getPage(0);
-                const {width, height} = firstPage.getSize();
-                const cover = pdfDoc.insertPage(0, [width, height]);
-
-                cover.drawRectangle({x: 0, y: 0, width, height, color: rgb(1, 1, 1)});
-
-                const bandHeight = 150;
-                const {r, g, b} = hexToRgb(cp.color_palette_key || "#000000");
-                cover.drawRectangle({x: 0, y: height - bandHeight, width, height: bandHeight, color: rgb(r, g, b)});
-
-                if (imageUrl) {
-                    const imgBytes = await fetch(imageUrl).then((res) => res.arrayBuffer());
-                    let img;
-                    if (imageUrl.toLowerCase().endsWith(".png")) {
-                        img = await pdfDoc.embedPng(imgBytes);
-                    } else {
-                        img = await pdfDoc.embedJpg(imgBytes);
-                    }
-                    const scale = Math.min(width / img.width, bandHeight / img.height);
-                    const imgWidth = img.width * scale;
-                    const imgHeight = img.height * scale;
-                    cover.drawImage(img, {
-                        x: (width - imgWidth) / 2,
-                        y: height - bandHeight + (bandHeight - imgHeight) / 2,
-                        width: imgWidth,
-                        height: imgHeight,
-                    });
-                }
-
-                const titleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-                const textFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-                cover.drawText(report.title || "", {
-                    x: 40,
-                    y: height - bandHeight - 60,
-                    size: 24,
-                    font: titleFont,
-                });
-                const textContent = typeof cp.text_content === "string" ? cp.text_content : "";
-                textContent.split(/\r?\n/).forEach((line: string, idx: number) => {
-                    cover.drawText(line, {
-                        x: 40,
-                        y: height - bandHeight - 90 - idx * 16,
-                        size: 12,
-                        font: textFont,
-                    });
-                });
-            }
-        } catch (err) {
-            console.warn("⚠️ Could not load cover page", err);
-        }
-    }
+    // cover page handling removed
 
     const pdfBytes = await pdfDoc.save();
     return new Blob([pdfBytes], {type: "application/pdf"});

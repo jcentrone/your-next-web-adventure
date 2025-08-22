@@ -16,7 +16,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
 import { contactsApi } from "@/integrations/supabase/crmApi";
 import { supabase } from "@/integrations/supabase/client";
-import useCoverPages from "@/hooks/useCoverPages";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -24,7 +23,6 @@ const schema = z.object({
   address: z.string().min(1, "Address is required"),
   inspectionDate: z.string().min(1, "Required"),
   contactId: z.string().optional(),
-  coverPageId: z.string().optional(),
 });
 
 type Values = z.infer<typeof schema>;
@@ -34,7 +32,6 @@ const HomeInspectionNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
-  const { coverPages, assignments } = useCoverPages();
 
   // Get all contacts for lookup
   const { data: contacts = [] } = useQuery({
@@ -58,7 +55,6 @@ const HomeInspectionNew: React.FC = () => {
       address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactId: contactId || "",
-      coverPageId: "none",
     },
   });
 
@@ -73,12 +69,6 @@ const HomeInspectionNew: React.FC = () => {
     }
   }, [contact, form]);
 
-  useEffect(() => {
-    const assignedId = assignments["home_inspection"];
-    if (assignedId) {
-      form.setValue("coverPageId", assignedId);
-    }
-  }, [assignments, form]);
 
   const onSubmit = async (values: Values) => {
     try {
@@ -98,7 +88,6 @@ const HomeInspectionNew: React.FC = () => {
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
             reportType: "home_inspection",
-            coverPageId: values.coverPageId === "none" ? undefined : values.coverPageId,
           },
           user.id,
           profile?.organization_id || undefined
@@ -112,7 +101,6 @@ const HomeInspectionNew: React.FC = () => {
           address: values.address,
           inspectionDate: new Date(values.inspectionDate).toISOString(),
           reportType: "home_inspection",
-          coverPageId: values.coverPageId === "none" ? undefined : values.coverPageId,
         });
         toast({ title: "Home inspection report created (local draft)" });
         nav(`/reports/${report.id}`);
@@ -234,29 +222,6 @@ const HomeInspectionNew: React.FC = () => {
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="coverPageId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cover Page</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || "none"}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select cover page" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {coverPages.map(cp => (
-                        <SelectItem key={cp.id} value={cp.id}>{cp.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

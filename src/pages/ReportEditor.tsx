@@ -23,14 +23,12 @@ import { contactsApi } from "@/integrations/supabase/crmApi";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useCustomSections } from "@/hooks/useCustomSections";
 import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { Plus } from "lucide-react";
-import useCoverPages from "@/hooks/useCoverPages";
 import { Label } from "@/components/ui/label";
 
 // Lazy load wind mitigation editor at module level
@@ -83,7 +81,6 @@ const ReportEditor: React.FC = () => {
 
   // Custom sections hook
   const { customSections, loadCustomSections } = useCustomSections();
-  const { coverPages, assignments } = useCoverPages();
 
   // Handle contact change to update address automatically
   const handleContactChange = React.useCallback((contact: any) => {
@@ -172,14 +169,6 @@ const ReportEditor: React.FC = () => {
     }
   }, [customSections, report?.id]);
 
-  React.useEffect(() => {
-    if (!report) return;
-    if (report.coverPageId) return;
-    const assignedId = assignments[report.reportType];
-    if (assignedId) {
-      setReport(prev => prev ? { ...prev, coverPageId: assignedId } : prev);
-    }
-  }, [assignments, report?.reportType, report?.id]);
 
   useAutosave({
     value: report,
@@ -1046,29 +1035,6 @@ const ReportEditor: React.FC = () => {
               ) : (
                 <p className="text-sm text-muted-foreground">No report details fields configured.</p>
               )}
-              <div className="space-y-2">
-                <Label>Cover Page</Label>
-                <Select
-                  value={report.coverPageId || "none"}
-                  onValueChange={(val) =>
-                    setReport((prev) =>
-                      prev ? { ...prev, coverPageId: val === "none" ? undefined : val } : prev
-                    )
-                  }
-                >
-                  <SelectTrigger className="w-[250px]">
-                    <SelectValue placeholder="Select cover page" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {coverPages.map((cp) => (
-                      <SelectItem key={cp.id} value={cp.id}>
-                        {cp.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </section>
           )}
 
