@@ -20,7 +20,7 @@ export function CoverPagePreview({ designJson, width = 800, height = 1000 }: Cov
     let disposed = false;
     canvas.loadFromJSON(designJson, () => {
       canvas.renderAll();
-      const url = canvas.toDataURL({ format: "png" });
+      const url = canvas.toDataURL({ format: "png", multiplier: 1 });
       if (!disposed) {
         setDataUrl(url);
       }

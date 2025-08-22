@@ -236,8 +236,7 @@ export default function CoverPageEditorPage() {
       .filter(([_, cpId]) => cpId === id)
       .map(([rt]) => rt);
     setValue("reportTypes", selected);
-    (async () => {
-      await canvas.loadFromJSON(cp.design_json || {});
+    canvas.loadFromJSON(cp.design_json as any || {}, () => {
       canvas.renderAll();
       const loadedBg =
         (cp.design_json as any)?.backgroundColor ||
@@ -247,7 +246,7 @@ export default function CoverPageEditorPage() {
       const json = JSON.stringify(canvas.toJSON());
       setHistory([json]);
       setHistoryIndex(0);
-    })();
+    });
   }, [canvas, id, coverPages, assignments, setValue]);
 
 

@@ -11,7 +11,7 @@ interface CreateCoverPagePayload {
   name: string;
   template_slug?: string | null;
   color_palette_key?: string | null;
-  text_content?: unknown;
+  text_content?: Json;
   design_json?: Json;
   image_url?: string | null;
 }
