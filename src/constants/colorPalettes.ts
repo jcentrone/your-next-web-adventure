@@ -1,5 +1,6 @@
 export const COLOR_PALETTES = [
   {
+    id: "classic-blue",
     name: "Classic Blue",
     primary: "#1e3a8a",
     secondary: "#3b82f6",
@@ -7,6 +8,7 @@ export const COLOR_PALETTES = [
     text: "#1f2937",
   },
   {
+    id: "sunset",
     name: "Sunset",
     primary: "#f97316",
     secondary: "#fb923c",
@@ -14,6 +16,7 @@ export const COLOR_PALETTES = [
     text: "#1c1917",
   },
   {
+    id: "forest",
     name: "Forest",
     primary: "#166534",
     secondary: "#22c55e",
@@ -21,6 +24,7 @@ export const COLOR_PALETTES = [
     text: "#1f2937",
   },
   {
+    id: "monochrome",
     name: "Monochrome",
     primary: "#0f172a",
     secondary: "#334155",
@@ -28,6 +32,7 @@ export const COLOR_PALETTES = [
     text: "#f1f5f9",
   },
   {
+    id: "lavender",
     name: "Lavender",
     primary: "#7c3aed",
     secondary: "#c4b5fd",
@@ -35,6 +40,7 @@ export const COLOR_PALETTES = [
     text: "#1f2937",
   },
   {
+    id: "ruby",
     name: "Ruby",
     primary: "#be123c",
     secondary: "#fda4af",
