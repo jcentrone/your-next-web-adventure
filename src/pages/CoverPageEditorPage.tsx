@@ -1241,42 +1241,35 @@ export default function CoverPageEditorPage() {
         className="flex-1 relative flex h-full items-center justify-center overflow-auto p-8"
       >
         <div
-          className="relative border-2 border-blue-500 box-border"
-
-        style={{
-          // width: 816,
-          // height: 1056,
-          transform: `scale(${fitScale * zoom})`,
-          // transformOrigin: "top left",
-        }}
-      >
-
-          style={{
-            transform: `scale(${fitScale * zoom})`,
-          }}
+            className="relative border-2 border-blue-500 box-border"
+            style={{
+              // width: 816,
+              // height: 1056,
+              transform: `scale(${fitScale * zoom})`,
+              // transformOrigin: "top left",
+            }}
         >
-
-          <canvas ref={canvasRef} className="block" />
+          <canvas ref={canvasRef} className="block"/>
           <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full rotate-90">
-            11"
-          </span>
+    11"
+  </span>
           <span className="absolute bottom-0 left-1/2 translate-y-full -translate-x-1/2">
-            8.5"
-          </span>
+    8.5"
+  </span>
         </div>
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
-            <EditorToolbar
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+          <EditorToolbar
               onUndo={undo}
               onRedo={redo}
               canUndo={historyIndex > 0}
-            canRedo={historyIndex < history.length - 1}
-            onZoomIn={zoomIn}
-            onZoomOut={zoomOut}
-            zoom={zoom}
-            onZoomChange={setZoom}
-            showGrid={showGrid}
-            onToggleGrid={() => setShowGrid(!showGrid)}
-            selectedObjects={selectedObjects}
+              canRedo={historyIndex < history.length - 1}
+              onZoomIn={zoomIn}
+              onZoomOut={zoomOut}
+              zoom={zoom}
+              onZoomChange={setZoom}
+              showGrid={showGrid}
+              onToggleGrid={() => setShowGrid(!showGrid)}
+              selectedObjects={selectedObjects}
             onCopy={handleCopy}
             onDelete={handleDelete}
             onGroup={handleGroup}
