@@ -4,6 +4,7 @@ import {
   coverPagesApi,
   type CoverPage,
 } from "@/integrations/supabase/coverPagesApi";
+import type { Json } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 
 interface CreateCoverPagePayload {
@@ -11,6 +12,7 @@ interface CreateCoverPagePayload {
   template_slug?: string | null;
   color_palette_key?: string | null;
   text_content?: unknown;
+  design_json?: Json;
   image_url?: string | null;
 }
 
