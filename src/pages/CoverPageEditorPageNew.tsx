@@ -615,5 +615,85 @@ export default function CoverPageEditorPageNew() {
                 />
             </div>
         </div>
+
     );
 }
+
+        
+        {/* Save Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="flex items-center gap-2">
+          <Input
+            {...register("name", { required: true })}
+            placeholder="Cover page name"
+            className="w-48"
+          />
+          <Button type="submit">
+            {id ? "Update" : "Create"}
+          </Button>
+        </form>
+      </div>
+
+      {/* Toolbar */}
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+        <EditorToolbar
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          zoom={zoom}
+          onZoomChange={handleZoomChange}
+          showGrid={showGrid}
+          onToggleGrid={() => setShowGrid(!showGrid)}
+          selectedObjects={selectedObjects}
+          onCopy={handleCopy}
+          onDelete={handleDelete}
+          onGroup={handleGroup}
+          onUngroup={handleUngroup}
+          onAlign={handleAlign}
+        />
+      </div>
+
+      {/* Main Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Sidebar */}
+        <EditorSidebar
+          onAddText={handleAddText}
+          onAddShape={handleAddShape}
+          onAddIcon={handleAddIcon}
+          images={images}
+          onAddImage={handleAddImage}
+          onUploadImage={handleUploadImage}
+          colorPalettes={COLOR_PALETTES}
+          onSelectPalette={setPalette}
+          selectedPalette={palette}
+        />
+
+        {/* Canvas Workspace */}
+        <CanvasWorkspace
+          canvasRef={canvasRef}
+          canvas={canvas}
+          zoom={zoom}
+          showGrid={showGrid}
+          showRulers={showRulers}
+        />
+
+        {/* Right Properties Panel */}
+        <PropertiesPanel
+          selectedObject={selectedObject}
+          onUpdateProperty={handleUpdateProperty}
+          onDeleteObject={handleDelete}
+          onDuplicateObject={handleCopy}
+          onBringForward={handleBringForward}
+          onSendBackward={handleSendBackward}
+          onToggleLock={handleToggleLock}
+          onToggleVisible={handleToggleVisible}
+          layers={layers}
+          onSelectLayer={handleSelectLayer}
+        />
+      </div>
+    </div>
+  );
+}
+

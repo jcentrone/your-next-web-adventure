@@ -1242,6 +1242,7 @@ export default function CoverPageEditorPage() {
       >
         <div
           className="relative border-2 border-blue-500 box-border"
+
         style={{
           // width: 816,
           // height: 1056,
@@ -1249,6 +1250,12 @@ export default function CoverPageEditorPage() {
           // transformOrigin: "top left",
         }}
       >
+
+          style={{
+            transform: `scale(${fitScale * zoom})`,
+          }}
+        >
+
           <canvas ref={canvasRef} className="block" />
           <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full rotate-90">
             11"
@@ -1257,11 +1264,11 @@ export default function CoverPageEditorPage() {
             8.5"
           </span>
         </div>
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
-          <EditorToolbar
-            onUndo={undo}
-            onRedo={redo}
-            canUndo={historyIndex > 0}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+            <EditorToolbar
+              onUndo={undo}
+              onRedo={redo}
+              canUndo={historyIndex > 0}
             canRedo={historyIndex < history.length - 1}
             onZoomIn={zoomIn}
             onZoomOut={zoomOut}
