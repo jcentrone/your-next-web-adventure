@@ -1242,10 +1242,20 @@ export default function CoverPageEditorPage() {
       >
         <div
           className="relative border-2 border-blue-500 box-border"
+
+        style={{
+          // width: 816,
+          // height: 1056,
+          transform: `scale(${fitScale * zoom})`,
+          // transformOrigin: "top left",
+        }}
+      >
+
           style={{
             transform: `scale(${fitScale * zoom})`,
           }}
         >
+
           <canvas ref={canvasRef} className="block" />
           <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full rotate-90">
             11"
