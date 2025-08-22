@@ -71,7 +71,7 @@ export function EditorToolbar({
 
         <div id="editor_toolbar"
              className="flex items-center gap-2 p-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex items-center gap-2 p-3 bg-gray-800/80 text-white shadow-lg rounded-md">
+            <div className="flex items-center gap-2 p-3 bg-white text-foreground border rounded-md shadow-sm">
 
                 {/* History Controls */}
                 <div className="flex items-center gap-1">
