@@ -98,6 +98,7 @@ export default function CoverPageEditorPage() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
+  const [selectedObjects, setSelectedObjects] = useState<FabricObject[]>([]);
   const [selected, setSelected] = useState<CanvasObject | null>(null);
   const [fitScale, setFitScale] = useState(1);
   const [zoom, setZoom] = useState(1);
@@ -131,11 +132,115 @@ export default function CoverPageEditorPage() {
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const [showGrid, setShowGrid] = useState(true);
 
-  const handleCopy = () => {};
-  const handleDelete = () => {};
-  const handleGroup = () => {};
-  const handleUngroup = () => {};
-  const handleAlign = (type: string) => {};
+  const handleCopy = () => {
+    if (!canvas || selectedObjects.length === 0) return;
+
+    selectedObjects.forEach((obj) => {
+      obj.clone().then((cloned: FabricObject) => {
+        cloned.set({
+          left: (cloned.left || 0) + 10,
+          top: (cloned.top || 0) + 10,
+        });
+        canvas.add(cloned);
+        canvas.setActiveObject(cloned);
+        canvas.renderAll();
+        pushHistory();
+      });
+    });
+  };
+
+  const handleDelete = () => {
+    if (!canvas || selectedObjects.length === 0) return;
+
+    selectedObjects.forEach((obj) => {
+      canvas.remove(obj);
+    });
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const handleGroup = () => {
+    if (!canvas || selectedObjects.length < 2) return;
+
+    const group = new Group(selectedObjects, {
+      left: 0,
+      top: 0,
+    });
+
+    selectedObjects.forEach((obj) => canvas.remove(obj));
+    canvas.add(group);
+    canvas.setActiveObject(group);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const handleUngroup = () => {
+    if (!canvas || selectedObjects.length !== 1) return;
+
+    const obj = selectedObjects[0];
+    if (obj.type === "group") {
+      const group = obj as Group;
+      const objects = group.getObjects();
+      canvas.remove(group);
+
+      objects.forEach((o) => {
+        canvas.add(o);
+      });
+
+      canvas.renderAll();
+      pushHistory();
+    }
+  };
+
+  const handleAlign = (type: string) => {
+    if (!canvas || selectedObjects.length < 2) return;
+
+    const activeSelection = canvas.getActiveObject();
+    if (!activeSelection || activeSelection.type !== "activeSelection") return;
+
+    const objects = (activeSelection as any).getObjects();
+    if (!objects || objects.length < 2) return;
+
+    const bounds = objects.reduce((acc: any, obj: any) => {
+      const objBounds = obj.getBoundingRect();
+      return {
+        left: Math.min(acc.left || objBounds.left, objBounds.left),
+        top: Math.min(acc.top || objBounds.top, objBounds.top),
+        right: Math.max(acc.right || objBounds.left + objBounds.width, objBounds.left + objBounds.width),
+        bottom: Math.max(acc.bottom || objBounds.top + objBounds.height, objBounds.top + objBounds.height),
+      };
+    }, {});
+
+    objects.forEach((obj: any) => {
+      const objBounds = obj.getBoundingRect();
+
+      switch (type) {
+        case "left":
+          obj.set({ left: bounds.left });
+          break;
+        case "right":
+          obj.set({ left: bounds.right - objBounds.width });
+          break;
+        case "centerH":
+          obj.set({ left: bounds.left + (bounds.right - bounds.left) / 2 - objBounds.width / 2 });
+          break;
+        case "top":
+          obj.set({ top: bounds.top });
+          break;
+        case "bottom":
+          obj.set({ top: bounds.bottom - objBounds.height });
+          break;
+        case "centerV":
+          obj.set({ top: bounds.top + (bounds.bottom - bounds.top) / 2 - objBounds.height / 2 });
+          break;
+      }
+
+      obj.setCoords();
+    });
+
+    canvas.renderAll();
+    pushHistory();
+  };
 
   const updateBgColor = (color: string) => {
     setBgColor(color);
@@ -192,9 +297,20 @@ export default function CoverPageEditorPage() {
     setHistory([initialJson]);
     setHistoryIndex(0);
 
-    c.on("selection:cleared", () => setSelected(null));
-    c.on("selection:updated", (e) => setSelected(e.selected?.[0] as CanvasObject));
-    c.on("selection:created", (e) => setSelected(e.selected?.[0] as CanvasObject));
+    c.on("selection:cleared", () => {
+      setSelected(null);
+      setSelectedObjects([]);
+    });
+    c.on("selection:updated", (e) => {
+      const objs = e.selected || [];
+      setSelectedObjects(objs);
+      setSelected((objs[0] as CanvasObject) || null);
+    });
+    c.on("selection:created", (e) => {
+      const objs = e.selected || [];
+      setSelectedObjects(objs);
+      setSelected((objs[0] as CanvasObject) || null);
+    });
 
     c.on("object:modified", () => pushHistory());
     c.on("object:moving", (e) => {
@@ -1153,7 +1269,7 @@ export default function CoverPageEditorPage() {
             onZoomChange={setZoom}
             showGrid={showGrid}
             onToggleGrid={() => setShowGrid(!showGrid)}
-            selectedObjects={selected ? [selected] : []}
+            selectedObjects={selectedObjects}
             onCopy={handleCopy}
             onDelete={handleDelete}
             onGroup={handleGroup}
