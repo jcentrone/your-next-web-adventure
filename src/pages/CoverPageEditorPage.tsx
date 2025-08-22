@@ -713,7 +713,7 @@ export default function CoverPageEditorPage() {
   }, []);
 
   return (
-    <div className="flex h-full">
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden z-50 bg-gray-900 flex">
       <div className="w-[22rem] p-2 border-r space-y-2">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
           <div>
