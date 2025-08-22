@@ -39,7 +39,7 @@ import {
   Redo2,
   Table as TableIcon,
   Square,
-  Circle as CircleIcon,
+   Circle as CircleIcon,
   Star as StarIcon,
   ArrowRight as ArrowRightIcon,
   Triangle as TriangleIcon,
@@ -52,6 +52,7 @@ import {
 import * as LucideIcons from "lucide-react";
 import { icons as lucideIcons } from "lucide";
 import { openmojis } from "openmoji";
+
 
 const TEMPLATES: Record<string, string> = {
   default: "#ffffff",
@@ -102,6 +103,7 @@ export default function CoverPageEditorPage() {
   const { images, uploadImage, deleteImage } = useImageLibrary();
   const [iconSearch, setIconSearch] = useState("");
   const [clipartSearch, setClipartSearch] = useState("");
+
 
   const pushHistory = () => {
     if (!canvas) return;
@@ -378,6 +380,7 @@ export default function CoverPageEditorPage() {
     });
   };
 
+
   const addClipart = async (hex: string) => {
     if (!canvas) return;
     const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
@@ -391,6 +394,7 @@ export default function CoverPageEditorPage() {
       pushHistory();
     });
   };
+
 
   const addText = () => {
     if (!canvas) return;
@@ -762,6 +766,9 @@ export default function CoverPageEditorPage() {
               </Button>
               <Button onClick={addBidirectionalArrow} className="w-full">
                 <ArrowLeftRight className="mr-2 h-4 w-4" /> Bi-Arrow
+              </Button>
+              <Button onClick={addArrow} className="w-full">
+                <ArrowRightIcon className="mr-2 h-4 w-4" /> Arrow
               </Button>
               <div className="pt-2">
                 <Label htmlFor="icon-search">Icons</Label>
