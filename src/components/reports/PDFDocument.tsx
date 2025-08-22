@@ -5,21 +5,51 @@ import { AlertTriangle, AlertCircle, AlertOctagon, Info, Wrench, MinusCircle } f
 import ReportDetailsSection from "./ReportDetailsSection";
 import SectionInfoDisplay from "./SectionInfoDisplay";
 import { CoverPagePreview } from "@/components/cover-pages/CoverPagePreview";
+import { useAuth } from "@/contexts/AuthContext";
+import { coverPagesApi } from "@/integrations/supabase/coverPagesApi";
+import { getSignedUrlFromSupabaseUrl, isSupabaseUrl } from "@/integrations/supabase/storage";
 
 interface PDFDocumentProps {
   report: Report;
   mediaUrlMap: Record<string, string>;
   coverUrl: string;
-  coverPage?: {
-    title: string;
-    text?: string;
-    color: string;
-    imageUrl?: string | null;
-  };
 }
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
-  ({ report, mediaUrlMap, coverUrl, coverPage }, ref) => {
+  ({ report, mediaUrlMap, coverUrl }, ref) => {
+    const { user } = useAuth();
+    const [coverPage, setCoverPage] = React.useState<{ title: string; text?: string; color: string; imageUrl?: string | null } | null>(null);
+
+    React.useEffect(() => {
+      if (!user) return;
+      let cancelled = false;
+      (async () => {
+        try {
+          const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
+          if (cp) {
+            let imageUrl = cp.image_url;
+            if (imageUrl && isSupabaseUrl(imageUrl)) {
+              imageUrl = await getSignedUrlFromSupabaseUrl(imageUrl);
+            }
+            if (!cancelled) {
+              setCoverPage({
+                title: cp.name,
+                text: cp.text_content as string | undefined,
+                color: cp.color_palette_key || "#000000",
+                imageUrl,
+              });
+            }
+          } else if (!cancelled) {
+            setCoverPage(null);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [user, report.reportType]);
     // Only render PDFs for home inspection reports for now
     if (report.reportType !== "home_inspection") {
       return (
@@ -109,9 +139,9 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                 {orderedSeverities.map(severity => {
                   const Icon = SEVERITY_ICONS[severity];
                   const badgeConfig = tpl.severityBadge[severity];
-                  const badgeClasses = typeof badgeConfig === 'string' 
-                    ? badgeConfig 
-                    : (badgeConfig as any)?.className || '';
+                  const badgeClasses = typeof badgeConfig === 'string'
+                    ? badgeConfig
+                    : (badgeConfig as { className?: string })?.className || '';
                   
                   return (
                     <div key={severity} className="flex flex-col items-center">
@@ -162,9 +192,9 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                 sec.findings.map((f) => {
                   const Icon = SEVERITY_ICONS[f.severity];
                   const badgeConfig = tpl.severityBadge[f.severity];
-                  const badgeClasses = typeof badgeConfig === 'string' 
-                    ? badgeConfig 
-                    : (badgeConfig as any)?.className || '';
+                  const badgeClasses = typeof badgeConfig === 'string'
+                    ? badgeConfig
+                    : (badgeConfig as { className?: string })?.className || '';
                   
                   return (
                     <article key={f.id} className={tpl.findingWrapper}>

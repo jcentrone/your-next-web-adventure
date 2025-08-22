@@ -18,6 +18,8 @@ import ReportDetailsSection from "@/components/reports/ReportDetailsSection";
 import SectionInfoDisplay from "@/components/reports/SectionInfoDisplay";
 import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
+import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
+import {CoverPagePreview} from "@/components/cover-pages/CoverPagePreview";
 
 
 function ButtonBar({id}: { id: string }) {
@@ -64,7 +66,7 @@ function TemplateSelector({value, onChange, disabled}: {
     disabled?: boolean
 }) {
     return (
-        <Select value={value} onValueChange={(v) => onChange(v as any)} disabled={disabled}>
+        <Select value={value} onValueChange={(v) => onChange(v as 'classic' | 'modern' | 'minimal')} disabled={disabled}>
             <SelectTrigger className="w-[200px]" aria-label="Choose preview template">
                 <SelectValue placeholder="Choose template"/>
             </SelectTrigger>
@@ -83,6 +85,7 @@ const ReportPreview: React.FC = () => {
     const [report, setReport] = React.useState<Report | null>(null);
     const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
     const [coverUrl, setCoverUrl] = React.useState<string>("");
+    const [coverPage, setCoverPage] = React.useState<{title: string; text?: string; color: string; imageUrl?: string | null} | null>(null);
     const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
     const pdfRef = React.useRef<HTMLDivElement>(null);
 
@@ -158,7 +161,7 @@ const ReportPreview: React.FC = () => {
                 title: 'Failed to update template',
                 description: 'Please try again.',
                 variant: 'destructive'
-            } as any);
+            });
         } finally {
             setSavingTpl(false);
         }
@@ -214,7 +217,30 @@ const ReportPreview: React.FC = () => {
                     if (!cancelled) setCoverUrl(report.coverImage);
                 }
             }
-            // cover page selection removed
+            // assigned cover page
+            if (user) {
+                try {
+                    const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
+                    if (cp) {
+                        let imageUrl = cp.image_url;
+                        if (imageUrl && isSupabaseUrl(imageUrl)) {
+                            imageUrl = await getSignedUrlFromSupabaseUrl(imageUrl);
+                        }
+                        if (!cancelled) {
+                            setCoverPage({
+                                title: cp.name,
+                                text: cp.text_content as string | undefined,
+                                color: cp.color_palette_key || "#000000",
+                                imageUrl,
+                            });
+                        }
+                    } else if (!cancelled) {
+                        setCoverPage(null);
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            }
         })();
 
         return () => {
@@ -315,7 +341,11 @@ const ReportPreview: React.FC = () => {
                     {isGeneratingPDF ? 'Generating PDF...' : 'Download PDF'}
                 </Button>
             </div>
-            {/* Cover page preview removed */}
+            {coverPage && (
+                <section className="page-break flex justify-center">
+                    <CoverPagePreview {...coverPage} />
+                </section>
+            )}
             <article className={tpl.container}>
                 {/* Cover Page */}
                 <section className={`${tpl.cover} page-break`}>

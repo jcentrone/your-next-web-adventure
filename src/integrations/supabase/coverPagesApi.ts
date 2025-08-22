@@ -121,6 +121,31 @@ export async function getCoverPageAssignments(
   return assignments;
 }
 
+export async function getCoverPage(id: string): Promise<CoverPage | null> {
+  const { data, error } = await supabase
+    .from("cover_pages")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching cover page:", error);
+    throw error;
+  }
+
+  return data as CoverPage;
+}
+
+export async function getAssignedCoverPage(
+  userId: string,
+  reportType: string,
+): Promise<CoverPage | null> {
+  const assignments = await getCoverPageAssignments(userId);
+  const coverPageId = assignments[reportType];
+  if (!coverPageId) return null;
+  return await getCoverPage(coverPageId);
+}
+
 export async function setCoverPageAssignment(
   userId: string,
   reportType: string,
@@ -161,6 +186,8 @@ export const coverPagesApi = {
   updateCoverPage,
   deleteCoverPage,
   getCoverPageAssignments,
+  getCoverPage,
+  getAssignedCoverPage,
   setCoverPageAssignment,
   clearCoverPageAssignment,
 };
