@@ -4,10 +4,9 @@ import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
 import { AlertTriangle, AlertCircle, AlertOctagon, Info, Wrench, MinusCircle } from "lucide-react";
 import ReportDetailsSection from "./ReportDetailsSection";
 import SectionInfoDisplay from "./SectionInfoDisplay";
-import { CoverPagePreview } from "@/components/cover-pages/CoverPagePreview";
 import { useAuth } from "@/contexts/AuthContext";
 import { coverPagesApi } from "@/integrations/supabase/coverPagesApi";
-import { getSignedUrlFromSupabaseUrl, isSupabaseUrl } from "@/integrations/supabase/storage";
+import { Canvas as FabricCanvas } from "fabric";
 
 interface PDFDocumentProps {
   report: Report;
@@ -18,27 +17,28 @@ interface PDFDocumentProps {
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
   ({ report, mediaUrlMap, coverUrl }, ref) => {
     const { user } = useAuth();
-    const [coverPage, setCoverPage] = React.useState<{ title: string; text?: string; color: string; imageUrl?: string | null } | null>(null);
+    const [coverPage, setCoverPage] = React.useState<string | null>(null);
 
     React.useEffect(() => {
       if (!user) return;
       let cancelled = false;
+      let coverCanvas: FabricCanvas | null = null;
+      let canvasDisposed = false;
       (async () => {
         try {
           const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
-          if (cp) {
-            let imageUrl = cp.image_url;
-            if (imageUrl && isSupabaseUrl(imageUrl)) {
-              imageUrl = await getSignedUrlFromSupabaseUrl(imageUrl);
-            }
-            if (!cancelled) {
-              setCoverPage({
-                title: cp.name,
-                text: cp.text_content as string | undefined,
-                color: cp.color_palette_key || "#000000",
-                imageUrl,
-              });
-            }
+          if (cp && cp.design_json) {
+            const canvasEl = document.createElement("canvas");
+            coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
+            coverCanvas.loadFromJSON(cp.design_json, () => {
+              coverCanvas?.renderAll();
+              const url = coverCanvas?.toDataURL({ format: "png" });
+              if (!cancelled && url) {
+                setCoverPage(url);
+              }
+              coverCanvas?.dispose();
+              canvasDisposed = true;
+            });
           } else if (!cancelled) {
             setCoverPage(null);
           }
@@ -48,6 +48,9 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
       })();
       return () => {
         cancelled = true;
+        if (!canvasDisposed) {
+          coverCanvas?.dispose();
+        }
       };
     }, [user, report.reportType]);
     // Only render PDFs for home inspection reports for now
@@ -104,7 +107,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
       <div ref={ref} className="pdf-document">
         {coverPage && (
           <section className="pdf-page-break flex justify-center">
-            <CoverPagePreview {...coverPage} />
+            <img src={coverPage} alt="Cover Page" className="max-w-full h-auto" />
           </section>
         )}
         <article className={tpl.container}>

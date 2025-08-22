@@ -19,7 +19,7 @@ import SectionInfoDisplay from "@/components/reports/SectionInfoDisplay";
 import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
 import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
-import {CoverPagePreview} from "@/components/cover-pages/CoverPagePreview";
+import { Canvas as FabricCanvas } from "fabric";
 
 
 function ButtonBar({id}: { id: string }) {
@@ -85,7 +85,7 @@ const ReportPreview: React.FC = () => {
     const [report, setReport] = React.useState<Report | null>(null);
     const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
     const [coverUrl, setCoverUrl] = React.useState<string>("");
-    const [coverPage, setCoverPage] = React.useState<{title: string; text?: string; color: string; imageUrl?: string | null} | null>(null);
+    const [coverPage, setCoverPage] = React.useState<string | null>(null);
     const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
     const pdfRef = React.useRef<HTMLDivElement>(null);
 
@@ -192,6 +192,8 @@ const ReportPreview: React.FC = () => {
         const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
 
         let cancelled = false;
+        let coverCanvas: FabricCanvas | null = null;
+        let canvasDisposed = false;
         (async () => {
             if (needsSigned.length > 0) {
                 const entries = await Promise.all(
@@ -221,19 +223,18 @@ const ReportPreview: React.FC = () => {
             if (user) {
                 try {
                     const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
-                    if (cp) {
-                        let imageUrl = cp.image_url;
-                        if (imageUrl && isSupabaseUrl(imageUrl)) {
-                            imageUrl = await getSignedUrlFromSupabaseUrl(imageUrl);
-                        }
-                        if (!cancelled) {
-                            setCoverPage({
-                                title: cp.name,
-                                text: cp.text_content as string | undefined,
-                                color: cp.color_palette_key || "#000000",
-                                imageUrl,
-                            });
-                        }
+                    if (cp && cp.design_json) {
+                        const canvasEl = document.createElement("canvas");
+                        coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
+                        coverCanvas.loadFromJSON(cp.design_json, () => {
+                            coverCanvas?.renderAll();
+                            const url = coverCanvas?.toDataURL({ format: "png" });
+                            if (!cancelled && url) {
+                                setCoverPage(url);
+                            }
+                            coverCanvas?.dispose();
+                            canvasDisposed = true;
+                        });
                     } else if (!cancelled) {
                         setCoverPage(null);
                     }
@@ -245,6 +246,9 @@ const ReportPreview: React.FC = () => {
 
         return () => {
             cancelled = true;
+            if (!canvasDisposed) {
+                coverCanvas?.dispose();
+            }
         };
     }, [user, report]);
 
@@ -343,7 +347,7 @@ const ReportPreview: React.FC = () => {
             </div>
             {coverPage && (
                 <section className="page-break flex justify-center">
-                    <CoverPagePreview {...coverPage} />
+                    <img src={coverPage} alt="Cover Page" className="max-w-full h-auto" />
                 </section>
             )}
             <article className={tpl.container}>
