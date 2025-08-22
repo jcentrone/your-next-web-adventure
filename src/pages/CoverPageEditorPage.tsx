@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import { useForm } from "react-hook-form";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -8,7 +8,11 @@ import {
   Image as FabricImage,
   Group,
   Line,
+  Circle,
+  Polygon,
   FabricObject,
+  loadSVGFromString,
+  util as FabricUtil,
 } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,17 +32,26 @@ import {
   AlignRight,
   ArrowDown,
   ArrowUp,
+  ArrowLeftRight,
   Bold,
   Italic,
   Plus,
   Redo2,
   Table as TableIcon,
   Square,
+  Circle as CircleIcon,
+  Star as StarIcon,
+  ArrowRight as ArrowRightIcon,
+  Triangle as TriangleIcon,
+  Pentagon,
   Trash2,
   Undo2,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
+import * as LucideIcons from "lucide-react";
+import { icons as lucideIcons } from "lucide";
+import { openmojis } from "openmoji";
 
 const TEMPLATES: Record<string, string> = {
   default: "#ffffff",
@@ -54,7 +67,7 @@ const FONTS = ["Arial", "Times New Roman", "Courier New", "Georgia", "Verdana"];
 
 const GRID_SIZE = 20;
 
-type CanvasObject = Rect | Textbox | FabricImage | Group;
+type CanvasObject = Rect | Circle | Polygon | Textbox | FabricImage | Group;
 
 interface FormValues {
   name: string;
@@ -87,6 +100,8 @@ export default function CoverPageEditorPage() {
   const reportTypes = watch("reportTypes");
   const [bgColor, setBgColor] = useState(TEMPLATES[template]);
   const { images, uploadImage, deleteImage } = useImageLibrary();
+  const [iconSearch, setIconSearch] = useState("");
+  const [clipartSearch, setClipartSearch] = useState("");
 
   const pushHistory = () => {
     if (!canvas) return;
@@ -200,6 +215,181 @@ export default function CoverPageEditorPage() {
     canvas.setActiveObject(rect);
     canvas.renderAll();
     pushHistory();
+  };
+
+  const addCircle = () => {
+    if (!canvas) return;
+    const circle = new Circle({
+      left: 100,
+      top: 100,
+      radius: 50,
+      fill: "rgba(0,0,0,0.1)",
+      stroke: "#000",
+      strokeWidth: 2,
+    });
+    canvas.add(circle);
+    canvas.setActiveObject(circle);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const addStar = () => {
+    if (!canvas) return;
+    const points: { x: number; y: number }[] = [];
+    const outer = 50;
+    const inner = 20;
+    for (let i = 0; i < 10; i++) {
+      const angle = (Math.PI / 5) * i;
+      const r = i % 2 === 0 ? outer : inner;
+      points.push({
+        x: 50 + r * Math.sin(angle),
+        y: 50 - r * Math.cos(angle),
+      });
+    }
+    const star = new Polygon(points, {
+      left: 100,
+      top: 100,
+      fill: "rgba(0,0,0,0.1)",
+      stroke: "#000",
+      strokeWidth: 2,
+    });
+    canvas.add(star);
+    canvas.setActiveObject(star);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const addTriangle = () => {
+    if (!canvas) return;
+    const points = [
+      { x: 50, y: 0 },
+      { x: 100, y: 100 },
+      { x: 0, y: 100 },
+    ];
+    const triangle = new Polygon(points, {
+      left: 100,
+      top: 100,
+      fill: "rgba(0,0,0,0.1)",
+      stroke: "#000",
+      strokeWidth: 2,
+    });
+    canvas.add(triangle);
+    canvas.setActiveObject(triangle);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const addPolygonShape = () => {
+    if (!canvas) return;
+    const sides = 5;
+    const radius = 50;
+    const points = Array.from({ length: sides }, (_, i) => {
+      const angle = (i / sides) * Math.PI * 2;
+      return {
+        x: 50 + radius * Math.cos(angle),
+        y: 50 + radius * Math.sin(angle),
+      };
+    });
+    const polygon = new Polygon(points, {
+      left: 100,
+      top: 100,
+      fill: "rgba(0,0,0,0.1)",
+      stroke: "#000",
+      strokeWidth: 2,
+    });
+    canvas.add(polygon);
+    canvas.setActiveObject(polygon);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const addArrow = () => {
+    if (!canvas) return;
+    const line = new Line([0, 0, 80, 0], {
+      stroke: "#000",
+      strokeWidth: 2,
+    });
+    const head = new Polygon(
+      [
+        { x: 80, y: 0 },
+        { x: 60, y: -10 },
+        { x: 60, y: 10 },
+      ],
+      { fill: "#000", stroke: "#000", strokeWidth: 2 }
+    );
+    const arrow = new Group([line, head], { left: 100, top: 100 });
+    canvas.add(arrow);
+    canvas.setActiveObject(arrow);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const addBidirectionalArrow = () => {
+    if (!canvas) return;
+    const line = new Line([0, 0, 80, 0], {
+      stroke: "#000",
+      strokeWidth: 2,
+    });
+    const headRight = new Polygon(
+      [
+        { x: 80, y: 0 },
+        { x: 60, y: -10 },
+        { x: 60, y: 10 },
+      ],
+      { fill: "#000", stroke: "#000", strokeWidth: 2 }
+    );
+    const headLeft = new Polygon(
+      [
+        { x: 0, y: 0 },
+        { x: 20, y: -10 },
+        { x: 20, y: 10 },
+      ],
+      { fill: "#000", stroke: "#000", strokeWidth: 2 }
+    );
+    const arrow = new Group([line, headLeft, headRight], {
+      left: 100,
+      top: 100,
+    });
+    canvas.add(arrow);
+    canvas.setActiveObject(arrow);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const addIcon = (name: string) => {
+    if (!canvas) return;
+    const icon = lucideIcons[name];
+    if (!icon) return;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon.iconNode
+      .map(([tag, attrs]) => {
+        const attrString = Object.entries(attrs)
+          .map(([k, v]) => `${k}="${v}"`)
+          .join(" ");
+        return `<${tag} ${attrString} />`;
+      })
+      .join("")}</svg>`;
+    loadSVGFromString(svg, (objects, options) => {
+      const obj = FabricUtil.groupSVGElements(objects, options);
+      obj.set({ left: 100, top: 100, stroke: "#000", fill: "none" });
+      canvas.add(obj);
+      canvas.setActiveObject(obj);
+      canvas.renderAll();
+      pushHistory();
+    });
+  };
+
+  const addClipart = async (hex: string) => {
+    if (!canvas) return;
+    const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
+    const svg = await fetch(url).then((r) => r.text());
+    loadSVGFromString(svg, (objects, options) => {
+      const obj = FabricUtil.groupSVGElements(objects, options);
+      obj.set({ left: 100, top: 100 });
+      canvas.add(obj);
+      canvas.setActiveObject(obj);
+      canvas.renderAll();
+      pushHistory();
+    });
   };
 
   const addText = () => {
@@ -330,10 +520,17 @@ export default function CoverPageEditorPage() {
 
   const updateSelected = (prop: string, value: unknown) => {
     if (!selected || !canvas) return;
-    (selected as unknown as FabricObject).set(prop as never, value as never);
-    if (selected instanceof Textbox) {
-      selected.initDimensions();
-      selected.setCoords();
+    if (selected instanceof Group) {
+      selected.getObjects().forEach((obj) =>
+        (obj as unknown as FabricObject).set(prop as never, value as never)
+      );
+      selected.addWithUpdate();
+    } else {
+      (selected as unknown as FabricObject).set(prop as never, value as never);
+      if (selected instanceof Textbox) {
+        selected.initDimensions();
+        selected.setCoords();
+      }
     }
     canvas.renderAll();
     pushHistory();
@@ -544,10 +741,98 @@ export default function CoverPageEditorPage() {
           </AccordionItem>
           <AccordionItem value="graphics">
             <AccordionTrigger>Graphics</AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent className="space-y-2">
               <Button onClick={addRect} className="w-full">
                 <Square className="mr-2 h-4 w-4" /> Rectangle
               </Button>
+              <Button onClick={addCircle} className="w-full">
+                <CircleIcon className="mr-2 h-4 w-4" /> Circle
+              </Button>
+              <Button onClick={addStar} className="w-full">
+                <StarIcon className="mr-2 h-4 w-4" /> Star
+              </Button>
+              <Button onClick={addTriangle} className="w-full">
+                <TriangleIcon className="mr-2 h-4 w-4" /> Triangle
+              </Button>
+              <Button onClick={addPolygonShape} className="w-full">
+                <Pentagon className="mr-2 h-4 w-4" /> Polygon
+              </Button>
+              <Button onClick={addArrow} className="w-full">
+                <ArrowRightIcon className="mr-2 h-4 w-4" /> Arrow
+              </Button>
+              <Button onClick={addBidirectionalArrow} className="w-full">
+                <ArrowLeftRight className="mr-2 h-4 w-4" /> Bi-Arrow
+              </Button>
+              <div className="pt-2">
+                <Label htmlFor="icon-search">Icons</Label>
+                <Input
+                  id="icon-search"
+                  placeholder="Search icons..."
+                  value={iconSearch}
+                  onChange={(e) => setIconSearch(e.target.value)}
+                />
+                <div className="mt-2 grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
+                  {Object.keys(lucideIcons)
+                    .filter((name) =>
+                      name.toLowerCase().includes(iconSearch.toLowerCase())
+                    )
+                    .slice(0, 50)
+                    .map((name) => {
+                      const pascal = name
+                        .split("-")
+                        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+                        .join("");
+                      const IconComp = (
+                        LucideIcons as Record<string, ComponentType<unknown>>
+                      )[pascal];
+                      if (!IconComp) return null;
+                      return (
+                        <button
+                          key={name}
+                          type="button"
+                          className="p-1 border rounded hover:bg-accent flex items-center justify-center"
+                          onClick={() => addIcon(name)}
+                          title={name}
+                        >
+                          <IconComp className="h-4 w-4" />
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+              <div className="pt-2">
+                <Label htmlFor="clipart-search">Clipart</Label>
+                <Input
+                  id="clipart-search"
+                  placeholder="Search clipart..."
+                  value={clipartSearch}
+                  onChange={(e) => setClipartSearch(e.target.value)}
+                />
+                <div className="mt-2 grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
+                  {openmojis
+                    .filter((c) =>
+                      c.annotation
+                        .toLowerCase()
+                        .includes(clipartSearch.toLowerCase())
+                    )
+                    .slice(0, 50)
+                    .map((c) => (
+                      <button
+                        key={c.hexcode}
+                        type="button"
+                        className="p-1 border rounded hover:bg-accent flex items-center justify-center"
+                        onClick={() => addClipart(c.hexcode)}
+                        title={c.annotation}
+                      >
+                        <img
+                          src={`https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${c.hexcode}.svg`}
+                          alt={c.annotation}
+                          className="h-4 w-4"
+                        />
+                      </button>
+                    ))}
+                </div>
+              </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="tables">
@@ -619,7 +904,7 @@ export default function CoverPageEditorPage() {
       {selected && (
         <div className="w-[22rem] p-2 border-l space-y-2">
           <div>
-            <Label htmlFor="fill">Color</Label>
+            <Label htmlFor="fill">Fill</Label>
             <Input
               id="fill"
               type="color"
@@ -629,6 +914,34 @@ export default function CoverPageEditorPage() {
                   : "#000000"
               }
               onChange={(e) => updateSelected("fill", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="stroke">Stroke</Label>
+            <Input
+              id="stroke"
+              type="color"
+              value={
+                selected && "stroke" in selected && typeof (selected as { stroke?: string }).stroke === "string"
+                  ? (selected as { stroke?: string }).stroke
+                  : "#000000"
+              }
+              onChange={(e) => updateSelected("stroke", e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="strokeWidth">Stroke Width</Label>
+            <Input
+              id="strokeWidth"
+              type="number"
+              value={
+                selected && "strokeWidth" in selected
+                  ? (selected as { strokeWidth?: number }).strokeWidth ?? 1
+                  : 1
+              }
+              onChange={(e) =>
+                updateSelected("strokeWidth", parseInt(e.target.value, 10))
+              }
             />
           </div>
           {selected instanceof Textbox && (
