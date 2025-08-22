@@ -69,6 +69,16 @@ const GRID_SIZE = 20;
 
 type CanvasObject = Rect | Circle | Polygon | Textbox | FabricImage | Group;
 
+interface TableData {
+  type: "table";
+  rows: number;
+  cols: number;
+  cellW: number;
+  cellH: number;
+  borderColor: string;
+  borderWidth: number;
+}
+
 interface FormValues {
   name: string;
   template: keyof typeof TEMPLATES;
@@ -103,6 +113,9 @@ export default function CoverPageEditorPage() {
   const [iconSearch, setIconSearch] = useState("");
   const [clipartSearch, setClipartSearch] = useState("");
   const [openmojis, setOpenmojis] = useState<any[]>([]);
+  const [tableRows, setTableRows] = useState(2);
+  const [tableCols, setTableCols] = useState(2);
+  const [tableBorderColor, setTableBorderColor] = useState("#000000");
 
   useEffect(() => {
     fetch(
@@ -440,35 +453,77 @@ export default function CoverPageEditorPage() {
     reader.readAsDataURL(file);
   };
 
-  const addTable = () => {
-    if (!canvas) return;
-    const rows = 2;
-    const cols = 2;
-    const cellW = 80;
-    const cellH = 40;
+  const createTableGroup = (
+    rows: number,
+    cols: number,
+    cellW: number,
+    cellH: number,
+    borderColor: string,
+    borderWidth: number,
+    left = 100,
+    top = 100,
+  ) => {
     const lines: Line[] = [];
     for (let i = 0; i <= rows; i++) {
       lines.push(
         new Line([0, i * cellH, cols * cellW, i * cellH], {
-          stroke: "#000",
+          stroke: borderColor,
+          strokeWidth: borderWidth,
           selectable: false,
-        })
+        }),
       );
     }
     for (let i = 0; i <= cols; i++) {
       lines.push(
         new Line([i * cellW, 0, i * cellW, rows * cellH], {
-          stroke: "#000",
+          stroke: borderColor,
+          strokeWidth: borderWidth,
           selectable: false,
-        })
+        }),
       );
     }
-    const group = new Group(lines, {
-      left: 100,
-      top: 100,
-    });
+    const group = new Group(lines, { left, top });
+    const data: TableData = {
+      type: "table",
+      rows,
+      cols,
+      cellW,
+      cellH,
+      borderColor,
+      borderWidth,
+    };
+    (group as any).data = data;
+    return group;
+  };
+
+  const addTable = (rows: number, cols: number, borderColor: string) => {
+    if (!canvas) return;
+    const group = createTableGroup(rows, cols, 80, 40, borderColor, 1);
     canvas.add(group);
     canvas.setActiveObject(group);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const updateTable = (updates: Partial<TableData>) => {
+    if (!canvas || !selected || !(selected instanceof Group)) return;
+    const data = { ...(selected as any).data } as TableData;
+    if (data?.type !== "table") return;
+    const newData = { ...data, ...updates } as TableData;
+    const group = createTableGroup(
+      newData.rows,
+      newData.cols,
+      newData.cellW,
+      newData.cellH,
+      newData.borderColor,
+      newData.borderWidth,
+      selected.left,
+      selected.top,
+    );
+    canvas.remove(selected);
+    canvas.add(group);
+    canvas.setActiveObject(group);
+    setSelected(group);
     canvas.renderAll();
     pushHistory();
   };
@@ -854,9 +909,41 @@ export default function CoverPageEditorPage() {
           <AccordionItem value="tables">
             <AccordionTrigger>Tables</AccordionTrigger>
             <AccordionContent>
-              <Button onClick={addTable} className="w-full">
-                <TableIcon className="mr-2 h-4 w-4" /> Add Table
-              </Button>
+              <div className="space-y-2">
+                <div>
+                  <Label htmlFor="table-rows">Rows</Label>
+                  <Input
+                    id="table-rows"
+                    type="number"
+                    value={tableRows}
+                    onChange={(e) => setTableRows(parseInt(e.target.value, 10))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="table-cols">Columns</Label>
+                  <Input
+                    id="table-cols"
+                    type="number"
+                    value={tableCols}
+                    onChange={(e) => setTableCols(parseInt(e.target.value, 10))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="table-border-color">Border Color</Label>
+                  <Input
+                    id="table-border-color"
+                    type="color"
+                    value={tableBorderColor}
+                    onChange={(e) => setTableBorderColor(e.target.value)}
+                  />
+                </div>
+                <Button
+                  onClick={() => addTable(tableRows, tableCols, tableBorderColor)}
+                  className="w-full"
+                >
+                  <TableIcon className="mr-2 h-4 w-4" /> Add Table
+                </Button>
+              </div>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="design">
@@ -919,89 +1006,196 @@ export default function CoverPageEditorPage() {
 
       {selected && (
         <div className="w-[22rem] p-2 border-l space-y-2">
-          <div>
-            <Label htmlFor="fill">Fill</Label>
-            <Input
-              id="fill"
-              type="color"
-              value={
-                selected && "fill" in selected && typeof (selected as { fill?: string }).fill === "string"
-                  ? (selected as { fill?: string }).fill
-                  : "#000000"
-              }
-              onChange={(e) => updateSelected("fill", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="stroke">Stroke</Label>
-            <Input
-              id="stroke"
-              type="color"
-              value={
-                selected && "stroke" in selected && typeof (selected as { stroke?: string }).stroke === "string"
-                  ? (selected as { stroke?: string }).stroke
-                  : "#000000"
-              }
-              onChange={(e) => updateSelected("stroke", e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="strokeWidth">Stroke Width</Label>
-            <Input
-              id="strokeWidth"
-              type="number"
-              value={
-                selected && "strokeWidth" in selected
-                  ? (selected as { strokeWidth?: number }).strokeWidth ?? 1
-                  : 1
-              }
-              onChange={(e) =>
-                updateSelected("strokeWidth", parseInt(e.target.value, 10))
-              }
-            />
-          </div>
-          {selected instanceof Textbox && (
-            <div>
-              <Label htmlFor="fontSize">Font Size</Label>
-              <Input
-                id="fontSize"
-                type="number"
-                value={selected.fontSize || 16}
-                onChange={(e) => updateSelected("fontSize", parseInt(e.target.value, 10))}
-              />
-            </div>
+          {selected instanceof Group && (selected as any).data?.type === "table" ? (
+            <>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() =>
+                    updateTable({ rows: ((selected as any).data as TableData).rows + 1 })
+                  }
+                >
+                  Add Row
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() =>
+                    updateTable({
+                      rows: Math.max(
+                        1,
+                        ((selected as any).data as TableData).rows - 1,
+                      ),
+                    })
+                  }
+                >
+                  Remove Row
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() =>
+                    updateTable({ cols: ((selected as any).data as TableData).cols + 1 })
+                  }
+                >
+                  Add Column
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() =>
+                    updateTable({
+                      cols: Math.max(
+                        1,
+                        ((selected as any).data as TableData).cols - 1,
+                      ),
+                    })
+                  }
+                >
+                  Remove Column
+                </Button>
+              </div>
+              <div>
+                <Label htmlFor="cellW">Cell Width</Label>
+                <Input
+                  id="cellW"
+                  type="number"
+                  value={(selected as any).data.cellW}
+                  onChange={(e) =>
+                    updateTable({ cellW: parseInt(e.target.value, 10) })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="cellH">Cell Height</Label>
+                <Input
+                  id="cellH"
+                  type="number"
+                  value={(selected as any).data.cellH}
+                  onChange={(e) =>
+                    updateTable({ cellH: parseInt(e.target.value, 10) })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="tableBorderColor">Border Color</Label>
+                <Input
+                  id="tableBorderColor"
+                  type="color"
+                  value={(selected as any).data.borderColor}
+                  onChange={(e) => updateTable({ borderColor: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="tableBorderWidth">Border Width</Label>
+                <Input
+                  id="tableBorderWidth"
+                  type="number"
+                  value={(selected as any).data.borderWidth}
+                  onChange={(e) =>
+                    updateTable({ borderWidth: parseInt(e.target.value, 10) })
+                  }
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <Label htmlFor="fill">Fill</Label>
+                <Input
+                  id="fill"
+                  type="color"
+                  value={
+                    selected &&
+                    "fill" in selected &&
+                    typeof (selected as { fill?: string }).fill === "string"
+                      ? (selected as { fill?: string }).fill
+                      : "#000000"
+                  }
+                  onChange={(e) => updateSelected("fill", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="stroke">Stroke</Label>
+                <Input
+                  id="stroke"
+                  type="color"
+                  value={
+                    selected &&
+                    "stroke" in selected &&
+                    typeof (selected as { stroke?: string }).stroke === "string"
+                      ? (selected as { stroke?: string }).stroke
+                      : "#000000"
+                  }
+                  onChange={(e) => updateSelected("stroke", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="strokeWidth">Stroke Width</Label>
+                <Input
+                  id="strokeWidth"
+                  type="number"
+                  value={
+                    selected && "strokeWidth" in selected
+                      ? (selected as { strokeWidth?: number }).strokeWidth ?? 1
+                      : 1
+                  }
+                  onChange={(e) =>
+                    updateSelected("strokeWidth", parseInt(e.target.value, 10))
+                  }
+                />
+              </div>
+              {selected instanceof Textbox && (
+                <div>
+                  <Label htmlFor="fontSize">Font Size</Label>
+                  <Input
+                    id="fontSize"
+                    type="number"
+                    value={selected.fontSize || 16}
+                    onChange={(e) =>
+                      updateSelected("fontSize", parseInt(e.target.value, 10))
+                    }
+                  />
+                </div>
+              )}
+              <div>
+                <Label htmlFor="width">Width</Label>
+                <Input
+                  id="width"
+                  type="number"
+                  value={(selected.width || 0) * (selected.scaleX || 1)}
+                  onChange={(e) => {
+                    const w = parseInt(e.target.value, 10);
+                    updateSelected("scaleX", w / (selected.width || 1));
+                  }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="height">Height</Label>
+                <Input
+                  id="height"
+                  type="number"
+                  value={(selected.height || 0) * (selected.scaleY || 1)}
+                  onChange={(e) => {
+                    const h = parseInt(e.target.value, 10);
+                    updateSelected("scaleY", h / (selected.height || 1));
+                  }}
+                />
+              </div>
+            </>
           )}
-          <div>
-            <Label htmlFor="width">Width</Label>
-            <Input
-              id="width"
-              type="number"
-              value={(selected.width || 0) * (selected.scaleX || 1)}
-              onChange={(e) => {
-                const w = parseInt(e.target.value, 10);
-                updateSelected("scaleX", w / (selected.width || 1));
-              }}
-            />
-          </div>
-          <div>
-            <Label htmlFor="height">Height</Label>
-            <Input
-              id="height"
-              type="number"
-              value={(selected.height || 0) * (selected.scaleY || 1)}
-              onChange={(e) => {
-                const h = parseInt(e.target.value, 10);
-                updateSelected("scaleY", h / (selected.height || 1));
-              }}
-            />
-          </div>
           <div>
             <Label htmlFor="angle">Rotation</Label>
             <Input
               id="angle"
               type="number"
               value={selected.angle || 0}
-              onChange={(e) => updateSelected("angle", parseInt(e.target.value, 10))}
+              onChange={(e) =>
+                updateSelected("angle", parseInt(e.target.value, 10))
+              }
             />
           </div>
           <div className="flex gap-2 pt-2">
