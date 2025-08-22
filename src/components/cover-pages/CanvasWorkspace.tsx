@@ -29,12 +29,14 @@ export function CanvasWorkspace({
   return (
     <div className="flex-1 relative bg-muted/50 overflow-auto">
       <div className="flex items-center justify-center min-h-full">
-        <div ref={workspaceRef} className="relative m-8">
-          {/* Rulers */}
+        <div
+          ref={workspaceRef}
+          className={showRulers ? "relative m-8 p-8" : "relative m-8"}
+        >
           {showRulers && (
             <>
               {/* Horizontal Ruler */}
-              <div className="absolute top-0 left-8 right-0 h-8 bg-gray-200 border-b border-gray-300 z-20 pointer-events-none">
+              <div className="absolute top-0 left-0 right-0 h-8 bg-gray-200 border-b border-gray-300 z-20 pointer-events-none">
                 <div className="relative h-full">
                   {Array.from({ length: 41 }, (_, i) => i * 20).map((mark) => (
                     <div
@@ -53,7 +55,7 @@ export function CanvasWorkspace({
               </div>
 
               {/* Vertical Ruler */}
-              <div className="absolute top-8 left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-20 pointer-events-none">
+              <div className="absolute top-0 left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-20 pointer-events-none">
                 <div className="relative w-full h-full">
                   {Array.from({ length: 51 }, (_, i) => i * 20).map((mark) => (
                     <div
@@ -77,8 +79,7 @@ export function CanvasWorkspace({
           )}
 
           {/* Canvas Container */}
-          <div className={showRulers ? "relative ml-8 mt-8" : "relative"}>
-            {/* Grid Background */}
+          <div className="relative">
             {showGrid && (
               <div
                 className="absolute inset-0 pointer-events-none"
@@ -91,12 +92,10 @@ export function CanvasWorkspace({
               />
             )}
 
-            {/* Canvas */}
             <div className="relative bg-white shadow-lg">
               <canvas ref={canvasRef} />
             </div>
 
-            {/* Canvas Info */}
             <div className="absolute -bottom-6 left-0 text-xs text-muted-foreground">
               800 × 1000px
             </div>
