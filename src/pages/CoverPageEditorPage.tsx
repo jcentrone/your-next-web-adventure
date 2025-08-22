@@ -101,7 +101,7 @@ export default function CoverPageEditorPage() {
   const [selectedObjects, setSelectedObjects] = useState<FabricObject[]>([]);
   const [selected, setSelected] = useState<CanvasObject | null>(null);
   const [fitScale, setFitScale] = useState(1);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.85);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const { id } = useParams<{ id: string }>();
@@ -797,8 +797,18 @@ export default function CoverPageEditorPage() {
     setHistoryIndex(historyIndex + 1);
   };
 
-  const zoomIn = () => setZoom((z) => z * 1.1);
-  const zoomOut = () => setZoom((z) => z / 1.1);
+  const zoomIn = () =>
+    setZoom((z) => {
+      const newZoom = Math.min(5, z * 1.1);
+      console.log("Zoom set to", newZoom);
+      return newZoom;
+    });
+  const zoomOut = () =>
+    setZoom((z) => {
+      const newZoom = Math.max(0.1, z / 1.1);
+      console.log("Zoom set to", newZoom);
+      return newZoom;
+    });
 
   useEffect(() => {
     const updateScale = () => {
