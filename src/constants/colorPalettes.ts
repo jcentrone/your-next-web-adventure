@@ -1,50 +1,38 @@
-export const COLOR_PALETTES = [
+export interface ColorPalette {
+  id: string;
+  name: string;
+  colors: readonly string[];
+}
+
+export const COLOR_PALETTES: ColorPalette[] = [
   {
     id: "classic-blue",
     name: "Classic Blue",
-    primary: "#1e3a8a",
-    secondary: "#3b82f6",
-    accent: "#fcd34d",
-    text: "#1f2937",
+    colors: ["#1e3a8a", "#3b82f6", "#fcd34d", "#1f2937"],
   },
   {
     id: "sunset",
     name: "Sunset",
-    primary: "#f97316",
-    secondary: "#fb923c",
-    accent: "#f43f5e",
-    text: "#1c1917",
+    colors: ["#f97316", "#fb923c", "#f43f5e", "#1c1917"],
   },
   {
     id: "forest",
     name: "Forest",
-    primary: "#166534",
-    secondary: "#22c55e",
-    accent: "#d9f99d",
-    text: "#1f2937",
+    colors: ["#166534", "#22c55e", "#d9f99d", "#1f2937"],
   },
   {
     id: "monochrome",
     name: "Monochrome",
-    primary: "#0f172a",
-    secondary: "#334155",
-    accent: "#64748b",
-    text: "#f1f5f9",
+    colors: ["#0f172a", "#334155", "#64748b", "#f1f5f9"],
   },
   {
     id: "lavender",
     name: "Lavender",
-    primary: "#7c3aed",
-    secondary: "#c4b5fd",
-    accent: "#f9a8d4",
-    text: "#1f2937",
+    colors: ["#7c3aed", "#c4b5fd", "#f9a8d4", "#1f2937"],
   },
   {
     id: "ruby",
     name: "Ruby",
-    primary: "#be123c",
-    secondary: "#fda4af",
-    accent: "#f87171",
-    text: "#fafafa",
+    colors: ["#be123c", "#fda4af", "#f87171", "#fafafa"],
   },
-] as const;
+];
