@@ -1243,10 +1243,10 @@ export default function CoverPageEditorPage() {
         <div
           className="relative border-2 border-blue-500 box-border"
         style={{
-          width: 816,
-          height: 1056,
+          // width: 816,
+          // height: 1056,
           transform: `scale(${fitScale * zoom})`,
-          transformOrigin: "top left",
+          // transformOrigin: "top left",
         }}
       >
           <canvas ref={canvasRef} className="block" />

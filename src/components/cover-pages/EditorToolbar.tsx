@@ -64,7 +64,7 @@ export function EditorToolbar({
   const hasMultipleSelection = selectedObjects.length > 1;
 
   return (
-    <div className="flex items-center gap-2 p-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div id="editor_toolbar" className="flex items-center gap-2 p-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       {/* History Controls */}
       <div className="flex items-center gap-1">
         <Button
