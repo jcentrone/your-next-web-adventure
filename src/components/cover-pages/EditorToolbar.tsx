@@ -225,7 +225,13 @@ export function EditorToolbar({
                         <Input
                             type="number"
                             value={Math.round(zoom * 100)}
-                            onChange={(e) => onZoomChange(Number(e.target.value) / 100)}
+                            onChange={(e) => {
+                                const value = Math.min(
+                                    500,
+                                    Math.max(10, Number(e.target.value))
+                                );
+                                onZoomChange(value / 100);
+                            }}
                             className="w-16 h-8 text-xs text-center"
                             min="10"
                             max="500"

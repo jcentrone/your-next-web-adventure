@@ -17,11 +17,20 @@ export function CanvasWorkspace({
   showRulers,
 }: CanvasWorkspaceProps) {
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const width = canvas?.getWidth() ?? 0;
+  const height = canvas?.getHeight() ?? 0;
+  const baseWidth = width / zoom;
+  const baseHeight = height / zoom;
+  const horizontalMarks = Math.ceil(baseWidth / 20) + 1;
+  const verticalMarks = Math.ceil(baseHeight / 20) + 1;
 
   useEffect(() => {
     if (!canvas) return;
 
-    // Apply zoom
+    canvas.setDimensions({
+      width: 816 * zoom,
+      height: 1056 * zoom,
+    });
     canvas.setZoom(zoom);
     canvas.renderAll();
   }, [canvas, zoom]);
@@ -42,38 +51,42 @@ export function CanvasWorkspace({
               {/* Horizontal Ruler */}
               <div className="absolute top-0 left-0 right-0 h-8 bg-gray-200 border-b border-gray-300 z-30 pointer-events-none">
                 <div className="relative h-full">
-                  {Array.from({ length: 41 }, (_, i) => i * 20).map((mark) => (
-                    <div
-                      key={mark}
-                      className="absolute top-0 h-full border-l border-gray-300/50"
-                      style={{ left: `${mark * zoom}px` }}
-                    >
-                      {mark % 100 === 0 && (
-                        <span className="absolute top-1 left-1 text-xs text-gray-500">
-                          {mark}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                  {Array.from({ length: horizontalMarks }, (_, i) => i * 20).map(
+                    (mark) => (
+                      <div
+                        key={mark}
+                        className="absolute top-0 h-full border-l border-gray-300/50"
+                        style={{ left: `${mark * zoom}px` }}
+                      >
+                        {mark % 100 === 0 && (
+                          <span className="absolute top-1 left-1 text-xs text-gray-500">
+                            {mark}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
 
               {/* Vertical Ruler */}
               <div className="absolute top-0 left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-30 pointer-events-none">
                 <div className="relative w-full h-full">
-                  {Array.from({ length: 51 }, (_, i) => i * 20).map((mark) => (
-                    <div
-                      key={mark}
-                      className="absolute left-0 w-full border-t border-gray-300/50"
-                      style={{ top: `${mark * zoom}px` }}
-                    >
-                      {mark % 100 === 0 && (
-                        <span className="absolute top-1 left-1 text-xs text-gray-500 transform -rotate-90 origin-top-left">
-                          {mark}
-                        </span>
-                      )}
-                    </div>
-                  ))}
+                  {Array.from({ length: verticalMarks }, (_, i) => i * 20).map(
+                    (mark) => (
+                      <div
+                        key={mark}
+                        className="absolute left-0 w-full border-t border-gray-300/50"
+                        style={{ top: `${mark * zoom}px` }}
+                      >
+                        {mark % 100 === 0 && (
+                          <span className="absolute top-1 left-1 text-xs text-gray-500 transform -rotate-90 origin-top-left">
+                            {mark}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -101,7 +114,7 @@ export function CanvasWorkspace({
             </div>
 
             <div className="absolute -bottom-6 left-0 text-xs text-muted-foreground">
-              800 × 1000px
+              816 × 1056px
             </div>
           </div>
         </div>
