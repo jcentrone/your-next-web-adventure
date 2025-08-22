@@ -1087,22 +1087,6 @@ export default function CoverPageEditorPage() {
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        <div className="flex gap-2 pt-4">
-          <Button onClick={undo} variant="outline" size="icon" aria-label="Undo">
-            <Undo2 className="h-4 w-4" />
-          </Button>
-          <Button onClick={redo} variant="outline" size="icon" aria-label="Redo">
-            <Redo2 className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="flex gap-2 pt-4">
-          <Button onClick={zoomOut} variant="outline" size="icon" aria-label="Zoom Out">
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button onClick={zoomIn} variant="outline" size="icon" aria-label="Zoom In">
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
 
       <div className="flex-1 relative flex items-center justify-center">
@@ -1116,6 +1100,20 @@ export default function CoverPageEditorPage() {
           }}
         >
           <canvas ref={canvasRef} />
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            <Button onClick={undo} variant="outline" size="icon" aria-label="Undo">
+              <Undo2 className="h-4 w-4" />
+            </Button>
+            <Button onClick={redo} variant="outline" size="icon" aria-label="Redo">
+              <Redo2 className="h-4 w-4" />
+            </Button>
+            <Button onClick={zoomOut} variant="outline" size="icon" aria-label="Zoom Out">
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <Button onClick={zoomIn} variant="outline" size="icon" aria-label="Zoom In">
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
