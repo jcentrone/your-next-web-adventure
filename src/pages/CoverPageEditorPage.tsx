@@ -714,7 +714,7 @@ export default function CoverPageEditorPage() {
   }, []);
 
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden z-50 bg-gray-900 flex">
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden z-50 flex">
       <div className="w-[22rem] p-2 border-r space-y-2">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
           <div>
@@ -1128,7 +1128,7 @@ export default function CoverPageEditorPage() {
             8.5"
           </span>
         </div>
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-white/80 rounded-md px-2 py-1">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-gray-800/80 text-white shadow-lg rounded-md px-2 py-1">
           <Button onClick={undo} variant="outline" size="icon" aria-label="Undo">
             <Undo2 className="h-4 w-4" />
           </Button>
