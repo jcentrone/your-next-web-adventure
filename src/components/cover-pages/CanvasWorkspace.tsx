@@ -20,11 +20,15 @@ export function CanvasWorkspace({
 
   useEffect(() => {
     if (!canvas) return;
-    
+
     // Apply zoom
     canvas.setZoom(zoom);
     canvas.renderAll();
   }, [canvas, zoom]);
+
+  useEffect(() => {
+    console.log("Rendering rulers:", showRulers);
+  }, [showRulers]);
 
   return (
     <div className="flex-1 relative bg-muted/50 overflow-auto">
