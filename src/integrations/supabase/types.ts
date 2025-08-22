@@ -309,6 +309,7 @@ export type Database = {
           name: string
           template_slug: string | null
           text_content: Json
+          design_json: Json
           updated_at: string
           user_id: string
         }
@@ -320,6 +321,7 @@ export type Database = {
           name: string
           template_slug?: string | null
           text_content?: Json
+          design_json?: Json
           updated_at?: string
           user_id: string
         }
@@ -331,6 +333,7 @@ export type Database = {
           name?: string
           template_slug?: string | null
           text_content?: Json
+          design_json?: Json
           updated_at?: string
           user_id?: string
         }
