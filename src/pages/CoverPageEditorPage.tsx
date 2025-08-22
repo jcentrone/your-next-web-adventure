@@ -14,6 +14,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import useCoverPages from "@/hooks/useCoverPages";
 
 const TEMPLATES: Record<string, string> = {
@@ -59,6 +65,7 @@ export default function CoverPageEditorPage() {
   const { register, handleSubmit, setValue, watch } = form;
   const template = watch("template") as keyof typeof TEMPLATES;
   const reportTypes = watch("reportTypes");
+  const [bgColor, setBgColor] = useState(TEMPLATES[template]);
 
   const pushHistory = () => {
     if (!canvas) return;
@@ -72,12 +79,12 @@ export default function CoverPageEditorPage() {
   useEffect(() => {
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
-      const c = new FabricCanvas(canvasElement, {
-        width: 800,
-        height: 1000,
-        backgroundColor: TEMPLATES[template],
-      });
-      setCanvas(c);
+    const c = new FabricCanvas(canvasElement, {
+      width: 800,
+      height: 1000,
+      backgroundColor: bgColor,
+    });
+    setCanvas(c);
 
     // grid background
     const gridBg = document.createElement("div");
@@ -92,7 +99,9 @@ export default function CoverPageEditorPage() {
       "linear-gradient(to right, #e5e7eb 1px, transparent 1px)," +
       "linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)";
     canvasElement.parentElement?.appendChild(gridBg);
-    pushHistory();
+    const initialJson = JSON.stringify(c.toJSON());
+    setHistory([initialJson]);
+    setHistoryIndex(0);
 
     c.on("selection:cleared", () => setSelected(null));
     c.on("selection:updated", (e) => setSelected(e.selected?.[0] as CanvasObject));
@@ -123,7 +132,18 @@ export default function CoverPageEditorPage() {
       c.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setBgColor(TEMPLATES[template]);
   }, [template]);
+
+  useEffect(() => {
+    if (canvas) {
+      canvas.set({ backgroundColor: bgColor });
+      canvas.requestRenderAll();
+    }
+  }, [bgColor, canvas]);
 
   useEffect(() => {
     if (!canvas || !id) return;
@@ -144,12 +164,6 @@ export default function CoverPageEditorPage() {
     })();
   }, [canvas, id, coverPages, assignments, setValue]);
 
-  useEffect(() => {
-    if (canvas) {
-      canvas.set({ backgroundColor: TEMPLATES[template] });
-      canvas.requestRenderAll();
-    }
-  }, [template, canvas]);
 
   const addRect = () => {
     if (!canvas) return;
@@ -343,31 +357,66 @@ export default function CoverPageEditorPage() {
             Save
           </Button>
         </form>
-        <div>
-          <Label htmlFor="template">Template</Label>
-          <select id="template" className="w-full border rounded" {...register("template")}> 
-            {Object.keys(TEMPLATES).map((key) => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-          </select>
-        </div>
-        <Button onClick={addRect} className="w-full">
-          Rectangle
-        </Button>
-        <Button onClick={addText} className="w-full">
-          Text
-        </Button>
-        <div>
-          <Label htmlFor="image-upload" className="mb-1 block">
-            Image
-          </Label>
-          <Input id="image-upload" type="file" onChange={handleImageUpload} />
-        </div>
-        <Button onClick={addTable} className="w-full">
-          Table
-        </Button>
+        <Accordion type="single" collapsible defaultValue="text" className="w-full">
+          <AccordionItem value="text">
+            <AccordionTrigger>Text</AccordionTrigger>
+            <AccordionContent>
+              <Button onClick={addText} className="w-full">
+                Add Text
+              </Button>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="images">
+            <AccordionTrigger>Images</AccordionTrigger>
+            <AccordionContent>
+              <Label htmlFor="image-upload" className="mb-1 block">
+                Image Upload
+              </Label>
+              <Input id="image-upload" type="file" onChange={handleImageUpload} />
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="graphics">
+            <AccordionTrigger>Graphics</AccordionTrigger>
+            <AccordionContent>
+              <Button onClick={addRect} className="w-full">
+                Rectangle
+              </Button>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="tables">
+            <AccordionTrigger>Tables</AccordionTrigger>
+            <AccordionContent>
+              <Button onClick={addTable} className="w-full">
+                Add Table
+              </Button>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="design">
+            <AccordionTrigger>Design Palette</AccordionTrigger>
+            <AccordionContent>
+              <Label htmlFor="template">Template</Label>
+              <select id="template" className="w-full border rounded" {...register("template")}>
+                {Object.keys(TEMPLATES).map((key) => (
+                  <option key={key} value={key}>
+                    {key}
+                  </option>
+                ))}
+              </select>
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="background">
+            <AccordionTrigger>Background</AccordionTrigger>
+            <AccordionContent>
+              <Label htmlFor="bg-color">Background Color</Label>
+              <Input
+                id="bg-color"
+                type="color"
+                value={bgColor}
+                onChange={(e) => setBgColor(e.target.value)}
+              />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
         <div className="flex gap-2 pt-4">
           <Button onClick={undo} variant="outline" className="flex-1">
             Undo
