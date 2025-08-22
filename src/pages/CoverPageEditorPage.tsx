@@ -714,7 +714,7 @@ export default function CoverPageEditorPage() {
   }, []);
 
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden z-50 flex">
+    <div className="fixed inset-x-0 top-14 h-[calc(100vh-3.5rem)] w-screen overflow-hidden flex z-30">
       <div className="w-[22rem] p-2 border-r space-y-2">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
           <div>
@@ -1109,7 +1109,7 @@ export default function CoverPageEditorPage() {
 
       <div
         ref={wrapperRef}
-        className="flex-1 relative flex items-center justify-center overflow-auto p-8"
+        className="flex-1 relative flex h-full items-center justify-center overflow-auto p-8"
       >
         <div
           className="relative border-2 border-blue-500 box-border"
