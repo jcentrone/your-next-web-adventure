@@ -161,8 +161,8 @@ export default function CoverPageEditorPage() {
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
     const c = new FabricCanvas(canvasElement, {
-      width: 800,
-      height: 1000,
+      width: 816,
+      height: 1056,
       backgroundColor: bgColor,
     });
     setCanvas(c);
@@ -172,8 +172,8 @@ export default function CoverPageEditorPage() {
     gridBg.style.position = "absolute";
     gridBg.style.left = "0";
     gridBg.style.top = "0";
-    gridBg.style.width = "800px";
-    gridBg.style.height = "1000px";
+    gridBg.style.width = "816px";
+    gridBg.style.height = "1056px";
     gridBg.style.pointerEvents = "none";
     gridBg.style.backgroundSize = `${GRID_SIZE}px ${GRID_SIZE}px`;
     gridBg.style.backgroundImage =
@@ -1091,15 +1091,21 @@ export default function CoverPageEditorPage() {
 
       <div className="flex-1 relative flex items-center justify-center">
         <div
-          className="relative border"
+          className="relative border-2 border-blue-500"
           style={{
-            width: 800,
-            height: 1000,
+            width: 816,
+            height: 1056,
             transform: `scale(${zoom})`,
             transformOrigin: "0 0",
           }}
         >
           <canvas ref={canvasRef} />
+          <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full rotate-90">
+            11"
+          </span>
+          <span className="absolute bottom-0 left-1/2 translate-y-full -translate-x-1/2">
+            8.5"
+          </span>
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
             <Button onClick={undo} variant="outline" size="icon" aria-label="Undo">
               <Undo2 className="h-4 w-4" />
