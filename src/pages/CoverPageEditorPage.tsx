@@ -32,6 +32,8 @@ const REPORT_TYPES = [
   { value: "wind_mitigation", label: "Wind Mitigation" },
 ];
 
+const FONTS = ["Arial", "Times New Roman", "Courier New", "Georgia", "Verdana"];
+
 const GRID_SIZE = 20;
 
 type CanvasObject = Rect | Textbox | FabricImage | Group;
@@ -302,6 +304,10 @@ export default function CoverPageEditorPage() {
   const updateSelected = (prop: string, value: unknown) => {
     if (!selected || !canvas) return;
     (selected as unknown as FabricObject).set(prop as never, value as never);
+    if (selected instanceof Textbox) {
+      selected.initDimensions();
+      selected.setCoords();
+    }
     canvas.renderAll();
     pushHistory();
   };
@@ -360,10 +366,114 @@ export default function CoverPageEditorPage() {
         <Accordion type="single" collapsible defaultValue="text" className="w-full">
           <AccordionItem value="text">
             <AccordionTrigger>Text</AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent className="space-y-2">
               <Button onClick={addText} className="w-full">
-                Add Text
+                Add Text Box
               </Button>
+              {selected instanceof Textbox && (
+                <>
+                  <div>
+                    <Label htmlFor="text-color">Color</Label>
+                    <Input
+                      id="text-color"
+                      type="color"
+                      value={
+                        typeof selected.fill === "string" ? selected.fill : "#000000"
+                      }
+                      onChange={(e) => updateSelected("fill", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="text-font-size">Font Size</Label>
+                    <Input
+                      id="text-font-size"
+                      type="number"
+                      value={selected.fontSize || 16}
+                      onChange={(e) =>
+                        updateSelected("fontSize", parseInt(e.target.value, 10))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="fontFamily">Font Family</Label>
+                    <select
+                      id="fontFamily"
+                      className="w-full border rounded"
+                      value={selected.fontFamily || ""}
+                      onChange={(e) => updateSelected("fontFamily", e.target.value)}
+                    >
+                      {FONTS.map((f) => (
+                        <option key={f} value={f}>
+                          {f}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={selected.fontWeight === "bold" ? "default" : "outline"}
+                      onClick={() =>
+                        updateSelected(
+                          "fontWeight",
+                          selected.fontWeight === "bold" ? "normal" : "bold"
+                        )
+                      }
+                      className="flex-1"
+                    >
+                      Bold
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selected.fontStyle === "italic" ? "default" : "outline"}
+                      onClick={() =>
+                        updateSelected(
+                          "fontStyle",
+                          selected.fontStyle === "italic" ? "normal" : "italic"
+                        )
+                      }
+                      className="flex-1"
+                    >
+                      Italic
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Alignment</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant={
+                          selected.textAlign === "left" ? "default" : "outline"
+                        }
+                        onClick={() => updateSelected("textAlign", "left")}
+                        className="flex-1"
+                      >
+                        Left
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          selected.textAlign === "center" ? "default" : "outline"
+                        }
+                        onClick={() => updateSelected("textAlign", "center")}
+                        className="flex-1"
+                      >
+                        Center
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          selected.textAlign === "right" ? "default" : "outline"
+                        }
+                        onClick={() => updateSelected("textAlign", "right")}
+                        className="flex-1"
+                      >
+                        Right
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="images">
