@@ -21,6 +21,7 @@ import {
   AlignVerticalJustifyCenter,
   ArrowUp,
   ArrowDown,
+  Ruler,
 } from "lucide-react";
 
 interface EditorToolbarProps {
@@ -34,6 +35,8 @@ interface EditorToolbarProps {
   onZoomChange: (zoom: number) => void;
   showGrid: boolean;
   onToggleGrid: () => void;
+  showRulers: boolean;
+  onToggleRulers: () => void;
   selectedObjects: any[];
   onCopy: () => void;
   onDelete: () => void;
@@ -53,6 +56,8 @@ export function EditorToolbar({
   onZoomChange,
   showGrid,
   onToggleGrid,
+  showRulers,
+  onToggleRulers,
   selectedObjects,
   onCopy,
   onDelete,
@@ -242,6 +247,14 @@ export function EditorToolbar({
           className="h-8 w-8 p-0"
         >
           <Grid3X3 className="h-4 w-4" />
+        </Button>
+        <Button
+          variant={showRulers ? "default" : "ghost"}
+          size="sm"
+          onClick={onToggleRulers}
+          className="h-8 w-8 p-0"
+        >
+          <Ruler className="h-4 w-4" />
         </Button>
       </div>
     </div>

@@ -28,59 +28,56 @@ export function CanvasWorkspace({
 
   return (
     <div className="flex-1 relative bg-muted/50 overflow-auto">
-      <div className="relative p-8">
-        {/* Rulers */}
-        {showRulers && (
-          <>
-            {/* Horizontal Ruler */}
-            <div className="absolute top-0 left-0 right-0 h-8 bg-gray-200 border-b border-gray-300 z-20 pointer-events-none">
-              <div className="relative h-full">
-                {Array.from({ length: 41 }, (_, i) => i * 20).map((mark) => (
-                  <div
-                    key={mark}
-                    className="absolute top-0 h-full border-l border-gray-300/50"
-                    style={{ left: `${mark * zoom}px` }}
-                  >
-                    {mark % 100 === 0 && (
-                      <span className="absolute top-1 left-1 text-xs text-gray-500">
-                        {mark}
-                      </span>
-                    )}
-                  </div>
-                ))}
+      <div className="flex items-center justify-center min-h-full">
+        <div ref={workspaceRef} className="relative m-8">
+          {/* Rulers */}
+          {showRulers && (
+            <>
+              {/* Horizontal Ruler */}
+              <div className="absolute top-0 left-8 right-0 h-8 bg-gray-200 border-b border-gray-300 z-20 pointer-events-none">
+                <div className="relative h-full">
+                  {Array.from({ length: 41 }, (_, i) => i * 20).map((mark) => (
+                    <div
+                      key={mark}
+                      className="absolute top-0 h-full border-l border-gray-300/50"
+                      style={{ left: `${mark * zoom}px` }}
+                    >
+                      {mark % 100 === 0 && (
+                        <span className="absolute top-1 left-1 text-xs text-gray-500">
+                          {mark}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Vertical Ruler */}
-            <div className="absolute top-0 left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-20 pointer-events-none">
-              <div className="relative w-full h-full">
-                {Array.from({ length: 51 }, (_, i) => i * 20).map((mark) => (
-                  <div
-                    key={mark}
-                    className="absolute left-0 w-full border-t border-gray-300/50"
-                    style={{ top: `${mark * zoom}px` }}
-                  >
-                    {mark % 100 === 0 && (
-                      <span className="absolute top-1 left-1 text-xs text-gray-500 transform -rotate-90 origin-top-left">
-                        {mark}
-                      </span>
-                    )}
-                  </div>
-                ))}
+              {/* Vertical Ruler */}
+              <div className="absolute top-8 left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-20 pointer-events-none">
+                <div className="relative w-full h-full">
+                  {Array.from({ length: 51 }, (_, i) => i * 20).map((mark) => (
+                    <div
+                      key={mark}
+                      className="absolute left-0 w-full border-t border-gray-300/50"
+                      style={{ top: `${mark * zoom}px` }}
+                    >
+                      {mark % 100 === 0 && (
+                        <span className="absolute top-1 left-1 text-xs text-gray-500 transform -rotate-90 origin-top-left">
+                          {mark}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Corner */}
-            <div className="absolute top-0 left-0 w-8 h-8 bg-gray-200 border-r border-b border-gray-300 z-20 pointer-events-none" />
-          </>
-        )}
+              {/* Corner */}
+              <div className="absolute top-0 left-0 w-8 h-8 bg-gray-200 border-r border-b border-gray-300 z-20 pointer-events-none" />
+            </>
+          )}
 
-        {/* Canvas Container */}
-        <div
-          ref={workspaceRef}
-          className="flex items-center justify-center min-h-full p-8"
-        >
-          <div className="relative">
+          {/* Canvas Container */}
+          <div className={showRulers ? "relative ml-8 mt-8" : "relative"}>
             {/* Grid Background */}
             {showGrid && (
               <div
