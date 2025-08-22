@@ -1127,21 +1127,21 @@ export default function CoverPageEditorPage() {
           <span className="absolute bottom-0 left-1/2 translate-y-full -translate-x-1/2">
             8.5"
           </span>
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/80 rounded-md px-2 py-1">
-            <Button onClick={undo} variant="outline" size="icon" aria-label="Undo">
-              <Undo2 className="h-4 w-4" />
-            </Button>
-            <Button onClick={redo} variant="outline" size="icon" aria-label="Redo">
-              <Redo2 className="h-4 w-4" />
-            </Button>
-            <Button onClick={zoomOut} variant="outline" size="icon" aria-label="Zoom Out">
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            <span className="text-sm w-12 text-center">{Math.round(fitScale * zoom * 100)}%</span>
-            <Button onClick={zoomIn} variant="outline" size="icon" aria-label="Zoom In">
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-          </div>
+        </div>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-white/80 rounded-md px-2 py-1">
+          <Button onClick={undo} variant="outline" size="icon" aria-label="Undo">
+            <Undo2 className="h-4 w-4" />
+          </Button>
+          <Button onClick={redo} variant="outline" size="icon" aria-label="Redo">
+            <Redo2 className="h-4 w-4" />
+          </Button>
+          <Button onClick={zoomOut} variant="outline" size="icon" aria-label="Zoom Out">
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <span className="text-sm w-12 text-center">{Math.round(fitScale * zoom * 100)}%</span>
+          <Button onClick={zoomIn} variant="outline" size="icon" aria-label="Zoom In">
+            <ZoomIn className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
