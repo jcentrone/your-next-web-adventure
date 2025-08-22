@@ -68,6 +68,16 @@ const FONTS = ["Arial", "Times New Roman", "Courier New", "Georgia", "Verdana"];
 
 const GRID_SIZE = 20;
 
+const PRESET_BG_COLORS = [
+  "#ffffff",
+  "#f3f4f6",
+  "#000000",
+  "#3b82f6",
+  "#10b981",
+  "#fbbf24",
+  "#ef4444",
+];
+
 type CanvasObject = Rect | Circle | Polygon | Textbox | FabricImage | Group;
 
 interface TableData {
@@ -118,6 +128,15 @@ export default function CoverPageEditorPage() {
   const [tableCols, setTableCols] = useState(2);
   const [tableBorderColor, setTableBorderColor] = useState("#000000");
   const [palette, setPalette] = useState<ColorPalette>(COLOR_PALETTES[0]);
+  const [recentColors, setRecentColors] = useState<string[]>([]);
+
+  const updateBgColor = (color: string) => {
+    setBgColor(color);
+    setRecentColors((prev) => {
+      const colors = [color, ...prev.filter((c) => c !== color)];
+      return colors.slice(0, 5);
+    });
+  };
 
   useEffect(() => {
     fetch(
@@ -220,6 +239,11 @@ export default function CoverPageEditorPage() {
     (async () => {
       await canvas.loadFromJSON(cp.design_json || {});
       canvas.renderAll();
+      const loadedBg =
+        (cp.design_json as any)?.backgroundColor ||
+        (cp.design_json as any)?.background ||
+        TEMPLATES[(cp.template_slug as keyof typeof TEMPLATES) || "default"];
+      setBgColor(loadedBg);
       const json = JSON.stringify(canvas.toJSON());
       setHistory([json]);
       setHistoryIndex(0);
@@ -585,7 +609,8 @@ export default function CoverPageEditorPage() {
 
   const onSubmit = async (values: FormValues) => {
     if (!canvas) return;
-    const design = canvas.toJSON();
+    const design = canvas.toJSON() as any;
+    design.backgroundColor = bgColor;
     let coverPageId = id;
     if (id) {
       await updateCoverPage({
@@ -644,6 +669,10 @@ export default function CoverPageEditorPage() {
     const prev = history[historyIndex - 1];
     await canvas.loadFromJSON(prev);
     canvas.renderAll();
+    try {
+      const parsed = JSON.parse(prev);
+      setBgColor(parsed.backgroundColor || parsed.background || bgColor);
+    } catch {}
     setHistoryIndex(historyIndex - 1);
   };
 
@@ -652,6 +681,10 @@ export default function CoverPageEditorPage() {
     const next = history[historyIndex + 1];
     await canvas.loadFromJSON(next);
     canvas.renderAll();
+    try {
+      const parsed = JSON.parse(next);
+      setBgColor(parsed.backgroundColor || parsed.background || bgColor);
+    } catch {}
     setHistoryIndex(historyIndex + 1);
   };
 
@@ -1021,8 +1054,37 @@ export default function CoverPageEditorPage() {
                 id="bg-color"
                 type="color"
                 value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
+                onChange={(e) => updateBgColor(e.target.value)}
               />
+              <div className="flex flex-wrap gap-2 pt-2">
+                {PRESET_BG_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className="h-6 w-6 rounded border"
+                    style={{ backgroundColor: c }}
+                    onClick={() => updateBgColor(c)}
+                  />
+                ))}
+              </div>
+              {recentColors.length > 0 && (
+                <div className="pt-2">
+                  <p className="mb-1 text-xs text-muted-foreground">
+                    Recent Colors
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {recentColors.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        className="h-6 w-6 rounded border"
+                        style={{ backgroundColor: c }}
+                        onClick={() => updateBgColor(c)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </AccordionContent>
           </AccordionItem>
         </Accordion>
