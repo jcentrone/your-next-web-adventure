@@ -146,7 +146,8 @@ export default function CoverPageEditorPage() {
 
   useEffect(() => {
     if (canvas) {
-      canvas.setBackgroundColor(TEMPLATES[template], () => canvas.renderAll());
+      canvas.set({ backgroundColor: TEMPLATES[template] });
+      canvas.requestRenderAll();
     }
   }, [template, canvas]);
 
