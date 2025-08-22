@@ -52,7 +52,6 @@ export const BaseReportSchema = z.object({
     status: z.enum(["Draft", "Final"]).default("Draft"),
     finalComments: z.string().optional().default(""),
     coverImage: z.string().optional().default(""),
-    coverPageId: z.string().optional().default(""),
     previewTemplate: z.enum(["classic", "modern", "minimal"]).default("classic"),
     reportType: z.enum(["home_inspection", "wind_mitigation"]),
 });

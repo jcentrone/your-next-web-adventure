@@ -23,7 +23,6 @@ function toDbPayload(report: Report) {
     status: report.status,
     final_comments: report.finalComments || null,
     cover_image: report.coverImage || null,
-    cover_page_id: report.coverPageId || null,
     preview_template: report.previewTemplate || 'classic',
     report_type: report.reportType,
     report_data: report.reportType === "wind_mitigation" ? report.reportData : null,
@@ -52,7 +51,6 @@ function fromDbRow(row: any): Report {
     status: row.status,
     finalComments: row.final_comments || "",
     coverImage: row.cover_image || "",
-    coverPageId: row.cover_page_id || "",
     previewTemplate: row.preview_template || "classic",
     reportData: row.report_data ?? {},
     reportType,
@@ -168,7 +166,6 @@ export async function dbCreateReport(meta: {
   insuranceCompany?: string;
   policyNumber?: string;
   email?: string;
-  coverPageId?: string;
 }, userId: string, organizationId?: string): Promise<Report> {
   const id = crypto.randomUUID();
 
@@ -193,7 +190,6 @@ export async function dbCreateReport(meta: {
       status: "Draft",
       finalComments: "",
       coverImage: "",
-      coverPageId: meta.coverPageId || "",
       previewTemplate: "classic",
       reportType: "home_inspection",
       sections,
@@ -211,7 +207,6 @@ export async function dbCreateReport(meta: {
       status: "Draft",
       finalComments: "",
       coverImage: "",
-      coverPageId: meta.coverPageId || "",
       previewTemplate: "classic",
       reportType: "wind_mitigation",
       phoneHome: meta.phoneHome || "",

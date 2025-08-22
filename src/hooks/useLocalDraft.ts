@@ -61,7 +61,6 @@ export function createReport(meta: {
   address: string;
   inspectionDate: string;
   reportType?: "home_inspection" | "wind_mitigation";
-  coverPageId?: string;
 }): Report {
   const id = crypto.randomUUID();
   const reportType = meta.reportType || "home_inspection";
@@ -85,7 +84,6 @@ export function createReport(meta: {
       status: "Draft",
       finalComments: "",
       coverImage: "",
-      coverPageId: meta.coverPageId || "",
       previewTemplate: "classic",
       reportType: "home_inspection",
       sections,
@@ -100,7 +98,6 @@ export function createReport(meta: {
       status: "Draft",
       finalComments: "",
       coverImage: "",
-      coverPageId: meta.coverPageId || "",
       previewTemplate: "classic",
       reportType: "wind_mitigation",
       reportData: {
