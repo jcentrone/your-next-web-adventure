@@ -36,7 +36,6 @@ import {
   Bold,
   Italic,
   Plus,
-  Redo2,
   Table as TableIcon,
   Square,
    Circle as CircleIcon,
@@ -45,10 +44,8 @@ import {
   Triangle as TriangleIcon,
   Pentagon,
   Trash2,
-  Undo2,
-  ZoomIn,
-  ZoomOut,
 } from "lucide-react";
+import { EditorToolbar } from "@/components/cover-pages/EditorToolbar";
 import * as LucideIcons from "lucide-react";
 import { icons as lucideIcons } from "lucide";
 import { COLOR_PALETTES, type ColorPalette } from "@/constants/colorPalettes";
@@ -99,6 +96,7 @@ interface FormValues {
 export default function CoverPageEditorPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement | null>(null);
   const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
   const [selected, setSelected] = useState<CanvasObject | null>(null);
   const [fitScale, setFitScale] = useState(1);
@@ -131,6 +129,13 @@ export default function CoverPageEditorPage() {
   const [tableBorderColor, setTableBorderColor] = useState("#000000");
   const [palette, setPalette] = useState<ColorPalette>(COLOR_PALETTES[0]);
   const [recentColors, setRecentColors] = useState<string[]>([]);
+  const [showGrid, setShowGrid] = useState(true);
+
+  const handleCopy = () => {};
+  const handleDelete = () => {};
+  const handleGroup = () => {};
+  const handleUngroup = () => {};
+  const handleAlign = (type: string) => {};
 
   const updateBgColor = (color: string) => {
     setBgColor(color);
@@ -182,6 +187,7 @@ export default function CoverPageEditorPage() {
       "linear-gradient(to right, #e5e7eb 1px, transparent 1px)," +
       "linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)";
     canvasElement.parentElement?.appendChild(gridBg);
+    gridRef.current = gridBg;
     const initialJson = JSON.stringify(c.toJSON());
     setHistory([initialJson]);
     setHistoryIndex(0);
@@ -212,6 +218,7 @@ export default function CoverPageEditorPage() {
 
     return () => {
       canvasElement.parentElement?.removeChild(gridBg);
+      gridRef.current = null;
       c.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -220,6 +227,12 @@ export default function CoverPageEditorPage() {
   useEffect(() => {
     setBgColor(TEMPLATES[template]);
   }, [template]);
+
+  useEffect(() => {
+    if (gridRef.current) {
+      gridRef.current.style.display = showGrid ? "block" : "none";
+    }
+  }, [showGrid]);
 
   useEffect(() => {
     if (canvas) {
@@ -1128,20 +1141,25 @@ export default function CoverPageEditorPage() {
             8.5"
           </span>
         </div>
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-gray-800/80 text-white shadow-lg rounded-md px-2 py-1">
-          <Button onClick={undo} variant="outline" size="icon" aria-label="Undo">
-            <Undo2 className="h-4 w-4" />
-          </Button>
-          <Button onClick={redo} variant="outline" size="icon" aria-label="Redo">
-            <Redo2 className="h-4 w-4" />
-          </Button>
-          <Button onClick={zoomOut} variant="outline" size="icon" aria-label="Zoom Out">
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <span className="text-sm w-12 text-center">{Math.round(fitScale * zoom * 100)}%</span>
-          <Button onClick={zoomIn} variant="outline" size="icon" aria-label="Zoom In">
-            <ZoomIn className="h-4 w-4" />
-          </Button>
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+          <EditorToolbar
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={historyIndex > 0}
+            canRedo={historyIndex < history.length - 1}
+            onZoomIn={zoomIn}
+            onZoomOut={zoomOut}
+            zoom={zoom}
+            onZoomChange={setZoom}
+            showGrid={showGrid}
+            onToggleGrid={() => setShowGrid(!showGrid)}
+            selectedObjects={selected ? [selected] : []}
+            onCopy={handleCopy}
+            onDelete={handleDelete}
+            onGroup={handleGroup}
+            onUngroup={handleUngroup}
+            onAlign={handleAlign}
+          />
         </div>
       </div>
 
