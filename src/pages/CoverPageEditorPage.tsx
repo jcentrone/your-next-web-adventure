@@ -1257,11 +1257,11 @@ export default function CoverPageEditorPage() {
             8.5"
           </span>
         </div>
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
-          <EditorToolbar
-            onUndo={undo}
-            onRedo={redo}
-            canUndo={historyIndex > 0}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+            <EditorToolbar
+              onUndo={undo}
+              onRedo={redo}
+              canUndo={historyIndex > 0}
             canRedo={historyIndex < history.length - 1}
             onZoomIn={zoomIn}
             onZoomOut={zoomOut}

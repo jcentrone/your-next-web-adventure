@@ -558,24 +558,26 @@ export default function CoverPageEditorPageNew() {
       </div>
 
       {/* Toolbar */}
-      <EditorToolbar
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-        canUndo={historyIndex > 0}
-        canRedo={historyIndex < history.length - 1}
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        zoom={zoom}
-        onZoomChange={handleZoomChange}
-        showGrid={showGrid}
-        onToggleGrid={() => setShowGrid(!showGrid)}
-        selectedObjects={selectedObjects}
-        onCopy={handleCopy}
-        onDelete={handleDelete}
-        onGroup={handleGroup}
-        onUngroup={handleUngroup}
-        onAlign={handleAlign}
-      />
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-20">
+        <EditorToolbar
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          zoom={zoom}
+          onZoomChange={handleZoomChange}
+          showGrid={showGrid}
+          onToggleGrid={() => setShowGrid(!showGrid)}
+          selectedObjects={selectedObjects}
+          onCopy={handleCopy}
+          onDelete={handleDelete}
+          onGroup={handleGroup}
+          onUngroup={handleUngroup}
+          onAlign={handleAlign}
+        />
+      </div>
 
       {/* Main Layout */}
       <div className="flex flex-1 overflow-hidden">
