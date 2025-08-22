@@ -382,7 +382,7 @@ export default function CoverPageEditorPage() {
         <Accordion type="single" collapsible defaultValue="text" className="w-full">
           <AccordionItem value="text">
             <AccordionTrigger>Text</AccordionTrigger>
-            <AccordionContent className="space-y-2">
+                       <AccordionContent className="space-y-2">
               <Button onClick={addText} className="w-full">
                 <Plus className="mr-2 h-4 w-4" /> Add Text Box
               </Button>
