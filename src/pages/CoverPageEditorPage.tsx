@@ -101,6 +101,7 @@ export default function CoverPageEditorPage() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
   const [selected, setSelected] = useState<CanvasObject | null>(null);
+  const [fitScale, setFitScale] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -688,13 +689,13 @@ export default function CoverPageEditorPage() {
     setHistoryIndex(historyIndex + 1);
   };
 
-  const zoomIn = () => setZoom((z) => Math.min(z + 0.1, 2));
-  const zoomOut = () => setZoom((z) => Math.max(z - 0.1, 0.5));
+  const zoomIn = () => setZoom((z) => z * 1.1);
+  const zoomOut = () => setZoom((z) => z / 1.1);
 
   useEffect(() => {
     if (!canvas) return;
-    canvas.setZoom(zoom);
-  }, [zoom, canvas]);
+    canvas.setZoom(fitScale * zoom);
+  }, [fitScale, zoom, canvas]);
 
   useEffect(() => {
     const updateScale = () => {
@@ -705,7 +706,7 @@ export default function CoverPageEditorPage() {
         (wrapper.clientHeight - 32) / 1056,
         1
       );
-      setZoom(scale);
+      setFitScale(scale);
     };
     updateScale();
     window.addEventListener("resize", updateScale);
@@ -1112,13 +1113,13 @@ export default function CoverPageEditorPage() {
       >
         <div
           className="relative border-2 border-blue-500 box-border"
-          style={{
-            width: 816,
-            height: 1056,
-            transform: `scale(${zoom})`,
-            transformOrigin: "top left",
-          }}
-        >
+        style={{
+          width: 816,
+          height: 1056,
+          transform: `scale(${fitScale * zoom})`,
+          transformOrigin: "top left",
+        }}
+      >
           <canvas ref={canvasRef} className="block" />
           <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full rotate-90">
             11"
@@ -1136,7 +1137,7 @@ export default function CoverPageEditorPage() {
             <Button onClick={zoomOut} variant="outline" size="icon" aria-label="Zoom Out">
               <ZoomOut className="h-4 w-4" />
             </Button>
-            <span className="text-sm w-12 text-center">{Math.round(zoom * 100)}%</span>
+            <span className="text-sm w-12 text-center">{Math.round(fitScale * zoom * 100)}%</span>
             <Button onClick={zoomIn} variant="outline" size="icon" aria-label="Zoom In">
               <ZoomIn className="h-4 w-4" />
             </Button>
