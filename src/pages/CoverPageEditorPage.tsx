@@ -32,15 +32,18 @@ import {
   AlignRight,
   ArrowDown,
   ArrowUp,
+  ArrowLeftRight,
   Bold,
   Italic,
   Plus,
   Redo2,
   Table as TableIcon,
   Square,
-  Circle as CircleIcon,
+   Circle as CircleIcon,
   Star as StarIcon,
   ArrowRight as ArrowRightIcon,
+  Triangle as TriangleIcon,
+  Pentagon,
   Trash2,
   Undo2,
   ZoomIn,
@@ -48,6 +51,8 @@ import {
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { icons as lucideIcons } from "lucide";
+import { openmojis } from "openmoji";
+
 
 const TEMPLATES: Record<string, string> = {
   default: "#ffffff",
@@ -97,6 +102,8 @@ export default function CoverPageEditorPage() {
   const [bgColor, setBgColor] = useState(TEMPLATES[template]);
   const { images, uploadImage, deleteImage } = useImageLibrary();
   const [iconSearch, setIconSearch] = useState("");
+  const [clipartSearch, setClipartSearch] = useState("");
+
 
   const pushHistory = () => {
     if (!canvas) return;
@@ -254,6 +261,50 @@ export default function CoverPageEditorPage() {
     pushHistory();
   };
 
+  const addTriangle = () => {
+    if (!canvas) return;
+    const points = [
+      { x: 50, y: 0 },
+      { x: 100, y: 100 },
+      { x: 0, y: 100 },
+    ];
+    const triangle = new Polygon(points, {
+      left: 100,
+      top: 100,
+      fill: "rgba(0,0,0,0.1)",
+      stroke: "#000",
+      strokeWidth: 2,
+    });
+    canvas.add(triangle);
+    canvas.setActiveObject(triangle);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const addPolygonShape = () => {
+    if (!canvas) return;
+    const sides = 5;
+    const radius = 50;
+    const points = Array.from({ length: sides }, (_, i) => {
+      const angle = (i / sides) * Math.PI * 2;
+      return {
+        x: 50 + radius * Math.cos(angle),
+        y: 50 + radius * Math.sin(angle),
+      };
+    });
+    const polygon = new Polygon(points, {
+      left: 100,
+      top: 100,
+      fill: "rgba(0,0,0,0.1)",
+      stroke: "#000",
+      strokeWidth: 2,
+    });
+    canvas.add(polygon);
+    canvas.setActiveObject(polygon);
+    canvas.renderAll();
+    pushHistory();
+  };
+
   const addArrow = () => {
     if (!canvas) return;
     const line = new Line([0, 0, 80, 0], {
@@ -269,6 +320,38 @@ export default function CoverPageEditorPage() {
       { fill: "#000", stroke: "#000", strokeWidth: 2 }
     );
     const arrow = new Group([line, head], { left: 100, top: 100 });
+    canvas.add(arrow);
+    canvas.setActiveObject(arrow);
+    canvas.renderAll();
+    pushHistory();
+  };
+
+  const addBidirectionalArrow = () => {
+    if (!canvas) return;
+    const line = new Line([0, 0, 80, 0], {
+      stroke: "#000",
+      strokeWidth: 2,
+    });
+    const headRight = new Polygon(
+      [
+        { x: 80, y: 0 },
+        { x: 60, y: -10 },
+        { x: 60, y: 10 },
+      ],
+      { fill: "#000", stroke: "#000", strokeWidth: 2 }
+    );
+    const headLeft = new Polygon(
+      [
+        { x: 0, y: 0 },
+        { x: 20, y: -10 },
+        { x: 20, y: 10 },
+      ],
+      { fill: "#000", stroke: "#000", strokeWidth: 2 }
+    );
+    const arrow = new Group([line, headLeft, headRight], {
+      left: 100,
+      top: 100,
+    });
     canvas.add(arrow);
     canvas.setActiveObject(arrow);
     canvas.renderAll();
@@ -296,6 +379,22 @@ export default function CoverPageEditorPage() {
       pushHistory();
     });
   };
+
+
+  const addClipart = async (hex: string) => {
+    if (!canvas) return;
+    const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
+    const svg = await fetch(url).then((r) => r.text());
+    loadSVGFromString(svg, (objects, options) => {
+      const obj = FabricUtil.groupSVGElements(objects, options);
+      obj.set({ left: 100, top: 100 });
+      canvas.add(obj);
+      canvas.setActiveObject(obj);
+      canvas.renderAll();
+      pushHistory();
+    });
+  };
+
 
   const addText = () => {
     if (!canvas) return;
@@ -656,6 +755,18 @@ export default function CoverPageEditorPage() {
               <Button onClick={addStar} className="w-full">
                 <StarIcon className="mr-2 h-4 w-4" /> Star
               </Button>
+              <Button onClick={addTriangle} className="w-full">
+                <TriangleIcon className="mr-2 h-4 w-4" /> Triangle
+              </Button>
+              <Button onClick={addPolygonShape} className="w-full">
+                <Pentagon className="mr-2 h-4 w-4" /> Polygon
+              </Button>
+              <Button onClick={addArrow} className="w-full">
+                <ArrowRightIcon className="mr-2 h-4 w-4" /> Arrow
+              </Button>
+              <Button onClick={addBidirectionalArrow} className="w-full">
+                <ArrowLeftRight className="mr-2 h-4 w-4" /> Bi-Arrow
+              </Button>
               <Button onClick={addArrow} className="w-full">
                 <ArrowRightIcon className="mr-2 h-4 w-4" /> Arrow
               </Button>
@@ -694,6 +805,39 @@ export default function CoverPageEditorPage() {
                         </button>
                       );
                     })}
+                </div>
+              </div>
+              <div className="pt-2">
+                <Label htmlFor="clipart-search">Clipart</Label>
+                <Input
+                  id="clipart-search"
+                  placeholder="Search clipart..."
+                  value={clipartSearch}
+                  onChange={(e) => setClipartSearch(e.target.value)}
+                />
+                <div className="mt-2 grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
+                  {openmojis
+                    .filter((c) =>
+                      c.annotation
+                        .toLowerCase()
+                        .includes(clipartSearch.toLowerCase())
+                    )
+                    .slice(0, 50)
+                    .map((c) => (
+                      <button
+                        key={c.hexcode}
+                        type="button"
+                        className="p-1 border rounded hover:bg-accent flex items-center justify-center"
+                        onClick={() => addClipart(c.hexcode)}
+                        title={c.annotation}
+                      >
+                        <img
+                          src={`https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${c.hexcode}.svg`}
+                          alt={c.annotation}
+                          className="h-4 w-4"
+                        />
+                      </button>
+                    ))}
                 </div>
               </div>
             </AccordionContent>
