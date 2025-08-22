@@ -6,6 +6,7 @@ import {loadReport} from "@/hooks/useLocalDraft";
 import {supabase} from "@/integrations/supabase/client";
 import {toast} from "@/components/ui/use-toast";
 import {getSignedUrlFromSupabaseUrl, isSupabaseUrl} from "@/integrations/supabase/storage";
+import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
 
 // Keys that are handled manually elsewhere in the code (e.g. custom logic
 // for building code options) and should be ignored when reporting unmapped
@@ -466,7 +467,72 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         }
     }
 
-    // cover page handling removed
+    // fetch assigned cover page
+    let assignedCoverPage: {title: string; text?: string; color: string; imageUrl?: string | null} | null = null;
+    try {
+        const {data: {user}} = await supabase.auth.getUser();
+        if (user) {
+            const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
+            if (cp) {
+                let imageUrl = cp.image_url;
+                if (imageUrl && isSupabaseUrl(imageUrl)) {
+                    imageUrl = await getSignedUrlFromSupabaseUrl(imageUrl);
+                }
+                assignedCoverPage = {
+                    title: cp.name,
+                    text: cp.text_content as string | undefined,
+                    color: cp.color_palette_key || "#FFFFFF",
+                    imageUrl,
+                };
+            }
+        }
+    } catch (err) {
+        console.error("Error fetching cover page", err);
+    }
+
+    if (assignedCoverPage) {
+        const pages = pdfDoc.getPages();
+        const {width, height} = pages[0].getSize();
+        const coverPage = pdfDoc.insertPage(0, [width, height]);
+        const {r, g, b} = hexToRgb(assignedCoverPage.color);
+        coverPage.drawRectangle({x: 0, y: height / 2, width, height: height / 2, color: rgb(r, g, b)});
+
+        if (assignedCoverPage.imageUrl) {
+            try {
+                const imgBytes = await fetch(assignedCoverPage.imageUrl).then((res) => res.arrayBuffer());
+                const image = assignedCoverPage.imageUrl.toLowerCase().endsWith(".png")
+                    ? await pdfDoc.embedPng(imgBytes)
+                    : await pdfDoc.embedJpg(imgBytes);
+                const imgWidth = Math.min(image.width, width - 100);
+                const imgHeight = (imgWidth / image.width) * image.height;
+                coverPage.drawImage(image, {
+                    x: (width - imgWidth) / 2,
+                    y: height / 2 + (height / 2 - imgHeight) / 2,
+                    width: imgWidth,
+                    height: imgHeight,
+                });
+            } catch (err) {
+                console.error("Error embedding cover image", err);
+            }
+        }
+
+        const titleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const bodyFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        coverPage.drawText(assignedCoverPage.title, {
+            x: 50,
+            y: height / 2 - 80,
+            size: 24,
+            font: titleFont,
+        });
+        if (assignedCoverPage.text) {
+            coverPage.drawText(assignedCoverPage.text, {
+                x: 50,
+                y: height / 2 - 110,
+                size: 12,
+                font: bodyFont,
+            });
+        }
+    }
 
     const pdfBytes = await pdfDoc.save();
     return new Blob([pdfBytes], {type: "application/pdf"});
