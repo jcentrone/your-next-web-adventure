@@ -175,9 +175,9 @@ const ReportEditor: React.FC = () => {
   React.useEffect(() => {
     if (!report) return;
     if (report.coverPageId) return;
-    const assigned = assignments.find(a => a.report_type === report.reportType);
-    if (assigned) {
-      setReport(prev => prev ? { ...prev, coverPageId: assigned.cover_page_id } : prev);
+    const assignedId = assignments[report.reportType];
+    if (assignedId) {
+      setReport(prev => prev ? { ...prev, coverPageId: assignedId } : prev);
     }
   }, [assignments, report?.reportType, report?.id]);
 

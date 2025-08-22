@@ -94,9 +94,9 @@ const WindMitigationNew: React.FC = () => {
   }, [contact, form]);
 
   useEffect(() => {
-    const assigned = assignments.find(a => a.report_type === "wind_mitigation");
-    if (assigned) {
-      form.setValue("coverPageId", assigned.cover_page_id);
+    const assignedId = assignments["wind_mitigation"];
+    if (assignedId) {
+      form.setValue("coverPageId", assignedId);
     }
   }, [assignments, form]);
 

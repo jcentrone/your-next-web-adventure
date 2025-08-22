@@ -1,7 +1,6 @@
+import { Link } from "react-router-dom";
 import Seo from "@/components/Seo";
-import { CoverPageList } from "@/components/cover-pages/CoverPageList";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import useCoverPages from "@/hooks/useCoverPages";
 
 const REPORT_TYPES = [
@@ -17,14 +16,13 @@ export default function CoverPageManager() {
     removeAssignmentFromReportType,
   } = useCoverPages();
 
-  const currentAssignment = (rt: string) =>
-    assignments.find((a) => a.report_type === rt)?.cover_page_id || "none";
+  const isAssigned = (rt: string, id: string) => assignments[rt] === id;
 
-  const handleReportTypeChange = async (rt: string, coverPageId: string) => {
-    if (coverPageId === "none") {
+  const handleToggle = async (rt: string, id: string) => {
+    if (isAssigned(rt, id)) {
       await removeAssignmentFromReportType(rt);
     } else {
-      await assignCoverPageToReportType(rt, coverPageId);
+      await assignCoverPageToReportType(rt, id);
     }
   };
 
@@ -35,33 +33,44 @@ export default function CoverPageManager() {
         description="Manage custom cover pages for your reports"
       />
       <div className="max-w-4xl mx-auto p-4 space-y-8">
-        <CoverPageList coverPages={coverPages} />
-
         <div className="space-y-4">
-          <h2 className="text-xl font-bold">Report Type Assignments</h2>
-          {REPORT_TYPES.map((rt) => (
-            <div key={rt.value} className="flex items-center gap-2">
-              <Label className="w-40">{rt.label}</Label>
-              <Select
-                value={currentAssignment(rt.value)}
-                onValueChange={(value) => handleReportTypeChange(rt.value, value)}
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">Cover Pages</h2>
+            <Button asChild>
+              <Link to="/cover-page-manager/new">Create New Cover Page</Link>
+            </Button>
+          </div>
+          <ul className="space-y-2">
+            {coverPages.map((cp) => (
+              <li
+                key={cp.id}
+                className="border rounded p-4 flex flex-col gap-2"
               >
-                <SelectTrigger className="w-[250px]">
-                  <SelectValue placeholder="Select cover page" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {coverPages.map((cp) => (
-                    <SelectItem key={cp.id} value={cp.id}>
-                      {cp.name}
-                    </SelectItem>
+                <div className="flex items-center justify-between">
+                  <span>{cp.name}</span>
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={`/cover-page-manager/${cp.id}`}>Edit</Link>
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  {REPORT_TYPES.map((rt) => (
+                    <Button
+                      key={rt.value}
+                      variant={isAssigned(rt.value, cp.id) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleToggle(rt.value, cp.id)}
+                    >
+                      {rt.label}
+                    </Button>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ))}
+                </div>
+              </li>
+            ))}
+            {coverPages.length === 0 && (
+              <li className="text-sm text-muted-foreground">No cover pages yet.</li>
+            )}
+          </ul>
         </div>
-
       </div>
     </>
   );

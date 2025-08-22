@@ -3,7 +3,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   coverPagesApi,
   type CoverPage,
-  type CoverPageAssignment,
 } from "@/integrations/supabase/coverPagesApi";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,9 +29,9 @@ export const useCoverPages = () => {
   });
 
   const {
-    data: assignments = [],
+    data: assignments = {},
     isLoading: isLoadingAssignments,
-  } = useQuery<CoverPageAssignment[]>({
+  } = useQuery<Record<string, string>>({
     queryKey: ["cover-page-assignments", user?.id],
     queryFn: () => coverPagesApi.getCoverPageAssignments(user!.id),
     enabled: !!user?.id,
@@ -88,18 +87,16 @@ export const useCoverPages = () => {
     },
   });
 
-  const createAssignment = useMutation({
+  const setAssignment = useMutation({
     mutationFn: ({
       reportType,
       coverPageId,
     }: {
       reportType: string;
       coverPageId: string;
-    }) => coverPagesApi.createCoverPageAssignment(user!.id, reportType, coverPageId),
+    }) => coverPagesApi.setCoverPageAssignment(user!.id, reportType, coverPageId),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["cover-page-assignments", user?.id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["cover-page-assignments", user?.id] });
       toast({ title: "Cover page assigned" });
     },
     onError: (error: unknown) => {
@@ -112,42 +109,11 @@ export const useCoverPages = () => {
     },
   });
 
-  const updateAssignment = useMutation({
-    mutationFn: ({
-      id,
-      reportType,
-      coverPageId,
-    }: {
-      id: string;
-      reportType?: string;
-      coverPageId?: string;
-    }) =>
-      coverPagesApi.updateCoverPageAssignment(id, {
-        report_type: reportType,
-        cover_page_id: coverPageId,
-      }),
+  const clearAssignment = useMutation({
+    mutationFn: (reportType: string) =>
+      coverPagesApi.clearCoverPageAssignment(user!.id, reportType),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["cover-page-assignments", user?.id],
-      });
-      toast({ title: "Assignment updated" });
-    },
-    onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : String(error);
-      toast({
-        title: "Failed to update assignment",
-        description: message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteAssignment = useMutation({
-    mutationFn: (id: string) => coverPagesApi.deleteCoverPageAssignment(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["cover-page-assignments", user?.id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["cover-page-assignments", user?.id] });
       toast({ title: "Assignment removed" });
     },
     onError: (error: unknown) => {
@@ -164,19 +130,11 @@ export const useCoverPages = () => {
     reportType: string,
     coverPageId: string,
   ) => {
-    const existing = assignments.find((a) => a.report_type === reportType);
-    if (existing) {
-      await updateAssignment.mutateAsync({ id: existing.id, coverPageId });
-    } else {
-      await createAssignment.mutateAsync({ reportType, coverPageId });
-    }
+    await setAssignment.mutateAsync({ reportType, coverPageId });
   };
 
   const removeAssignmentFromReportType = async (reportType: string) => {
-    const existing = assignments.find((a) => a.report_type === reportType);
-    if (existing) {
-      await deleteAssignment.mutateAsync(existing.id);
-    }
+    await clearAssignment.mutateAsync(reportType);
   };
 
   return {
