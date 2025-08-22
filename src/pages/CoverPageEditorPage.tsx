@@ -21,6 +21,22 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import useCoverPages from "@/hooks/useCoverPages";
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  ArrowDown,
+  ArrowUp,
+  Bold,
+  Italic,
+  Plus,
+  Redo2,
+  Table as TableIcon,
+  Square,
+  Undo2,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react";
 
 const TEMPLATES: Record<string, string> = {
   default: "#ffffff",
@@ -31,6 +47,8 @@ const REPORT_TYPES = [
   { value: "home_inspection", label: "Home Inspection" },
   { value: "wind_mitigation", label: "Wind Mitigation" },
 ];
+
+const FONTS = ["Arial", "Times New Roman", "Courier New", "Georgia", "Verdana"];
 
 const GRID_SIZE = 20;
 
@@ -302,6 +320,10 @@ export default function CoverPageEditorPage() {
   const updateSelected = (prop: string, value: unknown) => {
     if (!selected || !canvas) return;
     (selected as unknown as FabricObject).set(prop as never, value as never);
+    if (selected instanceof Textbox) {
+      selected.initDimensions();
+      selected.setCoords();
+    }
     canvas.renderAll();
     pushHistory();
   };
@@ -332,7 +354,7 @@ export default function CoverPageEditorPage() {
 
   return (
     <div className="flex h-full">
-      <div className="w-64 p-2 border-r space-y-2">
+      <div className="w-[22rem] p-2 border-r space-y-2">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
           <div>
             <Label htmlFor="name">Name</Label>
@@ -360,10 +382,119 @@ export default function CoverPageEditorPage() {
         <Accordion type="single" collapsible defaultValue="text" className="w-full">
           <AccordionItem value="text">
             <AccordionTrigger>Text</AccordionTrigger>
-            <AccordionContent>
+            <AccordionContent className="space-y-2">
               <Button onClick={addText} className="w-full">
-                Add Text
+                <Plus className="mr-2 h-4 w-4" /> Add Text Box
               </Button>
+              {selected instanceof Textbox && (
+                <>
+                  <div>
+                    <Label htmlFor="text-color">Color</Label>
+                    <Input
+                      id="text-color"
+                      type="color"
+                      value={
+                        typeof selected.fill === "string" ? selected.fill : "#000000"
+                      }
+                      onChange={(e) => updateSelected("fill", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="text-font-size">Font Size</Label>
+                    <Input
+                      id="text-font-size"
+                      type="number"
+                      value={selected.fontSize || 16}
+                      onChange={(e) =>
+                        updateSelected("fontSize", parseInt(e.target.value, 10))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="fontFamily">Font Family</Label>
+                    <select
+                      id="fontFamily"
+                      className="w-full border rounded"
+                      value={selected.fontFamily || ""}
+                      onChange={(e) => updateSelected("fontFamily", e.target.value)}
+                    >
+                      {FONTS.map((f) => (
+                        <option key={f} value={f}>
+                          {f}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="icon"
+                      aria-label="Bold"
+                      variant={selected.fontWeight === "bold" ? "default" : "outline"}
+                      onClick={() =>
+                        updateSelected(
+                          "fontWeight",
+                          selected.fontWeight === "bold" ? "normal" : "bold"
+                        )
+                      }
+                    >
+                      <Bold className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="icon"
+                      aria-label="Italic"
+                      variant={selected.fontStyle === "italic" ? "default" : "outline"}
+                      onClick={() =>
+                        updateSelected(
+                          "fontStyle",
+                          selected.fontStyle === "italic" ? "normal" : "italic"
+                        )
+                      }
+                    >
+                      <Italic className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div>
+                    <Label>Alignment</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        size="icon"
+                        aria-label="Align Left"
+                        variant={
+                          selected.textAlign === "left" ? "default" : "outline"
+                        }
+                        onClick={() => updateSelected("textAlign", "left")}
+                      >
+                        <AlignLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        aria-label="Align Center"
+                        variant={
+                          selected.textAlign === "center" ? "default" : "outline"
+                        }
+                        onClick={() => updateSelected("textAlign", "center")}
+                      >
+                        <AlignCenter className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        aria-label="Align Right"
+                        variant={
+                          selected.textAlign === "right" ? "default" : "outline"
+                        }
+                        onClick={() => updateSelected("textAlign", "right")}
+                      >
+                        <AlignRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="images">
@@ -379,7 +510,7 @@ export default function CoverPageEditorPage() {
             <AccordionTrigger>Graphics</AccordionTrigger>
             <AccordionContent>
               <Button onClick={addRect} className="w-full">
-                Rectangle
+                <Square className="mr-2 h-4 w-4" /> Rectangle
               </Button>
             </AccordionContent>
           </AccordionItem>
@@ -387,7 +518,7 @@ export default function CoverPageEditorPage() {
             <AccordionTrigger>Tables</AccordionTrigger>
             <AccordionContent>
               <Button onClick={addTable} className="w-full">
-                Add Table
+                <TableIcon className="mr-2 h-4 w-4" /> Add Table
               </Button>
             </AccordionContent>
           </AccordionItem>
@@ -418,19 +549,19 @@ export default function CoverPageEditorPage() {
           </AccordionItem>
         </Accordion>
         <div className="flex gap-2 pt-4">
-          <Button onClick={undo} variant="outline" className="flex-1">
-            Undo
+          <Button onClick={undo} variant="outline" size="icon" aria-label="Undo">
+            <Undo2 className="h-4 w-4" />
           </Button>
-          <Button onClick={redo} variant="outline" className="flex-1">
-            Redo
+          <Button onClick={redo} variant="outline" size="icon" aria-label="Redo">
+            <Redo2 className="h-4 w-4" />
           </Button>
         </div>
         <div className="flex gap-2 pt-4">
-          <Button onClick={zoomOut} variant="outline" className="flex-1">
-            -
+          <Button onClick={zoomOut} variant="outline" size="icon" aria-label="Zoom Out">
+            <ZoomOut className="h-4 w-4" />
           </Button>
-          <Button onClick={zoomIn} variant="outline" className="flex-1">
-            +
+          <Button onClick={zoomIn} variant="outline" size="icon" aria-label="Zoom In">
+            <ZoomIn className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -450,7 +581,7 @@ export default function CoverPageEditorPage() {
       </div>
 
       {selected && (
-        <div className="w-64 p-2 border-l space-y-2">
+        <div className="w-[22rem] p-2 border-l space-y-2">
           <div>
             <Label htmlFor="fill">Color</Label>
             <Input
@@ -511,7 +642,8 @@ export default function CoverPageEditorPage() {
           <div className="flex gap-2 pt-2">
             <Button
               variant="outline"
-              className="flex-1"
+              size="icon"
+              aria-label="Bring Forward"
               onClick={() => {
                 if (selected && canvas) {
                   canvas.bringForward(selected);
@@ -520,11 +652,12 @@ export default function CoverPageEditorPage() {
                 }
               }}
             >
-              Forward
+              <ArrowUp className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
-              className="flex-1"
+              size="icon"
+              aria-label="Send Backward"
               onClick={() => {
                 if (selected && canvas) {
                   canvas.sendBackwards(selected);
@@ -533,7 +666,7 @@ export default function CoverPageEditorPage() {
                 }
               }}
             >
-              Backward
+              <ArrowDown className="h-4 w-4" />
             </Button>
           </div>
         </div>
