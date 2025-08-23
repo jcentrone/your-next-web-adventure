@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import Seo from "@/components/Seo";
@@ -23,7 +24,7 @@ import {
   removeMemberFromOrganization,
   updateMemberRole
 } from "@/integrations/supabase/organizationsApi";
-import { Building2, Mail, Phone, Users, Plus, Trash2, Settings, Upload, Camera } from "lucide-react";
+import { Building2, Mail, Phone, Users, Plus, Trash2, Settings, Upload, Camera, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { upsertProfile } from "@/lib/upsertProfile";
 import { useDropzone, type FileRejection } from "react-dropzone";
@@ -51,6 +52,7 @@ const ProfilePage: React.FC = () => {
   // Invitation form state
   const [inviteEmail, setInviteEmail] = React.useState("");
   const [inviteRole, setInviteRole] = React.useState<"admin" | "inspector" | "viewer">("inspector");
+  const [showOrganizationError, setShowOrganizationError] = React.useState(false);
 
   React.useEffect(() => {
     if (!user) {
@@ -76,6 +78,7 @@ const ProfilePage: React.FC = () => {
     queryKey: ["my-organization"],
     queryFn: getMyOrganization,
     enabled: !!user && !!profile,
+    retry: false,
   });
 
   const { data: members = [] } = useQuery({
@@ -99,6 +102,12 @@ const ProfilePage: React.FC = () => {
       });
     }
   }, [profileError, queryClient]);
+
+  React.useEffect(() => {
+    if (organizationError) {
+      setShowOrganizationError(true);
+    }
+  }, [organizationError]);
 
   // Initialize form state when data loads
   React.useEffect(() => {
@@ -384,6 +393,25 @@ const ProfilePage: React.FC = () => {
           <p className="text-muted-foreground">Manage your account and organization settings</p>
         </div>
 
+        {showOrganizationError && organizationError && (
+          <Alert variant="destructive" className="relative mb-6">
+            <AlertTitle>Failed to load organization</AlertTitle>
+            <AlertDescription>
+              {organizationError instanceof Error
+                ? organizationError.message
+                : String(organizationError)}
+            </AlertDescription>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-2 top-2"
+              onClick={() => setShowOrganizationError(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </Alert>
+        )}
+
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList>
             <TabsTrigger value="profile">Personal Profile</TabsTrigger>
@@ -463,9 +491,6 @@ const ProfilePage: React.FC = () => {
 
           <TabsContent value="organization">
             {organizationLoading && <div>Loading organization...</div>}
-            {organizationError && !organizationLoading && (
-              <div>Error loading organization</div>
-            )}
             {organization && !organizationLoading && !organizationError && (
               <Card>
                 <CardHeader>
