@@ -25,6 +25,7 @@ import {
 } from "@/integrations/supabase/organizationsApi";
 import { Building2, Mail, Phone, Users, Plus, Trash2, Settings, Upload, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { upsertProfile } from "@/lib/upsertProfile";
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();
@@ -56,13 +57,21 @@ const ProfilePage: React.FC = () => {
     }
   }, [user, navigate]);
 
-  const { data: profile } = useQuery({
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    error: profileError,
+  } = useQuery({
     queryKey: ["my-profile"],
     queryFn: getMyProfile,
     enabled: !!user,
   });
 
-  const { data: organization } = useQuery({
+  const {
+    data: organization,
+    isLoading: organizationLoading,
+    error: organizationError,
+  } = useQuery({
     queryKey: ["my-organization"],
     queryFn: getMyOrganization,
     enabled: !!user && !!profile,
@@ -79,6 +88,16 @@ const ProfilePage: React.FC = () => {
     queryFn: () => organization ? getOrganizationInvitations(organization.id) : [],
     enabled: !!organization,
   });
+
+  React.useEffect(() => {
+    if (profileError) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        upsertProfile(session).then(() => {
+          queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+        });
+      });
+    }
+  }, [profileError, queryClient]);
 
   // Initialize form state when data loads
   React.useEffect(() => {
@@ -230,8 +249,16 @@ const ProfilePage: React.FC = () => {
   const myMembership = members.find(m => m.user_id === user?.id);
   const canManageMembers = myMembership?.role === "owner" || myMembership?.role === "admin";
 
-  if (!user || !profile) {
+  if (!user || profileLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (profileError) {
+    return <div>Error loading profile</div>;
+  }
+
+  if (!profile) {
+    return <div>No profile data available</div>;
   }
 
   return (
@@ -324,8 +351,12 @@ const ProfilePage: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {organization && (
-            <TabsContent value="organization">
+          <TabsContent value="organization">
+            {organizationLoading && <div>Loading organization...</div>}
+            {organizationError && !organizationLoading && (
+              <div>Error loading organization</div>
+            )}
+            {organization && !organizationLoading && !organizationError && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -340,8 +371,8 @@ const ProfilePage: React.FC = () => {
                     <div className="flex items-center gap-4">
                       <div className="relative">
                         <Avatar className="h-20 w-20 rounded-lg">
-                          <AvatarImage 
-                            src={logoPreview || organization.logo_url || ""} 
+                          <AvatarImage
+                            src={logoPreview || organization.logo_url || ""}
                             className="object-cover"
                           />
                           <AvatarFallback className="rounded-lg bg-muted">
@@ -457,7 +488,7 @@ const ProfilePage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-4 pt-4">
-                    <Button 
+                    <Button
                       onClick={handleSaveOrganization}
                       disabled={updateOrganizationMutation.isPending}
                       className="flex items-center gap-2"
@@ -474,8 +505,8 @@ const ProfilePage: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
-          )}
+            )}
+          </TabsContent>
 
           {canManageMembers && (
             <TabsContent value="members">
