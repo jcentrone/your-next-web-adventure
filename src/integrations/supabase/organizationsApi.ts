@@ -101,18 +101,54 @@ export async function createOrganization(data: {
 }
 
 export async function getMyOrganization() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userId = user!.id;
+
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('organization_id')
-    .eq('user_id', (await supabase.auth.getUser()).data.user!.id)
+    .eq('user_id', userId)
     .single();
 
-  if (profileError || !profile.organization_id) return null;
+  if (profileError) throw profileError;
+
+  let organizationId = profile.organization_id;
+
+  if (!organizationId) {
+    const { data: newOrg, error: orgError } = await supabase
+      .from('organizations')
+      .insert({ name: 'My Organization' })
+      .select()
+      .single();
+
+    if (orgError) throw orgError;
+
+    const { error: memberError } = await supabase
+      .from('organization_members')
+      .insert({
+        organization_id: newOrg.id,
+        user_id: userId,
+        role: 'owner',
+      });
+
+    if (memberError) throw memberError;
+
+    const { error: profileUpdateError } = await supabase
+      .from('profiles')
+      .update({ organization_id: newOrg.id })
+      .eq('user_id', userId);
+
+    if (profileUpdateError) throw profileUpdateError;
+
+    organizationId = newOrg.id;
+  }
 
   const { data, error } = await supabase
     .from('organizations')
     .select('*')
-    .eq('id', profile.organization_id)
+    .eq('id', organizationId)
     .single();
 
   if (error) throw error;

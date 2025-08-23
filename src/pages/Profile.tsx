@@ -65,7 +65,7 @@ const ProfilePage: React.FC = () => {
   const { data: organization } = useQuery({
     queryKey: ["my-organization"],
     queryFn: getMyOrganization,
-    enabled: !!user && !!profile && !profile.is_individual,
+    enabled: !!user && !!profile,
   });
 
   const { data: members = [] } = useQuery({
@@ -250,12 +250,8 @@ const ProfilePage: React.FC = () => {
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList>
             <TabsTrigger value="profile">Personal Profile</TabsTrigger>
-            {!profile.is_individual && (
-              <>
-                <TabsTrigger value="organization">Organization</TabsTrigger>
-                {canManageMembers && <TabsTrigger value="members">Members</TabsTrigger>}
-              </>
-            )}
+            <TabsTrigger value="organization">Organization</TabsTrigger>
+            {canManageMembers && <TabsTrigger value="members">Members</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="profile">
@@ -313,7 +309,7 @@ const ProfilePage: React.FC = () => {
                   <Badge variant={profile.is_individual ? "default" : "secondary"}>
                     {profile.is_individual ? "Individual Inspector" : "Organization Member"}
                   </Badge>
-                  {!profile.is_individual && organization && (
+                  {organization && (
                     <Badge variant="outline">{organization.name}</Badge>
                   )}
                 </div>
@@ -328,7 +324,7 @@ const ProfilePage: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {!profile.is_individual && organization && (
+          {organization && (
             <TabsContent value="organization">
               <Card>
                 <CardHeader>
@@ -481,7 +477,7 @@ const ProfilePage: React.FC = () => {
             </TabsContent>
           )}
 
-          {!profile.is_individual && canManageMembers && (
+          {canManageMembers && (
             <TabsContent value="members">
               <div className="space-y-6">
                 <Card>
