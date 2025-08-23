@@ -7,6 +7,8 @@ import {supabase} from "@/integrations/supabase/client";
 import {toast} from "@/components/ui/use-toast";
 import {getSignedUrlFromSupabaseUrl, isSupabaseUrl} from "@/integrations/supabase/storage";
 import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
+import {getMyOrganization, getMyProfile} from "@/integrations/supabase/organizationsApi";
+import {replaceMergeFields} from "@/utils/replaceMergeFields";
 
 // Keys that are handled manually elsewhere in the code (e.g. custom logic
 // for building code options) and should be ignored when reporting unmapped
@@ -101,6 +103,15 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
     const pdfDoc = await PDFDocument.load(formPdfBytes);
     const form = pdfDoc.getForm();
     console.log("📄 Available PDF fields:", form.getFields().map((f: any) => f.getName()));
+
+    let organization = null;
+    let inspector = null;
+    try {
+        organization = await getMyOrganization();
+        inspector = await getMyProfile();
+    } catch (err) {
+        console.error("Error fetching organization or inspector", err);
+    }
 
     // Surface mapping/debug information as soon as the form is loaded
     debugFieldMapping(report, form);
@@ -518,14 +529,24 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
 
         const titleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
         const bodyFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-        coverPage.drawText(assignedCoverPage.title, {
+        const replacedTitle = replaceMergeFields(assignedCoverPage.title, {
+            organization,
+            inspector,
+            report,
+        });
+        coverPage.drawText(replacedTitle, {
             x: 50,
             y: height / 2 - 80,
             size: 24,
             font: titleFont,
         });
         if (assignedCoverPage.text) {
-            coverPage.drawText(assignedCoverPage.text, {
+            const replacedText = replaceMergeFields(assignedCoverPage.text, {
+                organization,
+                inspector,
+                report,
+            });
+            coverPage.drawText(replacedText, {
                 x: 50,
                 y: height / 2 - 110,
                 size: 12,

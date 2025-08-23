@@ -13,8 +13,18 @@ import {
   Triangle,
   Palette,
   Search,
+  List,
 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  MergeField,
+} from "@/constants/coverPageFields";
 
 interface EditorSidebarProps {
   onAddText: () => void;
@@ -26,6 +36,10 @@ interface EditorSidebarProps {
   colorPalettes: any[];
   onSelectPalette: (palette: any) => void;
   selectedPalette: any;
+  onAddPlaceholder: (token: string) => void;
+  organizationFields: MergeField[];
+  inspectorFields: MergeField[];
+  contactFields: MergeField[];
 }
 
 export function EditorSidebar({
@@ -38,6 +52,10 @@ export function EditorSidebar({
   colorPalettes,
   onSelectPalette,
   selectedPalette,
+  onAddPlaceholder,
+  organizationFields,
+  inspectorFields,
+  contactFields,
 }: EditorSidebarProps) {
   const [iconSearch, setIconSearch] = useState("");
   const [imageSearch, setImageSearch] = useState("");
@@ -57,7 +75,7 @@ export function EditorSidebar({
   return (
     <div className="w-80 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Tabs defaultValue="text" className="h-full">
-        <TabsList className="grid w-full grid-cols-5 rounded-none border-b">
+        <TabsList className="grid w-full grid-cols-6 rounded-none border-b">
           <TabsTrigger value="text" className="flex flex-col gap-1 py-3">
             <Type className="h-5 w-5" />
             <span className="text-xs">Text</span>
@@ -73,6 +91,10 @@ export function EditorSidebar({
           <TabsTrigger value="icons" className="flex flex-col gap-1 py-3">
             <Star className="h-5 w-5" />
             <span className="text-xs">Icons</span>
+          </TabsTrigger>
+          <TabsTrigger value="formFields" className="flex flex-col gap-1 py-3">
+            <List className="h-5 w-5" />
+            <span className="text-xs">Form Fields</span>
           </TabsTrigger>
           <TabsTrigger value="colors" className="flex flex-col gap-1 py-3">
             <Palette className="h-5 w-5" />
@@ -205,6 +227,62 @@ export function EditorSidebar({
               </div>
             </ScrollArea>
           </div>
+        </TabsContent>
+
+        <TabsContent value="formFields" className="h-full p-4 mt-0">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="organization">
+              <AccordionTrigger>Organization Details</AccordionTrigger>
+              <AccordionContent>
+                <div className="flex flex-col space-y-2">
+                  {organizationFields.map((field) => (
+                    <Button
+                      key={field.token}
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => onAddPlaceholder(field.token)}
+                    >
+                      {field.label}
+                    </Button>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="inspector">
+              <AccordionTrigger>Inspector Details</AccordionTrigger>
+              <AccordionContent>
+                <div className="flex flex-col space-y-2">
+                  {inspectorFields.map((field) => (
+                    <Button
+                      key={field.token}
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => onAddPlaceholder(field.token)}
+                    >
+                      {field.label}
+                    </Button>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="contact">
+              <AccordionTrigger>Contact Details</AccordionTrigger>
+              <AccordionContent>
+                <div className="flex flex-col space-y-2">
+                  {contactFields.map((field) => (
+                    <Button
+                      key={field.token}
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => onAddPlaceholder(field.token)}
+                    >
+                      {field.label}
+                    </Button>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </TabsContent>
 
         <TabsContent value="colors" className="h-full p-4 mt-0">
