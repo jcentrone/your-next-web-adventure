@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import RootLayout from "./layouts/RootLayout";
 import React from "react";
 import { AuthProvider } from "./contexts/AuthContext";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -17,9 +18,11 @@ const lazyLoad = (
 ) => {
   const C = React.lazy(loader);
   return (
-    <React.Suspense fallback={null}>
-      <C />
-    </React.Suspense>
+    <ErrorBoundary>
+      <React.Suspense fallback={null}>
+        <C />
+      </React.Suspense>
+    </ErrorBoundary>
   );
 };
 
