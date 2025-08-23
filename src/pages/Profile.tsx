@@ -399,7 +399,7 @@ const ProfilePage: React.FC = () => {
             <AlertDescription>
               {organizationError instanceof Error
                 ? organizationError.message
-                : String(organizationError)}
+                : JSON.stringify(organizationError)}
             </AlertDescription>
             <Button
               variant="ghost"
