@@ -832,7 +832,7 @@ export default function CoverPageEditorPage() {
     
     return (
         <div className="fixed inset-x-0 top-14 h-[calc(100vh-3.5rem)] w-screen overflow-hidden flex z-30">
-            <div className="w-[22rem] p-2 border-r space-y-2 overflow-auto relative">
+            <div className="w-[14rem] p-2 border-r space-y-2 overflow-auto relative">
                 <div className="space-y-2">
                     <div 
                         className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
@@ -845,7 +845,7 @@ export default function CoverPageEditorPage() {
                             <span className="font-medium">Settings</span>
                         </div>
                         {activePanel === "settings" && (
-                            <div className="fixed left-[23rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] space-y-2 max-h-[80vh] overflow-y-auto">
+                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] space-y-2 max-h-[80vh] overflow-y-auto">
 
                             <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
                                 <div>
@@ -887,7 +887,7 @@ export default function CoverPageEditorPage() {
                             <span className="font-medium">Text</span>
                         </div>
                         {activePanel === "text" && (
-                            <div className="fixed left-[23rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] space-y-2 max-h-[80vh] overflow-y-auto">
+                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] space-y-2 max-h-[80vh] overflow-y-auto">
                             <Button onClick={addText} className="w-full">
                                 <Plus className="mr-2 h-4 w-4"/> Add Text Box
                             </Button>
@@ -1015,7 +1015,7 @@ export default function CoverPageEditorPage() {
                             <span className="font-medium">Images</span>
                         </div>
                         {activePanel === "images" && (
-                            <div className="fixed left-[23rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
+                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
                             <Label htmlFor="image-upload" className="mb-1 block">
                                 Image Upload
                             </Label>
@@ -1059,7 +1059,7 @@ export default function CoverPageEditorPage() {
                             <span className="font-medium">Graphics</span>
                         </div>
                         {activePanel === "graphics" && (
-                            <div className="fixed left-[23rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] space-y-2 max-h-[80vh] overflow-y-auto">
+                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] space-y-2 max-h-[80vh] overflow-y-auto">
                             <div className="flex flex-wrap gap-3">
                                 <Button
                                     onClick={addRect}
@@ -1201,7 +1201,7 @@ export default function CoverPageEditorPage() {
                             <span className="font-medium">Tables</span>
                         </div>
                         {activePanel === "tables" && (
-                            <div className="fixed left-[23rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
+                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
                             <div className="space-y-2">
                                 <div>
                                     <Label htmlFor="table-rows">Rows</Label>
@@ -1251,7 +1251,7 @@ export default function CoverPageEditorPage() {
                             <span className="font-medium">Design Palette</span>
                         </div>
                         {activePanel === "design" && (
-                            <div className="fixed left-[23rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
+                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
                             <Label htmlFor="template">Template</Label>
                             <select id="template" className="w-full border rounded" {...register("template")}>
                                 {Object.keys(TEMPLATES).map((key) => (
@@ -1293,7 +1293,7 @@ export default function CoverPageEditorPage() {
                             <span className="font-medium">Background</span>
                         </div>
                         {activePanel === "background" && (
-                            <div className="fixed left-[23rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
+                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
                             <Label htmlFor="bg-color">Background Color</Label>
                             <Input
                                 id="bg-color"
