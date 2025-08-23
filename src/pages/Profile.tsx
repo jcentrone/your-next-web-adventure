@@ -26,6 +26,7 @@ import {
 import { Building2, Mail, Phone, Users, Plus, Trash2, Settings, Upload, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { upsertProfile } from "@/lib/upsertProfile";
+import { useDropzone, type FileRejection } from "react-dropzone";
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();
@@ -156,7 +157,7 @@ const ProfilePage: React.FC = () => {
   });
 
   const removeMemberMutation = useMutation({
-    mutationFn: ({ orgId, userId }: { orgId: string; userId: string }) => 
+    mutationFn: ({ orgId, userId }: { orgId: string; userId: string }) =>
       removeMemberFromOrganization(orgId, userId),
     onSuccess: () => {
       toast({ title: "Member removed successfully" });
@@ -166,6 +167,102 @@ const ProfilePage: React.FC = () => {
       toast({ title: "Failed to remove member", description: error.message });
     },
   });
+
+  const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5MB
+  const MIN_LOGO_DIMENSION = 200;
+
+  const getStoragePathFromPublicUrl = (url: string): string | null => {
+    try {
+      const { pathname } = new URL(url);
+      const parts = pathname.split("/");
+      const publicIndex = parts.indexOf("public");
+      if (publicIndex === -1) return null;
+      return parts.slice(publicIndex + 2).join("/");
+    } catch {
+      return null;
+    }
+  };
+
+  const onDropAccepted = React.useCallback(async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    const dimensionsValid = await new Promise<boolean>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const valid = img.width >= MIN_LOGO_DIMENSION && img.height >= MIN_LOGO_DIMENSION;
+        URL.revokeObjectURL(img.src);
+        resolve(valid);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(img.src);
+        resolve(false);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+
+    if (!dimensionsValid) {
+      toast({
+        title: "Invalid image dimensions",
+        description: `Logo must be at least ${MIN_LOGO_DIMENSION}x${MIN_LOGO_DIMENSION}px`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
+  }, [toast]);
+
+  const onDropRejected = React.useCallback((fileRejections: FileRejection[]) => {
+    fileRejections.forEach((rejection) => {
+      rejection.errors.forEach((error) => {
+        if (error.code === "file-too-large") {
+          toast({
+            title: "File too large",
+            description: "Logo must be less than 5MB",
+            variant: "destructive",
+          });
+        } else if (error.code === "file-invalid-type") {
+          toast({
+            title: "Invalid file type",
+            description: "Only PNG or JPG images are allowed",
+            variant: "destructive",
+          });
+        } else {
+          toast({ title: "File rejected", description: error.message, variant: "destructive" });
+        }
+      });
+    });
+  }, [toast]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDropAccepted,
+    onDropRejected,
+    accept: { "image/png": [], "image/jpeg": [] },
+    maxSize: MAX_LOGO_SIZE,
+    multiple: false,
+  });
+
+  const handleRemoveLogo = async () => {
+    if (logoFile) {
+      setLogoFile(null);
+      setLogoPreview(null);
+      return;
+    }
+    if (!organization || !organization.logo_url) return;
+    const path = getStoragePathFromPublicUrl(organization.logo_url);
+    try {
+      if (path) {
+        const { error } = await supabase.storage.from("report-media").remove([path]);
+        if (error) throw error;
+      }
+      await updateOrganization(organization.id, { logo_url: null });
+      setLogoPreview(null);
+      toast({ title: "Logo removed" });
+      queryClient.invalidateQueries({ queryKey: ["my-organization"] });
+    } catch (error) {
+      toast({ title: "Failed to remove logo", description: (error as Error).message, variant: "destructive" });
+    }
+  };
 
   const handleSaveProfile = () => {
     updateProfileMutation.mutate({
@@ -177,32 +274,55 @@ const ProfilePage: React.FC = () => {
 
   const handleSaveOrganization = async () => {
     if (!organization) return;
-    
+
     let logoUrl = organization.logo_url;
-    
+
     // Upload logo if a new file was selected
     if (logoFile) {
       try {
-        const fileExt = logoFile.name.split('.').pop();
+        const fileExt = logoFile.name.split(".").pop();
         const fileName = `${organization.id}-logo.${fileExt}`;
-        
+        const path = `logos/${fileName}`;
+
         const { error: uploadError } = await supabase.storage
-          .from('report-media')
-          .upload(`logos/${fileName}`, logoFile, { upsert: true });
-          
+          .from("report-media")
+          .upload(path, logoFile, { upsert: true });
+
         if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('report-media')
-          .getPublicUrl(`logos/${fileName}`);
-          
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("report-media").getPublicUrl(path);
+
         logoUrl = publicUrl;
+
+        if (organization.logo_url) {
+          const oldPath = getStoragePathFromPublicUrl(organization.logo_url);
+          if (oldPath && oldPath !== path) {
+            const { error: removeError } = await supabase.storage
+              .from("report-media")
+              .remove([oldPath]);
+            if (removeError) {
+              toast({
+                title: "Failed to delete previous logo",
+                description: removeError.message,
+                variant: "destructive",
+              });
+            } else {
+              toast({ title: "Previous logo deleted" });
+            }
+          }
+        }
       } catch (error) {
-        toast({ title: "Failed to upload logo", description: (error as Error).message });
+        toast({
+          title: "Failed to upload logo",
+          description: (error as Error).message,
+          variant: "destructive",
+        });
         return;
       }
     }
-    
+
     updateOrganizationMutation.mutate({
       id: organization.id,
       data: {
@@ -217,16 +337,6 @@ const ProfilePage: React.FC = () => {
     });
   };
   
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setLogoFile(file);
-      const reader = new FileReader();
-      reader.onload = () => setLogoPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleInviteUser = () => {
     if (!organization || !inviteEmail) return;
     inviteUserMutation.mutate({
@@ -384,34 +494,27 @@ const ProfilePage: React.FC = () => {
                             variant="ghost"
                             size="sm"
                             className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background border"
-                            onClick={() => {
-                              setLogoFile(null);
-                              setLogoPreview(null);
-                            }}
+                            onClick={handleRemoveLogo}
                           >
                             ×
                           </Button>
                         )}
                       </div>
-                      <div className="space-y-2">
-                        <div>
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleLogoChange}
-                            className="hidden"
-                            id="logo-upload"
-                          />
-                          <Label
-                            htmlFor="logo-upload"
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90"
-                          >
-                            <Upload className="h-4 w-4" />
-                            Upload Logo
-                          </Label>
+                      <div className="space-y-2 w-full max-w-xs">
+                        <div
+                          {...getRootProps({
+                            className:
+                              "flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted transition-colors",
+                          })}
+                        >
+                          <input {...getInputProps()} />
+                          <Upload className="h-4 w-4 mb-2" />
+                          <p className="text-sm text-center">
+                            {isDragActive ? "Drop the logo here" : "Drag & drop or click"}
+                          </p>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Recommended: 200x200px or larger, PNG/JPG format
+                          Recommended: 200x200px or larger, PNG/JPG format (max 5MB)
                         </p>
                       </div>
                     </div>
