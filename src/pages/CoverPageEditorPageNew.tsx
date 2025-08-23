@@ -21,6 +21,7 @@ import {CanvasWorkspace} from "@/components/cover-pages/CanvasWorkspace";
 import useCoverPages from "@/hooks/useCoverPages";
 import useImageLibrary from "@/hooks/useImageLibrary";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
+import {organizationFields, inspectorFields, contactFields} from "@/constants/coverPageFields";
 import * as LucideIcons from "lucide-react";
 import {toast} from "sonner";
 
@@ -270,10 +271,10 @@ export default function CoverPageEditorPageNew() {
     };
 
     // Sidebar handlers
-    const handleAddText = () => {
+    const handleAddText = (content?: string) => {
         if (!canvas) return;
 
-        const text = new Textbox("Add your text here", {
+        const text = new Textbox(content || "Add your text here", {
             left: 100,
             top: 100,
             fontFamily: "Arial",
@@ -591,6 +592,10 @@ export default function CoverPageEditorPageNew() {
                     colorPalettes={COLOR_PALETTES}
                     onSelectPalette={setPalette}
                     selectedPalette={palette}
+                    onAddPlaceholder={handleAddText}
+                    organizationFields={organizationFields}
+                    inspectorFields={inspectorFields}
+                    contactFields={contactFields}
                 />
 
                 {/* Canvas Workspace */}
