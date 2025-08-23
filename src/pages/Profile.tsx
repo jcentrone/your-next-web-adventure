@@ -17,6 +17,7 @@ import {
   getMyProfile,
   updateMyProfile,
   getMyOrganization,
+  createOrganization,
   updateOrganization,
   getOrganizationMembers,
   inviteUserToOrganization,
@@ -120,15 +121,13 @@ const ProfilePage: React.FC = () => {
   }, [profile]);
 
   React.useEffect(() => {
-    if (organization) {
-      setOrgName(organization.name || "");
-      setOrgEmail(organization.email || "");
-      setOrgPhone(organization.phone || "");
-      setOrgAddress(organization.address || "");
-      setOrgWebsite(organization.website || "");
-      setOrgLicense(organization.license_number || "");
-      setLogoPreview(organization.logo_url || null);
-    }
+    setOrgName(organization?.name || "");
+    setOrgEmail(organization?.email || "");
+    setOrgPhone(organization?.phone || "");
+    setOrgAddress(organization?.address || "");
+    setOrgWebsite(organization?.website || "");
+    setOrgLicense(organization?.license_number || "");
+    setLogoPreview(organization?.logo_url || null);
   }, [organization]);
 
   const updateProfileMutation = useMutation({
@@ -283,68 +282,90 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleSaveOrganization = async () => {
-    if (!organization) return;
+    try {
+      let orgId = organization?.id;
+      let logoUrl = organization?.logo_url || null;
 
-    let logoUrl = organization.logo_url;
+      if (!organization) {
+        const newOrg = await createOrganization({
+          name: orgName,
+          email: orgEmail,
+          phone: orgPhone,
+          address: orgAddress,
+          website: orgWebsite,
+          license_number: orgLicense,
+        });
+        orgId = newOrg.id;
+      }
 
-    // Upload logo if a new file was selected
-    if (logoFile) {
-      try {
-        const fileExt = logoFile.name.split(".").pop();
-        const fileName = `${organization.id}-logo.${fileExt}`;
-        const path = `logos/${fileName}`;
+      // Upload logo if a new file was selected
+      if (logoFile && orgId) {
+        try {
+          const fileExt = logoFile.name.split(".").pop();
+          const fileName = `${orgId}-logo.${fileExt}`;
+          const path = `logos/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("report-media")
-          .upload(path, logoFile, { upsert: true });
+          const { error: uploadError } = await supabase.storage
+            .from("report-media")
+            .upload(path, logoFile, { upsert: true });
 
-        if (uploadError) throw uploadError;
+          if (uploadError) throw uploadError;
 
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("report-media").getPublicUrl(path);
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("report-media").getPublicUrl(path);
 
-        logoUrl = publicUrl;
+          logoUrl = publicUrl;
 
-        if (organization.logo_url) {
-          const oldPath = getStoragePathFromPublicUrl(organization.logo_url);
-          if (oldPath && oldPath !== path) {
-            const { error: removeError } = await supabase.storage
-              .from("report-media")
-              .remove([oldPath]);
-            if (removeError) {
-              toast({
-                title: "Failed to delete previous logo",
-                description: removeError.message,
-                variant: "destructive",
-              });
-            } else {
-              toast({ title: "Previous logo deleted" });
+          if (organization?.logo_url) {
+            const oldPath = getStoragePathFromPublicUrl(organization.logo_url);
+            if (oldPath && oldPath !== path) {
+              const { error: removeError } = await supabase.storage
+                .from("report-media")
+                .remove([oldPath]);
+              if (removeError) {
+                toast({
+                  title: "Failed to delete previous logo",
+                  description: removeError.message,
+                  variant: "destructive",
+                });
+              } else {
+                toast({ title: "Previous logo deleted" });
+              }
             }
           }
+        } catch (error) {
+          toast({
+            title: "Failed to upload logo",
+            description: (error as Error).message,
+            variant: "destructive",
+          });
+          return;
         }
-      } catch (error) {
-        toast({
-          title: "Failed to upload logo",
-          description: (error as Error).message,
-          variant: "destructive",
-        });
-        return;
       }
-    }
 
-    updateOrganizationMutation.mutate({
-      id: organization.id,
-      data: {
-        name: orgName,
-        email: orgEmail,
-        phone: orgPhone,
-        address: orgAddress,
-        website: orgWebsite,
-        license_number: orgLicense,
-        logo_url: logoUrl,
-      },
-    });
+      if (orgId) {
+        await updateOrganizationMutation.mutateAsync({
+          id: orgId,
+          data: {
+            name: orgName,
+            email: orgEmail,
+            phone: orgPhone,
+            address: orgAddress,
+            website: orgWebsite,
+            license_number: orgLicense,
+            logo_url: logoUrl,
+          },
+        });
+        queryClient.invalidateQueries({ queryKey: ["my-organization"] });
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to save organization",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
   };
   
   const handleInviteUser = () => {
@@ -492,7 +513,7 @@ const ProfilePage: React.FC = () => {
 
           <TabsContent value="organization">
             {organizationLoading && <div>Loading organization...</div>}
-            {organization && !organizationLoading && !organizationError && (
+            {!organizationLoading && !organizationError && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -508,14 +529,14 @@ const ProfilePage: React.FC = () => {
                       <div className="relative">
                         <Avatar className="h-20 w-20 rounded-lg">
                           <AvatarImage
-                            src={logoPreview || organization.logo_url || ""}
+                            src={logoPreview || organization?.logo_url || ""}
                             className="object-cover"
                           />
                           <AvatarFallback className="rounded-lg bg-muted">
                             <Building2 className="h-8 w-8" />
                           </AvatarFallback>
                         </Avatar>
-                        {(logoPreview || organization.logo_url) && (
+                        {(logoPreview || organization?.logo_url) && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -634,14 +655,6 @@ const ProfilePage: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-            )}
-            {!organization && !organizationLoading && !organizationError && (
-              <Alert>
-                <AlertTitle>No organization found</AlertTitle>
-                <AlertDescription>
-                  You haven't set up an organization yet.
-                </AlertDescription>
-              </Alert>
             )}
           </TabsContent>
 
