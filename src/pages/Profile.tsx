@@ -23,7 +23,8 @@ import {
   removeMemberFromOrganization,
   updateMemberRole
 } from "@/integrations/supabase/organizationsApi";
-import { Building2, Mail, Phone, Users, Plus, Trash2, Settings } from "lucide-react";
+import { Building2, Mail, Phone, Users, Plus, Trash2, Settings, Upload, Camera } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();
@@ -42,6 +43,8 @@ const ProfilePage: React.FC = () => {
   const [orgAddress, setOrgAddress] = React.useState("");
   const [orgWebsite, setOrgWebsite] = React.useState("");
   const [orgLicense, setOrgLicense] = React.useState("");
+  const [logoFile, setLogoFile] = React.useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = React.useState<string | null>(null);
 
   // Invitation form state
   const [inviteEmail, setInviteEmail] = React.useState("");
@@ -94,6 +97,7 @@ const ProfilePage: React.FC = () => {
       setOrgAddress(organization.address || "");
       setOrgWebsite(organization.website || "");
       setOrgLicense(organization.license_number || "");
+      setLogoPreview(organization.logo_url || null);
     }
   }, [organization]);
 
@@ -152,8 +156,34 @@ const ProfilePage: React.FC = () => {
     });
   };
 
-  const handleSaveOrganization = () => {
+  const handleSaveOrganization = async () => {
     if (!organization) return;
+    
+    let logoUrl = organization.logo_url;
+    
+    // Upload logo if a new file was selected
+    if (logoFile) {
+      try {
+        const fileExt = logoFile.name.split('.').pop();
+        const fileName = `${organization.id}-logo.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('report-media')
+          .upload(`logos/${fileName}`, logoFile, { upsert: true });
+          
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('report-media')
+          .getPublicUrl(`logos/${fileName}`);
+          
+        logoUrl = publicUrl;
+      } catch (error) {
+        toast({ title: "Failed to upload logo", description: (error as Error).message });
+        return;
+      }
+    }
+    
     updateOrganizationMutation.mutate({
       id: organization.id,
       data: {
@@ -163,8 +193,19 @@ const ProfilePage: React.FC = () => {
         address: orgAddress,
         website: orgWebsite,
         license_number: orgLicense,
+        logo_url: logoUrl,
       },
     });
+  };
+  
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setLogoPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleInviteUser = () => {
@@ -296,70 +337,145 @@ const ProfilePage: React.FC = () => {
                     Organization Settings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="orgName">Organization Name</Label>
-                      <Input
-                        id="orgName"
-                        value={orgName}
-                        onChange={(e) => setOrgName(e.target.value)}
-                        placeholder="Company name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="orgEmail">Email</Label>
-                      <Input
-                        id="orgEmail"
-                        value={orgEmail}
-                        onChange={(e) => setOrgEmail(e.target.value)}
-                        placeholder="company@example.com"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="orgPhone">Phone</Label>
-                      <Input
-                        id="orgPhone"
-                        value={orgPhone}
-                        onChange={(e) => setOrgPhone(e.target.value)}
-                        placeholder="(555) 123-4567"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="orgLicense">License Number</Label>
-                      <Input
-                        id="orgLicense"
-                        value={orgLicense}
-                        onChange={(e) => setOrgLicense(e.target.value)}
-                        placeholder="Organization license"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <Label htmlFor="orgAddress">Address</Label>
-                      <Input
-                        id="orgAddress"
-                        value={orgAddress}
-                        onChange={(e) => setOrgAddress(e.target.value)}
-                        placeholder="Business address"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <Label htmlFor="orgWebsite">Website</Label>
-                      <Input
-                        id="orgWebsite"
-                        value={orgWebsite}
-                        onChange={(e) => setOrgWebsite(e.target.value)}
-                        placeholder="https://example.com"
-                      />
+                <CardContent className="space-y-6">
+                  {/* Company Logo Section */}
+                  <div className="space-y-4">
+                    <Label>Company Logo</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <Avatar className="h-20 w-20 rounded-lg">
+                          <AvatarImage 
+                            src={logoPreview || organization.logo_url || ""} 
+                            className="object-cover"
+                          />
+                          <AvatarFallback className="rounded-lg bg-muted">
+                            <Building2 className="h-8 w-8" />
+                          </AvatarFallback>
+                        </Avatar>
+                        {(logoPreview || organization.logo_url) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background border"
+                            onClick={() => {
+                              setLogoFile(null);
+                              setLogoPreview(null);
+                            }}
+                          >
+                            ×
+                          </Button>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <div>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoChange}
+                            className="hidden"
+                            id="logo-upload"
+                          />
+                          <Label
+                            htmlFor="logo-upload"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90"
+                          >
+                            <Upload className="h-4 w-4" />
+                            Upload Logo
+                          </Label>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Recommended: 200x200px or larger, PNG/JPG format
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <Button 
-                    onClick={handleSaveOrganization}
-                    disabled={updateOrganizationMutation.isPending}
-                  >
-                    {updateOrganizationMutation.isPending ? "Saving..." : "Save Organization"}
-                  </Button>
+                  <Separator />
+
+                  {/* Business Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Business Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="orgName">Company Name *</Label>
+                        <Input
+                          id="orgName"
+                          value={orgName}
+                          onChange={(e) => setOrgName(e.target.value)}
+                          placeholder="Your Company Name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="orgEmail">Business Email *</Label>
+                        <Input
+                          id="orgEmail"
+                          type="email"
+                          value={orgEmail}
+                          onChange={(e) => setOrgEmail(e.target.value)}
+                          placeholder="contact@company.com"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="orgPhone">Business Phone *</Label>
+                        <Input
+                          id="orgPhone"
+                          type="tel"
+                          value={orgPhone}
+                          onChange={(e) => setOrgPhone(e.target.value)}
+                          placeholder="(555) 123-4567"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="orgLicense">License Number</Label>
+                        <Input
+                          id="orgLicense"
+                          value={orgLicense}
+                          onChange={(e) => setOrgLicense(e.target.value)}
+                          placeholder="Professional license number"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="orgAddress">Business Address *</Label>
+                        <Input
+                          id="orgAddress"
+                          value={orgAddress}
+                          onChange={(e) => setOrgAddress(e.target.value)}
+                          placeholder="Street address, City, State, ZIP"
+                          required
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="orgWebsite">Website</Label>
+                        <Input
+                          id="orgWebsite"
+                          type="url"
+                          value={orgWebsite}
+                          onChange={(e) => setOrgWebsite(e.target.value)}
+                          placeholder="https://www.yourcompany.com"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-4">
+                    <Button 
+                      onClick={handleSaveOrganization}
+                      disabled={updateOrganizationMutation.isPending}
+                      className="flex items-center gap-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      {updateOrganizationMutation.isPending ? "Saving..." : "Save Organization Details"}
+                    </Button>
+                    {logoFile && (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <Camera className="h-3 w-3" />
+                        Logo ready to upload
+                      </Badge>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
