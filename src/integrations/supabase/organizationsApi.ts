@@ -100,7 +100,7 @@ export async function createOrganization(data: {
   return org;
 }
 
-export async function getMyOrganization() {
+export async function getMyOrganization(): Promise<Organization | null> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -116,41 +116,33 @@ export async function getMyOrganization() {
 
   let organizationId = profile.organization_id;
 
+  const createDefaultOrganization = async () => {
+    const org = await createOrganization({ name: 'My Organization' });
+    organizationId = org.id;
+    return org;
+  };
+
   if (!organizationId) {
-    const id = crypto.randomUUID();
-    const { error: orgError } = await supabase
-      .from('organizations')
-      .insert({ id, name: 'My Organization' });
-
-    if (orgError) throw orgError;
-
-    const { error: memberError } = await supabase
-      .from('organization_members')
-      .insert({
-        organization_id: id,
-        user_id: userId,
-        role: 'owner',
-      });
-
-    if (memberError) throw memberError;
-
-    const { error: profileUpdateError } = await supabase
-      .from('profiles')
-      .update({ organization_id: id })
-      .eq('user_id', userId);
-
-    if (profileUpdateError) throw profileUpdateError;
-
-    organizationId = id;
+    return await createDefaultOrganization();
   }
 
   const { data, error } = await supabase
     .from('organizations')
     .select('*')
     .eq('id', organizationId)
-    .single();
+    .maybeSingle();
 
-  if (error) throw error;
+  if (error && error.code !== 'PGRST116') throw error;
+
+  if (!data || error?.code === 'PGRST116') {
+    try {
+      return await createDefaultOrganization();
+    } catch (createError) {
+      console.error('Failed to create default organization', createError);
+      return null;
+    }
+  }
+
   return data;
 }
 
