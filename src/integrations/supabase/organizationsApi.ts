@@ -117,18 +117,17 @@ export async function getMyOrganization() {
   let organizationId = profile.organization_id;
 
   if (!organizationId) {
-    const { data: newOrg, error: orgError } = await supabase
+    const id = crypto.randomUUID();
+    const { error: orgError } = await supabase
       .from('organizations')
-      .insert({ name: 'My Organization' })
-      .select()
-      .single();
+      .insert({ id, name: 'My Organization' });
 
     if (orgError) throw orgError;
 
     const { error: memberError } = await supabase
       .from('organization_members')
       .insert({
-        organization_id: newOrg.id,
+        organization_id: id,
         user_id: userId,
         role: 'owner',
       });
@@ -137,12 +136,12 @@ export async function getMyOrganization() {
 
     const { error: profileUpdateError } = await supabase
       .from('profiles')
-      .update({ organization_id: newOrg.id })
+      .update({ organization_id: id })
       .eq('user_id', userId);
 
     if (profileUpdateError) throw profileUpdateError;
 
-    organizationId = newOrg.id;
+    organizationId = id;
   }
 
   const { data, error } = await supabase
