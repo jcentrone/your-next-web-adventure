@@ -226,9 +226,9 @@ const ReportPreview: React.FC = () => {
                     if (cp && cp.design_json) {
                         const canvasEl = document.createElement("canvas");
                         coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
-                        coverCanvas.loadFromJSON(cp.design_json, () => {
+                        coverCanvas.loadFromJSON(cp.design_json as any, () => {
                             coverCanvas?.renderAll();
-                            const url = coverCanvas?.toDataURL({ format: "png" });
+                            const url = coverCanvas?.toDataURL({ format: "png", multiplier: 1 });
                             if (!cancelled && url) {
                                 setCoverPage(url);
                             }

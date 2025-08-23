@@ -539,7 +539,7 @@ export default function CoverPageEditorPage() {
                 return `<${tag} ${attrString} />`;
             })
             .join("")}</svg>`;
-        loadSVGFromString(svg, (objects, options) => {
+        loadSVGFromString(svg, (objects: any, options: any) => {
             const obj = FabricUtil.groupSVGElements(objects, options);
             obj.set({
                 left: 100,
@@ -559,7 +559,7 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
         const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
         const svg = await fetch(url).then((r) => r.text());
-        loadSVGFromString(svg, (objects, options) => {
+        loadSVGFromString(svg, (objects: any, options: any) => {
             const obj = FabricUtil.groupSVGElements(objects, options);
             obj.set({left: 100, top: 100});
             canvas.add(obj);
@@ -602,7 +602,7 @@ export default function CoverPageEditorPage() {
 
     const addImageFromUrl = (url: string) => {
         if (!canvas) return;
-        FabricImage.fromURL(url, (img) => {
+        FabricImage.fromURL(url).then((img) => {
             img.set({left: 150, top: 150, scaleX: 0.5, scaleY: 0.5});
             canvas.add(img);
             canvas.setActiveObject(img);
@@ -761,7 +761,7 @@ export default function CoverPageEditorPage() {
             selected.getObjects().forEach((obj) =>
                 (obj as unknown as FabricObject).set(prop as never, value as never)
             );
-            selected.addWithUpdate();
+            canvas.renderAll();
         } else {
             (selected as unknown as FabricObject).set(prop as never, value as never);
             if (selected instanceof Textbox) {
@@ -828,21 +828,24 @@ export default function CoverPageEditorPage() {
         return () => window.removeEventListener("resize", updateScale);
     }, []);
 
+    const [activePanel, setActivePanel] = useState<string | null>("text");
+    
     return (
         <div className="fixed inset-x-0 top-14 h-[calc(100vh-3.5rem)] w-screen overflow-hidden flex z-30">
             <div className="w-[22rem] p-2 border-r space-y-2 overflow-auto">
-
-                <Accordion type="single" collapsible defaultValue="text" className="w-full">
-                    <AccordionItem value="settings">
-                        <AccordionTrigger>
-                            <div className="flex items-center gap-2">
-                                <Settings className="h-4 w-4"/>
-                                <span>Settings</span>
-                            </div>
-                        </AccordionTrigger>
-
-
-                        <AccordionContent className="space-y-2">
+                <div className="space-y-2">
+                    <div 
+                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
+                            activePanel === "settings" ? "ring-2 ring-primary border-primary" : ""
+                        }`}
+                        onClick={() => setActivePanel(activePanel === "settings" ? null : "settings")}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Settings className="h-4 w-4"/>
+                            <span className="font-medium">Settings</span>
+                        </div>
+                        {activePanel === "settings" && (
+                            <div className="absolute left-full top-0 ml-2 w-80 bg-card border rounded-lg shadow-lg p-4 z-50 space-y-2">
 
                             <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
                                 <div>
@@ -868,19 +871,23 @@ export default function CoverPageEditorPage() {
                                     Save
                                 </Button>
                             </form>
-
-                        </AccordionContent>
-                    </AccordionItem>
-
-
-                    <AccordionItem value="text">
-                        <AccordionTrigger>
-                            <div className="flex items-center gap-2">
-                                <Type className="h-4 w-4"/>
-                                <span>Text</span>
                             </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="space-y-2">
+                        )}
+                    </div>
+
+
+                    <div 
+                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
+                            activePanel === "text" ? "ring-2 ring-primary border-primary" : ""
+                        }`}
+                        onClick={() => setActivePanel(activePanel === "text" ? null : "text")}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Type className="h-4 w-4"/>
+                            <span className="font-medium">Text</span>
+                        </div>
+                        {activePanel === "text" && (
+                            <div className="absolute left-full top-0 ml-2 w-80 bg-card border rounded-lg shadow-lg p-4 z-50 space-y-2">
                             <Button onClick={addText} className="w-full">
                                 <Plus className="mr-2 h-4 w-4"/> Add Text Box
                             </Button>
@@ -993,17 +1000,22 @@ export default function CoverPageEditorPage() {
                                     </div>
                                 </>
                             )}
-                        </AccordionContent>
-                    </AccordionItem>
-
-                    <AccordionItem value="images">
-                        <AccordionTrigger>
-                            <div className="flex items-center gap-2">
-                                <Image className="h-4 w-4"/>
-                                <span>Images</span>
                             </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
+                        )}
+                    </div>
+
+                    <div 
+                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
+                            activePanel === "images" ? "ring-2 ring-primary border-primary" : ""
+                        }`}
+                        onClick={() => setActivePanel(activePanel === "images" ? null : "images")}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Image className="h-4 w-4"/>
+                            <span className="font-medium">Images</span>
+                        </div>
+                        {activePanel === "images" && (
+                            <div className="absolute left-full top-0 ml-2 w-80 bg-card border rounded-lg shadow-lg p-4 z-50">
                             <Label htmlFor="image-upload" className="mb-1 block">
                                 Image Upload
                             </Label>
@@ -1033,16 +1045,21 @@ export default function CoverPageEditorPage() {
                                     </div>
                                 ))}
                             </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="graphics">
-                        <AccordionTrigger>
-                            <div className="flex items-center gap-2">
-                                <Shapes className="h-4 w-4"/>
-                                <span>Graphics</span>
                             </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="space-y-2">
+                        )}
+                    </div>
+                    <div 
+                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
+                            activePanel === "graphics" ? "ring-2 ring-primary border-primary" : ""
+                        }`}
+                        onClick={() => setActivePanel(activePanel === "graphics" ? null : "graphics")}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Shapes className="h-4 w-4"/>
+                            <span className="font-medium">Graphics</span>
+                        </div>
+                        {activePanel === "graphics" && (
+                            <div className="absolute left-full top-0 ml-2 w-80 bg-card border rounded-lg shadow-lg p-4 z-50 space-y-2">
                             <div className="flex flex-wrap gap-3">
                                 <Button
                                     onClick={addRect}
@@ -1121,9 +1138,7 @@ export default function CoverPageEditorPage() {
                                                 .split("-")
                                                 .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
                                                 .join("");
-                                            const IconComp = (
-                                                LucideIcons as Record<string, ComponentType<unknown>>
-                                            )[pascal];
+                            const IconComp = (LucideIcons as any)[pascal] as ComponentType<{className?: string}>;
                                             if (!IconComp) return null;
                                             return (
                                                 <button
@@ -1133,7 +1148,7 @@ export default function CoverPageEditorPage() {
                                                     onClick={() => addIcon(name)}
                                                     title={name}
                                                 >
-                                                    <IconComp className="h-4 w-4"/>
+                                    <IconComp className="h-4 w-4"/>
                                                 </button>
                                             );
                                         })}
@@ -1172,16 +1187,21 @@ export default function CoverPageEditorPage() {
                                         ))}
                                 </div>
                             </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="tables">
-                        <AccordionTrigger>
-                            <div className="flex items-center gap-2">
-                                <TableIcon className="h-4 w-4"/>
-                                <span>Tables</span>
                             </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
+                        )}
+                    </div>
+                    <div 
+                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
+                            activePanel === "tables" ? "ring-2 ring-primary border-primary" : ""
+                        }`}
+                        onClick={() => setActivePanel(activePanel === "tables" ? null : "tables")}
+                    >
+                        <div className="flex items-center gap-2">
+                            <TableIcon className="h-4 w-4"/>
+                            <span className="font-medium">Tables</span>
+                        </div>
+                        {activePanel === "tables" && (
+                            <div className="absolute left-full top-0 ml-2 w-80 bg-card border rounded-lg shadow-lg p-4 z-50">
                             <div className="space-y-2">
                                 <div>
                                     <Label htmlFor="table-rows">Rows</Label>
@@ -1217,16 +1237,21 @@ export default function CoverPageEditorPage() {
                                     <TableIcon className="mr-2 h-4 w-4"/> Add Table
                                 </Button>
                             </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="design">
-                        <AccordionTrigger>
-                            <div className="flex items-center gap-2">
-                                <Palette className="h-4 w-4"/>
-                                <span>Design Palette</span>
                             </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
+                        )}
+                    </div>
+                    <div 
+                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
+                            activePanel === "design" ? "ring-2 ring-primary border-primary" : ""
+                        }`}
+                        onClick={() => setActivePanel(activePanel === "design" ? null : "design")}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Palette className="h-4 w-4"/>
+                            <span className="font-medium">Design Palette</span>
+                        </div>
+                        {activePanel === "design" && (
+                            <div className="absolute left-full top-0 ml-2 w-80 bg-card border rounded-lg shadow-lg p-4 z-50">
                             <Label htmlFor="template">Template</Label>
                             <select id="template" className="w-full border rounded" {...register("template")}>
                                 {Object.keys(TEMPLATES).map((key) => (
@@ -1254,16 +1279,21 @@ export default function CoverPageEditorPage() {
                                     </button>
                                 ))}
                             </div>
-                        </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="background">
-                        <AccordionTrigger>
-                            <div className="flex items-center gap-2">
-                                <Square className="h-4 w-4"/>
-                                <span>Background</span>
                             </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
+                        )}
+                    </div>
+                    <div 
+                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
+                            activePanel === "background" ? "ring-2 ring-primary border-primary" : ""
+                        }`}
+                        onClick={() => setActivePanel(activePanel === "background" ? null : "background")}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Square className="h-4 w-4"/>
+                            <span className="font-medium">Background</span>
+                        </div>
+                        {activePanel === "background" && (
+                            <div className="absolute left-full top-0 ml-2 w-80 bg-card border rounded-lg shadow-lg p-4 z-50">
                             <Label htmlFor="bg-color">Background Color</Label>
                             <Input
                                 id="bg-color"
@@ -1300,9 +1330,10 @@ export default function CoverPageEditorPage() {
                                     </div>
                                 </div>
                             )}
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             <div
@@ -1544,7 +1575,7 @@ export default function CoverPageEditorPage() {
                             aria-label="Bring Forward"
                             onClick={() => {
                                 if (selected && canvas) {
-                                    canvas.bringForward(selected);
+                                    canvas.bringObjectForward(selected);
                                     canvas.renderAll();
                                     pushHistory();
                                 }
@@ -1558,7 +1589,7 @@ export default function CoverPageEditorPage() {
                             aria-label="Send Backward"
                             onClick={() => {
                                 if (selected && canvas) {
-                                    canvas.sendBackwards(selected);
+                                    canvas.sendObjectBackwards(selected);
                                     canvas.renderAll();
                                     pushHistory();
                                 }
