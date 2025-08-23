@@ -2,15 +2,15 @@ import {useEffect, useRef, useState} from "react";
 import {useForm} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
 import {
-  Canvas as FabricCanvas,
-  Circle,
-  FabricObject,
-  Group,
-  Image as FabricImage,
-  loadSVGFromString,
-  Polygon,
-  Rect,
-  Textbox,
+    Canvas as FabricCanvas,
+    Circle,
+    FabricObject,
+    Group,
+    Image as FabricImage,
+    loadSVGFromString,
+    Polygon,
+    Rect,
+    Textbox,
 } from "fabric";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -594,13 +594,15 @@ export default function CoverPageEditorPageNew() {
                 />
 
                 {/* Canvas Workspace */}
-                <CanvasWorkspace
-                    canvasRef={canvasRef}
-                    canvas={canvas}
-                    zoom={zoom}
-                    showGrid={showGrid}
-                    showRulers={showRulers}
-                />
+                <div className={"mt-4"}>
+                    <CanvasWorkspace
+                        canvasRef={canvasRef}
+                        canvas={canvas}
+                        zoom={zoom}
+                        showGrid={showGrid}
+                        showRulers={showRulers}
+                    />
+                </div>
 
                 {/* Right Properties Panel */}
                 <PropertiesPanel
