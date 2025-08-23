@@ -22,7 +22,8 @@ import {
   inviteUserToOrganization,
   getOrganizationInvitations,
   removeMemberFromOrganization,
-  updateMemberRole
+  updateMemberRole,
+  type Organization
 } from "@/integrations/supabase/organizationsApi";
 import { Building2, Mail, Phone, Users, Plus, Trash2, Settings, Upload, Camera, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -74,7 +75,7 @@ const ProfilePage: React.FC = () => {
     data: organization,
     isLoading: organizationLoading,
     error: organizationError,
-  } = useQuery({
+  } = useQuery<Organization | null>({
     queryKey: ["my-organization"],
     queryFn: getMyOrganization,
     enabled: !!user && !!profile,
@@ -633,6 +634,14 @@ const ProfilePage: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
+            )}
+            {!organization && !organizationLoading && !organizationError && (
+              <Alert>
+                <AlertTitle>No organization found</AlertTitle>
+                <AlertDescription>
+                  You haven't set up an organization yet.
+                </AlertDescription>
+              </Alert>
             )}
           </TabsContent>
 
