@@ -109,7 +109,7 @@ export function EditorSidebar(props: EditorSidebarProps) {
 
     return (
         <div
-            className="w-[14rem] p-2 border-r space-y-2 overflow-y-auto overflow-x-visible relative pb-16 bg-[#FAFAFA]"
+            className="w-[14rem] h-full p-2 border-r space-y-2 overflow-y-auto overflow-x-visible relative pb-16 bg-[#FFFFFF]"
             onDragStart={handleSidebarDragStart}
         >
 

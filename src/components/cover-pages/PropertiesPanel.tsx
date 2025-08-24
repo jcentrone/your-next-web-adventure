@@ -60,7 +60,7 @@ export function PropertiesPanel({
     : "layers";
 
   return (
-    <div className="w-80 border-l bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="w-80 h-full border-l bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <ScrollArea className="h-full">
         <div className="p-4">
           <Accordion type="single" collapsible defaultValue={defaultSection}>

@@ -130,7 +130,7 @@ export function CanvasWorkspace({
 
     return (
         <div className="flex-1 relative bg-muted/50 ">
-            <div className="flex items-start justify-center min-h-full py-8">
+            <div className="flex items-start justify-center min-h-full py-6">
                 {/* Add left/top padding to make room for rulers */}
                 <div
                     ref={workspaceRef}
