@@ -45,7 +45,7 @@ export default function useImageLibrary() {
       const path = `${folder}/${Date.now()}_${file.name.replace(/\s+/g, "_")}`;
       const { error } = await supabase.storage
         .from(IMAGE_LIBRARY_BUCKET)
-        .upload(path, file, { upsert: false });
+        .upload(path, file, { upsert: false, contentType: file.type });
       if (error) throw error;
 
       const { data: urlData, error: urlError } = await supabase.storage
