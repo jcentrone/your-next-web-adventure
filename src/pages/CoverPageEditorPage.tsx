@@ -1,22 +1,16 @@
-import {useEffect, useRef, useState, type ChangeEvent} from "react";
+import {type ChangeEvent, useEffect, useRef, useState} from "react";
 import {useForm} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
+import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage, loadSVGFromString,} from "fabric";
 import {
-    Canvas as FabricCanvas,
-    FabricObject,
-    Group,
-    Image as FabricImage,
-    loadSVGFromString,
-} from "fabric";
-import {
-    addRect as fabricAddRect,
-    addCircle as fabricAddCircle,
-    addStar as fabricAddStar,
-    addTriangle as fabricAddTriangle,
-    addPolygon as fabricAddPolygon,
     addArrow as fabricAddArrow,
     addBidirectionalArrow as fabricAddBidirectionalArrow,
+    addCircle as fabricAddCircle,
+    addPolygon as fabricAddPolygon,
+    addRect as fabricAddRect,
+    addStar as fabricAddStar,
     addText as fabricAddText,
+    addTriangle as fabricAddTriangle,
 } from "@/lib/fabricShapes";
 import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
 import {Button} from "@/components/ui/button";
@@ -118,7 +112,7 @@ export default function CoverPageEditorPage() {
 
         if (cp.design_json) {
             canvas.loadFromJSON(cp.design_json as any, () => {
-                canvas.getObjects().forEach((obj) => obj.set({ visible: true }));
+                canvas.getObjects().forEach((obj) => obj.set({visible: true}));
                 canvas.requestRenderAll();
                 const json = JSON.stringify(canvas.toJSON());
                 setHistory([json]);
@@ -129,7 +123,7 @@ export default function CoverPageEditorPage() {
 
     useEffect(() => {
         if (canvas) {
-            canvas.set({ backgroundColor: bgColor });
+            canvas.set({backgroundColor: bgColor});
             canvas.renderAll();
         }
     }, [canvas, bgColor]);
@@ -386,7 +380,7 @@ export default function CoverPageEditorPage() {
         }
     };
 
-    const handleDropElement = ({type, data, x, y}: {type: string; data: unknown; x: number; y: number}) =>
+    const handleDropElement = ({type, data, x, y}: { type: string; data: unknown; x: number; y: number }) =>
         handleCoverElementDrop(
             canvas,
             palette,
@@ -552,18 +546,35 @@ export default function CoverPageEditorPage() {
     return (
         <div className=" flex flex-col bg-background">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b">
-                <div className="flex items-center gap-4">
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate("/cover-page-manager")}
-                    >
-                        Back
-                    </Button>
-                    <h1 className="text-xl font-semibold">
-                        {id ? "Edit Cover Page" : "Create Cover Page"}
-                    </h1>
-                </div>
+            <div className="flex items-center justify-between px-4 border-b">
+                {/* Toolbar */}
+                <EditorToolbar
+                    onUndo={handleUndo}
+                    onRedo={handleRedo}
+                    canUndo={historyIndex > 0}
+                    canRedo={historyIndex < history.length - 1}
+                    onZoomIn={handleZoomIn}
+                    onZoomOut={handleZoomOut}
+                    zoom={zoom}
+                    onZoomChange={handleZoomChange}
+                    showGrid={showGrid}
+                    onToggleGrid={() => setShowGrid(!showGrid)}
+                    showRulers={showRulers}
+                    onToggleRulers={() => setShowRulers(!showRulers)}
+                    selectedObjects={selectedObjects}
+                    onCopy={handleCopy}
+                    onDelete={handleDelete}
+                    onGroup={handleGroup}
+                    onUngroup={handleUngroup}
+                    onAlign={handleAlign}
+                    selected={selectedObject}
+                    isTable={false}
+                    updateSelected={updateSelected}
+                    updateTable={() => {
+                    }}
+                    onBringForward={handleBringForward}
+                    onSendBackward={handleSendBackward}
+                />
 
                 {/* Save Form */}
                 <form onSubmit={handleSubmit(onSubmit)} className="flex items-center gap-2">
@@ -576,75 +587,55 @@ export default function CoverPageEditorPage() {
                         {id ? "Update" : "Create"}
                     </Button>
                 </form>
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate("/cover-page-manager")}
+                    >
+                        Back
+                    </Button>
+                </div>
             </div>
-
-            {/* Toolbar */}
-            <EditorToolbar
-                onUndo={handleUndo}
-                onRedo={handleRedo}
-                canUndo={historyIndex > 0}
-                canRedo={historyIndex < history.length - 1}
-                onZoomIn={handleZoomIn}
-                onZoomOut={handleZoomOut}
-                zoom={zoom}
-                onZoomChange={handleZoomChange}
-                showGrid={showGrid}
-                onToggleGrid={() => setShowGrid(!showGrid)}
-                showRulers={showRulers}
-                onToggleRulers={() => setShowRulers(!showRulers)}
-                selectedObjects={selectedObjects}
-                onCopy={handleCopy}
-                onDelete={handleDelete}
-                onGroup={handleGroup}
-                onUngroup={handleUngroup}
-                onAlign={handleAlign}
-                selected={selectedObject}
-                isTable={false}
-                updateSelected={updateSelected}
-                updateTable={() => {}}
-                onBringForward={handleBringForward}
-                onSendBackward={handleSendBackward}
-            />
 
             {/* Main Layout */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Left Sidebar */}
                 <div className="flex-none">
                     <EditorSidebar
-                    activePanel={activePanel}
-                    setActivePanel={setActivePanel}
-                    onSettingsSubmit={handleSubmit(onSubmit)}
-                    register={register}
-                    reportTypes={reportTypes}
-                    reportTypeOptions={REPORT_TYPES}
-                    toggleReportType={(rt) => {
-                        if (reportTypes.includes(rt)) {
-                            setValue("reportTypes", reportTypes.filter((t) => t !== rt));
-                        } else {
-                            setValue("reportTypes", [...reportTypes, rt]);
-                        }
-                    }}
-                    addText={addText}
-                    images={images}
-                    onImageUpload={handleImageUpload}
-                    onDeleteImage={handleDeleteImage}
-                    onAddImageFromUrl={handleAddImage}
-                    addRect={addRect}
-                    addCircle={addCircle}
-                    addStar={addStar}
-                    addTriangle={addTriangle}
-                    addPolygonShape={addPolygonShape}
-                    addArrow={addArrow}
-                    addBidirectionalArrow={addBidirectionalArrow}
-                    addIcon={addIcon}
-                    addClipart={addClipart}
-                    templateOptions={Object.keys(TEMPLATES)}
-                    palette={palette}
-                    onApplyPalette={applyPalette}
-                    bgColor={bgColor}
-                    presetBgColors={PRESET_BG_COLORS}
-                    updateBgColor={updateBgColor}
-                    onAddPlaceholder={handleAddPlaceholder}
+                        activePanel={activePanel}
+                        setActivePanel={setActivePanel}
+                        onSettingsSubmit={handleSubmit(onSubmit)}
+                        register={register}
+                        reportTypes={reportTypes}
+                        reportTypeOptions={REPORT_TYPES}
+                        toggleReportType={(rt) => {
+                            if (reportTypes.includes(rt)) {
+                                setValue("reportTypes", reportTypes.filter((t) => t !== rt));
+                            } else {
+                                setValue("reportTypes", [...reportTypes, rt]);
+                            }
+                        }}
+                        addText={addText}
+                        images={images}
+                        onImageUpload={handleImageUpload}
+                        onDeleteImage={handleDeleteImage}
+                        onAddImageFromUrl={handleAddImage}
+                        addRect={addRect}
+                        addCircle={addCircle}
+                        addStar={addStar}
+                        addTriangle={addTriangle}
+                        addPolygonShape={addPolygonShape}
+                        addArrow={addArrow}
+                        addBidirectionalArrow={addBidirectionalArrow}
+                        addIcon={addIcon}
+                        addClipart={addClipart}
+                        templateOptions={Object.keys(TEMPLATES)}
+                        palette={palette}
+                        onApplyPalette={applyPalette}
+                        bgColor={bgColor}
+                        presetBgColors={PRESET_BG_COLORS}
+                        updateBgColor={updateBgColor}
+                        onAddPlaceholder={handleAddPlaceholder}
                     />
                 </div>
 
