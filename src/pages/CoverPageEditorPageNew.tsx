@@ -3,16 +3,21 @@ import {useForm} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
 import {
     Canvas as FabricCanvas,
-    Circle,
     FabricObject,
     Group,
     Image as FabricImage,
     loadSVGFromString,
-    Polygon,
-    Rect,
-    Textbox,
-    util as FabricUtil,
 } from "fabric";
+import {
+    addRect as fabricAddRect,
+    addCircle as fabricAddCircle,
+    addStar as fabricAddStar,
+    addTriangle as fabricAddTriangle,
+    addPolygon as fabricAddPolygon,
+    addArrow as fabricAddArrow,
+    addBidirectionalArrow as fabricAddBidirectionalArrow,
+    addText as fabricAddText,
+} from "@/lib/fabricShapes";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {EditorToolbar} from "@/components/cover-pages/EditorToolbar";
@@ -285,144 +290,7 @@ export default function CoverPageEditorPageNew() {
     // Sidebar handlers
     const handleAddText = (content?: string, x = 100, y = 100) => {
         if (!canvas) return;
-
-        const text = new Textbox(content || "Add your text here", {
-            left: x,
-            top: y,
-            fontFamily: "Arial",
-            fontSize: 20,
-            fill: palette.colors[0],
-        });
-
-        canvas.add(text);
-        canvas.setActiveObject(text);
-        canvas.renderAll();
-        pushHistory();
-    };
-
-    const handleAddShape = (shape: string, x = 100, y = 100) => {
-        if (!canvas) return;
-
-        let obj: FabricObject;
-
-        switch (shape) {
-            case "rectangle":
-                obj = new Rect({
-                    left: x,
-                    top: y,
-                    width: 100,
-                    height: 100,
-                    fill: palette.colors[0],
-                    stroke: palette.colors[1] || palette.colors[0],
-                    strokeWidth: 2,
-                });
-                break;
-            case "circle":
-                obj = new Circle({
-                    left: x,
-                    top: y,
-                    radius: 50,
-                    fill: palette.colors[0],
-                    stroke: palette.colors[1] || palette.colors[0],
-                    strokeWidth: 2,
-                });
-                break;
-            case "star":
-                const points: { x: number; y: number }[] = [];
-                const outer = 50;
-                const inner = 20;
-                for (let i = 0; i < 10; i++) {
-                    const angle = (Math.PI / 5) * i;
-                    const r = i % 2 === 0 ? outer : inner;
-                    points.push({
-                        x: 50 + r * Math.sin(angle),
-                        y: 50 - r * Math.cos(angle),
-                    });
-                }
-                obj = new Polygon(points, {
-                    left: x,
-                    top: y,
-                    fill: palette.colors[0],
-                    stroke: palette.colors[1] || palette.colors[0],
-                    strokeWidth: 2,
-                });
-                break;
-            case "triangle":
-                obj = new Polygon([
-                    {x: 50, y: 0},
-                    {x: 0, y: 100},
-                    {x: 100, y: 100}
-                ], {
-                    left: x,
-                    top: y,
-                    fill: palette.colors[0],
-                    stroke: palette.colors[1] || palette.colors[0],
-                    strokeWidth: 2,
-                });
-                break;
-            case "polygon":
-                const sides = 5;
-                const radius = 50;
-                const polyPoints: { x: number; y: number }[] = [];
-                for (let i = 0; i < sides; i++) {
-                    const angle = (2 * Math.PI * i) / sides;
-                    polyPoints.push({
-                        x: radius + radius * Math.sin(angle),
-                        y: radius - radius * Math.cos(angle),
-                    });
-                }
-                obj = new Polygon(polyPoints, {
-                    left: x,
-                    top: y,
-                    fill: palette.colors[0],
-                    stroke: palette.colors[1] || palette.colors[0],
-                    strokeWidth: 2,
-                });
-                break;
-            case "arrow":
-                obj = new Polygon([
-                    {x: 0, y: 40},
-                    {x: 60, y: 40},
-                    {x: 60, y: 20},
-                    {x: 100, y: 50},
-                    {x: 60, y: 80},
-                    {x: 60, y: 60},
-                    {x: 0, y: 60},
-                ], {
-                    left: x,
-                    top: y,
-                    fill: palette.colors[0],
-                    stroke: palette.colors[1] || palette.colors[0],
-                    strokeWidth: 2,
-                });
-                break;
-            case "bidirectionalArrow":
-                obj = new Polygon([
-                    {x: 0, y: 50},
-                    {x: 20, y: 20},
-                    {x: 20, y: 40},
-                    {x: 80, y: 40},
-                    {x: 80, y: 20},
-                    {x: 100, y: 50},
-                    {x: 80, y: 80},
-                    {x: 80, y: 60},
-                    {x: 20, y: 60},
-                    {x: 20, y: 80},
-                ], {
-                    left: x,
-                    top: y,
-                    fill: palette.colors[0],
-                    stroke: palette.colors[1] || palette.colors[0],
-                    strokeWidth: 2,
-                });
-                break;
-            default:
-                return;
-        }
-
-        canvas.add(obj);
-        canvas.setActiveObject(obj);
-        canvas.renderAll();
+        fabricAddText(canvas, palette, content || "Add your text here", x, y);
         pushHistory();
     };
 
@@ -527,18 +395,39 @@ export default function CoverPageEditorPageNew() {
     };
 
     const handleDropElement = ({type, data, x, y}: {type: string; data: any; x: number; y: number}) => {
+        if (!canvas) return;
         switch (type) {
             case "text":
-                handleAddText(undefined, x, y);
+                fabricAddText(canvas, palette, "Add your text here", x, y);
+                pushHistory();
                 break;
             case "rectangle":
+                fabricAddRect(canvas, palette, x, y);
+                pushHistory();
+                break;
             case "circle":
+                fabricAddCircle(canvas, palette, x, y);
+                pushHistory();
+                break;
             case "star":
+                fabricAddStar(canvas, palette, x, y);
+                pushHistory();
+                break;
             case "triangle":
+                fabricAddTriangle(canvas, palette, x, y);
+                pushHistory();
+                break;
             case "polygon":
+                fabricAddPolygon(canvas, palette, 5, 50, x, y);
+                pushHistory();
+                break;
             case "arrow":
+                fabricAddArrow(canvas, palette, x, y);
+                pushHistory();
+                break;
             case "bidirectionalArrow":
-                handleAddShape(type, x, y);
+                fabricAddBidirectionalArrow(canvas, palette, x, y);
+                pushHistory();
                 break;
             case "image":
                 if (data?.url) handleAddImage(data.url, x, y);
@@ -554,14 +443,46 @@ export default function CoverPageEditorPageNew() {
         }
     };
 
-    const addText = () => handleAddText();
-    const addRect = () => handleAddShape("rectangle");
-    const addCircle = () => handleAddShape("circle");
-    const addStar = () => handleAddShape("star");
-    const addTriangle = () => handleAddShape("triangle");
-    const addPolygonShape = () => handleAddShape("polygon");
-    const addArrow = () => handleAddShape("arrow");
-    const addBidirectionalArrow = () => handleAddShape("bidirectionalArrow");
+    const addText = () => {
+        if (!canvas) return;
+        fabricAddText(canvas, palette, "Add your text here");
+        pushHistory();
+    };
+    const addRect = () => {
+        if (!canvas) return;
+        fabricAddRect(canvas, palette);
+        pushHistory();
+    };
+    const addCircle = () => {
+        if (!canvas) return;
+        fabricAddCircle(canvas, palette);
+        pushHistory();
+    };
+    const addStar = () => {
+        if (!canvas) return;
+        fabricAddStar(canvas, palette);
+        pushHistory();
+    };
+    const addTriangle = () => {
+        if (!canvas) return;
+        fabricAddTriangle(canvas, palette);
+        pushHistory();
+    };
+    const addPolygonShape = () => {
+        if (!canvas) return;
+        fabricAddPolygon(canvas, palette);
+        pushHistory();
+    };
+    const addArrow = () => {
+        if (!canvas) return;
+        fabricAddArrow(canvas, palette);
+        pushHistory();
+    };
+    const addBidirectionalArrow = () => {
+        if (!canvas) return;
+        fabricAddBidirectionalArrow(canvas, palette);
+        pushHistory();
+    };
     const addIcon = (name: string) => handleAddIcon(name);
     const addClipart = (hex: string) => handleAddClipart(hex);
 
