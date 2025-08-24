@@ -610,6 +610,14 @@ export default function CoverPageEditorPage() {
         canvas.renderAll();
     };
 
+    const handleDeleteLayer = (layer: FabricObject) => {
+        canvas.remove(layer);
+        canvas.discardActiveObject();
+        setSelectedObjects(canvas.getActiveObjects());
+        canvas.renderAll();
+        pushHistory();
+    };
+
     const handleSelectLayer = (object: FabricObject) => {
         if (!canvas) return;
 
@@ -793,6 +801,7 @@ export default function CoverPageEditorPage() {
                         onAlign={handleAlign}
                         onUpdateProperty={handleUpdateProperty}
                         onToggleLayerVisibility={handleToggleLayerVisibility}
+                        onDeleteLayer={handleDeleteLayer}
                         layers={layers}
                         onSelectLayer={handleSelectLayer}
                     />

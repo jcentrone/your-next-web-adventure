@@ -27,6 +27,7 @@ import {
   ArrowUp,
   AlignVerticalJustifyCenter,
   ArrowDown,
+  Trash2,
 } from "lucide-react";
 
 interface PropertiesPanelProps {
@@ -35,6 +36,7 @@ interface PropertiesPanelProps {
   onAlign: (type: "left" | "centerH" | "right" | "top" | "centerV" | "bottom") => void;
   onUpdateProperty: (property: string, value: any) => void;
   onToggleLayerVisibility: (layer: FabricObject) => void;
+  onDeleteLayer: (layer: FabricObject) => void;
   layers: FabricObject[];
   onSelectLayer: (object: FabricObject) => void;
 }
@@ -56,6 +58,7 @@ export function PropertiesPanel({
   onAlign,
   onUpdateProperty,
   onToggleLayerVisibility,
+  onDeleteLayer,
   layers,
   onSelectLayer,
 }: PropertiesPanelProps) {
@@ -380,18 +383,28 @@ export function PropertiesPanel({
                           ? "Text"
                           : layer.type || "Object"} {index + 1}
                       </span>
-                      <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleLayerVisibility(layer);
-                        }}
-                      >
-                        {layer.visible ? (
-                          <Eye className="h-4 w-4" />
-                        ) : (
-                          <EyeOff className="h-4 w-4" />
-                        )}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleLayerVisibility(layer);
+                          }}
+                        >
+                          {layer.visible ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <EyeOff className="h-4 w-4" />
+                          )}
+                        </span>
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteLayer(layer);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </span>
+                      </div>
                     </Button>
                   ))}
                 </div>
