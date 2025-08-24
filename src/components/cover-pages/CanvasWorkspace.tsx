@@ -24,16 +24,15 @@ export function CanvasWorkspace({
     const PAGE_W_IN = 8.5;
     const PAGE_H_IN = 11;
 
-    const width = canvas?.getWidth() ?? 0;
-    const height = canvas?.getHeight() ?? 0;
-
     // Canvas dimensions remain constant; zoom is handled via fabric's viewport
-    const baseWidth = width;
-    const baseHeight = height;
+    const CANVAS_WIDTH = 816;
+    const CANVAS_HEIGHT = 1056;
+    const baseWidth = CANVAS_WIDTH;
+    const baseHeight = CANVAS_HEIGHT;
 
     // Pixels per inch along each axis (works even if you change base canvas size)
-    const pxPerInchX = baseWidth > 0 ? baseWidth / PAGE_W_IN : 96;
-    const pxPerInchY = baseHeight > 0 ? baseHeight / PAGE_H_IN : 96;
+    const pxPerInchX = baseWidth / PAGE_W_IN;
+    const pxPerInchY = baseHeight / PAGE_H_IN;
 
     // Ruler settings: 1/4" minor ticks, label every 1"
     const MINOR_IN = 0.25;
@@ -60,7 +59,7 @@ export function CanvasWorkspace({
     useEffect(() => {
         if (!canvas) return;
 
-        canvas.setDimensions({width: 816, height: 1056});
+        canvas.setDimensions({width: CANVAS_WIDTH, height: CANVAS_HEIGHT});
         canvas.setZoom(zoom);
         canvas.renderAll();
     }, [canvas, zoom]);
@@ -216,16 +215,20 @@ export function CanvasWorkspace({
                     <div className="relative inline-block">
                         <div
                             className="relative bg-white shadow-lg"
-
-
+                            style={{width: CANVAS_WIDTH * zoom, height: CANVAS_HEIGHT * zoom}}
                         >
-                            <canvas ref={canvasRef}/>
+                            <canvas
+                                ref={canvasRef}
+                                style={{width: CANVAS_WIDTH * zoom, height: CANVAS_HEIGHT * zoom}}
+                            />
 
                             {/* Grid overlay (on top of canvas) */}
                             {showGrid && (
                                 <div
-                                    className="pointer-events-none absolute inset-0 z-10"
+                                    className="pointer-events-none absolute top-0 left-0 z-10"
                                     style={{
+                                        width: CANVAS_WIDTH * zoom,
+                                        height: CANVAS_HEIGHT * zoom,
                                         backgroundSize: `${hStepScreen}px ${vStepScreen}px`,
                                         backgroundPosition: `${PIXEL_OFFSET}px ${PIXEL_OFFSET}px`,
                                         backgroundImage:
