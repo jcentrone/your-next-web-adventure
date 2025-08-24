@@ -3,30 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { FabricObject } from "fabric";
-import {
-  ArrowUp,
-  ArrowDown,
-  Eye,
-  EyeOff,
-  Lock,
-  Unlock,
-  Trash2,
-  Copy,
-} from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 interface PropertiesPanelProps {
   selectedObject: any;
   onUpdateProperty: (property: string, value: any) => void;
-  onDeleteObject: () => void;
-  onDuplicateObject: () => void;
-  onBringForward: () => void;
-  onSendBackward: () => void;
-  onToggleLock: () => void;
-  onToggleVisible: () => void;
   onToggleLayerVisibility: (layer: FabricObject) => void;
   layers: FabricObject[];
   onSelectLayer: (object: FabricObject) => void;
@@ -46,12 +37,6 @@ const FONTS = [
 export function PropertiesPanel({
   selectedObject,
   onUpdateProperty,
-  onDeleteObject,
-  onDuplicateObject,
-  onBringForward,
-  onSendBackward,
-  onToggleLock,
-  onToggleVisible,
   onToggleLayerVisibility,
   layers,
   onSelectLayer,
@@ -66,58 +51,6 @@ export function PropertiesPanel({
     <div className="w-80 border-l bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <ScrollArea className="h-full">
         <div className="p-4 space-y-6">
-          {/* Object Actions */}
-          {selectedObject && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium">Object Actions</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onDuplicateObject}
-                  className="justify-start"
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copy
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onDeleteObject}
-                  className="justify-start"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onToggleLock}
-                  className="justify-start"
-                >
-                  {selectedObject.lockMovementX ? (
-                    <Unlock className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Lock className="h-4 w-4 mr-2" />
-                  )}
-                  {selectedObject.lockMovementX ? "Unlock" : "Lock"}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onToggleVisible}
-                  className="justify-start"
-                >
-                  {selectedObject.visible ? (
-                    <EyeOff className="h-4 w-4 mr-2" />
-                  ) : (
-                    <Eye className="h-4 w-4 mr-2" />
-                  )}
-                  {selectedObject.visible ? "Hide" : "Show"}
-                </Button>
-              </div>
-            </div>
-          )}
 
           {/* Position & Size */}
           {hasPosition && (
@@ -301,32 +234,6 @@ export function PropertiesPanel({
             </div>
           )}
 
-          {/* Layer Controls */}
-          {selectedObject && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium">Layer Order</h3>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onBringForward}
-                  className="flex-1"
-                >
-                  <ArrowUp className="h-4 w-4 mr-2" />
-                  Forward
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onSendBackward}
-                  className="flex-1"
-                >
-                  <ArrowDown className="h-4 w-4 mr-2" />
-                  Backward
-                </Button>
-              </div>
-            </div>
-          )}
 
           <Separator />
 

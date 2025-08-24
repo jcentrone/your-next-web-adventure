@@ -496,33 +496,6 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const handleToggleLock = () => {
-        if (!canvas || selectedObjects.length === 0) return;
-
-        selectedObjects.forEach((obj) => {
-            const isLocked = obj.lockMovementX;
-            obj.set({
-                lockMovementX: !isLocked,
-                lockMovementY: !isLocked,
-                lockRotation: !isLocked,
-                lockScalingX: !isLocked,
-                lockScalingY: !isLocked,
-            });
-        });
-
-        canvas.renderAll();
-    };
-
-    const handleToggleVisible = () => {
-        if (!canvas || selectedObjects.length === 0) return;
-
-        selectedObjects.forEach((obj) => {
-            obj.set("visible", !obj.visible);
-        });
-
-        canvas.renderAll();
-    };
-
     const handleToggleLayerVisibility = (layer: FabricObject) => {
         if (!canvas) return;
 
@@ -692,12 +665,6 @@ export default function CoverPageEditorPage() {
                     <PropertiesPanel
                         selectedObject={selectedObject}
                         onUpdateProperty={handleUpdateProperty}
-                        onDeleteObject={handleDelete}
-                        onDuplicateObject={handleCopy}
-                        onBringForward={handleBringForward}
-                        onSendBackward={handleSendBackward}
-                        onToggleLock={handleToggleLock}
-                        onToggleVisible={handleToggleVisible}
                         onToggleLayerVisibility={handleToggleLayerVisibility}
                         layers={layers}
                         onSelectLayer={handleSelectLayer}
