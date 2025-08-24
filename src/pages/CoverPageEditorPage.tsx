@@ -130,40 +130,42 @@ export default function CoverPageEditorPage() {
         
         switch(item.type) {
             case "rectangle":
-                addRect();
+                addRectShape(canvas, paletteAsHelper, item.x, item.y);
                 break;
             case "circle":
-                addCircle();
+                addCircleShape(canvas, paletteAsHelper, item.x, item.y);
                 break;
             case "star":
-                addStar();
+                addStarShape(canvas, paletteAsHelper, item.x, item.y);
                 break;
             case "triangle":
-                addTriangle();
+                addTriangleShape(canvas, paletteAsHelper, item.x, item.y);
                 break;
             case "polygon":
-                addPolygonShape();
+                addPolygon(canvas, paletteAsHelper, 5, 50, item.x, item.y);
                 break;
             case "arrow":
-                addArrow();
+                addArrowShape(canvas, paletteAsHelper, item.x, item.y);
                 break;
             case "bidirectionalArrow":
-                addBidirectionalArrow();
+                addBidirectionalArrowShape(canvas, paletteAsHelper, item.x, item.y);
                 break;
             case "text":
-                addText();
+                addTextShape(canvas, paletteAsHelper, "Text", item.x, item.y);
                 break;
             case "icon":
                 if (item.data?.name) {
-                    addIcon(item.data.name);
+                    addLucideIconByName(canvas, item.data.name, paletteAsHelper.colors[0], item.x, item.y);
                 }
                 break;
             case "clipart":
                 if (item.data?.hex) {
-                    addClipart(item.data.hex);
+                    // Handle clipart with position
+                    addClipartAtPosition(item.data.hex, item.x, item.y);
                 }
                 break;
         }
+        pushHistory();
     };
 
     const addRect = () => {
@@ -216,7 +218,7 @@ export default function CoverPageEditorPage() {
         await addLucideIconByName(canvas, name, palette.colors[1] || palette.colors[0]);
         pushHistory();
     };
-    const addClipart = async (hex: string) => {
+    const addClipartAtPosition = async (hex: string, x: number, y: number) => {
         if (!canvas) return;
         try {
             const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
@@ -226,7 +228,7 @@ export default function CoverPageEditorPage() {
                     if (objects) {
                         // In Fabric.js v6, objects is the parsed SVG group already
                         const obj = objects as any;
-                        obj.set({left: 100, top: 100});
+                        obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5});
                         canvas.add(obj);
                         canvas.setActiveObject(obj);
                         canvas.requestRenderAll();
@@ -238,6 +240,11 @@ export default function CoverPageEditorPage() {
         } catch {
         }
     };
+    const addClipart = async (hex: string) => {
+        if (!canvas) return;
+        await addClipartAtPosition(hex, 100, 100);
+    };
+
     const addImage = (file: File) => {
         if (!canvas) return;
         const reader = new FileReader();
