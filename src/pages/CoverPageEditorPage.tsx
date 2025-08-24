@@ -71,6 +71,7 @@ export default function CoverPageEditorPage() {
     const {register, handleSubmit, setValue, watch} = form;
     const template = watch("template") as keyof typeof TEMPLATES;
     const reportTypes = watch("reportTypes");
+    const loaded = useRef(false);
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -131,13 +132,7 @@ export default function CoverPageEditorPage() {
 
     // Load existing cover page
     useEffect(() => {
-        if (
-            !canvas ||
-            !id ||
-            !coverPages.length ||
-            !Object.keys(assignments).length
-        )
-            return;
+        if (!canvas || !id || !coverPages.length) return;
         const cp = coverPages.find((c) => c.id === id);
         if (!cp) return;
         const selectedReportTypes = Object.entries(assignments)
@@ -148,10 +143,12 @@ export default function CoverPageEditorPage() {
             template: (cp.template_slug as keyof typeof TEMPLATES) || "default",
             reportTypes: selectedReportTypes,
         });
-        if (cp.design_json) {
-            canvas.loadFromJSON(cp.design_json as any, () =>
-                canvas.requestRenderAll()
-            );
+        if (!loaded.current && cp.design_json) {
+            canvas.loadFromJSON(cp.design_json as any, () => {
+                canvas.requestRenderAll();
+                setLayers([...canvas.getObjects()]);
+            });
+            loaded.current = true;
         }
     }, [canvas, id, coverPages, assignments, form]);
 
