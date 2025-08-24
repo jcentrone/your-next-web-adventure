@@ -1,321 +1,217 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Type,
-  Image as ImageIcon,
-  Shapes,
-  Square,
-  Circle as CircleIcon,
-  Star,
-  Triangle,
-  Palette,
-  Search,
-  List,
+    Image as ImageIcon,
+    List,
+    Palette,
+    Settings,
+    Shapes,
+    Square,
+    Table as TableIcon,
+    Type as TypeIcon
 } from "lucide-react";
-import * as LucideIcons from "lucide-react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  MergeField,
-} from "@/constants/coverPageFields";
+import {SidebarCard} from "./editor-sidebar/SidebarCard.tsx";
+import {SettingsSection} from "./editor-sidebar/SettingsSection.tsx";
+import {TextSection} from "./editor-sidebar/TextSection.tsx";
+import {ImagesSection} from "./editor-sidebar/ImagesSection.tsx";
+import {GraphicsSection} from "./editor-sidebar/GraphicsSection.tsx";
+import {TablesSection} from "./editor-sidebar/TablesSection.tsx";
+import {DesignSection} from "./editor-sidebar/DesignSection.tsx";
+import {BackgroundSection} from "./editor-sidebar/BackgroundSection.tsx";
+import {FormFieldsSection} from "./editor-sidebar/FormFieldsSection.tsx";
+import {ShortcutsFooter} from "./editor-sidebar/ShortcutsFooter.tsx";
+import type {ColorPalette} from "@/constants/colorPalettes";
 
-interface EditorSidebarProps {
-  onAddText: () => void;
-  onAddShape: (shape: string) => void;
-  onAddIcon: (iconName: string) => void;
-  images: any[];
-  onAddImage: (imageUrl: string) => void;
-  onUploadImage: (file: File) => void;
-  colorPalettes: any[];
-  onSelectPalette: (palette: any) => void;
-  selectedPalette: any;
-  onAddPlaceholder: (token: string) => void;
-  organizationFields: MergeField[];
-  inspectorFields: MergeField[];
-  contactFields: MergeField[];
+type ImageLibItem = { path: string; url: string; name: string };
+
+export interface EditorSidebarProps {
+    activePanel: string | null;
+    setActivePanel: (panel: string | null) => void;
+
+    // SETTINGS
+    onSettingsSubmit: React.FormEventHandler<HTMLFormElement>;
+    register: any;
+    reportTypes: string[];
+    reportTypeOptions: { value: string; label: string }[];
+    toggleReportType: (rt: string) => void;
+
+    // TEXT
+    addText: () => void;
+    selected: any | null;
+    updateSelected: (prop: string, value: unknown) => void;
+    fonts: string[];
+
+    // IMAGES
+    images: ImageLibItem[];
+    onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onDeleteImage: (path: string) => void;
+    onAddImageFromUrl: (url: string) => void;
+
+    // GRAPHICS
+    addRect: () => void;
+    addCircle: () => void;
+    addStar: () => void;
+    addTriangle: () => void;
+    addPolygonShape: () => void;
+    addArrow: () => void;
+    addBidirectionalArrow: () => void;
+    addIcon: (name: string) => void;
+    addClipart: (hex: string) => void;
+
+    // TABLES
+    addTable?: (rows: number, cols: number, borderColor: string) => void;
+
+    // DESIGN
+    templateOptions: string[];
+    palette: ColorPalette;
+    onApplyPalette: (p: ColorPalette) => void;
+
+    // BACKGROUND
+    bgColor: string;
+    presetBgColors: string[];
+    updateBgColor: (color: string) => void;
+
+    // FORM FIELDS
+    onAddPlaceholder: (token: string) => void;
+
+    // SHORTCUTS
+    onShowShortcuts?: () => void;
 }
 
-export function EditorSidebar({
-  onAddText,
-  onAddShape,
-  onAddIcon,
-  images,
-  onAddImage,
-  onUploadImage,
-  colorPalettes,
-  onSelectPalette,
-  selectedPalette,
-  onAddPlaceholder,
-  organizationFields,
-  inspectorFields,
-  contactFields,
-}: EditorSidebarProps) {
-  const [iconSearch, setIconSearch] = useState("");
-  const [imageSearch, setImageSearch] = useState("");
+export function EditorSidebar(props: EditorSidebarProps) {
+    const {
+        activePanel, setActivePanel,
+        onSettingsSubmit, register, reportTypes, reportTypeOptions, toggleReportType,
+        addText, selected, updateSelected, fonts,
+        images, onImageUpload, onDeleteImage, onAddImageFromUrl,
+        addRect, addCircle, addStar, addTriangle, addPolygonShape, addArrow, addBidirectionalArrow, addIcon, addClipart,
+        addTable,
+        templateOptions, palette, onApplyPalette,
+        bgColor, presetBgColors, updateBgColor,
+        onAddPlaceholder,
+        onShowShortcuts,
+    } = props;
 
-  // Get available icons for display
-  const availableIcons = Object.keys(LucideIcons as any).filter((key) =>
-    key.toLowerCase().includes(iconSearch.toLowerCase())
-  ).slice(0, 100);
-
-  const shapes = [
-    { name: "Rectangle", icon: Square, action: () => onAddShape("rectangle") },
-    { name: "Circle", icon: CircleIcon, action: () => onAddShape("circle") },
-    { name: "Star", icon: Star, action: () => onAddShape("star") },
-    { name: "Triangle", icon: Triangle, action: () => onAddShape("triangle") },
-  ];
-
-  return (
-    <div className="w-80 border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <Tabs defaultValue="text" className="h-full">
-        <TabsList className="grid w-full grid-cols-6 rounded-none border-b">
-          <TabsTrigger value="text" className="flex flex-col gap-1 py-3">
-            <Type className="h-5 w-5" />
-            <span className="text-xs">Text</span>
-          </TabsTrigger>
-          <TabsTrigger value="images" className="flex flex-col gap-1 py-3">
-            <ImageIcon className="h-5 w-5" />
-            <span className="text-xs">Images</span>
-          </TabsTrigger>
-          <TabsTrigger value="shapes" className="flex flex-col gap-1 py-3">
-            <Shapes className="h-5 w-5" />
-            <span className="text-xs">Shapes</span>
-          </TabsTrigger>
-          <TabsTrigger value="icons" className="flex flex-col gap-1 py-3">
-            <Star className="h-5 w-5" />
-            <span className="text-xs">Icons</span>
-          </TabsTrigger>
-          <TabsTrigger value="formFields" className="flex flex-col gap-1 py-3">
-            <List className="h-5 w-5" />
-            <span className="text-xs">Form Fields</span>
-          </TabsTrigger>
-          <TabsTrigger value="colors" className="flex flex-col gap-1 py-3">
-            <Palette className="h-5 w-5" />
-            <span className="text-xs">Colors</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="text" className="h-full p-4 mt-0">
-          <div className="space-y-4">
-            <Button
-              onClick={onAddText}
-              className="w-full justify-start"
-              variant="outline"
-            >
-              <Type className="h-4 w-4 mr-2" />
-              Add Text
-            </Button>
+    return (
+        <div className="w-[14rem] p-2 border-r space-y-2 overflow-y-auto overflow-x-visible relative pb-16">
             <div className="space-y-2">
-              <h4 className="text-sm font-medium">Text Styles</h4>
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" size="sm" onClick={onAddText}>
-                  Heading
-                </Button>
-                <Button variant="outline" size="sm" onClick={onAddText}>
-                  Body
-                </Button>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
+                <SidebarCard
+                    sectionKey="settings"
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                    icon={<Settings className="h-4 w-4"/>}
+                    title="Settings"
 
-        <TabsContent value="images" className="h-full p-4 mt-0">
-          <div className="space-y-4">
-            <div>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) onUploadImage(file);
-                }}
-                className="mb-2"
-              />
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search images..."
-                  value={imageSearch}
-                  onChange={(e) => setImageSearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <ScrollArea className="h-96">
-              <div className="grid grid-cols-2 gap-2">
-                {images
-                  .filter((img) =>
-                    img.name.toLowerCase().includes(imageSearch.toLowerCase())
-                  )
-                  .map((image) => (
-                    <Button
-                      key={image.id}
-                      variant="outline"
-                      className="h-20 p-1"
-                      onClick={() => onAddImage(image.url)}
-                    >
-                      <img
-                        src={image.url}
-                        alt={image.name}
-                        className="w-full h-full object-cover rounded"
-                        onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg";
-                        }}
-                      />
-                    </Button>
-                  ))}
-              </div>
-            </ScrollArea>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="shapes" className="h-full p-4 mt-0">
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium">Basic Shapes</h4>
-            <div className="grid grid-cols-2 gap-2">
-              {shapes.map((shape) => (
-                <Button
-                  key={shape.name}
-                  variant="outline"
-                  className="h-16 flex flex-col gap-1"
-                  onClick={shape.action}
                 >
-                  <shape.icon className="h-6 w-6" />
-                  <span className="text-xs">{shape.name}</span>
-                </Button>
-              ))}
+                    <SettingsSection
+                        onSettingsSubmit={onSettingsSubmit}
+                        register={register}
+                        reportTypes={reportTypes}
+                        reportTypeOptions={reportTypeOptions}
+                        toggleReportType={toggleReportType}
+                    />
+                </SidebarCard>
+
+                <SidebarCard
+                    sectionKey="text"
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                    icon={<TypeIcon className="h-4 w-4"/>}
+                    title="Text"
+                >
+                    <TextSection
+                        addText={addText}
+                        selected={selected}
+                        updateSelected={updateSelected}
+                        fonts={fonts}
+                    />
+                </SidebarCard>
+
+                <SidebarCard
+                    sectionKey="images"
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                    icon={<ImageIcon className="h-4 w-4"/>}
+                    title="Images"
+                >
+                    <ImagesSection
+                        images={images}
+                        onImageUpload={onImageUpload}
+                        onDeleteImage={onDeleteImage}
+                        onAddImageFromUrl={onAddImageFromUrl}
+                    />
+                </SidebarCard>
+
+                <SidebarCard
+                    sectionKey="graphics"
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                    icon={<Shapes className="h-4 w-4"/>}
+                    title="Graphics"
+                >
+                    <GraphicsSection
+                        addRect={addRect}
+                        addCircle={addCircle}
+                        addStar={addStar}
+                        addTriangle={addTriangle}
+                        addPolygonShape={addPolygonShape}
+                        addArrow={addArrow}
+                        addBidirectionalArrow={addBidirectionalArrow}
+                        addIcon={addIcon}
+                        addClipart={addClipart}
+                    />
+                </SidebarCard>
+
+                <SidebarCard
+                    sectionKey="tables"
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                    icon={<TableIcon className="h-4 w-4"/>}
+                    title="Tables"
+                >
+                    <TablesSection addTable={addTable}/>
+                </SidebarCard>
+
+                <SidebarCard
+                    sectionKey="design"
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                    icon={<Palette className="h-4 w-4"/>}
+                    title="Design Palette"
+                >
+                    <DesignSection
+                        templateOptions={templateOptions}
+                        register={register}
+                        palette={palette}
+                        onApplyPalette={onApplyPalette}
+                    />
+                </SidebarCard>
+
+                <SidebarCard
+                    sectionKey="background"
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                    icon={<Square className="h-4 w-4"/>}
+                    title="Background"
+                >
+                    <BackgroundSection
+                        bgColor={bgColor}
+                        presetBgColors={presetBgColors}
+                        updateBgColor={updateBgColor}
+                    />
+                </SidebarCard>
+
+                <SidebarCard
+                    sectionKey="formFields"
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                    icon={<List className="h-4 w-4"/>}
+                    title="Form Fields"
+                >
+                    <FormFieldsSection onAddPlaceholder={onAddPlaceholder}/>
+                </SidebarCard>
             </div>
-          </div>
-        </TabsContent>
 
-        <TabsContent value="icons" className="h-full p-4 mt-0">
-          <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search icons..."
-                value={iconSearch}
-                onChange={(e) => setIconSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <ScrollArea className="h-96">
-              <div className="grid grid-cols-4 gap-1">
-                {availableIcons.map((iconName) => {
-                  const IconComponent = (LucideIcons as any)[iconName];
-                  if (!IconComponent) return null;
-                  return (
-                    <Button
-                      key={iconName}
-                      variant="ghost"
-                      size="sm"
-                      className="h-10 w-10 p-2"
-                      onClick={() => onAddIcon(iconName)}
-                      title={iconName}
-                    >
-                      <IconComponent className="h-4 w-4" />
-                    </Button>
-                  );
-                })}
-              </div>
-            </ScrollArea>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="formFields" className="h-full p-4 mt-0">
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="organization">
-              <AccordionTrigger>Organization Details</AccordionTrigger>
-              <AccordionContent>
-                <div className="flex flex-col space-y-2">
-                  {organizationFields.map((field) => (
-                    <Button
-                      key={field.token}
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => onAddPlaceholder(field.token)}
-                    >
-                      {field.label}
-                    </Button>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="inspector">
-              <AccordionTrigger>Inspector Details</AccordionTrigger>
-              <AccordionContent>
-                <div className="flex flex-col space-y-2">
-                  {inspectorFields.map((field) => (
-                    <Button
-                      key={field.token}
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => onAddPlaceholder(field.token)}
-                    >
-                      {field.label}
-                    </Button>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="contact">
-              <AccordionTrigger>Contact Details</AccordionTrigger>
-              <AccordionContent>
-                <div className="flex flex-col space-y-2">
-                  {contactFields.map((field) => (
-                    <Button
-                      key={field.token}
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => onAddPlaceholder(field.token)}
-                    >
-                      {field.label}
-                    </Button>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </TabsContent>
-
-        <TabsContent value="colors" className="h-full p-4 mt-0">
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium">Color Palettes</h4>
-            <ScrollArea className="h-96">
-              <div className="space-y-3">
-                {colorPalettes.map((palette, index) => (
-                  <div key={index} className="space-y-2">
-                    <Button
-                      variant={selectedPalette?.name === palette.name ? "default" : "outline"}
-                      className="w-full justify-start text-xs"
-                      onClick={() => onSelectPalette(palette)}
-                    >
-                      {palette.name}
-                    </Button>
-                    <div className="flex gap-1">
-                      {palette.colors.slice(0, 6).map((color: string, colorIndex: number) => (
-                        <div
-                          key={colorIndex}
-                          className="w-6 h-6 rounded border border-border cursor-pointer"
-                          style={{ backgroundColor: color }}
-                          onClick={() => onSelectPalette(palette)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+            {/* Footer link pinned to bottom */}
+            <ShortcutsFooter onShowShortcuts={onShowShortcuts}/>
+        </div>
+    );
 }
