@@ -30,6 +30,8 @@ export function CanvasWorkspace({
     const baseWidth = CANVAS_WIDTH;
     const baseHeight = CANVAS_HEIGHT;
 
+    const RULER_SIZE = 32;
+
     // Pixels per inch along each axis (works even if you change base canvas size)
     const pxPerInchX = baseWidth / PAGE_W_IN;
     const pxPerInchY = baseHeight / PAGE_H_IN;
@@ -137,8 +139,10 @@ export function CanvasWorkspace({
                     {showRulers && (
                         <>
                             {/* Horizontal Ruler */}
-                            <div
-                                className="absolute top-0 left-0 right-0 h-8 bg-gray-200 border-b border-gray-300 z-20 pointer-events-none">
+                        <div
+                                className="absolute top-0 right-0 h-8 bg-gray-200 border-b border-gray-300 z-20 pointer-events-none"
+                                style={{ left: RULER_SIZE }}
+                            >
                                 <div className="relative h-full">
                                     {Array.from({length: horizontalTicks}).map((_, i) => {
                                         const inches = i * MINOR_IN;
@@ -172,7 +176,9 @@ export function CanvasWorkspace({
 
                             {/* Vertical Ruler */}
                             <div
-                                className="absolute top-0 left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-20 pointer-events-none">
+                                className="absolute left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-20 pointer-events-none"
+                                style={{ top: RULER_SIZE }}
+                            >
                                 <div className="relative w-full h-full">
                                     {Array.from({length: verticalTicks}).map((_, i) => {
                                         const inches = i * MINOR_IN;
