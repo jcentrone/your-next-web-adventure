@@ -393,10 +393,17 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const handleAddIcon = async (iconName: string, x = 100, y = 100) => {
+    const handleAddIcon = async (iconName: string, x?: number, y?: number) => {
         if (!canvas) return;
 
+        if (x === undefined || y === undefined) {
+            const {left, top} = (canvas as any).getViewportTransform();
+            x = canvas.getWidth() / 2 - left;
+            y = canvas.getHeight() / 2 - top;
+        }
+
         await addLucideIconByName(canvas, iconName, palette.colors[0], x, y);
+        setLayers([...canvas.getObjects()]);
         pushHistory();
     };
 
@@ -406,8 +413,14 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const handleAddImage = (imageUrl: string, x = 100, y = 100) => {
+    const handleAddImage = (imageUrl: string, x?: number, y?: number) => {
         if (!canvas) return;
+
+        if (x === undefined || y === undefined) {
+            const {left, top} = (canvas as any).getViewportTransform();
+            x = canvas.getWidth() / 2 - left;
+            y = canvas.getHeight() / 2 - top;
+        }
 
         FabricImage.fromURL(imageUrl, {
             crossOrigin: "anonymous",
@@ -422,6 +435,7 @@ export default function CoverPageEditorPage() {
             canvas.add(img);
             canvas.setActiveObject(img);
             canvas.renderAll();
+            setLayers([...canvas.getObjects()]);
             pushHistory();
         });
     };
@@ -473,37 +487,65 @@ export default function CoverPageEditorPage() {
     };
     const addRect = () => {
         if (!canvas) return;
-        fabricAddRect(canvas, palette);
+        const {left, top} = (canvas as any).getViewportTransform();
+        const x = canvas.getWidth() / 2 - left;
+        const y = canvas.getHeight() / 2 - top;
+        fabricAddRect(canvas, palette, x, y);
+        setLayers([...canvas.getObjects()]);
         pushHistory();
     };
     const addCircle = () => {
         if (!canvas) return;
-        fabricAddCircle(canvas, palette);
+        const {left, top} = (canvas as any).getViewportTransform();
+        const x = canvas.getWidth() / 2 - left;
+        const y = canvas.getHeight() / 2 - top;
+        fabricAddCircle(canvas, palette, x, y);
+        setLayers([...canvas.getObjects()]);
         pushHistory();
     };
     const addStar = () => {
         if (!canvas) return;
-        fabricAddStar(canvas, palette);
+        const {left, top} = (canvas as any).getViewportTransform();
+        const x = canvas.getWidth() / 2 - left;
+        const y = canvas.getHeight() / 2 - top;
+        fabricAddStar(canvas, palette, x, y);
+        setLayers([...canvas.getObjects()]);
         pushHistory();
     };
     const addTriangle = () => {
         if (!canvas) return;
-        fabricAddTriangle(canvas, palette);
+        const {left, top} = (canvas as any).getViewportTransform();
+        const x = canvas.getWidth() / 2 - left;
+        const y = canvas.getHeight() / 2 - top;
+        fabricAddTriangle(canvas, palette, x, y);
+        setLayers([...canvas.getObjects()]);
         pushHistory();
     };
     const addPolygonShape = () => {
         if (!canvas) return;
-        fabricAddPolygon(canvas, palette);
+        const {left, top} = (canvas as any).getViewportTransform();
+        const x = canvas.getWidth() / 2 - left;
+        const y = canvas.getHeight() / 2 - top;
+        fabricAddPolygon(canvas, palette, 5, 50, x, y);
+        setLayers([...canvas.getObjects()]);
         pushHistory();
     };
     const addArrow = () => {
         if (!canvas) return;
-        fabricAddArrow(canvas, palette);
+        const {left, top} = (canvas as any).getViewportTransform();
+        const x = canvas.getWidth() / 2 - left;
+        const y = canvas.getHeight() / 2 - top;
+        fabricAddArrow(canvas, palette, x, y);
+        setLayers([...canvas.getObjects()]);
         pushHistory();
     };
     const addBidirectionalArrow = () => {
         if (!canvas) return;
-        fabricAddBidirectionalArrow(canvas, palette);
+        const {left, top} = (canvas as any).getViewportTransform();
+        const x = canvas.getWidth() / 2 - left;
+        const y = canvas.getHeight() / 2 - top;
+        fabricAddBidirectionalArrow(canvas, palette, x, y);
+        setLayers([...canvas.getObjects()]);
         pushHistory();
     };
     const addTable = (rows: number, cols: number, borderColor: string) => {
