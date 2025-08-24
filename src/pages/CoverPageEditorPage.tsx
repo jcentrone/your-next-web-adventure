@@ -90,7 +90,7 @@ export default function CoverPageEditorPage() {
     const [palette, setPalette] = useState<ColorPalette>(COLOR_PALETTES[0]);
     const [showGrid, setShowGrid] = useState(true);
     const [showRulers, setShowRulers] = useState(false);
-    const [activePanel, setActivePanel] = useState<string | null>("text");
+    const [activePanel, setActivePanel] = useState<string | null>("settings");
 
 
     const {images, uploadImage, deleteImage} = useImageLibrary();

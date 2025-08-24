@@ -151,8 +151,8 @@ export function EditorToolbar(props: EditorToolbarProps) {
 
     return (
         <div id="editor_toolbar" className="w-full overflow-x-auto">
-            <div className="w-max ml-auto">
-                <div className="flex items-center gap-2 p-3 bg-transparent">
+            <div className="w-full">
+                <div className="flex items-center justify-center gap-2 p-3 bg-transparent">
                     <div className="flex items-center gap-2 p-3 bg-white text-foreground border rounded-md shadow-sm">
 
                         {/* History */}
