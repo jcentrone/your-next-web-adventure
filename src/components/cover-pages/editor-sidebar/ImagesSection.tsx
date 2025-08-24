@@ -23,6 +23,7 @@ export function ImagesSection({
     const handleAdd = () => {
         const trimmed = url.trim();
         if (!trimmed) return;
+        // Use the common add-image handler so uploads and manual URLs share the same path
         onAddImageFromUrl(trimmed);
         setUrl("");
     };

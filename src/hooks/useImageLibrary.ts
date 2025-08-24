@@ -47,7 +47,13 @@ export default function useImageLibrary() {
         .from(IMAGE_LIBRARY_BUCKET)
         .upload(path, file, { upsert: false });
       if (error) throw error;
-      return path;
+
+      const { data: urlData, error: urlError } = await supabase.storage
+        .from(IMAGE_LIBRARY_BUCKET)
+        .createSignedUrl(path, 3600);
+      if (urlError) throw urlError;
+
+      return { path, url: urlData?.signedUrl || "" };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["image-library", user?.id] });
