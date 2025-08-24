@@ -69,6 +69,11 @@ export default function CoverPageEditorPage() {
     });
 
     const {register, handleSubmit, setValue, watch} = form;
+
+    useEffect(() => {
+        register("reportTypes");
+    }, [register]);
+
     const template = watch("template") as keyof typeof TEMPLATES;
     const reportTypes = watch("reportTypes");
     const loaded = useRef(false);
