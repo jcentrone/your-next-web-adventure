@@ -1,4 +1,4 @@
-import {ReactNode} from "react";
+import { ReactNode, useEffect, useRef } from "react";
 
 export function SidebarCard({
                                 sectionKey,
@@ -16,8 +16,33 @@ export function SidebarCard({
     children: ReactNode;
 }) {
     const active = activePanel === sectionKey;
+    const cardRef = useRef<HTMLDivElement | null>(null);
+    const flyoutRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!active) return;
+
+        function handleOutsideClick(event: MouseEvent) {
+            const target = event.target as Node;
+            if (
+                cardRef.current &&
+                flyoutRef.current &&
+                !cardRef.current.contains(target) &&
+                !flyoutRef.current.contains(target)
+            ) {
+                setActivePanel(null);
+            }
+        }
+
+        document.addEventListener("mousedown", handleOutsideClick);
+
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+        };
+    }, [active, setActivePanel]);
     return (
         <div
+            ref={cardRef}
             className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
                 active ? "ring-2 ring-primary border-primary" : ""
             }`}
@@ -30,6 +55,7 @@ export function SidebarCard({
 
             {active && (
                 <div
+                    ref={flyoutRef}
                     className="fixed left-[15rem] top-40 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto"
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
