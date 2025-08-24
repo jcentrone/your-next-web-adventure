@@ -95,9 +95,10 @@ export default function CoverPageEditorPage() {
         setCanvas(c);
 
         // Event listeners
+        const updateSelection = () => setSelectedObjects(c.getActiveObjects());
+        c.on("selection:created", updateSelection);
+        c.on("selection:updated", updateSelection);
         c.on("selection:cleared", () => setSelectedObjects([]));
-        c.on("selection:updated", (e) => setSelectedObjects(e.selected || []));
-        c.on("selection:created", (e) => setSelectedObjects(e.selected || []));
         c.on("object:modified", () => pushHistory());
 
         // Initial history
