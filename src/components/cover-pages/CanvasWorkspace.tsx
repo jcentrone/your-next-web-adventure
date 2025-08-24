@@ -7,7 +7,7 @@ interface CanvasWorkspaceProps {
     zoom: number;
     showGrid: boolean;
     showRulers: boolean;
-    onDropElement: (item: {type: string; data: any; x: number; y: number}) => void;
+    onDropElement?: (item: {type: string; data: any; x: number; y: number}) => void;
 }
 
 export function CanvasWorkspace({
@@ -150,7 +150,7 @@ export function CanvasWorkspace({
                                 const x = rect ? (e.clientX - rect.left) / zoom : 0;
                                 const y = rect ? (e.clientY - rect.top) / zoom : 0;
                                 const {type, ...rest} = payload;
-                                onDropElement({type, data: rest, x, y});
+                                onDropElement?.({type, data: rest, x, y});
                             }}
                         >
                             <canvas ref={canvasRef}/>
