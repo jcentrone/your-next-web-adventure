@@ -87,6 +87,12 @@ The app supports fully customizable cover pages for reports.
 After a cover page is assigned, generate a report PDF from the report preview. The
 selected cover page will appear at the beginning of the PDF.
 
+## Image Proxy
+
+When adding external images, the app routes the request through `/api/image-proxy`.
+This server-side proxy fetches the image and returns it with permissive CORS headers
+to prevent cross-origin errors when loading user-provided URLs.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/069944d1-052a-41dd-b482-c41df0da3591) and click on Share -> Publish.
