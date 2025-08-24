@@ -131,7 +131,8 @@ export async function addImageFromUrl(canvas: FabricCanvas, url: string, x = 150
 /** Slim icon loader (runtime fetch) to avoid bundling all lucide icons */
 export async function addLucideIconByName(canvas: FabricCanvas, name: string, stroke = "#000", x = 100, y = 100) {
     try {
-        const res = await fetch(`https://unpkg.com/lucide-static/icons/${name}.svg`);
+        const iconName = name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+        const res = await fetch(`https://unpkg.com/lucide-static@latest/icons/${iconName}.svg`);
         if (!res.ok) return;
         const svg = await res.text();
         await new Promise<void>(resolve => {
