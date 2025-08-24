@@ -18,6 +18,7 @@ import {
     addBidirectionalArrow as fabricAddBidirectionalArrow,
     addText as fabricAddText,
 } from "@/lib/fabricShapes";
+import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {EditorToolbar} from "@/components/cover-pages/EditorToolbar";
@@ -382,54 +383,18 @@ export default function CoverPageEditorPage() {
         }
     };
 
-    const handleDropElement = ({type, data, x, y}: {type: string; data: any; x: number; y: number}) => {
-        if (!canvas) return;
-        switch (type) {
-            case "text":
-                fabricAddText(canvas, palette, "Add your text here", x, y);
-                pushHistory();
-                break;
-            case "rectangle":
-                fabricAddRect(canvas, palette, x, y);
-                pushHistory();
-                break;
-            case "circle":
-                fabricAddCircle(canvas, palette, x, y);
-                pushHistory();
-                break;
-            case "star":
-                fabricAddStar(canvas, palette, x, y);
-                pushHistory();
-                break;
-            case "triangle":
-                fabricAddTriangle(canvas, palette, x, y);
-                pushHistory();
-                break;
-            case "polygon":
-                fabricAddPolygon(canvas, palette, 5, 50, x, y);
-                pushHistory();
-                break;
-            case "arrow":
-                fabricAddArrow(canvas, palette, x, y);
-                pushHistory();
-                break;
-            case "bidirectionalArrow":
-                fabricAddBidirectionalArrow(canvas, palette, x, y);
-                pushHistory();
-                break;
-            case "image":
-                if (data?.url) handleAddImage(data.url, x, y);
-                break;
-            case "icon":
-                if (data?.name) handleAddIcon(data.name, x, y);
-                break;
-            case "clipart":
-                if (data?.hex) handleAddClipart(data.hex, x, y);
-                break;
-            default:
-                break;
-        }
-    };
+    const handleDropElement = ({type, data, x, y}: {type: string; data: unknown; x: number; y: number}) =>
+        handleCoverElementDrop(
+            canvas,
+            palette,
+            {type, data, x, y},
+            {
+                addImage: handleAddImage,
+                addIcon: handleAddIcon,
+                addClipart: handleAddClipart,
+            },
+            pushHistory,
+        );
 
     const addText = () => {
         if (!canvas) return;
