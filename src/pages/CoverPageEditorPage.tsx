@@ -429,7 +429,9 @@ export default function CoverPageEditorPage() {
         try {
             const sameOrigin = imageUrl.startsWith(window.location.origin);
             const img = await FabricImage.fromURL(
-                imageUrl,
+                sameOrigin
+                    ? imageUrl
+                    : `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`,
                 sameOrigin ? undefined : {crossOrigin: "anonymous"},
             );
             img.set({
