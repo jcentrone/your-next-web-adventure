@@ -282,12 +282,12 @@ export default function CoverPageEditorPageNew() {
     };
 
     // Sidebar handlers
-    const handleAddText = (content?: string) => {
+    const handleAddText = (content?: string, x = 100, y = 100) => {
         if (!canvas) return;
 
         const text = new Textbox(content || "Add your text here", {
-            left: 100,
-            top: 100,
+            left: x,
+            top: y,
             fontFamily: "Arial",
             fontSize: 20,
             fill: palette.colors[0],
@@ -299,7 +299,7 @@ export default function CoverPageEditorPageNew() {
         pushHistory();
     };
 
-    const handleAddShape = (shape: string) => {
+    const handleAddShape = (shape: string, x = 100, y = 100) => {
         if (!canvas) return;
 
         let obj: FabricObject;
@@ -307,8 +307,8 @@ export default function CoverPageEditorPageNew() {
         switch (shape) {
             case "rectangle":
                 obj = new Rect({
-                    left: 100,
-                    top: 100,
+                    left: x,
+                    top: y,
                     width: 100,
                     height: 100,
                     fill: palette.colors[0],
@@ -318,8 +318,8 @@ export default function CoverPageEditorPageNew() {
                 break;
             case "circle":
                 obj = new Circle({
-                    left: 100,
-                    top: 100,
+                    left: x,
+                    top: y,
                     radius: 50,
                     fill: palette.colors[0],
                     stroke: palette.colors[1] || palette.colors[0],
@@ -339,8 +339,8 @@ export default function CoverPageEditorPageNew() {
                     });
                 }
                 obj = new Polygon(points, {
-                    left: 100,
-                    top: 100,
+                    left: x,
+                    top: y,
                     fill: palette.colors[0],
                     stroke: palette.colors[1] || palette.colors[0],
                     strokeWidth: 2,
@@ -352,8 +352,8 @@ export default function CoverPageEditorPageNew() {
                     {x: 0, y: 100},
                     {x: 100, y: 100}
                 ], {
-                    left: 100,
-                    top: 100,
+                    left: x,
+                    top: y,
                     fill: palette.colors[0],
                     stroke: palette.colors[1] || palette.colors[0],
                     strokeWidth: 2,
@@ -371,8 +371,8 @@ export default function CoverPageEditorPageNew() {
                     });
                 }
                 obj = new Polygon(polyPoints, {
-                    left: 100,
-                    top: 100,
+                    left: x,
+                    top: y,
                     fill: palette.colors[0],
                     stroke: palette.colors[1] || palette.colors[0],
                     strokeWidth: 2,
@@ -388,8 +388,8 @@ export default function CoverPageEditorPageNew() {
                     {x: 60, y: 60},
                     {x: 0, y: 60},
                 ], {
-                    left: 100,
-                    top: 100,
+                    left: x,
+                    top: y,
                     fill: palette.colors[0],
                     stroke: palette.colors[1] || palette.colors[0],
                     strokeWidth: 2,
@@ -408,8 +408,8 @@ export default function CoverPageEditorPageNew() {
                     {x: 20, y: 60},
                     {x: 20, y: 80},
                 ], {
-                    left: 100,
-                    top: 100,
+                    left: x,
+                    top: y,
                     fill: palette.colors[0],
                     stroke: palette.colors[1] || palette.colors[0],
                     strokeWidth: 2,
@@ -425,7 +425,7 @@ export default function CoverPageEditorPageNew() {
         pushHistory();
     };
 
-    const handleAddIcon = (iconName: string) => {
+    const handleAddIcon = (iconName: string, x = 100, y = 100) => {
         if (!canvas) return;
 
         const IconComponent = (LucideIcons as any)[iconName];
@@ -440,8 +440,8 @@ export default function CoverPageEditorPageNew() {
             const obj = objects[0];
             if (obj) {
                 obj.set({
-                    left: 100,
-                    top: 100,
+                    left: x,
+                    top: y,
                     scaleX: 2,
                     scaleY: 2,
                 });
@@ -453,14 +453,14 @@ export default function CoverPageEditorPageNew() {
         });
     };
 
-    const handleAddClipart = async (hex: string) => {
+    const handleAddClipart = async (hex: string, x = 100, y = 100) => {
         if (!canvas) return;
         try {
             const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
             const svg = await fetch(url).then((r) => r.text());
             loadSVGFromString(svg, (objects, options) => {
                 const obj = FabricUtil.groupSVGElements(objects, options);
-                obj.set({left: 100, top: 100, scaleX: 0.5, scaleY: 0.5});
+                obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5});
                 canvas.add(obj);
                 canvas.setActiveObject(obj);
                 canvas.renderAll();
@@ -470,15 +470,15 @@ export default function CoverPageEditorPageNew() {
         }
     };
 
-    const handleAddImage = (imageUrl: string) => {
+    const handleAddImage = (imageUrl: string, x = 100, y = 100) => {
         if (!canvas) return;
 
         FabricImage.fromURL(imageUrl, {
             crossOrigin: "anonymous",
         }).then((img) => {
             img.set({
-                left: 100,
-                top: 100,
+                left: x,
+                top: y,
                 scaleX: 0.5,
                 scaleY: 0.5,
             });
@@ -519,6 +519,34 @@ export default function CoverPageEditorPageNew() {
             toast.success("Image deleted");
         } catch {
             toast.error("Failed to delete image");
+        }
+    };
+
+    const handleDropElement = ({type, data, x, y}: {type: string; data: any; x: number; y: number}) => {
+        switch (type) {
+            case "text":
+                handleAddText(undefined, x, y);
+                break;
+            case "rectangle":
+            case "circle":
+            case "star":
+            case "triangle":
+            case "polygon":
+            case "arrow":
+            case "bidirectionalArrow":
+                handleAddShape(type, x, y);
+                break;
+            case "image":
+                if (data?.url) handleAddImage(data.url, x, y);
+                break;
+            case "icon":
+                if (data?.name) handleAddIcon(data.name, x, y);
+                break;
+            case "clipart":
+                if (data?.hex) handleAddClipart(data.hex, x, y);
+                break;
+            default:
+                break;
         }
     };
 
@@ -762,6 +790,7 @@ export default function CoverPageEditorPageNew() {
                         zoom={zoom}
                         showGrid={showGrid}
                         showRulers={showRulers}
+                        onDropElement={handleDropElement}
                     />
                 </div>
 

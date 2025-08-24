@@ -14,17 +14,7 @@ import {
 } from "lucide-react";
 import {icons as lucideIcons} from "lucide";
 
-export function GraphicsSection({
-                                    addRect,
-                                    addCircle,
-                                    addStar,
-                                    addTriangle,
-                                    addPolygonShape,
-                                    addArrow,
-                                    addBidirectionalArrow,
-                                    addIcon,
-                                    addClipart,
-                                }: {
+export function GraphicsSection({}: {
     addRect: () => void;
     addCircle: () => void;
     addStar: () => void;
@@ -50,39 +40,95 @@ export function GraphicsSection({
         <div className="space-y-2">
             {/* primitives */}
             <div className="flex flex-wrap gap-3">
-                <Button onClick={addRect}
-                        className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                        aria-label="Rectangle">
+                <Button
+                    draggable
+                    onDragStart={(e) =>
+                        e.dataTransfer.setData(
+                            "application/x-cover-element",
+                            JSON.stringify({type: "rectangle"})
+                        )
+                    }
+                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
+                    aria-label="Rectangle"
+                >
                     <Square className="stroke-black"/>
                 </Button>
-                <Button onClick={addCircle}
-                        className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                        aria-label="Circle">
+                <Button
+                    draggable
+                    onDragStart={(e) =>
+                        e.dataTransfer.setData(
+                            "application/x-cover-element",
+                            JSON.stringify({type: "circle"})
+                        )
+                    }
+                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
+                    aria-label="Circle"
+                >
                     <CircleIcon className="stroke-black"/>
                 </Button>
-                <Button onClick={addStar}
-                        className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                        aria-label="Star">
+                <Button
+                    draggable
+                    onDragStart={(e) =>
+                        e.dataTransfer.setData(
+                            "application/x-cover-element",
+                            JSON.stringify({type: "star"})
+                        )
+                    }
+                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
+                    aria-label="Star"
+                >
                     <StarIcon className="stroke-black"/>
                 </Button>
-                <Button onClick={addTriangle}
-                        className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                        aria-label="Triangle">
+                <Button
+                    draggable
+                    onDragStart={(e) =>
+                        e.dataTransfer.setData(
+                            "application/x-cover-element",
+                            JSON.stringify({type: "triangle"})
+                        )
+                    }
+                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
+                    aria-label="Triangle"
+                >
                     <TriangleIcon className="stroke-black"/>
                 </Button>
-                <Button onClick={addPolygonShape}
-                        className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                        aria-label="Pentagon">
+                <Button
+                    draggable
+                    onDragStart={(e) =>
+                        e.dataTransfer.setData(
+                            "application/x-cover-element",
+                            JSON.stringify({type: "polygon"})
+                        )
+                    }
+                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
+                    aria-label="Pentagon"
+                >
                     <Pentagon className="stroke-black"/>
                 </Button>
-                <Button onClick={addArrow}
-                        className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                        aria-label="Arrow Right">
+                <Button
+                    draggable
+                    onDragStart={(e) =>
+                        e.dataTransfer.setData(
+                            "application/x-cover-element",
+                            JSON.stringify({type: "arrow"})
+                        )
+                    }
+                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
+                    aria-label="Arrow Right"
+                >
                     <ArrowRightIcon className="stroke-black"/>
                 </Button>
-                <Button onClick={addBidirectionalArrow}
-                        className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                        aria-label="Bidirectional Arrow">
+                <Button
+                    draggable
+                    onDragStart={(e) =>
+                        e.dataTransfer.setData(
+                            "application/x-cover-element",
+                            JSON.stringify({type: "bidirectionalArrow"})
+                        )
+                    }
+                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
+                    aria-label="Bidirectional Arrow"
+                >
                     <ArrowLeftRight className="stroke-black"/>
                 </Button>
             </div>
@@ -112,7 +158,13 @@ export function GraphicsSection({
                                     key={name}
                                     type="button"
                                     className="p-1 border rounded hover:bg-accent flex items-center justify-center"
-                                    onClick={() => addIcon(name)}
+                                    draggable
+                                    onDragStart={(e) =>
+                                        e.dataTransfer.setData(
+                                            "application/x-cover-element",
+                                            JSON.stringify({type: "icon", name})
+                                        )
+                                    }
                                     title={name}
                                 >
                                     <IconComp className="h-4 w-4"/>
@@ -140,7 +192,13 @@ export function GraphicsSection({
                                 key={c.hexcode}
                                 type="button"
                                 className="p-1 border rounded hover:bg-accent flex items-center justify-center"
-                                onClick={() => addClipart(c.hexcode)}
+                                draggable
+                                onDragStart={(e) =>
+                                    e.dataTransfer.setData(
+                                        "application/x-cover-element",
+                                        JSON.stringify({type: "clipart", hex: c.hexcode})
+                                    )
+                                }
                                 title={c.annotation}
                             >
                                 <img
