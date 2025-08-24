@@ -532,6 +532,35 @@ export default function CoverPageEditorPage() {
 
     const applyPalette = (p: ColorPalette) => {
         setPalette(p);
+        if (!canvas) return;
+
+        const applyToObject = (obj: FabricObject, inGroup = false) => {
+            if (obj instanceof Group) {
+                obj.getObjects().forEach((child) => applyToObject(child, true));
+                return;
+            }
+
+            if (obj.type === "image") return;
+
+            if (obj.type === "textbox") {
+                obj.set({fill: p.colors[3] || p.colors[0]});
+                return;
+            }
+
+            if (obj.type === "line") {
+                obj.set({stroke: p.colors[1] || p.colors[0]});
+                return;
+            }
+
+            obj.set({
+                fill: inGroup ? p.colors[1] || p.colors[0] : p.colors[0],
+                stroke: p.colors[1] || p.colors[0],
+            });
+        };
+
+        canvas.getObjects().forEach((obj) => applyToObject(obj));
+        canvas.requestRenderAll();
+        pushHistory();
     };
 
     const updateBgColor = (color: string) => {
