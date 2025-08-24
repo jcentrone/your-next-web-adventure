@@ -6,9 +6,11 @@ import {Tooltip, TooltipContent, TooltipTrigger, TooltipProvider} from "@/compon
 
 import {
     AlignHorizontalJustifyCenter,
-    AlignLeft,
-    AlignRight,
+    AlignStartVertical,
+    AlignEndVertical,
     AlignVerticalJustifyCenter,
+    AlignVerticalJustifyStart,
+    AlignVerticalJustifyEnd,
     ArrowDown,
     ArrowUp,
     BetweenHorizontalStart,
@@ -26,6 +28,7 @@ import {
     ZoomIn,
     ZoomOut,
 } from "lucide-react";
+
 
 interface EditorToolbarProps {
     onUndo: () => void;
@@ -141,7 +144,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
                             <Tip label={hasMultipleSelection ? "Align left" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("left")}
                                         disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
-                                    <AlignLeft className="h-4 w-4"/>
+                                    <AlignStartVertical className="h-4 w-4"/>
                                 </Button>
                             </Tip>
                             <Tip label={hasMultipleSelection ? "Align horizontal center" : "Select multiple objects to align"}>
@@ -153,13 +156,13 @@ export function EditorToolbar(props: EditorToolbarProps) {
                             <Tip label={hasMultipleSelection ? "Align right" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("right")}
                                         disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
-                                    <AlignRight className="h-4 w-4"/>
+                                    <AlignEndVertical className="h-4 w-4"/>
                                 </Button>
                             </Tip>
                             <Tip label={hasMultipleSelection ? "Align top" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("top")}
                                         disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
-                                    <ArrowUp className="h-4 w-4"/>
+                                    <AlignVerticalJustifyStart className="h-4 w-4"/>
                                 </Button>
                             </Tip>
                             <Tip label={hasMultipleSelection ? "Align vertical center" : "Select multiple objects to align"}>
@@ -171,7 +174,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
                             <Tip label={hasMultipleSelection ? "Align bottom" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("bottom")}
                                         disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
-                                    <ArrowDown className="h-4 w-4"/>
+                                    <AlignVerticalJustifyEnd className="h-4 w-4"/>
                                 </Button>
                             </Tip>
 
