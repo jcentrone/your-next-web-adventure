@@ -272,22 +272,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
                                 </Button>
                             </Tip>
 
-                            {/* Presets */}
-                            <div className="flex items-center gap-1">
-                                <Button variant="outline" size="sm" className="h-7 px-2 text-xs"
-                                        onClick={() => onZoomChange(1)}>
-                                    100%
-                                </Button>
-                                <Button variant="outline" size="sm" className="h-7 px-2 text-xs"
-                                        onClick={() => onZoomChange(2)}>
-                                    200%
-                                </Button>
-                                {/* "Fit" -> your layout already auto-fits via outer fitScale; 1 works as a reset */}
-                                <Button variant="outline" size="sm" className="h-7 px-2 text-xs"
-                                        onClick={() => onZoomChange(1)}>
-                                    Fit
-                                </Button>
-                            </div>
+                             <Separator orientation="vertical" className="h-6"/>
 
                             <Tip label="Toggle grid">
                                 <Button variant={showGrid ? "default" : "ghost"} size="sm" onClick={onToggleGrid}
