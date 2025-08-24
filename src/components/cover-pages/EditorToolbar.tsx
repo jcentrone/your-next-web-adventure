@@ -1,13 +1,10 @@
 // src/components/cover-pages/EditorToolbar.tsx
-import React, {useMemo, useState} from "react";
+import React from "react";
 import {Button} from "@/components/ui/button";
 import {Separator} from "@/components/ui/separator";
-import {Input} from "@/components/ui/input";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 
 import {
-    AlignCenter,
     AlignHorizontalJustifyCenter,
     AlignLeft,
     AlignRight,
@@ -23,27 +20,12 @@ import {
     Magnet,
     Redo2,
     Ruler,
-    SlidersHorizontal,
-    Table as TableIcon,
     Trash2,
-    Type as TypeIcon,
     Undo2,
     Ungroup,
     ZoomIn,
     ZoomOut,
 } from "lucide-react";
-
-type TableData = {
-    type: "table";
-    rows: number;
-    cols: number;
-    cellW: number;
-    cellH: number;
-    borderColor: string;
-    borderWidth: number;
-    cellPadX: number;
-    cellPadY: number;
-};
 
 interface EditorToolbarProps {
     onUndo: () => void;
@@ -68,13 +50,6 @@ interface EditorToolbarProps {
     onUngroup: () => void;
     onAlign: (type: "left" | "centerH" | "right" | "top" | "centerV" | "bottom") => void;
 
-    // Context
-    selected: any | null;
-    isTable: boolean;
-    tableData?: TableData;
-    updateSelected: (prop: string, value: unknown) => void;
-    updateTable: (updates: Partial<TableData>) => void;
-
     // Layering (existing)
     onBringForward: () => void;
     onSendBackward: () => void;
@@ -95,7 +70,6 @@ export function EditorToolbar(props: EditorToolbarProps) {
         onZoomIn, onZoomOut, zoom, onZoomChange,
         showGrid, onToggleGrid, showRulers, onToggleRulers,
         selectedObjects, onCopy, onDelete, onGroup, onUngroup, onAlign,
-        selected, isTable, tableData, updateSelected, updateTable,
         onBringForward, onSendBackward,
 
         // optional
@@ -104,50 +78,8 @@ export function EditorToolbar(props: EditorToolbarProps) {
         onDistribute,
         onBringToFront, onSendToBack,
     } = props;
-
     const hasSelection = selectedObjects.length > 0;
     const hasMultipleSelection = selectedObjects.length > 1;
-    const isText = !!selected && selected.type === "textbox";
-
-    const currentFill = (selected && "fill" in selected && typeof (selected as any).fill === "string")
-        ? (selected as any).fill : "#000000";
-    const currentStroke = (selected && "stroke" in selected && typeof (selected as any).stroke === "string")
-        ? (selected as any).stroke : "#000000";
-    const currentStrokeWidth = (selected && "strokeWidth" in selected)
-        ? ((selected as any).strokeWidth ?? 1) : 1;
-
-    const currentWidth = selected ? Math.round(((selected.width || 0) * (selected.scaleX || 1)) as number) : 0;
-    const currentHeight = selected ? Math.round(((selected.height || 0) * (selected.scaleY || 1)) as number) : 0;
-    const currentAngle = selected ? (selected.angle || 0) : 0;
-
-    const [lockAspect, setLockAspect] = useState(true);
-
-    const aspect = useMemo(() => {
-        if (!selected) return 1;
-        const w = (selected.width || 1) * (selected.scaleX || 1);
-        const h = (selected.height || 1) * (selected.scaleY || 1);
-        return w && h ? w / h : 1;
-    }, [selected, currentWidth, currentHeight]);
-
-    const setWidth = (w: number) => {
-        if (!selected) return;
-        updateSelected("scaleX", w / ((selected.width || 1) as number));
-        if (lockAspect) {
-            const h = Math.max(1, Math.round(w / (aspect || 1)));
-            updateSelected("scaleY", h / ((selected.height || 1) as number));
-        }
-    };
-
-    const setHeight = (h: number) => {
-        if (!selected) return;
-        updateSelected("scaleY", h / ((selected.height || 1) as number));
-        if (lockAspect) {
-            const w = Math.max(1, Math.round(h * (aspect || 1)));
-            updateSelected("scaleX", w / ((selected.width || 1) as number));
-        }
-    };
-
-    const pct = (z: number) => `${Math.round(z * 100)}%`;
 
     return (
         <div id="editor_toolbar" className="w-full overflow-x-auto">
@@ -314,14 +246,14 @@ export function EditorToolbar(props: EditorToolbarProps) {
                             </Tip>
 
                             <div className="flex items-center gap-1">
-                                <Input
+                                <input
                                     type="number"
                                     value={Math.round(zoom * 100)}
                                     onChange={(e) => {
                                         const value = Math.min(500, Math.max(10, Number(e.target.value || 0)));
                                         onZoomChange(value / 100);
                                     }}
-                                    className="w-16 h-8 text-xs text-center"
+                                    className="w-16 h-8 text-xs text-center border rounded"
                                     min={10}
                                     max={500}
                                 />
@@ -377,8 +309,8 @@ export function EditorToolbar(props: EditorToolbarProps) {
                                 </Button>
                             </Tip>
 
-                            {/* Pan toggle (optional) — if you wire a spacebar/hand tool */}
-                            {/* <Tip label="Pan (hold Space)">
+                        {/* Pan toggle (optional) — if you wire a spacebar/hand tool */}
+                        {/* <Tip label="Pan (hold Space)">
                 <Button
                   variant={isPanning ? "default" : "ghost"}
                   size="sm"
@@ -390,287 +322,6 @@ export function EditorToolbar(props: EditorToolbarProps) {
                 </Button>
               </Tip> */}
                         </div>
-
-                        {/* ===== Context panels ===== */}
-
-                        {/* OBJECT panel */}
-                        <Separator orientation="vertical" className="h-6"/>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant={hasSelection ? "default" : "ghost"} size="sm" disabled={!hasSelection}
-                                        className="h-8">
-                                    <SlidersHorizontal className="h-4 w-4 mr-2"/>
-                                    Object
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-72" align="end">
-                                {!hasSelection ? (
-                                    <div className="text-sm text-muted-foreground">No object selected</div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label className="text-xs">Fill</label>
-                                                <Input type="color" value={currentFill}
-                                                       onChange={(e) => updateSelected("fill", e.target.value)}/>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Stroke</label>
-                                                <Input type="color" value={currentStroke}
-                                                       onChange={(e) => updateSelected("stroke", e.target.value)}/>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Stroke Width</label>
-                                                <Input
-                                                    type="number"
-                                                    value={currentStrokeWidth}
-                                                    onChange={(e) => updateSelected("strokeWidth", parseInt(e.target.value || "0", 10))}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Rotation</label>
-                                                <Input
-                                                    type="number"
-                                                    value={currentAngle}
-                                                    onChange={(e) => updateSelected("angle", parseInt(e.target.value || "0", 10))}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Width</label>
-                                                <Input
-                                                    type="number"
-                                                    value={currentWidth}
-                                                    onChange={(e) => setWidth(Math.max(1, parseInt(e.target.value || "1", 10)))}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Height</label>
-                                                <Input
-                                                    type="number"
-                                                    value={currentHeight}
-                                                    onChange={(e) => setHeight(Math.max(1, parseInt(e.target.value || "1", 10)))}
-                                                />
-                                            </div>
-                                            <div className="col-span-2 flex items-center gap-2">
-                                                <input
-                                                    id="lockAspect"
-                                                    type="checkbox"
-                                                    className="h-4 w-4"
-                                                    checked={lockAspect}
-                                                    onChange={(e) => setLockAspect(e.target.checked)}
-                                                />
-                                                <label htmlFor="lockAspect" className="text-xs">Lock aspect
-                                                    ratio</label>
-                                                <span
-                                                    className="ml-auto text-xs text-muted-foreground">{pct(1)} = {currentWidth}×{Math.round(currentWidth / (aspect || 1))}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <Button variant="outline" size="sm" className="flex-1"
-                                                    onClick={onBringForward} aria-label="Bring Forward">
-                                                <ArrowUp className="h-4 w-4 mr-1"/> Forward
-                                            </Button>
-                                            <Button variant="outline" size="sm" className="flex-1"
-                                                    onClick={onSendBackward} aria-label="Send Backward">
-                                                <ArrowDown className="h-4 w-4 mr-1"/> Backward
-                                            </Button>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline" size="sm" className="flex-1"
-                                                onClick={() => onBringToFront?.()} disabled={!onBringToFront}
-                                            >
-                                                <LayersIcon className="h-4 w-4 mr-1 rotate-180"/> To Front
-                                            </Button>
-                                            <Button
-                                                variant="outline" size="sm" className="flex-1"
-                                                onClick={() => onSendToBack?.()} disabled={!onSendToBack}
-                                            >
-                                                <LayersIcon className="h-4 w-4 mr-1"/> To Back
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </PopoverContent>
-                        </Popover>
-
-                        {/* TEXT panel */}
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant={isText ? "default" : "ghost"} size="sm" disabled={!isText}
-                                        className="h-8">
-                                    <TypeIcon className="h-4 w-4 mr-2"/>
-                                    Text
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-72" align="end">
-                                {!isText ? (
-                                    <div className="text-sm text-muted-foreground">Select a text box</div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label className="text-xs">Color</label>
-                                                <Input
-                                                    type="color"
-                                                    value={typeof selected.fill === "string" ? selected.fill : "#000000"}
-                                                    onChange={(e) => updateSelected("fill", e.target.value)}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Font Size</label>
-                                                <Input
-                                                    type="number"
-                                                    value={selected.fontSize || 16}
-                                                    onChange={(e) => updateSelected("fontSize", parseInt(e.target.value || "0", 10))}
-                                                />
-                                            </div>
-                                            <div className="col-span-2">
-                                                <label className="text-xs">Font Family</label>
-                                                <select
-                                                    className="w-full border rounded h-9 px-2 text-sm"
-                                                    value={selected.fontFamily || ""}
-                                                    onChange={(e) => updateSelected("fontFamily", e.target.value)}
-                                                >
-                                                    {["Arial", "Times New Roman", "Courier New", "Georgia", "Verdana"].map(f => (
-                                                        <option key={f} value={f}>{f}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant={selected.fontWeight === "bold" ? "default" : "outline"}
-                                                onClick={() => updateSelected("fontWeight", selected.fontWeight === "bold" ? "normal" : "bold")}
-                                            >
-                                                Bold
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                size="sm"
-                                                variant={selected.fontStyle === "italic" ? "default" : "outline"}
-                                                onClick={() => updateSelected("fontStyle", selected.fontStyle === "italic" ? "normal" : "italic")}
-                                            >
-                                                Italic
-                                            </Button>
-                                        </div>
-
-                                        <div>
-                                            <label className="text-xs">Align</label>
-                                            <div className="flex gap-2 mt-1">
-                                                <Button size="sm"
-                                                        variant={selected.textAlign === "left" ? "default" : "outline"}
-                                                        onClick={() => updateSelected("textAlign", "left")}>
-                                                    <AlignLeft className="h-4 w-4"/>
-                                                </Button>
-                                                <Button size="sm"
-                                                        variant={selected.textAlign === "center" ? "default" : "outline"}
-                                                        onClick={() => updateSelected("textAlign", "center")}>
-                                                    <AlignCenter className="h-4 w-4"/>
-                                                </Button>
-                                                <Button size="sm"
-                                                        variant={selected.textAlign === "right" ? "default" : "outline"}
-                                                        onClick={() => updateSelected("textAlign", "right")}>
-                                                    <AlignRight className="h-4 w-4"/>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </PopoverContent>
-                        </Popover>
-
-                        {/* TABLE panel */}
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant={isTable ? "default" : "ghost"} size="sm" disabled={!isTable}
-                                        className="h-8">
-                                    <TableIcon className="h-4 w-4 mr-2"/>
-                                    Table
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-80" align="end">
-                                {!isTable || !tableData ? (
-                                    <div className="text-sm text-muted-foreground">Select a table</div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <Button variant="outline" size="sm"
-                                                    onClick={() => updateTable({rows: tableData.rows + 1})}>
-                                                Add Row
-                                            </Button>
-                                            <Button variant="outline" size="sm"
-                                                    onClick={() => updateTable({rows: Math.max(1, tableData.rows - 1)})}>
-                                                Remove Row
-                                            </Button>
-                                            <Button variant="outline" size="sm"
-                                                    onClick={() => updateTable({cols: tableData.cols + 1})}>
-                                                Add Column
-                                            </Button>
-                                            <Button variant="outline" size="sm"
-                                                    onClick={() => updateTable({cols: Math.max(1, tableData.cols - 1)})}>
-                                                Remove Column
-                                            </Button>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label className="text-xs">Cell Width</label>
-                                                <Input
-                                                    type="number"
-                                                    value={tableData.cellW}
-                                                    onChange={(e) => updateTable({cellW: parseInt(e.target.value || "0", 10)})}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Cell Height</label>
-                                                <Input
-                                                    type="number"
-                                                    value={tableData.cellH}
-                                                    onChange={(e) => updateTable({cellH: parseInt(e.target.value || "0", 10)})}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Border Color</label>
-                                                <Input
-                                                    type="color"
-                                                    value={tableData.borderColor}
-                                                    onChange={(e) => updateTable({borderColor: e.target.value})}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Border Width</label>
-                                                <Input
-                                                    type="number"
-                                                    value={tableData.borderWidth}
-                                                    onChange={(e) => updateTable({borderWidth: parseInt(e.target.value || "0", 10)})}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Padding X</label>
-                                                <Input
-                                                    type="number"
-                                                    value={tableData.cellPadX}
-                                                    onChange={(e) => updateTable({cellPadX: parseInt(e.target.value || "0", 10)})}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs">Padding Y</label>
-                                                <Input
-                                                    type="number"
-                                                    value={tableData.cellPadY}
-                                                    onChange={(e) => updateTable({cellPadY: parseInt(e.target.value || "0", 10)})}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </PopoverContent>
-                        </Popover>
 
                     </div>
                 </div>
