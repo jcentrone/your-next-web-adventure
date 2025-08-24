@@ -1,10 +1,10 @@
+import type React from "react";
 import {Button} from "@/components/ui/button.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {AlignCenter, AlignLeft, AlignRight, Bold, Italic, Plus} from "lucide-react";
 
 export function TextSection({
-                                addText,
                                 selected,
                                 updateSelected,
                                 fonts,
@@ -16,9 +16,20 @@ export function TextSection({
 }) {
     const isTextbox = selected?.type === "textbox";
 
+    const handleDragStart = (e: React.DragEvent) => {
+        e.dataTransfer.setData(
+            "application/x-cover-element",
+            JSON.stringify({type: "text"})
+        );
+    };
+
     return (
         <div className="space-y-2">
-            <Button onClick={addText} className="w-full">
+            <Button
+                draggable
+                onDragStart={handleDragStart}
+                className="w-full"
+            >
                 <Plus className="mr-2 h-4 w-4"/> Add Text Box
             </Button>
 

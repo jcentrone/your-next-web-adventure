@@ -1,3 +1,4 @@
+import type React from "react";
 import {Label} from "@/components/ui/label.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Trash2} from "lucide-react";
@@ -8,13 +9,19 @@ export function ImagesSection({
                                   images,
                                   onImageUpload,
                                   onDeleteImage,
-                                  onAddImageFromUrl,
                               }: {
     images: ImageLibItem[];
     onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onDeleteImage: (path: string) => void;
     onAddImageFromUrl: (url: string) => void;
 }) {
+    const handleDragStart = (e: React.DragEvent, url: string) => {
+        e.dataTransfer.setData(
+            "application/x-cover-element",
+            JSON.stringify({type: "image", url})
+        );
+    };
+
     return (
         <div>
             <Label htmlFor="image-upload" className="mb-1 block">
@@ -26,7 +33,8 @@ export function ImagesSection({
                     <div
                         key={img.path}
                         className="relative group"
-                        onClick={() => onAddImageFromUrl(img.url)}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, img.url)}
                     >
                         <img src={img.url} alt={img.name} className="h-20 w-full object-cover cursor-pointer"/>
                         <button

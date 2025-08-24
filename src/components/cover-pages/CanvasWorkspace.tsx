@@ -7,6 +7,7 @@ interface CanvasWorkspaceProps {
     zoom: number;
     showGrid: boolean;
     showRulers: boolean;
+    onDropElement: (item: {type: string; data: any; x: number; y: number}) => void;
 }
 
 export function CanvasWorkspace({
@@ -15,6 +16,7 @@ export function CanvasWorkspace({
                                     zoom,
                                     showGrid,
                                     showRulers,
+                                    onDropElement,
                                 }: CanvasWorkspaceProps) {
     const workspaceRef = useRef<HTMLDivElement>(null);
 
@@ -131,7 +133,26 @@ export function CanvasWorkspace({
 
                     {/* Canvas Container */}
                     <div className="relative inline-block">
-                        <div className="relative bg-white shadow-lg">
+                        <div
+                            className="relative bg-white shadow-lg"
+                            onDragOver={(e) => e.preventDefault()}
+                            onDrop={(e) => {
+                                e.preventDefault();
+                                const data = e.dataTransfer.getData("application/x-cover-element");
+                                if (!data) return;
+                                let payload: any;
+                                try {
+                                    payload = JSON.parse(data);
+                                } catch {
+                                    return;
+                                }
+                                const rect = canvasRef.current?.getBoundingClientRect();
+                                const x = rect ? (e.clientX - rect.left) / zoom : 0;
+                                const y = rect ? (e.clientY - rect.top) / zoom : 0;
+                                const {type, ...rest} = payload;
+                                onDropElement({type, data: rest, x, y});
+                            }}
+                        >
                             <canvas ref={canvasRef}/>
 
                             {/* Grid overlay (on top of canvas) */}
