@@ -7,7 +7,7 @@ interface CanvasWorkspaceProps {
     zoom: number;
     showGrid: boolean;
     showRulers: boolean;
-    onDropElement?: (item: {type: string; data: any; x: number; y: number}) => void;
+    onDropElement?: (item: {type: string; data: unknown; x: number; y: number}) => void;
 }
 
 export function CanvasWorkspace({
@@ -133,27 +133,29 @@ export function CanvasWorkspace({
 
                     {/* Canvas Container */}
                     <div className="relative inline-block">
-                        <div
-                            className="relative bg-white shadow-lg"
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => {
-                                e.preventDefault();
-                                const data = e.dataTransfer.getData("application/x-cover-element");
-                                if (!data) return;
-                                let payload: any;
-                                try {
-                                    payload = JSON.parse(data);
-                                } catch {
-                                    return;
-                                }
-                                const rect = canvasRef.current?.getBoundingClientRect();
-                                const x = rect ? (e.clientX - rect.left) / zoom : 0;
-                                const y = rect ? (e.clientY - rect.top) / zoom : 0;
-                                const {type, ...rest} = payload;
-                                onDropElement?.({type, data: rest, x, y});
-                            }}
-                        >
-                            <canvas ref={canvasRef}/>
+                        <div className="relative bg-white shadow-lg">
+                            <canvas
+                                ref={canvasRef}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => {
+                                    e.preventDefault();
+                                    if (!canvasRef.current) return;
+                                    const data = e.dataTransfer.getData("application/x-cover-element");
+                                    if (!data) return;
+                                    let payload: unknown;
+                                    try {
+                                        payload = JSON.parse(data);
+                                    } catch {
+                                        return;
+                                    }
+                                    if (typeof payload !== "object" || payload === null || !("type" in payload)) return;
+                                    const rect = canvasRef.current.getBoundingClientRect();
+                                    const x = (e.clientX - rect.left) / zoom;
+                                    const y = (e.clientY - rect.top) / zoom;
+                                    const {type, ...rest} = payload as {type: string} & Record<string, unknown>;
+                                    onDropElement?.({type, data: rest, x, y});
+                                }}
+                            />
 
                             {/* Grid overlay (on top of canvas) */}
                             {showGrid && (
