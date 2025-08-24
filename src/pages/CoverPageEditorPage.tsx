@@ -1,4 +1,5 @@
-import {type ComponentType, useEffect, useRef, useState} from "react";
+// src/pages/CoverPageEditorPage.tsx
+import {useEffect, useRef, useState} from "react";
 import {useForm} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
 import {
@@ -7,86 +8,44 @@ import {
     FabricObject,
     Group,
     Image as FabricImage,
-    Line,
     loadSVGFromString,
     Polygon,
     Rect,
     Textbox,
     util as FabricUtil,
 } from "fabric";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {Checkbox} from "@/components/ui/checkbox";
-import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
+
 import useCoverPages from "@/hooks/useCoverPages";
 import useImageLibrary from "@/hooks/useImageLibrary";
-import * as LucideIcons from "lucide-react";
-import {
-    AlignCenter,
-    AlignLeft,
-    AlignRight,
-    ArrowDown,
-    ArrowLeftRight,
-    ArrowRight as ArrowRightIcon,
-    ArrowUp,
-    Bold,
-    Circle as CircleIcon,
-    Image,
-    Italic,
-    Palette,
-    Pentagon,
-    Plus,
-    Settings,
-    Shapes,
-    Square,
-    Star as StarIcon,
-    Table as TableIcon,
-    Trash2,
-    Triangle as TriangleIcon,
-    Type
-} from "lucide-react";
+
 import {EditorToolbar} from "@/components/cover-pages/EditorToolbar";
 import {CanvasWorkspace} from "@/components/cover-pages/CanvasWorkspace";
-import {icons as lucideIcons} from "lucide";
+import {EditorSidebar} from "@/components/cover-pages/EditorSidebar";
+import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal";
+
+import {useCanvasKeyboardShortcuts} from "@/hooks/useCanvasKeyboardShortcuts";
+import {useCanvasHistory} from "@/hooks/useCanvasHistory";
+
+import {FONTS, GRID_SIZE, PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES,} from "@/constants/coverPageEditor";
+
+import {createTableGroup, type TableData} from "@/lib/fabricTables";
+
+import {
+    addArrow as addArrowShape,
+    addBidirectionalArrow as addBidirectionalArrowShape,
+    addCircle as addCircleShape,
+    addImageFromUrl as addImageFromUrlShape,
+    addLucideIconByName,
+    addRect as addRectShape,
+    addStar as addStarShape,
+    addText as addTextShape,
+    addTriangle as addTriangleShape,
+    type Palette,
+} from "@/lib/fabricShapes";
+
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 
-
-const TEMPLATES: Record<string, string> = {
-    default: "#ffffff",
-    blue: "#ebf8ff",
-};
-
-const REPORT_TYPES = [
-    {value: "home_inspection", label: "Home Inspection"},
-    {value: "wind_mitigation", label: "Wind Mitigation"},
-];
-
-const FONTS = ["Arial", "Times New Roman", "Courier New", "Georgia", "Verdana"];
-
-const GRID_SIZE = 20;
-
-const PRESET_BG_COLORS = [
-    "#ffffff",
-    "#f3f4f6",
-    "#000000",
-    "#3b82f6",
-    "#10b981",
-    "#fbbf24",
-    "#ef4444",
-];
-
 type CanvasObject = Rect | Circle | Polygon | Textbox | FabricImage | Group;
-
-interface TableData {
-    type: "table";
-    rows: number;
-    cols: number;
-    cellW: number;
-    cellH: number;
-    borderColor: string;
-    borderWidth: number;
-}
 
 interface FormValues {
     name: string;
@@ -97,15 +56,19 @@ interface FormValues {
 export default function CoverPageEditorPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
+
     const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
     const [selectedObjects, setSelectedObjects] = useState<FabricObject[]>([]);
     const [selected, setSelected] = useState<CanvasObject | null>(null);
+
     const [fitScale, setFitScale] = useState(1);
     const [zoom, setZoom] = useState(0.85);
-    const [history, setHistory] = useState<string[]>([]);
-    const [historyIndex, setHistoryIndex] = useState(-1);
+
     const {id} = useParams<{ id: string }>();
     const navigate = useNavigate();
+
+    const [showShortcuts, setShowShortcuts] = useState(false);
+
     const {
         createCoverPage,
         updateCoverPage,
@@ -114,466 +77,133 @@ export default function CoverPageEditorPage() {
         removeAssignmentFromReportType,
         coverPages,
     } = useCoverPages();
+
     const form = useForm<FormValues>({
         defaultValues: {name: "", template: "default", reportTypes: []},
     });
+
     const {register, handleSubmit, setValue, watch} = form;
     const template = watch("template") as keyof typeof TEMPLATES;
     const reportTypes = watch("reportTypes");
+
     const [bgColor, setBgColor] = useState(TEMPLATES[template]);
-    const {images, uploadImage, deleteImage} = useImageLibrary();
-    const [iconSearch, setIconSearch] = useState("");
-    const [clipartSearch, setClipartSearch] = useState("");
-    const [openmojis, setOpenmojis] = useState<any[]>([]);
-    const [tableRows, setTableRows] = useState(2);
-    const [tableCols, setTableCols] = useState(2);
-    const [tableBorderColor, setTableBorderColor] = useState("#000000");
     const [palette, setPalette] = useState<ColorPalette>(COLOR_PALETTES[0]);
-    const [recentColors, setRecentColors] = useState<string[]>([]);
     const [showGrid, setShowGrid] = useState(true);
     const [showRulers, setShowRulers] = useState(false);
-
-    const handleCopy = () => {
-        if (!canvas || selectedObjects.length === 0) return;
-
-        selectedObjects.forEach((obj) => {
-            obj.clone().then((cloned: FabricObject) => {
-                cloned.set({
-                    left: (cloned.left || 0) + 10,
-                    top: (cloned.top || 0) + 10,
-                });
-                canvas.add(cloned);
-                canvas.setActiveObject(cloned);
-                canvas.renderAll();
-                pushHistory();
-            });
-        });
-    };
-
-    const handleDelete = () => {
-        if (!canvas || selectedObjects.length === 0) return;
-
-        selectedObjects.forEach((obj) => {
-            canvas.remove(obj);
-        });
-        canvas.renderAll();
-        pushHistory();
-    };
-
-    const handleGroup = () => {
-        if (!canvas || selectedObjects.length < 2) return;
-
-        const group = new Group(selectedObjects, {
-            left: 0,
-            top: 0,
-        });
-
-        selectedObjects.forEach((obj) => canvas.remove(obj));
-        canvas.add(group);
-        canvas.setActiveObject(group);
-        canvas.renderAll();
-        pushHistory();
-    };
-
-    const handleUngroup = () => {
-        if (!canvas || selectedObjects.length !== 1) return;
-
-        const obj = selectedObjects[0];
-        if (obj.type === "group") {
-            const group = obj as Group;
-            const objects = group.getObjects();
-            canvas.remove(group);
-
-            objects.forEach((o) => {
-                canvas.add(o);
-            });
-
-            canvas.renderAll();
-            pushHistory();
-        }
-    };
-
-    const handleAlign = (type: string) => {
-        if (!canvas || selectedObjects.length < 2) return;
-
-        const activeSelection = canvas.getActiveObject();
-        if (!activeSelection || activeSelection.type !== "activeSelection") return;
-
-        const objects = (activeSelection as any).getObjects();
-        if (!objects || objects.length < 2) return;
-
-        const bounds = objects.reduce((acc: any, obj: any) => {
-            const objBounds = obj.getBoundingRect();
-            return {
-                left: Math.min(acc.left || objBounds.left, objBounds.left),
-                top: Math.min(acc.top || objBounds.top, objBounds.top),
-                right: Math.max(acc.right || objBounds.left + objBounds.width, objBounds.left + objBounds.width),
-                bottom: Math.max(acc.bottom || objBounds.top + objBounds.height, objBounds.top + objBounds.height),
-            };
-        }, {});
-
-        objects.forEach((obj: any) => {
-            const objBounds = obj.getBoundingRect();
-
-            switch (type) {
-                case "left":
-                    obj.set({left: bounds.left});
-                    break;
-                case "right":
-                    obj.set({left: bounds.right - objBounds.width});
-                    break;
-                case "centerH":
-                    obj.set({left: bounds.left + (bounds.right - bounds.left) / 2 - objBounds.width / 2});
-                    break;
-                case "top":
-                    obj.set({top: bounds.top});
-                    break;
-                case "bottom":
-                    obj.set({top: bounds.bottom - objBounds.height});
-                    break;
-                case "centerV":
-                    obj.set({top: bounds.top + (bounds.bottom - bounds.top) / 2 - objBounds.height / 2});
-                    break;
-            }
-
-            obj.setCoords();
-        });
-
-        canvas.renderAll();
-        pushHistory();
-    };
-
-    const updateBgColor = (color: string) => {
-        setBgColor(color);
-        setRecentColors((prev) => {
-            const colors = [color, ...prev.filter((c) => c !== color)];
-            return colors.slice(0, 5);
-        });
-    };
-
-    useEffect(() => {
-        fetch(
-            "https://cdn.jsdelivr.net/npm/openmoji@16.0.0/data/openmoji.json"
-        )
-            .then((res) => res.json())
-            .then(setOpenmojis)
-            .catch(() => setOpenmojis([]));
-    }, []);
+    const [activePanel, setActivePanel] = useState<string | null>("text");
 
 
-    const pushHistory = () => {
+    const {images, uploadImage, deleteImage} = useImageLibrary();
+
+    // history hook (replaces local arrays)
+    const {
+        snapshot: pushHistory,
+        undo,
+        redo,
+        canUndo,
+        canRedo,
+    } = useCanvasHistory({canvas, onBgFromJSON: setBgColor});
+
+    // ----- helpers -----
+    const updateBgColor = (color: string) => setBgColor(color);
+
+    const onAddPlaceholder = (token: string) => {
         if (!canvas) return;
-        const json = JSON.stringify(canvas.toJSON());
-        const newHistory = history.slice(0, historyIndex + 1);
-        newHistory.push(json);
-        setHistory(newHistory);
-        setHistoryIndex(newHistory.length - 1);
+        const tb = new Textbox(`${token}`, {
+            left: 120,
+            top: 120,
+            fontSize: 20,
+            fill: palette.colors[3] || palette.colors[0],
+        });
+        canvas.add(tb);
+        canvas.setActiveObject(tb);
+        canvas.requestRenderAll();
+        pushHistory();
     };
 
-    useEffect(() => {
-        const canvasElement = canvasRef.current;
-        if (!canvasElement) return;
-        const c = new FabricCanvas(canvasElement, {
-            width: 816,
-            height: 1056,
-            backgroundColor: bgColor,
-        });
-        setCanvas(c);
-
-        const initialJson = JSON.stringify(c.toJSON());
-        setHistory([initialJson]);
-        setHistoryIndex(0);
-
-        c.on("selection:cleared", () => {
-            setSelected(null);
-            setSelectedObjects([]);
-        });
-        c.on("selection:updated", (e) => {
-            const objs = e.selected || [];
-            setSelectedObjects(objs);
-            setSelected((objs[0] as CanvasObject) || null);
-        });
-        c.on("selection:created", (e) => {
-            const objs = e.selected || [];
-            setSelectedObjects(objs);
-            setSelected((objs[0] as CanvasObject) || null);
-        });
-
-        c.on("object:modified", () => pushHistory());
-        c.on("object:moving", (e) => {
-            const obj = e.target as CanvasObject;
-            obj.set({
-                left: Math.round((obj.left || 0) / GRID_SIZE) * GRID_SIZE,
-                top: Math.round((obj.top || 0) / GRID_SIZE) * GRID_SIZE,
-            });
-        });
-        c.on("object:scaling", (e) => {
-            const obj = e.target as CanvasObject;
-            const width = (obj.width || 0) * (obj.scaleX || 1);
-            const height = (obj.height || 0) * (obj.scaleY || 1);
-            const snappedW = Math.round(width / GRID_SIZE) * GRID_SIZE;
-            const snappedH = Math.round(height / GRID_SIZE) * GRID_SIZE;
-            obj.set({
-                scaleX: snappedW / (obj.width || 1),
-                scaleY: snappedH / (obj.height || 1),
-            });
-        });
-
-        return () => {
-            c.dispose();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        setBgColor(TEMPLATES[template]);
-    }, [template]);
-
-    useEffect(() => {
-        if (canvas) {
-            canvas.set({backgroundColor: bgColor});
-            canvas.requestRenderAll();
-        }
-    }, [bgColor, canvas]);
-
-    useEffect(() => {
-        if (!canvas || !id) return;
-        const cp = coverPages.find((c) => c.id === id);
-        if (!cp) return;
-        setValue("name", cp.name);
-        setValue("template", (cp.template_slug as keyof typeof TEMPLATES) || "default");
-        const selected = Object.entries(assignments)
-            .filter(([_, cpId]) => cpId === id)
-            .map(([rt]) => rt);
-        setValue("reportTypes", selected);
-        canvas.loadFromJSON(cp.design_json as any || {}, () => {
-            canvas.renderAll();
-            const loadedBg =
-                (cp.design_json as any)?.backgroundColor ||
-                (cp.design_json as any)?.background ||
-                TEMPLATES[(cp.template_slug as keyof typeof TEMPLATES) || "default"];
-            setBgColor(loadedBg);
-            const json = JSON.stringify(canvas.toJSON());
-            setHistory([json]);
-            setHistoryIndex(0);
-        });
-    }, [canvas, id, coverPages, assignments, setValue]);
-
+    const paletteAsHelper: Palette = {colors: palette.colors};
 
     const addRect = () => {
         if (!canvas) return;
-        const rect = new Rect({
-            left: 100,
-            top: 100,
-            width: 100,
-            height: 100,
-            fill: palette.colors[0],
-            stroke: palette.colors[1] || palette.colors[0],
-        });
-        canvas.add(rect);
-        canvas.setActiveObject(rect);
-        canvas.renderAll();
+        addRectShape(canvas, paletteAsHelper);
         pushHistory();
     };
-
     const addCircle = () => {
         if (!canvas) return;
-        const circle = new Circle({
-            left: 100,
-            top: 100,
-            radius: 50,
-            fill: palette.colors[0],
-            stroke: palette.colors[1] || palette.colors[0],
-            strokeWidth: 2,
-        });
-        canvas.add(circle);
-        canvas.setActiveObject(circle);
-        canvas.renderAll();
+        addCircleShape(canvas, paletteAsHelper);
         pushHistory();
     };
-
     const addStar = () => {
         if (!canvas) return;
-        const points: { x: number; y: number }[] = [];
-        const outer = 50;
-        const inner = 20;
-        for (let i = 0; i < 10; i++) {
-            const angle = (Math.PI / 5) * i;
-            const r = i % 2 === 0 ? outer : inner;
-            points.push({
-                x: 50 + r * Math.sin(angle),
-                y: 50 - r * Math.cos(angle),
-            });
-        }
-        const star = new Polygon(points, {
-            left: 100,
-            top: 100,
-            fill: palette.colors[0],
-            stroke: palette.colors[1] || palette.colors[0],
-            strokeWidth: 2,
-        });
-        canvas.add(star);
-        canvas.setActiveObject(star);
-        canvas.renderAll();
+        addStarShape(canvas, paletteAsHelper);
         pushHistory();
     };
-
     const addTriangle = () => {
         if (!canvas) return;
-        const points = [
-            {x: 50, y: 0},
-            {x: 100, y: 100},
-            {x: 0, y: 100},
-        ];
-        const triangle = new Polygon(points, {
-            left: 100,
-            top: 100,
-            fill: palette.colors[0],
-            stroke: palette.colors[1] || palette.colors[0],
-            strokeWidth: 2,
-        });
-        canvas.add(triangle);
-        canvas.setActiveObject(triangle);
-        canvas.renderAll();
+        addTriangleShape(canvas, paletteAsHelper);
         pushHistory();
     };
-
     const addPolygonShape = () => {
         if (!canvas) return;
-        const sides = 5;
-        const radius = 50;
-        const points = Array.from({length: sides}, (_, i) => {
-            const angle = (i / sides) * Math.PI * 2;
-            return {
-                x: 50 + radius * Math.cos(angle),
-                y: 50 + radius * Math.sin(angle),
-            };
-        });
-        const polygon = new Polygon(points, {
-            left: 100,
-            top: 100,
-            fill: palette.colors[0],
-            stroke: palette.colors[1] || palette.colors[0],
-            strokeWidth: 2,
-        });
-        canvas.add(polygon);
-        canvas.setActiveObject(polygon);
-        canvas.renderAll();
+        addPolygonShape(canvas, paletteAsHelper, 5, 50);
         pushHistory();
     };
-
     const addArrow = () => {
         if (!canvas) return;
-        const line = new Line([0, 0, 80, 0], {
-            stroke: palette.colors[1] || palette.colors[0],
-            strokeWidth: 2,
-        });
-        const head = new Polygon(
-            [
-                {x: 80, y: 0},
-                {x: 60, y: -10},
-                {x: 60, y: 10},
-            ],
-            {
-                fill: palette.colors[1] || palette.colors[0],
-                stroke: palette.colors[1] || palette.colors[0],
-                strokeWidth: 2,
-            }
-        );
-        const arrow = new Group([line, head], {left: 100, top: 100});
-        canvas.add(arrow);
-        canvas.setActiveObject(arrow);
-        canvas.renderAll();
+        addArrowShape(canvas, paletteAsHelper);
         pushHistory();
     };
-
     const addBidirectionalArrow = () => {
         if (!canvas) return;
-        const line = new Line([0, 0, 80, 0], {
-            stroke: palette.colors[1] || palette.colors[0],
-            strokeWidth: 2,
-        });
-        const headRight = new Polygon(
-            [
-                {x: 80, y: 0},
-                {x: 60, y: -10},
-                {x: 60, y: 10},
-            ],
-            {
-                fill: palette.colors[1] || palette.colors[0],
-                stroke: palette.colors[1] || palette.colors[0],
-                strokeWidth: 2,
-            }
-        );
-        const headLeft = new Polygon(
-            [
-                {x: 0, y: 0},
-                {x: 20, y: -10},
-                {x: 20, y: 10},
-            ],
-            {
-                fill: palette.colors[1] || palette.colors[0],
-                stroke: palette.colors[1] || palette.colors[0],
-                strokeWidth: 2,
-            }
-        );
-        const arrow = new Group([line, headLeft, headRight], {
-            left: 100,
-            top: 100,
-        });
-        canvas.add(arrow);
-        canvas.setActiveObject(arrow);
-        canvas.renderAll();
+        addBidirectionalArrowShape(canvas, paletteAsHelper);
         pushHistory();
     };
-
-    const addIcon = (name: string) => {
+    const addText = () => {
         if (!canvas) return;
-        const icon = lucideIcons[name];
-        if (!icon) return;
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon.iconNode
-            .map(([tag, attrs]) => {
-                const attrString = Object.entries(attrs)
-                    .map(([k, v]) => `${k}="${v}"`)
-                    .join(" ");
-                return `<${tag} ${attrString} />`;
-            })
-            .join("")}</svg>`;
-        loadSVGFromString(svg, (objects: any, options: any) => {
-            const obj = FabricUtil.groupSVGElements(objects, options);
-            obj.set({
-                left: 100,
-                top: 100,
-                stroke: palette.colors[1] || palette.colors[0],
-                fill: "none",
-            });
-            canvas.add(obj);
-            canvas.setActiveObject(obj);
-            canvas.renderAll();
-            pushHistory();
-        });
+        addTextShape(canvas, paletteAsHelper, "Text");
+        pushHistory();
     };
-
-
+    const addImageFromUrl = async (url: string) => {
+        if (!canvas) return;
+        await addImageFromUrlShape(canvas, url);
+        pushHistory();
+    };
+    const addIcon = async (name: string) => {
+        if (!canvas) return;
+        await addLucideIconByName(canvas, name, palette.colors[1] || palette.colors[0]);
+        pushHistory();
+    };
     const addClipart = async (hex: string) => {
         if (!canvas) return;
-        const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
-        const svg = await fetch(url).then((r) => r.text());
-        loadSVGFromString(svg, (objects: any, options: any) => {
-            const obj = FabricUtil.groupSVGElements(objects, options);
-            obj.set({left: 100, top: 100});
-            canvas.add(obj);
-            canvas.setActiveObject(obj);
-            canvas.renderAll();
+        try {
+            const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
+            const svg = await fetch(url).then((r) => r.text());
+            await new Promise<void>((resolve) => {
+                loadSVGFromString(svg, (objects, options) => {
+                    const obj = FabricUtil.groupSVGElements(objects, options);
+                    obj.set({left: 100, top: 100});
+                    canvas.add(obj);
+                    canvas.setActiveObject(obj);
+                    canvas.requestRenderAll();
+                    resolve();
+                });
+            });
             pushHistory();
-        });
+        } catch {
+        }
+    };
+    const addImage = (file: File) => {
+        if (!canvas) return;
+        const reader = new FileReader();
+        reader.onload = () => addImageFromUrl(reader.result as string);
+        reader.readAsDataURL(file);
     };
 
     const applyPalette = (p: ColorPalette) => {
         setPalette(p);
         if (!canvas) return;
         const [fillColor, strokeColor, , textColor] = p.colors;
-        canvas.getObjects().forEach((obj) => {
+        canvas.getObjects().forEach((obj: any) => {
             if (obj.type === "textbox") {
                 obj.set("fill", textColor || fillColor);
             } else {
@@ -581,95 +211,129 @@ export default function CoverPageEditorPage() {
                 if ("stroke" in obj) obj.set("stroke", strokeColor || fillColor);
             }
         });
-        canvas.renderAll();
+        canvas.requestRenderAll();
         pushHistory();
     };
 
-
-    const addText = () => {
-        if (!canvas) return;
-        const text = new Textbox("Text", {
-            left: 120,
-            top: 120,
-            fontSize: 24,
-            fill: palette.colors[3] || palette.colors[0],
-        });
-        canvas.add(text);
-        canvas.setActiveObject(text);
-        canvas.renderAll();
-        pushHistory();
-    };
-
-    const addImageFromUrl = (url: string) => {
-        if (!canvas) return;
-        FabricImage.fromURL(url).then((img) => {
-            img.set({left: 150, top: 150, scaleX: 0.5, scaleY: 0.5});
-            canvas.add(img);
-            canvas.setActiveObject(img);
-            canvas.renderAll();
+    const handleCopy = () => {
+        if (!canvas || selectedObjects.length === 0) return;
+        Promise.all(selectedObjects.map((obj) => obj.clone())).then((clones) => {
+            clones.forEach((cloned: FabricObject) => {
+                cloned.set({
+                    left: (cloned.left || 0) + 10,
+                    top: (cloned.top || 0) + 10,
+                });
+                canvas.add(cloned);
+                canvas.setActiveObject(cloned);
+            });
+            canvas.requestRenderAll();
             pushHistory();
         });
     };
 
-    const addImage = (file: File) => {
-        if (!canvas) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-            const url = reader.result as string;
-            addImageFromUrl(url);
-        };
-        reader.readAsDataURL(file);
+    const handleDelete = () => {
+        if (!canvas || selectedObjects.length === 0) return;
+        selectedObjects.forEach((obj) => canvas.remove(obj));
+        canvas.requestRenderAll();
+        pushHistory();
     };
 
-    const createTableGroup = (
-        rows: number,
-        cols: number,
-        cellW: number,
-        cellH: number,
-        borderColor: string,
-        borderWidth: number,
-        left = 100,
-        top = 100,
-    ) => {
-        const lines: Line[] = [];
-        for (let i = 0; i <= rows; i++) {
-            lines.push(
-                new Line([0, i * cellH, cols * cellW, i * cellH], {
-                    stroke: borderColor,
-                    strokeWidth: borderWidth,
-                    selectable: false,
-                }),
-            );
+    const handleGroup = () => {
+        if (!canvas) return;
+        const active = canvas.getActiveObject();
+        if (active && active.type === "activeSelection") {
+            const group = (active as any).toGroup();
+            canvas.setActiveObject(group);
+            canvas.requestRenderAll();
+            pushHistory();
         }
-        for (let i = 0; i <= cols; i++) {
-            lines.push(
-                new Line([i * cellW, 0, i * cellW, rows * cellH], {
-                    stroke: borderColor,
-                    strokeWidth: borderWidth,
-                    selectable: false,
-                }),
-            );
+    };
+
+    const handleUngroup = () => {
+        if (!canvas) return;
+        const active = canvas.getActiveObject();
+        if (active && active.type === "group") {
+            (active as any).toActiveSelection();
+            canvas.requestRenderAll();
+            pushHistory();
         }
-        const group = new Group(lines, {left, top});
-        const data: TableData = {
-            type: "table",
-            rows,
-            cols,
-            cellW,
-            cellH,
-            borderColor,
-            borderWidth,
-        };
-        (group as any).data = data;
-        return group;
+    };
+
+    const handleAlign = (type: "left" | "right" | "centerH" | "top" | "bottom" | "centerV") => {
+        if (!canvas) return;
+        const active = canvas.getActiveObject();
+        if (!active || active.type !== "activeSelection") return;
+
+        const objects = (active as any).getObjects?.() as FabricObject[] | undefined;
+        if (!objects || objects.length < 2) return;
+
+        const bounds = objects.reduce(
+            (acc, obj: any) => {
+                const b = obj.getBoundingRect();
+                return {
+                    left: Math.min(acc.left, b.left),
+                    top: Math.min(acc.top, b.top),
+                    right: Math.max(acc.right, b.left + b.width),
+                    bottom: Math.max(acc.bottom, b.top + b.height),
+                };
+            },
+            {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity}
+        );
+
+        objects.forEach((obj: any) => {
+            const b = obj.getBoundingRect();
+            switch (type) {
+                case "left":
+                    obj.set({left: bounds.left});
+                    break;
+                case "right":
+                    obj.set({left: bounds.right - b.width});
+                    break;
+                case "centerH":
+                    obj.set({left: bounds.left + (bounds.right - bounds.left) / 2 - b.width / 2});
+                    break;
+                case "top":
+                    obj.set({top: bounds.top});
+                    break;
+                case "bottom":
+                    obj.set({top: bounds.bottom - b.height});
+                    break;
+                case "centerV":
+                    obj.set({top: bounds.top + (bounds.bottom - bounds.top) / 2 - b.height / 2});
+                    break;
+            }
+            obj.setCoords();
+        });
+
+        canvas.requestRenderAll();
+        pushHistory();
+    };
+
+    const updateSelected = (prop: string, value: unknown) => {
+        if (!selected || !canvas) return;
+
+        if (selected instanceof Group) {
+            selected.getObjects().forEach((obj) =>
+                (obj as unknown as FabricObject).set(prop as never, value as never)
+            );
+        } else {
+            (selected as unknown as FabricObject).set(prop as never, value as never);
+            if (selected instanceof Textbox) {
+                selected.initDimensions();
+                selected.setCoords();
+            }
+        }
+
+        canvas.requestRenderAll();
+        pushHistory();
     };
 
     const addTable = (rows: number, cols: number, borderColor: string) => {
         if (!canvas) return;
-        const group = createTableGroup(rows, cols, 80, 40, borderColor, 1);
+        const group = createTableGroup(rows, cols, 80, 40, borderColor, 1, 100, 100, 8, 4);
         canvas.add(group);
         canvas.setActiveObject(group);
-        canvas.renderAll();
+        canvas.requestRenderAll();
         pushHistory();
     };
 
@@ -677,6 +341,7 @@ export default function CoverPageEditorPage() {
         if (!canvas || !selected || !(selected instanceof Group)) return;
         const data = {...(selected as any).data} as TableData;
         if (data?.type !== "table") return;
+
         const newData = {...data, ...updates} as TableData;
         const group = createTableGroup(
             newData.rows,
@@ -687,40 +352,25 @@ export default function CoverPageEditorPage() {
             newData.borderWidth,
             selected.left,
             selected.top,
+            newData.cellPadX,
+            newData.cellPadY
         );
         canvas.remove(selected);
         canvas.add(group);
         canvas.setActiveObject(group);
         setSelected(group);
-        canvas.renderAll();
+        canvas.requestRenderAll();
         pushHistory();
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            addImage(file);
-            await uploadImage(file);
-        }
-    };
-
-    const toggleReportType = (rt: string) => {
-        const current = watch("reportTypes");
-        if (current.includes(rt)) {
-            setValue(
-                "reportTypes",
-                current.filter((t: string) => t !== rt),
-            );
-        } else {
-            setValue("reportTypes", [...current, rt]);
-        }
-    };
-
+    // ----- data submit -----
     const onSubmit = async (values: FormValues) => {
         if (!canvas) return;
         const design = canvas.toJSON() as any;
         design.backgroundColor = bgColor;
+
         let coverPageId = id;
+
         if (id) {
             await updateCoverPage({
                 id,
@@ -742,6 +392,7 @@ export default function CoverPageEditorPage() {
         const assigned = Object.entries(assignments)
             .filter(([_, cpId]) => cpId === coverPageId)
             .map(([rt]) => rt);
+
         for (const rt of values.reportTypes) {
             if (!assigned.includes(rt)) {
                 await assignCoverPageToReportType(rt, coverPageId!);
@@ -752,66 +403,135 @@ export default function CoverPageEditorPage() {
                 await removeAssignmentFromReportType(rt);
             }
         }
+
         navigate("/cover-page-manager");
     };
+    const onSettingsSubmit = handleSubmit(onSubmit);
 
-    const updateSelected = (prop: string, value: unknown) => {
-        if (!selected || !canvas) return;
-        if (selected instanceof Group) {
-            selected.getObjects().forEach((obj) =>
-                (obj as unknown as FabricObject).set(prop as never, value as never)
-            );
+    // ----- canvas init / events -----
+    useEffect(() => {
+        const canvasEl = canvasRef.current;
+        if (!canvasEl) return;
+
+        const c = new FabricCanvas(canvasEl, {
+            width: 816,
+            height: 1056,
+            backgroundColor: bgColor,
+        });
+        setCanvas(c);
+
+        // initial snapshot after mount
+        setTimeout(() => pushHistory(), 0);
+
+        const onSelectionCleared = () => {
+            setSelected(null);
+            setSelectedObjects([]);
+        };
+        const onSelectionUpdated = (e: any) => {
+            const objs = e.selected || [];
+            setSelectedObjects(objs);
+            setSelected((objs[0] as CanvasObject) || null);
+        };
+        const onSelectionCreated = (e: any) => {
+            const objs = e.selected || [];
+            setSelectedObjects(objs);
+            setSelected((objs[0] as CanvasObject) || null);
+        };
+
+        c.on("selection:cleared", onSelectionCleared);
+        c.on("selection:updated", onSelectionUpdated);
+        c.on("selection:created", onSelectionCreated);
+        c.on("object:modified", () => pushHistory());
+
+        return () => {
+            c.off("selection:cleared", onSelectionCleared);
+            c.off("selection:updated", onSelectionUpdated);
+            c.off("selection:created", onSelectionCreated);
+            c.dispose();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // grid snap (only when grid is shown)
+    useEffect(() => {
+        if (!canvas) return;
+
+        const onMoving = (e: any) => {
+            if (!showGrid) return;
+            const obj = e.target as CanvasObject;
+            obj.set({
+                left: Math.round((obj.left || 0) / GRID_SIZE) * GRID_SIZE,
+                top: Math.round((obj.top || 0) / GRID_SIZE) * GRID_SIZE,
+            });
+        };
+        const onScaling = (e: any) => {
+            if (!showGrid) return;
+            const obj = e.target as CanvasObject;
+            const width = (obj.width || 0) * (obj.scaleX || 1);
+            const height = (obj.height || 0) * (obj.scaleY || 1);
+            const snappedW = Math.round(width / GRID_SIZE) * GRID_SIZE;
+            const snappedH = Math.round(height / GRID_SIZE) * GRID_SIZE;
+            obj.set({
+                scaleX: snappedW / (obj.width || 1),
+                scaleY: snappedH / (obj.height || 1),
+            });
+        };
+
+        canvas.on("object:moving", onMoving);
+        canvas.on("object:scaling", onScaling);
+        return () => {
+            canvas.off("object:moving", onMoving);
+            canvas.off("object:scaling", onScaling);
+        };
+    }, [canvas, showGrid]);
+
+    // template change -> bg color default
+    useEffect(() => setBgColor(TEMPLATES[template]), [template]);
+
+    // bg color -> canvas background
+    useEffect(() => {
+        if (!canvas) return;
+        canvas.set({backgroundColor: bgColor});
+        canvas.requestRenderAll();
+    }, [bgColor, canvas]);
+
+    // load existing design
+    useEffect(() => {
+        if (!canvas || !id) return;
+        const cp = coverPages.find((c) => c.id === id);
+        if (!cp) return;
+
+        setValue("name", cp.name);
+        setValue("template", (cp.template_slug as keyof typeof TEMPLATES) || "default");
+
+        const selectedRT = Object.entries(assignments)
+            .filter(([_, cpId]) => cpId === id)
+            .map(([rt]) => rt);
+        setValue("reportTypes", selectedRT);
+
+        canvas.loadFromJSON((cp.design_json as any) || {}, () => {
             canvas.renderAll();
-        } else {
-            (selected as unknown as FabricObject).set(prop as never, value as never);
-            if (selected instanceof Textbox) {
-                selected.initDimensions();
-                selected.setCoords();
-            }
-        }
-        canvas.renderAll();
-        pushHistory();
-    };
-
-    const undo = async () => {
-        if (!canvas || historyIndex <= 0) return;
-        const prev = history[historyIndex - 1];
-        await canvas.loadFromJSON(prev);
-        canvas.renderAll();
-        try {
-            const parsed = JSON.parse(prev);
-            setBgColor(parsed.backgroundColor || parsed.background || bgColor);
-        } catch {
-        }
-        setHistoryIndex(historyIndex - 1);
-    };
-
-    const redo = async () => {
-        if (!canvas || historyIndex >= history.length - 1) return;
-        const next = history[historyIndex + 1];
-        await canvas.loadFromJSON(next);
-        canvas.renderAll();
-        try {
-            const parsed = JSON.parse(next);
-            setBgColor(parsed.backgroundColor || parsed.background || bgColor);
-        } catch {
-        }
-        setHistoryIndex(historyIndex + 1);
-    };
-
-    const zoomIn = () =>
-        setZoom((z) => {
-            const newZoom = Math.min(5, z * 1.1);
-            console.log("Zoom set to", newZoom);
-            return newZoom;
+            const loadedBg =
+                (cp.design_json as any)?.backgroundColor ||
+                (cp.design_json as any)?.background ||
+                TEMPLATES[(cp.template_slug as keyof typeof TEMPLATES) || "default"];
+            setBgColor(loadedBg);
+            pushHistory();
         });
-    const zoomOut = () =>
-        setZoom((z) => {
-            const newZoom = Math.max(0.1, z / 1.1);
-            console.log("Zoom set to", newZoom);
-            return newZoom;
-        });
+    }, [canvas, id, coverPages, assignments, setValue, pushHistory]);
 
+    // close flyouts when clicking outside
+    useEffect(() => {
+        if (!activePanel) return;
+        const onPointerDown = (e: PointerEvent) => {
+            const el = e.target as HTMLElement | null;
+            if (!el?.closest('[data-flyout="true"]')) setActivePanel(null);
+        };
+        document.addEventListener("pointerdown", onPointerDown, true);
+        return () => document.removeEventListener("pointerdown", onPointerDown, true);
+    }, [activePanel]);
+
+    // fit-to-wrapper scaling
     useEffect(() => {
         const updateScale = () => {
             const wrapper = wrapperRef.current;
@@ -828,779 +548,179 @@ export default function CoverPageEditorPage() {
         return () => window.removeEventListener("resize", updateScale);
     }, []);
 
-    const [activePanel, setActivePanel] = useState<string | null>("text");
-    
+    // keyboard shortcuts
+    useCanvasKeyboardShortcuts({
+        canvas,
+        onUndo: undo,
+        onRedo: redo,
+        onCopy: handleCopy,
+        onDelete: handleDelete,
+        onGroup: handleGroup,
+        onUngroup: handleUngroup,
+        onZoomIn: () => setZoom((z) => Math.min(5, z * 1.1)),
+        onZoomOut: () => setZoom((z) => Math.max(0.1, z / 1.1)),
+        setZoom,
+        onSave: onSettingsSubmit,
+        onEscape: () => setActivePanel(null),
+        nudgeStep: 1,
+        nudgeStepBig: 10,
+        onBringForward: (obj) => {
+            if (!canvas) return;
+            canvas.bringObjectForward(obj);
+            canvas.requestRenderAll();
+            pushHistory();
+        },
+        onSendBackward: (obj) => {
+            if (!canvas) return;
+            canvas.sendObjectBackwards(obj);
+            canvas.requestRenderAll();
+            pushHistory();
+        },
+    });
+
+    // ----- render -----
     return (
-        <div className="fixed inset-x-0 top-14 h-[calc(100vh-3.5rem)] w-screen overflow-hidden flex z-30">
-            <div className="w-[14rem] p-2 border-r space-y-2 overflow-auto relative">
-                <div className="space-y-2">
-                    <div 
-                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
-                            activePanel === "settings" ? "ring-2 ring-primary border-primary" : ""
-                        }`}
-                        onClick={() => setActivePanel(activePanel === "settings" ? null : "settings")}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Settings className="h-4 w-4"/>
-                            <span className="font-medium">Settings</span>
-                        </div>
-                        {activePanel === "settings" && (
-                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] space-y-2 max-h-[80vh] overflow-y-auto">
-
-                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-                                <div>
-                                    <Label htmlFor="name">Name</Label>
-                                    <Input id="name" {...register("name")} />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label>Report Types</Label>
-                                    {REPORT_TYPES.map((rt) => (
-                                        <div key={rt.value} className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id={`rt-${rt.value}`}
-                                                checked={reportTypes.includes(rt.value)}
-                                                onCheckedChange={() => toggleReportType(rt.value)}
-                                            />
-                                            <label htmlFor={`rt-${rt.value}`} className="text-sm">
-                                                {rt.label}
-                                            </label>
-                                        </div>
-                                    ))}
-                                </div>
-                                <Button type="submit" className="w-full">
-                                    Save
-                                </Button>
-                            </form>
-                            </div>
-                        )}
+        <div className="fixed inset-x-0 top-14 h-[calc(100vh-3.5rem)] w-screen overflow-hidden z-30">
+            <div className="flex h-full">
+                {/* Right panel: toolbar on top, then sidebar + canvas */}
+                <div className="flex-1 relative flex h-full flex-col bg-[#ededed]">
+                    {/* Sticky toolbar (doesn't affect the sidebar height now) */}
+                    <div
+                        className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75 border-b">
+                        <EditorToolbar
+                            onUndo={undo}
+                            onRedo={redo}
+                            canUndo={canUndo}
+                            canRedo={canRedo}
+                            onZoomIn={() => setZoom((z) => Math.min(5, z * 1.1))}
+                            onZoomOut={() => setZoom((z) => Math.max(0.1, z / 1.1))}
+                            zoom={zoom}
+                            onZoomChange={setZoom}
+                            showGrid={showGrid}
+                            onToggleGrid={() => setShowGrid((v) => !v)}
+                            showRulers={showRulers}
+                            onToggleRulers={() => setShowRulers((v) => !v)}
+                            selectedObjects={selectedObjects}
+                            onCopy={handleCopy}
+                            onDelete={handleDelete}
+                            onGroup={handleGroup}
+                            onUngroup={handleUngroup}
+                            onAlign={handleAlign}
+                            selected={selected}
+                            isTable={Boolean(selected instanceof Group && (selected as any).data?.type === "table")}
+                            tableData={selected instanceof Group ? ((selected as any).data as TableData) : undefined}
+                            updateSelected={updateSelected}
+                            updateTable={updateTable}
+                            onBringForward={() => {
+                                if (!selected || !canvas) return;
+                                canvas.bringObjectForward(selected);
+                                canvas.requestRenderAll();
+                                pushHistory();
+                            }}
+                            onSendBackward={() => {
+                                if (!selected || !canvas) return;
+                                canvas.sendObjectBackwards(selected);
+                                canvas.requestRenderAll();
+                                pushHistory();
+                            }}
+                            onBringToFront={() => {
+                                if (!selected || !canvas) return;
+                                canvas.bringToFront(selected);
+                                canvas.requestRenderAll();
+                                pushHistory();
+                            }}
+                            onSendToBack={() => {
+                                if (!selected || !canvas) return;
+                                canvas.sendToBack(selected);
+                                canvas.requestRenderAll();
+                                pushHistory();
+                            }}
+                        />
                     </div>
 
+                    {/* Main row: Sidebar + Canvas */}
+                    <div className="flex-1 flex overflow-hidden">
+                        {/* Sidebar now lives under the toolbar */}
+                        <EditorSidebar
+                            activePanel={activePanel}
+                            setActivePanel={setActivePanel}
+                            // SETTINGS
+                            onSettingsSubmit={onSettingsSubmit}
+                            register={register}
+                            reportTypes={reportTypes}
+                            reportTypeOptions={REPORT_TYPES}
+                            toggleReportType={(rt) => {
+                                const current = watch("reportTypes");
+                                if (current.includes(rt)) {
+                                    setValue("reportTypes", current.filter((t: string) => t !== rt));
+                                } else {
+                                    setValue("reportTypes", [...current, rt]);
+                                }
+                            }}
+                            // TEXT
+                            addText={addText}
+                            selected={selected}
+                            updateSelected={updateSelected}
+                            fonts={FONTS}
+                            // IMAGES
+                            images={images}
+                            onImageUpload={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                    addImage(file);
+                                    await uploadImage(file);
+                                }
+                            }}
+                            onDeleteImage={deleteImage}
+                            onAddImageFromUrl={addImageFromUrl}
+                            // GRAPHICS
+                            addRect={addRect}
+                            addCircle={addCircle}
+                            addStar={addStar}
+                            addTriangle={addTriangle}
+                            addPolygonShape={addPolygonShape}
+                            addArrow={addArrow}
+                            addBidirectionalArrow={addBidirectionalArrow}
+                            addIcon={addIcon}
+                            addClipart={addClipart}
+                            // DESIGN
+                            templateOptions={Object.keys(TEMPLATES)}
+                            palette={palette}
+                            onApplyPalette={applyPalette}
+                            // BACKGROUND
+                            bgColor={bgColor}
+                            presetBgColors={PRESET_BG_COLORS}
+                            updateBgColor={updateBgColor}
+                            // FORM FIELDS
+                            onAddPlaceholder={onAddPlaceholder}
+                            // KEYBOARD SHORTCUTS
+                            onShowShortcuts={() => setShowShortcuts(true)}
+                            addTable={addTable}
+                        />
 
-                    <div 
-                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
-                            activePanel === "text" ? "ring-2 ring-primary border-primary" : ""
-                        }`}
-                        onClick={() => setActivePanel(activePanel === "text" ? null : "text")}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Type className="h-4 w-4"/>
-                            <span className="font-medium">Text</span>
-                        </div>
-                        {activePanel === "text" && (
-                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] space-y-2 max-h-[80vh] overflow-y-auto">
-                            <Button onClick={addText} className="w-full">
-                                <Plus className="mr-2 h-4 w-4"/> Add Text Box
-                            </Button>
-                            {selected instanceof Textbox && (
-                                <>
-                                    <div>
-                                        <Label htmlFor="text-color">Color</Label>
-                                        <Input
-                                            id="text-color"
-                                            type="color"
-                                            value={
-                                                typeof selected.fill === "string" ? selected.fill : "#000000"
-                                            }
-                                            onChange={(e) => updateSelected("fill", e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="text-font-size">Font Size</Label>
-                                        <Input
-                                            id="text-font-size"
-                                            type="number"
-                                            value={selected.fontSize || 16}
-                                            onChange={(e) =>
-                                                updateSelected("fontSize", parseInt(e.target.value, 10))
-                                            }
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="fontFamily">Font Family</Label>
-                                        <select
-                                            id="fontFamily"
-                                            className="w-full border rounded"
-                                            value={selected.fontFamily || ""}
-                                            onChange={(e) => updateSelected("fontFamily", e.target.value)}
-                                        >
-                                            {FONTS.map((f) => (
-                                                <option key={f} value={f}>
-                                                    {f}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            aria-label="Bold"
-                                            variant={selected.fontWeight === "bold" ? "default" : "outline"}
-                                            onClick={() =>
-                                                updateSelected(
-                                                    "fontWeight",
-                                                    selected.fontWeight === "bold" ? "normal" : "bold"
-                                                )
-                                            }
-                                        >
-                                            <Bold className="h-4 w-4"/>
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            aria-label="Italic"
-                                            variant={selected.fontStyle === "italic" ? "default" : "outline"}
-                                            onClick={() =>
-                                                updateSelected(
-                                                    "fontStyle",
-                                                    selected.fontStyle === "italic" ? "normal" : "italic"
-                                                )
-                                            }
-                                        >
-                                            <Italic className="h-4 w-4"/>
-                                        </Button>
-                                    </div>
-                                    <div>
-                                        <Label>Alignment</Label>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                type="button"
-                                                size="icon"
-                                                aria-label="Align Left"
-                                                variant={
-                                                    selected.textAlign === "left" ? "default" : "outline"
-                                                }
-                                                onClick={() => updateSelected("textAlign", "left")}
-                                            >
-                                                <AlignLeft className="h-4 w-4"/>
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                size="icon"
-                                                aria-label="Align Center"
-                                                variant={
-                                                    selected.textAlign === "center" ? "default" : "outline"
-                                                }
-                                                onClick={() => updateSelected("textAlign", "center")}
-                                            >
-                                                <AlignCenter className="h-4 w-4"/>
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                size="icon"
-                                                aria-label="Align Right"
-                                                variant={
-                                                    selected.textAlign === "right" ? "default" : "outline"
-                                                }
-                                                onClick={() => updateSelected("textAlign", "right")}
-                                            >
-                                                <AlignRight className="h-4 w-4"/>
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                            </div>
-                        )}
-                    </div>
-
-                    <div 
-                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
-                            activePanel === "images" ? "ring-2 ring-primary border-primary" : ""
-                        }`}
-                        onClick={() => setActivePanel(activePanel === "images" ? null : "images")}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Image className="h-4 w-4"/>
-                            <span className="font-medium">Images</span>
-                        </div>
-                        {activePanel === "images" && (
-                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
-                            <Label htmlFor="image-upload" className="mb-1 block">
-                                Image Upload
-                            </Label>
-                            <Input id="image-upload" type="file" onChange={handleImageUpload}/>
-                            <div className="mt-4 grid grid-cols-3 gap-2">
-                                {images.map((img) => (
-                                    <div
-                                        key={img.path}
-                                        className="relative group"
-                                        onClick={() => addImageFromUrl(img.url)}
-                                    >
-                                        <img
-                                            src={img.url}
-                                            alt={img.name}
-                                            className="h-20 w-full object-cover cursor-pointer"
-                                        />
-                                        <button
-                                            type="button"
-                                            className="absolute top-1 right-1 rounded-full bg-white p-1 text-red-500 opacity-0 group-hover:opacity-100"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                deleteImage(img.path);
-                                            }}
-                                        >
-                                            <Trash2 className="h-4 w-4"/>
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                            </div>
-                        )}
-                    </div>
-                    <div 
-                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
-                            activePanel === "graphics" ? "ring-2 ring-primary border-primary" : ""
-                        }`}
-                        onClick={() => setActivePanel(activePanel === "graphics" ? null : "graphics")}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Shapes className="h-4 w-4"/>
-                            <span className="font-medium">Graphics</span>
-                        </div>
-                        {activePanel === "graphics" && (
-                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] space-y-2 max-h-[80vh] overflow-y-auto">
-                            <div className="flex flex-wrap gap-3">
-                                <Button
-                                    onClick={addRect}
-                                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                                    aria-label="Rectangle"
-                                >
-                                    <Square className="stroke-black"/>
-                                </Button>
-
-                                <Button
-                                    onClick={addCircle}
-                                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                                    aria-label="Circle"
-                                >
-                                    <CircleIcon className="stroke-black"/>
-                                </Button>
-
-                                <Button
-                                    onClick={addStar}
-                                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                                    aria-label="Star"
-                                >
-                                    <StarIcon className="stroke-black"/>
-                                </Button>
-
-                                <Button
-                                    onClick={addTriangle}
-                                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                                    aria-label="Triangle"
-                                >
-                                    <TriangleIcon className="stroke-black"/>
-                                </Button>
-
-                                <Button
-                                    onClick={addPolygonShape}
-                                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                                    aria-label="Pentagon"
-                                >
-                                    <Pentagon className="stroke-black"/>
-                                </Button>
-
-                                <Button
-                                    onClick={addArrow}
-                                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                                    aria-label="Arrow Right"
-                                >
-                                    <ArrowRightIcon className="stroke-black"/>
-                                </Button>
-
-                                <Button
-                                    onClick={addBidirectionalArrow}
-                                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
-                                    aria-label="Bidirectional Arrow"
-                                >
-                                    <ArrowLeftRight className="stroke-black"/>
-                                </Button>
-                            </div>
-
-
-                            <div className="pt-2">
-                                <Label htmlFor="icon-search">Icons</Label>
-                                <Input
-                                    id="icon-search"
-                                    placeholder="Search icons..."
-                                    value={iconSearch}
-                                    onChange={(e) => setIconSearch(e.target.value)}
-                                />
-                                <div className="mt-2 grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
-                                    {Object.keys(lucideIcons)
-                                        .filter((name) =>
-                                            name.toLowerCase().includes(iconSearch.toLowerCase())
-                                        )
-                                        .slice(0, 50)
-                                        .map((name) => {
-                                            const pascal = name
-                                                .split("-")
-                                                .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-                                                .join("");
-                            const IconComp = (LucideIcons as any)[pascal] as ComponentType<{className?: string}>;
-                                            if (!IconComp) return null;
-                                            return (
-                                                <button
-                                                    key={name}
-                                                    type="button"
-                                                    className="p-1 border rounded hover:bg-accent flex items-center justify-center"
-                                                    onClick={() => addIcon(name)}
-                                                    title={name}
-                                                >
-                                    <IconComp className="h-4 w-4"/>
-                                                </button>
-                                            );
-                                        })}
-                                </div>
-                            </div>
-                            <div className="pt-2">
-                                <Label htmlFor="clipart-search">Clipart</Label>
-                                <Input
-                                    id="clipart-search"
-                                    placeholder="Search clipart..."
-                                    value={clipartSearch}
-                                    onChange={(e) => setClipartSearch(e.target.value)}
-                                />
-                                <div className="mt-2 grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
-                                    {openmojis
-                                        .filter((c) =>
-                                            c.annotation
-                                                .toLowerCase()
-                                                .includes(clipartSearch.toLowerCase())
-                                        )
-                                        .slice(0, 50)
-                                        .map((c) => (
-                                            <button
-                                                key={c.hexcode}
-                                                type="button"
-                                                className="p-1 border rounded hover:bg-accent flex items-center justify-center"
-                                                onClick={() => addClipart(c.hexcode)}
-                                                title={c.annotation}
-                                            >
-                                                <img
-                                                    src={`https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${c.hexcode}.svg`}
-                                                    alt={c.annotation}
-                                                    className="h-4 w-4"
-                                                />
-                                            </button>
-                                        ))}
-                                </div>
-                            </div>
-                            </div>
-                        )}
-                    </div>
-                    <div 
-                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
-                            activePanel === "tables" ? "ring-2 ring-primary border-primary" : ""
-                        }`}
-                        onClick={() => setActivePanel(activePanel === "tables" ? null : "tables")}
-                    >
-                        <div className="flex items-center gap-2">
-                            <TableIcon className="h-4 w-4"/>
-                            <span className="font-medium">Tables</span>
-                        </div>
-                        {activePanel === "tables" && (
-                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
-                            <div className="space-y-2">
-                                <div>
-                                    <Label htmlFor="table-rows">Rows</Label>
-                                    <Input
-                                        id="table-rows"
-                                        type="number"
-                                        value={tableRows}
-                                        onChange={(e) => setTableRows(parseInt(e.target.value, 10))}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="table-cols">Columns</Label>
-                                    <Input
-                                        id="table-cols"
-                                        type="number"
-                                        value={tableCols}
-                                        onChange={(e) => setTableCols(parseInt(e.target.value, 10))}
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="table-border-color">Border Color</Label>
-                                    <Input
-                                        id="table-border-color"
-                                        type="color"
-                                        value={tableBorderColor}
-                                        onChange={(e) => setTableBorderColor(e.target.value)}
-                                    />
-                                </div>
-                                <Button
-                                    onClick={() => addTable(tableRows, tableCols, tableBorderColor)}
-                                    className="w-full"
-                                >
-                                    <TableIcon className="mr-2 h-4 w-4"/> Add Table
-                                </Button>
-                            </div>
-                            </div>
-                        )}
-                    </div>
-                    <div 
-                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
-                            activePanel === "design" ? "ring-2 ring-primary border-primary" : ""
-                        }`}
-                        onClick={() => setActivePanel(activePanel === "design" ? null : "design")}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Palette className="h-4 w-4"/>
-                            <span className="font-medium">Design Palette</span>
-                        </div>
-                        {activePanel === "design" && (
-                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
-                            <Label htmlFor="template">Template</Label>
-                            <select id="template" className="w-full border rounded" {...register("template")}>
-                                {Object.keys(TEMPLATES).map((key) => (
-                                    <option key={key} value={key}>
-                                        {key}
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="mt-4 space-y-2">
-                                {COLOR_PALETTES.map((p) => (
-                                    <button
-                                        key={p.id}
-                                        type="button"
-                                        onClick={() => applyPalette(p)}
-                                        className={`flex w-full items-center gap-2 rounded border p-1 ${
-                                            palette.id === p.id ? "border-black" : "border-transparent"
-                                        }`}
-                                    >
-                                        <div className="flex flex-1 overflow-hidden rounded">
-                                            {p.colors.map((c) => (
-                                                <div key={c} className="h-6 w-full" style={{backgroundColor: c}}/>
-                                            ))}
-                                        </div>
-                                        <span className="text-xs">{p.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                            </div>
-                        )}
-                    </div>
-                    <div 
-                        className={`relative rounded-lg border bg-card p-3 cursor-pointer transition-all hover:shadow-md ${
-                            activePanel === "background" ? "ring-2 ring-primary border-primary" : ""
-                        }`}
-                        onClick={() => setActivePanel(activePanel === "background" ? null : "background")}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Square className="h-4 w-4"/>
-                            <span className="font-medium">Background</span>
-                        </div>
-                        {activePanel === "background" && (
-                            <div className="fixed left-[15rem] top-20 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto">
-                            <Label htmlFor="bg-color">Background Color</Label>
-                            <Input
-                                id="bg-color"
-                                type="color"
-                                value={bgColor}
-                                onChange={(e) => updateBgColor(e.target.value)}
+                        {/* Scrollable canvas region */}
+                        <div
+                            ref={wrapperRef}
+                            className="flex-1 overflow-auto flex items-center justify-center"
+                        >
+                            <CanvasWorkspace
+                                canvasRef={canvasRef}
+                                canvas={canvas}
+                                zoom={fitScale * zoom}
+                                showGrid={showGrid}
+                                showRulers={showRulers}
                             />
-                            <div className="flex flex-wrap gap-2 pt-2">
-                                {PRESET_BG_COLORS.map((c) => (
-                                    <button
-                                        key={c}
-                                        type="button"
-                                        className="h-6 w-6 rounded border"
-                                        style={{backgroundColor: c}}
-                                        onClick={() => updateBgColor(c)}
-                                    />
-                                ))}
-                            </div>
-                            {recentColors.length > 0 && (
-                                <div className="pt-2">
-                                    <p className="mb-1 text-xs text-muted-foreground">
-                                        Recent Colors
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {recentColors.map((c) => (
-                                            <button
-                                                key={c}
-                                                type="button"
-                                                className="h-6 w-6 rounded border"
-                                                style={{backgroundColor: c}}
-                                                onClick={() => updateBgColor(c)}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            </div>
-                        )}
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <div
-                ref={wrapperRef}
-                className="flex-1 relative flex h-full items-center justify-center overflow-auto bg-[#ededed]"
-            >
-                <CanvasWorkspace
-                    canvasRef={canvasRef}
-                    canvas={canvas}
-                    zoom={fitScale * zoom}
-                    showGrid={showGrid}
-                    showRulers={showRulers}
-                />
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40">
-                    <EditorToolbar
-                        onUndo={undo}
-                        onRedo={redo}
-                        canUndo={historyIndex > 0}
-                        canRedo={historyIndex < history.length - 1}
-                        onZoomIn={zoomIn}
-                        onZoomOut={zoomOut}
-                        zoom={zoom}
-                        onZoomChange={setZoom}
-                        showGrid={showGrid}
-                        onToggleGrid={() => setShowGrid(!showGrid)}
-                        showRulers={showRulers}
-                        onToggleRulers={() => {
-                            console.log("Toggle rulers:", showRulers, "→", !showRulers);
-                            setShowRulers(!showRulers);
-                        }}
-                        selectedObjects={selectedObjects}
-                        onCopy={handleCopy}
-                        onDelete={handleDelete}
-                        onGroup={handleGroup}
-                        onUngroup={handleUngroup}
-                        onAlign={handleAlign}
+                    {/* Modals */}
+                    <KeyboardShortcutsModal
+                        open={showShortcuts}
+                        onClose={() => setShowShortcuts(false)}
                     />
                 </div>
             </div>
-
-            {selected && (
-                <div className="w-[22rem] p-2 border-l space-y-2">
-                    {selected instanceof Group && (selected as any).data?.type === "table" ? (
-                        <>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() =>
-                                        updateTable({rows: ((selected as any).data as TableData).rows + 1})
-                                    }
-                                >
-                                    Add Row
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() =>
-                                        updateTable({
-                                            rows: Math.max(
-                                                1,
-                                                ((selected as any).data as TableData).rows - 1,
-                                            ),
-                                        })
-                                    }
-                                >
-                                    Remove Row
-                                </Button>
-                            </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() =>
-                                        updateTable({cols: ((selected as any).data as TableData).cols + 1})
-                                    }
-                                >
-                                    Add Column
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() =>
-                                        updateTable({
-                                            cols: Math.max(
-                                                1,
-                                                ((selected as any).data as TableData).cols - 1,
-                                            ),
-                                        })
-                                    }
-                                >
-                                    Remove Column
-                                </Button>
-                            </div>
-                            <div>
-                                <Label htmlFor="cellW">Cell Width</Label>
-                                <Input
-                                    id="cellW"
-                                    type="number"
-                                    value={(selected as any).data.cellW}
-                                    onChange={(e) =>
-                                        updateTable({cellW: parseInt(e.target.value, 10)})
-                                    }
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="cellH">Cell Height</Label>
-                                <Input
-                                    id="cellH"
-                                    type="number"
-                                    value={(selected as any).data.cellH}
-                                    onChange={(e) =>
-                                        updateTable({cellH: parseInt(e.target.value, 10)})
-                                    }
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="tableBorderColor">Border Color</Label>
-                                <Input
-                                    id="tableBorderColor"
-                                    type="color"
-                                    value={(selected as any).data.borderColor}
-                                    onChange={(e) => updateTable({borderColor: e.target.value})}
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="tableBorderWidth">Border Width</Label>
-                                <Input
-                                    id="tableBorderWidth"
-                                    type="number"
-                                    value={(selected as any).data.borderWidth}
-                                    onChange={(e) =>
-                                        updateTable({borderWidth: parseInt(e.target.value, 10)})
-                                    }
-                                />
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div>
-                                <Label htmlFor="fill">Fill</Label>
-                                <Input
-                                    id="fill"
-                                    type="color"
-                                    value={
-                                        selected &&
-                                        "fill" in selected &&
-                                        typeof (selected as { fill?: string }).fill === "string"
-                                            ? (selected as { fill?: string }).fill
-                                            : "#000000"
-                                    }
-                                    onChange={(e) => updateSelected("fill", e.target.value)}
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="stroke">Stroke</Label>
-                                <Input
-                                    id="stroke"
-                                    type="color"
-                                    value={
-                                        selected &&
-                                        "stroke" in selected &&
-                                        typeof (selected as { stroke?: string }).stroke === "string"
-                                            ? (selected as { stroke?: string }).stroke
-                                            : "#000000"
-                                    }
-                                    onChange={(e) => updateSelected("stroke", e.target.value)}
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="strokeWidth">Stroke Width</Label>
-                                <Input
-                                    id="strokeWidth"
-                                    type="number"
-                                    value={
-                                        selected && "strokeWidth" in selected
-                                            ? (selected as { strokeWidth?: number }).strokeWidth ?? 1
-                                            : 1
-                                    }
-                                    onChange={(e) =>
-                                        updateSelected("strokeWidth", parseInt(e.target.value, 10))
-                                    }
-                                />
-                            </div>
-                            {selected instanceof Textbox && (
-                                <div>
-                                    <Label htmlFor="fontSize">Font Size</Label>
-                                    <Input
-                                        id="fontSize"
-                                        type="number"
-                                        value={selected.fontSize || 16}
-                                        onChange={(e) =>
-                                            updateSelected("fontSize", parseInt(e.target.value, 10))
-                                        }
-                                    />
-                                </div>
-                            )}
-                            <div>
-                                <Label htmlFor="width">Width</Label>
-                                <Input
-                                    id="width"
-                                    type="number"
-                                    value={(selected.width || 0) * (selected.scaleX || 1)}
-                                    onChange={(e) => {
-                                        const w = parseInt(e.target.value, 10);
-                                        updateSelected("scaleX", w / (selected.width || 1));
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor="height">Height</Label>
-                                <Input
-                                    id="height"
-                                    type="number"
-                                    value={(selected.height || 0) * (selected.scaleY || 1)}
-                                    onChange={(e) => {
-                                        const h = parseInt(e.target.value, 10);
-                                        updateSelected("scaleY", h / (selected.height || 1));
-                                    }}
-                                />
-                            </div>
-                        </>
-                    )}
-                    <div>
-                        <Label htmlFor="angle">Rotation</Label>
-                        <Input
-                            id="angle"
-                            type="number"
-                            value={selected.angle || 0}
-                            onChange={(e) =>
-                                updateSelected("angle", parseInt(e.target.value, 10))
-                            }
-                        />
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            aria-label="Bring Forward"
-                            onClick={() => {
-                                if (selected && canvas) {
-                                    canvas.bringObjectForward(selected);
-                                    canvas.renderAll();
-                                    pushHistory();
-                                }
-                            }}
-                        >
-                            <ArrowUp className="h-4 w-4"/>
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            aria-label="Send Backward"
-                            onClick={() => {
-                                if (selected && canvas) {
-                                    canvas.sendObjectBackwards(selected);
-                                    canvas.renderAll();
-                                    pushHistory();
-                                }
-                            }}
-                        >
-                            <ArrowDown className="h-4 w-4"/>
-                        </Button>
-                    </div>
-                </div>
-            )}
         </div>
     );
-}
 
+}
