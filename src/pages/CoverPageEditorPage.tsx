@@ -253,53 +253,61 @@ export default function CoverPageEditorPage() {
     };
 
     const handleAlign = (type: string) => {
-        if (!canvas || selectedObjects.length < 2) return;
+        if (!canvas) return;
+        const objects = canvas.getActiveObjects();
+        if (objects.length < 2) return;
 
-        const activeSelection = canvas.getActiveObject();
-        if (!activeSelection || activeSelection.type !== "activeSelection") return;
+        const bounds = objects.reduce(
+            (acc, obj) => {
+                const rect = obj.getBoundingRect(true);
+                return {
+                    left: Math.min(acc.left, rect.left),
+                    top: Math.min(acc.top, rect.top),
+                    right: Math.max(acc.right, rect.left + rect.width),
+                    bottom: Math.max(acc.bottom, rect.top + rect.height),
+                };
+            },
+            {left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity},
+        );
 
-        const objects = (activeSelection as any).getObjects();
-        if (!objects || objects.length < 2) return;
-
-        // Get bounds
-        const bounds = objects.reduce((acc: any, obj: any) => {
-            const objBounds = obj.getBoundingRect();
-            return {
-                left: Math.min(acc.left || objBounds.left, objBounds.left),
-                top: Math.min(acc.top || objBounds.top, objBounds.top),
-                right: Math.max(acc.right || objBounds.left + objBounds.width, objBounds.left + objBounds.width),
-                bottom: Math.max(acc.bottom || objBounds.top + objBounds.height, objBounds.top + objBounds.height),
-            };
-        }, {});
-
-        objects.forEach((obj: any) => {
-            const objBounds = obj.getBoundingRect();
+        objects.forEach((obj) => {
+            const rect = obj.getBoundingRect(true);
+            const offsetX = rect.left - (obj.left ?? 0);
+            const offsetY = rect.top - (obj.top ?? 0);
 
             switch (type) {
                 case "left":
-                    obj.set({left: bounds.left});
+                    obj.set({left: bounds.left - offsetX});
                     break;
                 case "right":
-                    obj.set({left: bounds.right - objBounds.width});
+                    obj.set({left: bounds.right - rect.width - offsetX});
                     break;
                 case "centerH":
-                    obj.set({left: bounds.left + (bounds.right - bounds.left) / 2 - objBounds.width / 2});
+                    obj.set({
+                        left:
+                            bounds.left + (bounds.right - bounds.left - rect.width) / 2 -
+                            offsetX,
+                    });
                     break;
                 case "top":
-                    obj.set({top: bounds.top});
+                    obj.set({top: bounds.top - offsetY});
                     break;
                 case "bottom":
-                    obj.set({top: bounds.bottom - objBounds.height});
+                    obj.set({top: bounds.bottom - rect.height - offsetY});
                     break;
                 case "centerV":
-                    obj.set({top: bounds.top + (bounds.bottom - bounds.top) / 2 - objBounds.height / 2});
+                    obj.set({
+                        top:
+                            bounds.top + (bounds.bottom - bounds.top - rect.height) / 2 -
+                            offsetY,
+                    });
                     break;
             }
 
             obj.setCoords();
         });
 
-        canvas.renderAll();
+        canvas.requestRenderAll();
         pushHistory();
     };
 
