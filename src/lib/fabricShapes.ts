@@ -138,7 +138,10 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
             loadSVGFromString(svg, (objects, options) => {
                 if (objects) {
                     // In Fabric.js v6, objects is the parsed SVG group already
-                    const obj = objects as any;
+                    const obj = Array.isArray(objects)
+                        ? FabricUtil.groupSVGElements(objects, options)
+                        : (objects as any);
+
                     obj.set({left: x, top: y, stroke, fill: "none", visible: true});
                     canvas.add(obj);
                     canvas.setActiveObject(obj);
@@ -168,7 +171,10 @@ export async function addOpenmojiClipart(
         await new Promise<void>((resolve) => {
             loadSVGFromString(svg, (objects, options) => {
                 if (objects) {
-                    const obj = objects as any;
+                    const obj = Array.isArray(objects)
+                        ? FabricUtil.groupSVGElements(objects, options)
+                        : (objects as any);
+
                     obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
                     obj.set({stroke});
                     if (obj._objects) {
