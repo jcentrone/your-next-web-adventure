@@ -118,7 +118,8 @@ export default function CoverPageEditorPage() {
 
         if (cp.design_json) {
             canvas.loadFromJSON(cp.design_json as any, () => {
-                canvas.renderAll();
+                canvas.getObjects().forEach((obj) => obj.set({ visible: true }));
+                canvas.requestRenderAll();
                 const json = JSON.stringify(canvas.toJSON());
                 setHistory([json]);
                 setHistoryIndex(0);
