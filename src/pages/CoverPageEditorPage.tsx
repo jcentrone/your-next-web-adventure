@@ -303,6 +303,59 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
+    const handleDistribute = (axis: "h" | "v") => {
+        if (!canvas || selectedObjects.length < 2) return;
+
+        const activeSelection = canvas.getActiveObject();
+        if (!activeSelection || activeSelection.type !== "activeSelection") return;
+
+        const objects = (activeSelection as any).getObjects();
+        if (!objects || objects.length < 2) return;
+
+        if (axis === "h") {
+            const sorted = objects
+                .map((o: any) => ({obj: o, bounds: o.getBoundingRect(true)}))
+                .sort((a: any, b: any) => a.bounds.left - b.bounds.left);
+
+            const first = sorted[0].bounds;
+            const last = sorted[sorted.length - 1].bounds;
+            const minX = first.left;
+            const maxX = last.left + last.width;
+            const totalWidth = sorted.reduce((sum: number, o: any) => sum + o.bounds.width, 0);
+            const spacing = sorted.length > 1 ? (maxX - minX - totalWidth) / (sorted.length - 1) : 0;
+
+            let currentX = minX;
+            sorted.forEach(({obj, bounds}: any) => {
+                const offset = (obj.left || 0) - bounds.left;
+                obj.set({left: currentX + offset});
+                obj.setCoords();
+                currentX += bounds.width + spacing;
+            });
+        } else {
+            const sorted = objects
+                .map((o: any) => ({obj: o, bounds: o.getBoundingRect(true)}))
+                .sort((a: any, b: any) => a.bounds.top - b.bounds.top);
+
+            const first = sorted[0].bounds;
+            const last = sorted[sorted.length - 1].bounds;
+            const minY = first.top;
+            const maxY = last.top + last.height;
+            const totalHeight = sorted.reduce((sum: number, o: any) => sum + o.bounds.height, 0);
+            const spacing = sorted.length > 1 ? (maxY - minY - totalHeight) / (sorted.length - 1) : 0;
+
+            let currentY = minY;
+            sorted.forEach(({obj, bounds}: any) => {
+                const offset = (obj.top || 0) - bounds.top;
+                obj.set({top: currentY + offset});
+                obj.setCoords();
+                currentY += bounds.height + spacing;
+            });
+        }
+
+        canvas.renderAll();
+        pushHistory();
+    };
+
     // Sidebar handlers
     const handleAddText = (content?: string, x = 100, y = 100) => {
         if (!canvas) return;
@@ -522,6 +575,26 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
+    const handleBringToFront = () => {
+        if (!canvas || selectedObjects.length === 0) return;
+
+        selectedObjects.forEach((obj) => {
+            canvas.bringObjectToFront(obj);
+        });
+        canvas.renderAll();
+        pushHistory();
+    };
+
+    const handleSendToBack = () => {
+        if (!canvas || selectedObjects.length === 0) return;
+
+        selectedObjects.forEach((obj) => {
+            canvas.sendObjectToBack(obj);
+        });
+        canvas.renderAll();
+        pushHistory();
+    };
+
     const handleToggleLayerVisibility = (layer: FabricObject) => {
         if (!canvas) return;
 
@@ -623,6 +696,7 @@ export default function CoverPageEditorPage() {
                     onGroup={handleGroup}
                     onUngroup={handleUngroup}
                     onAlign={handleAlign}
+                    onDistribute={handleDistribute}
                     selected={selectedObject}
                     isTable={false}
                     updateSelected={updateSelected}
@@ -630,6 +704,8 @@ export default function CoverPageEditorPage() {
                     }}
                     onBringForward={handleBringForward}
                     onSendBackward={handleSendBackward}
+                    onBringToFront={handleBringToFront}
+                    onSendToBack={handleSendToBack}
                 />
 
                 {/* Action Buttons */}
