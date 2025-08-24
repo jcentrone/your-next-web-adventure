@@ -29,6 +29,7 @@ import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
 import {toast} from "sonner";
+const IMAGE_PROXY_URL = import.meta.env.VITE_IMAGE_PROXY_URL || '/api/image-proxy';
 
 interface FormValues {
     name: string;
@@ -431,7 +432,7 @@ export default function CoverPageEditorPage() {
             const img = await FabricImage.fromURL(
                 sameOrigin
                     ? imageUrl
-                    : `/api/image-proxy?url=${encodeURIComponent(imageUrl)}`,
+                    : `${IMAGE_PROXY_URL}?url=${encodeURIComponent(imageUrl)}`,
                 sameOrigin ? undefined : {crossOrigin: "anonymous"},
             );
             img.set({
