@@ -114,28 +114,29 @@ export default function CoverPageEditorPage() {
 
     // Load existing cover page
     useEffect(() => {
-        if (!canvas || !id) return;
+        if (
+            !canvas ||
+            !id ||
+            !coverPages.length ||
+            !Object.keys(assignments).length
+        )
+            return;
         const cp = coverPages.find((c) => c.id === id);
         if (!cp) return;
-
-        setValue("name", cp.name);
-        setValue("template", (cp.template_slug as keyof typeof TEMPLATES) || "default");
-
-        const selected = Object.entries(assignments)
+        const selectedReportTypes = Object.entries(assignments)
             .filter(([_, cpId]) => cpId === id)
             .map(([rt]) => rt);
-        setValue("reportTypes", selected);
-
+        form.reset({
+            name: cp.name,
+            template: (cp.template_slug as keyof typeof TEMPLATES) || "default",
+            reportTypes: selectedReportTypes,
+        });
         if (cp.design_json) {
-            canvas.loadFromJSON(cp.design_json as any, () => {
-                canvas.getObjects().forEach((obj) => obj.set({visible: true}));
-                canvas.requestRenderAll();
-                const json = JSON.stringify(canvas.toJSON());
-                setHistory([json]);
-                setHistoryIndex(0);
-            });
+            canvas.loadFromJSON(cp.design_json as any, () =>
+                canvas.requestRenderAll()
+            );
         }
-    }, [canvas, id, coverPages, assignments, setValue]);
+    }, [canvas, id, coverPages, assignments, form]);
 
     useEffect(() => {
         if (canvas) {
