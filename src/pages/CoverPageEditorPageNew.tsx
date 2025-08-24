@@ -134,7 +134,8 @@ export default function CoverPageEditorPageNew() {
 
     useEffect(() => {
         if (canvas) {
-            canvas.setBackgroundColor(bgColor, () => canvas.renderAll());
+            canvas.set({ backgroundColor: bgColor });
+            canvas.renderAll();
         }
     }, [canvas, bgColor]);
 
@@ -459,12 +460,14 @@ export default function CoverPageEditorPageNew() {
             const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
             const svg = await fetch(url).then((r) => r.text());
             loadSVGFromString(svg, (objects, options) => {
-                const obj = FabricUtil.groupSVGElements(objects, options);
-                obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5});
-                canvas.add(obj);
-                canvas.setActiveObject(obj);
-                canvas.renderAll();
-                pushHistory();
+                if (objects && objects.length > 0) {
+                    const obj = objects.length === 1 ? objects[0] : new Group(objects);
+                    obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5});
+                    canvas.add(obj);
+                    canvas.setActiveObject(obj);
+                    canvas.renderAll();
+                    pushHistory();
+                }
             });
         } catch {
         }
@@ -737,6 +740,12 @@ export default function CoverPageEditorPageNew() {
                 onGroup={handleGroup}
                 onUngroup={handleUngroup}
                 onAlign={handleAlign}
+                selected={selectedObject}
+                isTable={false}
+                updateSelected={updateSelected}
+                updateTable={() => {}}
+                onBringForward={handleBringForward}
+                onSendBackward={handleSendBackward}
             />
 
             {/* Main Layout */}

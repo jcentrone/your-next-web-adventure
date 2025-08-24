@@ -132,11 +132,13 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
         const svg = await res.text();
         await new Promise<void>(resolve => {
             loadSVGFromString(svg, (objects, options) => {
-                const obj = FabricUtil.groupSVGElements(objects, options);
-                obj.set({left: 100, top: 100, stroke, fill: "none"});
-                canvas.add(obj);
-                canvas.setActiveObject(obj);
-                canvas.requestRenderAll();
+                if (objects && objects.length > 0) {
+                    const obj = objects.length === 1 ? objects[0] : new Group(objects);
+                    obj.set({left: 100, top: 100, stroke, fill: "none"});
+                    canvas.add(obj);
+                    canvas.setActiveObject(obj);
+                    canvas.requestRenderAll();
+                }
                 resolve();
             });
         });

@@ -36,6 +36,7 @@ import {
     addCircle as addCircleShape,
     addImageFromUrl as addImageFromUrlShape,
     addLucideIconByName,
+    addPolygon,
     addRect as addRectShape,
     addStar as addStarShape,
     addText as addTextShape,
@@ -121,7 +122,49 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const paletteAsHelper: Palette = {colors: palette.colors};
+    const paletteAsHelper: Palette = {colors: [...palette.colors]};
+
+    // Handle drag & drop from sidebar
+    const handleDropElement = (item: {type: string; data: any; x: number; y: number}) => {
+        if (!canvas) return;
+        
+        switch(item.type) {
+            case "rectangle":
+                addRect();
+                break;
+            case "circle":
+                addCircle();
+                break;
+            case "star":
+                addStar();
+                break;
+            case "triangle":
+                addTriangle();
+                break;
+            case "polygon":
+                addPolygonShape();
+                break;
+            case "arrow":
+                addArrow();
+                break;
+            case "bidirectionalArrow":
+                addBidirectionalArrow();
+                break;
+            case "text":
+                addText();
+                break;
+            case "icon":
+                if (item.data?.name) {
+                    addIcon(item.data.name);
+                }
+                break;
+            case "clipart":
+                if (item.data?.hex) {
+                    addClipart(item.data.hex);
+                }
+                break;
+        }
+    };
 
     const addRect = () => {
         if (!canvas) return;
@@ -145,7 +188,7 @@ export default function CoverPageEditorPage() {
     };
     const addPolygonShape = () => {
         if (!canvas) return;
-        addPolygonShape(canvas, paletteAsHelper, 5, 50);
+        addPolygon(canvas, paletteAsHelper, 5, 50);
         pushHistory();
     };
     const addArrow = () => {
@@ -180,11 +223,13 @@ export default function CoverPageEditorPage() {
             const svg = await fetch(url).then((r) => r.text());
             await new Promise<void>((resolve) => {
                 loadSVGFromString(svg, (objects, options) => {
-                    const obj = FabricUtil.groupSVGElements(objects, options);
-                    obj.set({left: 100, top: 100});
-                    canvas.add(obj);
-                    canvas.setActiveObject(obj);
-                    canvas.requestRenderAll();
+                    if (objects && objects.length > 0) {
+                        const obj = objects.length === 1 ? objects[0] : new Group(objects);
+                        obj.set({left: 100, top: 100});
+                        canvas.add(obj);
+                        canvas.setActiveObject(obj);
+                        canvas.requestRenderAll();
+                    }
                     resolve();
                 });
             });
@@ -623,18 +668,18 @@ export default function CoverPageEditorPage() {
                                 canvas.requestRenderAll();
                                 pushHistory();
                             }}
-                            onBringToFront={() => {
-                                if (!selected || !canvas) return;
-                                canvas.bringToFront(selected);
-                                canvas.requestRenderAll();
-                                pushHistory();
-                            }}
-                            onSendToBack={() => {
-                                if (!selected || !canvas) return;
-                                canvas.sendToBack(selected);
-                                canvas.requestRenderAll();
-                                pushHistory();
-                            }}
+            onBringToFront={() => {
+                if (!selected || !canvas) return;
+                canvas.bringObjectToFront(selected);
+                canvas.requestRenderAll();
+                pushHistory();
+            }}
+            onSendToBack={() => {
+                if (!selected || !canvas) return;
+                canvas.sendObjectToBack(selected);
+                canvas.requestRenderAll();
+                pushHistory();
+            }}
                         />
                     </div>
 
@@ -703,13 +748,14 @@ export default function CoverPageEditorPage() {
                             ref={wrapperRef}
                             className="flex-1 overflow-auto flex items-center justify-center [scroll-padding-top:3rem]"
                         >
-                            <CanvasWorkspace
-                                canvasRef={canvasRef}
-                                canvas={canvas}
-                                zoom={fitScale * zoom}
-                                showGrid={showGrid}
-                                showRulers={showRulers}
-                            />
+                        <CanvasWorkspace
+                            canvasRef={canvasRef}
+                            canvas={canvas}
+                            zoom={fitScale * zoom}
+                            showGrid={showGrid}
+                            showRulers={showRulers}
+                            onDropElement={handleDropElement}
+                        />
                         </div>
                     </div>
 

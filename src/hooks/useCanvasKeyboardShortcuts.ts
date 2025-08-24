@@ -132,7 +132,7 @@ export function useCanvasKeyboardShortcuts({
                         src.map(
                             (o) =>
                                 new Promise<FabricObject>((resolve) => {
-                                    o.clone((cl) => resolve(cl));
+                                    o.clone().then((cl: FabricObject) => resolve(cl));
                                 })
                         )
                     );
