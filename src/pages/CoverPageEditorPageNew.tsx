@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState, type ChangeEvent} from "react";
 import {useForm} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
 import {
@@ -11,6 +11,7 @@ import {
     Polygon,
     Rect,
     Textbox,
+    util as FabricUtil,
 } from "fabric";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -21,7 +22,6 @@ import {CanvasWorkspace} from "@/components/cover-pages/CanvasWorkspace";
 import useCoverPages from "@/hooks/useCoverPages";
 import useImageLibrary from "@/hooks/useImageLibrary";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
-import {organizationFields, inspectorFields, contactFields} from "@/constants/coverPageFields";
 import * as LucideIcons from "lucide-react";
 import {toast} from "sonner";
 
@@ -34,6 +34,9 @@ const REPORT_TYPES = [
     {value: "home_inspection", label: "Home Inspection"},
     {value: "wind_mitigation", label: "Wind Mitigation"},
 ];
+
+const FONTS = ["Arial", "Helvetica", "Times New Roman", "Courier New"];
+const PRESET_BG_COLORS = Object.values(TEMPLATES);
 
 interface FormValues {
     name: string;
@@ -51,6 +54,8 @@ export default function CoverPageEditorPageNew() {
     const [history, setHistory] = useState<string[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [palette, setPalette] = useState<ColorPalette>(COLOR_PALETTES[0]);
+    const [bgColor, setBgColor] = useState(TEMPLATES["default"]);
+    const [activePanel, setActivePanel] = useState<string | null>("settings");
 
     const {id} = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -64,7 +69,7 @@ export default function CoverPageEditorPageNew() {
         coverPages,
     } = useCoverPages();
 
-    const {images, uploadImage} = useImageLibrary();
+    const {images, uploadImage, deleteImage} = useImageLibrary();
 
     const form = useForm<FormValues>({
         defaultValues: {name: "", template: "default", reportTypes: []},
@@ -126,6 +131,12 @@ export default function CoverPageEditorPageNew() {
             });
         }
     }, [canvas, id, coverPages, assignments, setValue]);
+
+    useEffect(() => {
+        if (canvas) {
+            canvas.setBackgroundColor(bgColor, () => canvas.renderAll());
+        }
+    }, [canvas, bgColor]);
 
     const pushHistory = () => {
         if (!canvas) return;
@@ -348,6 +359,62 @@ export default function CoverPageEditorPageNew() {
                     strokeWidth: 2,
                 });
                 break;
+            case "polygon":
+                const sides = 5;
+                const radius = 50;
+                const polyPoints: { x: number; y: number }[] = [];
+                for (let i = 0; i < sides; i++) {
+                    const angle = (2 * Math.PI * i) / sides;
+                    polyPoints.push({
+                        x: radius + radius * Math.sin(angle),
+                        y: radius - radius * Math.cos(angle),
+                    });
+                }
+                obj = new Polygon(polyPoints, {
+                    left: 100,
+                    top: 100,
+                    fill: palette.colors[0],
+                    stroke: palette.colors[1] || palette.colors[0],
+                    strokeWidth: 2,
+                });
+                break;
+            case "arrow":
+                obj = new Polygon([
+                    {x: 0, y: 40},
+                    {x: 60, y: 40},
+                    {x: 60, y: 20},
+                    {x: 100, y: 50},
+                    {x: 60, y: 80},
+                    {x: 60, y: 60},
+                    {x: 0, y: 60},
+                ], {
+                    left: 100,
+                    top: 100,
+                    fill: palette.colors[0],
+                    stroke: palette.colors[1] || palette.colors[0],
+                    strokeWidth: 2,
+                });
+                break;
+            case "bidirectionalArrow":
+                obj = new Polygon([
+                    {x: 0, y: 50},
+                    {x: 20, y: 20},
+                    {x: 20, y: 40},
+                    {x: 80, y: 40},
+                    {x: 80, y: 20},
+                    {x: 100, y: 50},
+                    {x: 80, y: 80},
+                    {x: 80, y: 60},
+                    {x: 20, y: 60},
+                    {x: 20, y: 80},
+                ], {
+                    left: 100,
+                    top: 100,
+                    fill: palette.colors[0],
+                    stroke: palette.colors[1] || palette.colors[0],
+                    strokeWidth: 2,
+                });
+                break;
             default:
                 return;
         }
@@ -386,6 +453,23 @@ export default function CoverPageEditorPageNew() {
         });
     };
 
+    const handleAddClipart = async (hex: string) => {
+        if (!canvas) return;
+        try {
+            const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
+            const svg = await fetch(url).then((r) => r.text());
+            loadSVGFromString(svg, (objects, options) => {
+                const obj = FabricUtil.groupSVGElements(objects, options);
+                obj.set({left: 100, top: 100, scaleX: 0.5, scaleY: 0.5});
+                canvas.add(obj);
+                canvas.setActiveObject(obj);
+                canvas.renderAll();
+                pushHistory();
+            });
+        } catch {
+        }
+    };
+
     const handleAddImage = (imageUrl: string) => {
         if (!canvas) return;
 
@@ -420,6 +504,54 @@ export default function CoverPageEditorPageNew() {
         } catch (error) {
             toast.error("Failed to upload image");
         }
+    };
+
+    const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            await handleUploadImage(file);
+        }
+    };
+
+    const handleDeleteImage = async (path: string) => {
+        try {
+            await deleteImage(path);
+            toast.success("Image deleted");
+        } catch {
+            toast.error("Failed to delete image");
+        }
+    };
+
+    const addText = () => handleAddText();
+    const addRect = () => handleAddShape("rectangle");
+    const addCircle = () => handleAddShape("circle");
+    const addStar = () => handleAddShape("star");
+    const addTriangle = () => handleAddShape("triangle");
+    const addPolygonShape = () => handleAddShape("polygon");
+    const addArrow = () => handleAddShape("arrow");
+    const addBidirectionalArrow = () => handleAddShape("bidirectionalArrow");
+    const addIcon = (name: string) => handleAddIcon(name);
+    const addClipart = (hex: string) => handleAddClipart(hex);
+
+    const updateSelected = (prop: string, value: unknown) => {
+        if (!canvas || selectedObjects.length !== 1) return;
+        const obj = selectedObjects[0];
+        (obj as any).set(prop, value);
+        obj.setCoords();
+        canvas.renderAll();
+        pushHistory();
+    };
+
+    const handleAddPlaceholder = (token: string) => {
+        handleAddText(token);
+    };
+
+    const applyPalette = (p: ColorPalette) => {
+        setPalette(p);
+    };
+
+    const updateBgColor = (color: string) => {
+        setBgColor(color);
     };
 
     // Properties panel handlers
@@ -583,19 +715,43 @@ export default function CoverPageEditorPageNew() {
             <div className="flex flex-1 overflow-hidden">
                 {/* Left Sidebar */}
                 <EditorSidebar
-                    onAddText={handleAddText}
-                    onAddShape={handleAddShape}
-                    onAddIcon={handleAddIcon}
+                    activePanel={activePanel}
+                    setActivePanel={setActivePanel}
+                    onSettingsSubmit={handleSubmit(onSubmit)}
+                    register={register}
+                    reportTypes={reportTypes}
+                    reportTypeOptions={REPORT_TYPES}
+                    toggleReportType={(rt) => {
+                        if (reportTypes.includes(rt)) {
+                            setValue("reportTypes", reportTypes.filter((t) => t !== rt));
+                        } else {
+                            setValue("reportTypes", [...reportTypes, rt]);
+                        }
+                    }}
+                    addText={addText}
+                    selected={selectedObject}
+                    updateSelected={updateSelected}
+                    fonts={FONTS}
                     images={images}
-                    onAddImage={handleAddImage}
-                    onUploadImage={handleUploadImage}
-                    colorPalettes={COLOR_PALETTES}
-                    onSelectPalette={setPalette}
-                    selectedPalette={palette}
-                    onAddPlaceholder={handleAddText}
-                    organizationFields={organizationFields}
-                    inspectorFields={inspectorFields}
-                    contactFields={contactFields}
+                    onImageUpload={handleImageUpload}
+                    onDeleteImage={handleDeleteImage}
+                    onAddImageFromUrl={handleAddImage}
+                    addRect={addRect}
+                    addCircle={addCircle}
+                    addStar={addStar}
+                    addTriangle={addTriangle}
+                    addPolygonShape={addPolygonShape}
+                    addArrow={addArrow}
+                    addBidirectionalArrow={addBidirectionalArrow}
+                    addIcon={addIcon}
+                    addClipart={addClipart}
+                    templateOptions={Object.keys(TEMPLATES)}
+                    palette={palette}
+                    onApplyPalette={applyPalette}
+                    bgColor={bgColor}
+                    presetBgColors={PRESET_BG_COLORS}
+                    updateBgColor={updateBgColor}
+                    onAddPlaceholder={handleAddPlaceholder}
                 />
 
                 {/* Canvas Workspace */}
