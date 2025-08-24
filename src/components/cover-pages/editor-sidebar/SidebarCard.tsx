@@ -30,7 +30,6 @@ export function SidebarCard({
 
             {active && (
                 <div
-                    data-flyout="true"
                     className="fixed left-[15rem] top-40 w-80 bg-background border rounded-lg shadow-xl p-4 z-[60] max-h-[80vh] overflow-y-auto"
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}

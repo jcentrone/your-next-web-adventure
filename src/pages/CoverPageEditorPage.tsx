@@ -28,7 +28,7 @@ import {CanvasWorkspace} from "@/components/cover-pages/CanvasWorkspace";
 import useCoverPages from "@/hooks/useCoverPages";
 import useImageLibrary from "@/hooks/useImageLibrary";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
-import {FONTS, PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
+import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
 import * as LucideIcons from "lucide-react";
 import {toast} from "sonner";
 
@@ -642,9 +642,6 @@ export default function CoverPageEditorPage() {
                         }
                     }}
                     addText={addText}
-                    selected={selectedObject}
-                    updateSelected={updateSelected}
-                    fonts={FONTS}
                     images={images}
                     onImageUpload={handleImageUpload}
                     onDeleteImage={handleDeleteImage}
