@@ -13,7 +13,6 @@ import {
     Triangle as TriangleIcon
 } from "lucide-react";
 import {icons as lucideIcons} from "lucide";
-import {addRect} from "@/lib/fabricShapes.ts";
 
 export function GraphicsSection({
                                     addRect,
@@ -54,7 +53,6 @@ export function GraphicsSection({
                 <Button
                     draggable
                     data-drag-type="rectangle"
-                    data-drag-payload={JSON.stringify({})}
                     onClick={addRect}
                     className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
                     aria-label="Rectangle"
@@ -63,12 +61,8 @@ export function GraphicsSection({
                 </Button>
                 <Button
                     draggable
-                    onDragStart={(e) =>
-                        e.dataTransfer.setData(
-                            "application/x-cover-element",
-                            JSON.stringify({type: "circle"})
-                        )
-                    }
+                    data-drag-type="circle"
+                    onClick={addCircle}
                     className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
                     aria-label="Circle"
                 >
@@ -76,12 +70,8 @@ export function GraphicsSection({
                 </Button>
                 <Button
                     draggable
-                    onDragStart={(e) =>
-                        e.dataTransfer.setData(
-                            "application/x-cover-element",
-                            JSON.stringify({type: "star"})
-                        )
-                    }
+                    data-drag-type="star"
+                    onClick={addStar}
                     className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
                     aria-label="Star"
                 >
@@ -89,12 +79,8 @@ export function GraphicsSection({
                 </Button>
                 <Button
                     draggable
-                    onDragStart={(e) =>
-                        e.dataTransfer.setData(
-                            "application/x-cover-element",
-                            JSON.stringify({type: "triangle"})
-                        )
-                    }
+                    data-drag-type="triangle"
+                    onClick={addTriangle}
                     className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
                     aria-label="Triangle"
                 >
@@ -102,12 +88,8 @@ export function GraphicsSection({
                 </Button>
                 <Button
                     draggable
-                    onDragStart={(e) =>
-                        e.dataTransfer.setData(
-                            "application/x-cover-element",
-                            JSON.stringify({type: "polygon"})
-                        )
-                    }
+                    data-drag-type="polygon"
+                    onClick={addPolygonShape}
                     className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
                     aria-label="Pentagon"
                 >
@@ -115,12 +97,8 @@ export function GraphicsSection({
                 </Button>
                 <Button
                     draggable
-                    onDragStart={(e) =>
-                        e.dataTransfer.setData(
-                            "application/x-cover-element",
-                            JSON.stringify({type: "arrow"})
-                        )
-                    }
+                    data-drag-type="arrow"
+                    onClick={addArrow}
                     className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
                     aria-label="Arrow Right"
                 >
@@ -128,12 +106,8 @@ export function GraphicsSection({
                 </Button>
                 <Button
                     draggable
-                    onDragStart={(e) =>
-                        e.dataTransfer.setData(
-                            "application/x-cover-element",
-                            JSON.stringify({type: "bidirectionalArrow"})
-                        )
-                    }
+                    data-drag-type="bidirectionalArrow"
+                    onClick={addBidirectionalArrow}
                     className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
                     aria-label="Bidirectional Arrow"
                 >
@@ -167,12 +141,9 @@ export function GraphicsSection({
                                     type="button"
                                     className="p-1 border rounded hover:bg-accent flex items-center justify-center"
                                     draggable
-                                    onDragStart={(e) =>
-                                        e.dataTransfer.setData(
-                                            "application/x-cover-element",
-                                            JSON.stringify({type: "icon", name})
-                                        )
-                                    }
+                                    data-drag-type="icon"
+                                    data-drag-payload={JSON.stringify({name})}
+                                    onClick={() => addIcon(name)}
                                     title={name}
                                 >
                                     <IconComp className="h-4 w-4"/>
@@ -201,12 +172,9 @@ export function GraphicsSection({
                                 type="button"
                                 className="p-1 border rounded hover:bg-accent flex items-center justify-center"
                                 draggable
-                                onDragStart={(e) =>
-                                    e.dataTransfer.setData(
-                                        "application/x-cover-element",
-                                        JSON.stringify({type: "clipart", hex: c.hexcode})
-                                    )
-                                }
+                                data-drag-type="clipart"
+                                data-drag-payload={JSON.stringify({hex: c.hexcode})}
+                                onClick={() => addClipart(c.hexcode)}
                                 title={c.annotation}
                             >
                                 <img
