@@ -135,22 +135,15 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
         const res = await fetch(`https://unpkg.com/lucide-static@latest/icons/${iconName}.svg`);
         if (!res.ok) return;
         const svg = await res.text();
-        await new Promise<void>(resolve => {
-            loadSVGFromString(svg, (objects, options) => {
-                if (objects) {
-                    // In Fabric.js v6, objects is the parsed SVG group already
-                    const obj = Array.isArray(objects)
-                        ? FabricUtil.groupSVGElements(objects, options)
-                        : (objects as any);
+        const { objects, options } = await loadSVGFromString(svg);
+        const obj = Array.isArray(objects)
+            ? FabricUtil.groupSVGElements(objects, options)
+            : (objects as any);
 
-                    obj.set({left: x, top: y, stroke, fill: "none", visible: true});
-                    canvas.add(obj);
-                    canvas.setActiveObject(obj);
-                    canvas.requestRenderAll();
-                }
-                resolve();
-            });
-        });
+        obj.set({left: x, top: y, stroke, fill: "none", visible: true});
+        canvas.add(obj);
+        canvas.setActiveObject(obj);
+        canvas.requestRenderAll();
     } catch {
     }
 }
@@ -169,25 +162,19 @@ export async function addOpenmojiClipart(
         if (!res.ok) return;
         const svg = await res.text();
         const stroke = palette.colors[1] || palette.colors[0];
-        await new Promise<void>((resolve) => {
-            loadSVGFromString(svg, (objects, options) => {
-                if (objects) {
-                    const obj = Array.isArray(objects)
-                        ? FabricUtil.groupSVGElements(objects, options)
-                        : (objects as any);
+        const { objects, options } = await loadSVGFromString(svg);
+        const obj = Array.isArray(objects)
+            ? FabricUtil.groupSVGElements(objects, options)
+            : (objects as any);
 
-                    obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
-                    obj.set({stroke});
-                    if (obj._objects) {
-                        obj._objects.forEach((o: any) => o.set({stroke}));
-                    }
-                    canvas.add(obj);
-                    canvas.setActiveObject(obj);
-                    canvas.requestRenderAll();
-                }
-                resolve();
-            });
-        });
+        obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
+        obj.set({stroke});
+        if (obj._objects) {
+            obj._objects.forEach((o: any) => o.set({stroke}));
+        }
+        canvas.add(obj);
+        canvas.setActiveObject(obj);
+        canvas.requestRenderAll();
     } catch {
     }
 }
