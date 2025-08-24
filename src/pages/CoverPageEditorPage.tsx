@@ -14,6 +14,7 @@ import {
     addText as fabricAddText,
     addTriangle as fabricAddTriangle,
 } from "@/lib/fabricShapes";
+import {createTableGroup} from "@/lib/fabricTables";
 import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -505,6 +506,14 @@ export default function CoverPageEditorPage() {
         fabricAddBidirectionalArrow(canvas, palette);
         pushHistory();
     };
+    const addTable = (rows: number, cols: number, borderColor: string) => {
+        if (!canvas) return;
+        const tbl = createTableGroup(rows, cols, 80, 24, borderColor, 2);
+        canvas.add(tbl);
+        canvas.setActiveObject(tbl);
+        canvas.requestRenderAll();
+        pushHistory();
+    };
     const addIcon = (name: string) => handleAddIcon(name);
     const addClipart = (hex: string) => handleAddClipart(hex);
 
@@ -749,6 +758,7 @@ export default function CoverPageEditorPage() {
                         addBidirectionalArrow={addBidirectionalArrow}
                         addIcon={addIcon}
                         addClipart={addClipart}
+                        addTable={addTable}
                         templateOptions={Object.keys(TEMPLATES)}
                         palette={palette}
                         onApplyPalette={applyPalette}
