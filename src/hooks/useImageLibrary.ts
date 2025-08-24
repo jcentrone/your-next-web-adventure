@@ -46,7 +46,11 @@ export default function useImageLibrary() {
       const { error } = await supabase.storage
         .from(IMAGE_LIBRARY_BUCKET)
         .upload(path, file, { upsert: false, contentType: file.type });
-      if (error) throw error;
+
+      if (error) {
+        console.error("Supabase upload error:", error);
+        throw new Error(error.message);
+      }
 
       const { data: urlData, error: urlError } = await supabase.storage
         .from(IMAGE_LIBRARY_BUCKET)
