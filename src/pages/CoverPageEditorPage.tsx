@@ -686,6 +686,8 @@ export default function CoverPageEditorPage() {
                 <div className="flex-none">
                     <PropertiesPanel
                         selectedObject={selectedObject}
+                        selectedObjects={selectedObjects}
+                        onAlign={handleAlign}
                         onUpdateProperty={handleUpdateProperty}
                         onToggleLayerVisibility={handleToggleLayerVisibility}
                         layers={layers}

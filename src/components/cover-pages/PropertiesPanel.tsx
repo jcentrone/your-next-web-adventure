@@ -18,10 +18,21 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import { FabricObject } from "fabric";
-import { Eye, EyeOff } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  AlignLeft,
+  AlignHorizontalJustifyCenter,
+  AlignRight,
+  ArrowUp,
+  AlignVerticalJustifyCenter,
+  ArrowDown,
+} from "lucide-react";
 
 interface PropertiesPanelProps {
   selectedObject: any;
+  selectedObjects: FabricObject[];
+  onAlign: (type: "left" | "centerH" | "right" | "top" | "centerV" | "bottom") => void;
   onUpdateProperty: (property: string, value: any) => void;
   onToggleLayerVisibility: (layer: FabricObject) => void;
   layers: FabricObject[];
@@ -41,17 +52,22 @@ const FONTS = [
 
 export function PropertiesPanel({
   selectedObject,
+  selectedObjects,
+  onAlign,
   onUpdateProperty,
   onToggleLayerVisibility,
   layers,
   onSelectLayer,
 }: PropertiesPanelProps) {
-  const isTextObject = selectedObject?.type === "textbox";
-  const hasPosition = selectedObject && ('left' in selectedObject || 'top' in selectedObject);
-  const hasSize = selectedObject && ('width' in selectedObject || 'height' in selectedObject);
-  const hasFill = selectedObject && 'fill' in selectedObject;
-  const hasStroke = selectedObject && 'stroke' in selectedObject;
-  const defaultSection = hasPosition
+  const multipleSelection = selectedObjects.length > 1;
+  const isTextObject = !multipleSelection && selectedObject?.type === "textbox";
+  const hasPosition = !multipleSelection && selectedObject && ("left" in selectedObject || "top" in selectedObject);
+  const hasSize = !multipleSelection && selectedObject && ("width" in selectedObject || "height" in selectedObject);
+  const hasFill = !multipleSelection && selectedObject && "fill" in selectedObject;
+  const hasStroke = !multipleSelection && selectedObject && "stroke" in selectedObject;
+  const defaultSection = multipleSelection
+    ? "layers"
+    : hasPosition
     ? "position"
     : isTextObject
     ? "text"
@@ -63,8 +79,33 @@ export function PropertiesPanel({
     <div className="w-80 h-full border-l bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <ScrollArea className="h-full">
         <div className="p-4">
+          {multipleSelection && (
+            <div className="mb-4">
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" onClick={() => onAlign("left")}>
+                  <AlignLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onAlign("centerH")}>
+                  <AlignHorizontalJustifyCenter className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onAlign("right")}>
+                  <AlignRight className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onAlign("top")}>
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onAlign("centerV")}>
+                  <AlignVerticalJustifyCenter className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => onAlign("bottom")}>
+                  <ArrowDown className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">Align selected objects</p>
+            </div>
+          )}
           <Accordion type="single" collapsible defaultValue={defaultSection}>
-            {hasPosition && (
+            {!multipleSelection && hasPosition && (
               <AccordionItem value="position">
                 <AccordionTrigger className="text-sm font-medium">
                   Position &amp; Size
@@ -164,7 +205,7 @@ export function PropertiesPanel({
               </AccordionItem>
             )}
 
-            {isTextObject && (
+            {!multipleSelection && isTextObject && (
               <AccordionItem value="text">
                 <AccordionTrigger className="text-sm font-medium">
                   Text
@@ -223,7 +264,7 @@ export function PropertiesPanel({
               </AccordionItem>
             )}
 
-            {(hasFill || hasStroke) && (
+            {!multipleSelection && (hasFill || hasStroke) && (
               <AccordionItem value="appearance">
                 <AccordionTrigger className="text-sm font-medium">
                   Fill &amp; Stroke
