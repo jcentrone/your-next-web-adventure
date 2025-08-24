@@ -8,6 +8,13 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/api/image-proxy": {
+        target: "http://localhost:54321",
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/api\/image-proxy/, "/functions/v1/image-proxy"),
+      },
+    },
   },
   plugins: [
     react(),
