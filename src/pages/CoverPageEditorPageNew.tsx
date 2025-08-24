@@ -27,21 +27,9 @@ import {CanvasWorkspace} from "@/components/cover-pages/CanvasWorkspace";
 import useCoverPages from "@/hooks/useCoverPages";
 import useImageLibrary from "@/hooks/useImageLibrary";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
+import {FONTS, PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
 import * as LucideIcons from "lucide-react";
 import {toast} from "sonner";
-
-const TEMPLATES: Record<string, string> = {
-    default: "#ffffff",
-    blue: "#ebf8ff",
-};
-
-const REPORT_TYPES = [
-    {value: "home_inspection", label: "Home Inspection"},
-    {value: "wind_mitigation", label: "Wind Mitigation"},
-];
-
-const FONTS = ["Arial", "Helvetica", "Times New Roman", "Courier New"];
-const PRESET_BG_COLORS = Object.values(TEMPLATES);
 
 interface FormValues {
     name: string;
