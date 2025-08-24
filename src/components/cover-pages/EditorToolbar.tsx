@@ -2,7 +2,7 @@
 import React from "react";
 import {Button} from "@/components/ui/button";
 import {Separator} from "@/components/ui/separator";
-import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
+import {Tooltip, TooltipContent, TooltipTrigger, TooltipProvider} from "@/components/ui/tooltip";
 
 import {
     AlignHorizontalJustifyCenter,
@@ -82,10 +82,11 @@ export function EditorToolbar(props: EditorToolbarProps) {
     const hasMultipleSelection = selectedObjects.length > 1;
 
     return (
-        <div id="editor_toolbar" className="w-full overflow-x-auto">
-            <div className="w-full">
-                <div className="flex items-center justify-center gap-2 p-3 bg-transparent">
-                    <div className="flex items-center gap-2 p-3 bg-white text-foreground border rounded-md shadow-sm">
+        <TooltipProvider>
+            <div id="editor_toolbar" className="w-full overflow-x-auto">
+                <div className="w-full">
+                    <div className="flex items-center justify-center gap-2 p-3 bg-transparent">
+                        <div className="flex items-center gap-2 p-3 bg-white text-foreground border rounded-md shadow-sm">
 
                         {/* History */}
                         <div className="flex items-center gap-1">
@@ -327,6 +328,7 @@ export function EditorToolbar(props: EditorToolbarProps) {
                 </div>
             </div>
         </div>
+        </TooltipProvider>
     );
 }
 
