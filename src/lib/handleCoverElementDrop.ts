@@ -9,6 +9,7 @@ import {
     addArrow as fabricAddArrow,
     addBidirectionalArrow as fabricAddBidirectionalArrow,
     addText as fabricAddText,
+    addOpenmojiClipart,
 } from "@/lib/fabricShapes";
 
 interface DropPayload {
@@ -21,7 +22,6 @@ interface DropPayload {
 interface ExtraHandlers {
     addImage?: (url: string, x: number, y: number) => void;
     addIcon?: (name: string, x: number, y: number) => void;
-    addClipart?: (hex: string, x: number, y: number) => void;
 }
 
 export function handleCoverElementDrop(
@@ -73,7 +73,10 @@ export function handleCoverElementDrop(
             if (data?.name) handlers.addIcon?.(data.name, x, y);
             break;
         case "clipart":
-            if (data?.hex) handlers.addClipart?.(data.hex, x, y);
+            if (data?.hex)
+                addOpenmojiClipart(canvas, palette, data.hex, x, y).then(() => {
+                    pushHistory?.();
+                });
             break;
         default:
             break;
