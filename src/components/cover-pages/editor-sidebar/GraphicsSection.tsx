@@ -13,8 +13,19 @@ import {
     Triangle as TriangleIcon
 } from "lucide-react";
 import {icons as lucideIcons} from "lucide";
+import {addRect} from "@/lib/fabricShapes.ts";
 
-export function GraphicsSection({}: {
+export function GraphicsSection({
+                                    addRect,
+                                    addCircle,
+                                    addStar,
+                                    addTriangle,
+                                    addPolygonShape,
+                                    addArrow,
+                                    addBidirectionalArrow,
+                                    addIcon,
+                                    addClipart,
+                                }: {
     addRect: () => void;
     addCircle: () => void;
     addStar: () => void;
@@ -42,12 +53,9 @@ export function GraphicsSection({}: {
             <div className="flex flex-wrap gap-3">
                 <Button
                     draggable
-                    onDragStart={(e) =>
-                        e.dataTransfer.setData(
-                            "application/x-cover-element",
-                            JSON.stringify({type: "rectangle"})
-                        )
-                    }
+                    data-drag-type="rectangle"
+                    data-drag-payload={JSON.stringify({})}
+                    onClick={addRect}
                     className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
                     aria-label="Rectangle"
                 >

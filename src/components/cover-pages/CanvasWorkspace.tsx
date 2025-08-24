@@ -2,12 +2,12 @@ import React, {useEffect, useRef} from "react";
 import {Canvas as FabricCanvas} from "fabric";
 
 interface CanvasWorkspaceProps {
-    canvasRef: React.RefObject<HTMLCanvasElement>;
+    canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
     canvas: FabricCanvas | null;
     zoom: number;
     showGrid: boolean;
     showRulers: boolean;
-    onDropElement?: (item: {type: string; data: unknown; x: number; y: number}) => void;
+    onDropElement?: (item: { type: string; data: unknown; x: number; y: number }) => void;
 }
 
 export function CanvasWorkspace({
@@ -60,9 +60,71 @@ export function CanvasWorkspace({
             width: 816 * zoom,
             height: 1056 * zoom,
         });
-        canvas.setZoom(zoom);
+        canvas.setZoom(1);
         canvas.renderAll();
     }, [canvas, zoom]);
+
+
+    // CanvasWorkspace.tsx
+    useEffect(() => {
+        if (!canvas || !canvasRef.current) return;
+
+        // Fabric v5/v6: prefer upperCanvasEl; fallback to getSelectionElement()
+        const upper: HTMLCanvasElement =
+            (canvas as any).upperCanvasEl ??
+            (canvas.getSelectionElement && canvas.getSelectionElement());
+
+        console.info('upper canvas element:', upper);
+
+        if (!upper) return;
+
+        const onDragOver = (e: DragEvent) => {
+            e.preventDefault();
+            console.log("dragover");
+            // optional UX hint
+            if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+        };
+
+        const onDrop = (e: DragEvent) => {
+            e.preventDefault();
+            if (!canvas) return;
+
+            const raw =
+                e.dataTransfer?.getData("application/x-cover-element") ||
+                e.dataTransfer?.getData("text/plain") || "";
+            if (!raw) return;
+
+            let payload: any;
+            try {
+                payload = JSON.parse(raw);
+            } catch {
+                return;
+            }
+            const {type, ...rest} = payload;
+
+            const pt = canvas.getPointer(e as unknown as MouseEvent); // ✅ coords safe under zoom
+            onDropElement?.({type, data: rest, x: pt.x, y: pt.y});
+        };
+
+        // const onDrop = (e: DragEvent) => {
+        //     e.preventDefault();
+        //     if (!canvas) return;
+        //
+        //     // TEMP: ignore payload; just draw something visible
+        //     const test = new Rect({left: 100, top: 100, width: 80, height: 40, fill: "magenta"});
+        //     canvas.add(test);
+        //     canvas.setActiveObject(test);
+        //     canvas.requestRenderAll();
+        // };
+
+        upper.addEventListener("dragover", onDragOver);
+        upper.addEventListener("drop", onDrop);
+        return () => {
+            upper.removeEventListener("dragover", onDragOver);
+            upper.removeEventListener("drop", onDrop);
+        };
+    }, [canvas, zoom, onDropElement, canvasRef]);
+
 
     return (
         <div className="flex-1 relative bg-muted/50 ">
@@ -133,29 +195,12 @@ export function CanvasWorkspace({
 
                     {/* Canvas Container */}
                     <div className="relative inline-block">
-                        <div className="relative bg-white shadow-lg">
-                            <canvas
-                                ref={canvasRef}
-                                onDragOver={(e) => e.preventDefault()}
-                                onDrop={(e) => {
-                                    e.preventDefault();
-                                    if (!canvasRef.current) return;
-                                    const data = e.dataTransfer.getData("application/x-cover-element");
-                                    if (!data) return;
-                                    let payload: unknown;
-                                    try {
-                                        payload = JSON.parse(data);
-                                    } catch {
-                                        return;
-                                    }
-                                    if (typeof payload !== "object" || payload === null || !("type" in payload)) return;
-                                    const rect = canvasRef.current.getBoundingClientRect();
-                                    const x = (e.clientX - rect.left) / zoom;
-                                    const y = (e.clientY - rect.top) / zoom;
-                                    const {type, ...rest} = payload as {type: string} & Record<string, unknown>;
-                                    onDropElement?.({type, data: rest, x, y});
-                                }}
-                            />
+                        <div
+                            className="relative bg-white shadow-lg"
+
+
+                        >
+                            <canvas ref={canvasRef}/>
 
                             {/* Grid overlay (on top of canvas) */}
                             {showGrid && (
