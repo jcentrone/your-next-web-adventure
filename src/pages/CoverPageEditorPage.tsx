@@ -462,15 +462,10 @@ export default function CoverPageEditorPage() {
 
     const handleUploadImage = async (file: File) => {
         try {
-            const uploadedImageData = await uploadImage(file);
-            if (uploadedImageData) {
-                const imageUrl = typeof uploadedImageData === 'string'
-                    ? uploadedImageData
-                    : (uploadedImageData as any)?.url || '';
-                if (imageUrl) {
-                    handleAddImage(imageUrl);
-                    toast.success("Image uploaded successfully");
-                }
+            const {url} = await uploadImage(file);
+            if (url) {
+                handleAddImage(url);
+                toast.success("Image uploaded successfully");
             }
         } catch (error) {
             toast.error("Failed to upload image");
