@@ -132,8 +132,9 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
         const svg = await res.text();
         await new Promise<void>(resolve => {
             loadSVGFromString(svg, (objects, options) => {
-                if (objects && objects.length > 0) {
-                    const obj = objects.length === 1 ? objects[0] : new Group(objects);
+                if (objects) {
+                    // In Fabric.js v6, objects is the parsed SVG group already
+                    const obj = objects as any;
                     obj.set({left: 100, top: 100, stroke, fill: "none"});
                     canvas.add(obj);
                     canvas.setActiveObject(obj);

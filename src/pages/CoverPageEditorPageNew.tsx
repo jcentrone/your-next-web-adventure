@@ -460,8 +460,9 @@ export default function CoverPageEditorPageNew() {
             const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
             const svg = await fetch(url).then((r) => r.text());
             loadSVGFromString(svg, (objects, options) => {
-                if (objects && objects.length > 0) {
-                    const obj = objects.length === 1 ? objects[0] : new Group(objects);
+                if (objects) {
+                    // In Fabric.js v6, objects is the parsed SVG group already
+                    const obj = objects as any;
                     obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5});
                     canvas.add(obj);
                     canvas.setActiveObject(obj);
