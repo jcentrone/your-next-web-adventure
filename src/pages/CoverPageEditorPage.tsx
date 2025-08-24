@@ -21,6 +21,8 @@ import {PropertiesPanel} from "@/components/cover-pages/PropertiesPanel";
 import {CanvasWorkspace} from "@/components/cover-pages/CanvasWorkspace";
 import useCoverPages from "@/hooks/useCoverPages";
 import useImageLibrary from "@/hooks/useImageLibrary";
+import {useCanvasKeyboardShortcuts} from "@/hooks/useCanvasKeyboardShortcuts";
+import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
 import * as LucideIcons from "lucide-react";
@@ -44,6 +46,7 @@ export default function CoverPageEditorPage() {
     const [palette, setPalette] = useState<ColorPalette>(COLOR_PALETTES[0]);
     const [bgColor, setBgColor] = useState(TEMPLATES["default"]);
     const [activePanel, setActivePanel] = useState<string | null>("settings");
+    const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
     const {id} = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -66,6 +69,17 @@ export default function CoverPageEditorPage() {
     const {register, handleSubmit, setValue, watch} = form;
     const template = watch("template") as keyof typeof TEMPLATES;
     const reportTypes = watch("reportTypes");
+
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "/") {
+                e.preventDefault();
+                setShortcutsOpen((o) => !o);
+            }
+        };
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
+    }, []);
 
     // Initialize canvas
     useEffect(() => {
@@ -543,8 +557,30 @@ export default function CoverPageEditorPage() {
     const selectedObject = selectedObjects[0] || null;
     const layers = canvas?.getObjects() || [];
 
+    useCanvasKeyboardShortcuts({
+        canvas,
+        onUndo: handleUndo,
+        onRedo: handleRedo,
+        onCopy: handleCopy,
+        onDelete: handleDelete,
+        onGroup: handleGroup,
+        onUngroup: handleUngroup,
+        onZoomIn: handleZoomIn,
+        onZoomOut: handleZoomOut,
+        setZoom,
+        onSave: () => handleSubmit(onSubmit)(),
+        onEscape: () => canvas?.discardActiveObject(),
+        onBringForward: handleBringForward,
+        onSendBackward: handleSendBackward,
+    });
+
     return (
-        <div className=" flex flex-col bg-background">
+        <>
+            <KeyboardShortcutsModal
+                open={shortcutsOpen}
+                onClose={() => setShortcutsOpen(false)}
+            />
+            <div className=" flex flex-col bg-background">
             {/* Header */}
             <div className="flex items-center justify-between px-4 border-b">
                 {/* Toolbar */}
@@ -629,6 +665,7 @@ export default function CoverPageEditorPage() {
                         presetBgColors={PRESET_BG_COLORS}
                         updateBgColor={updateBgColor}
                         onAddPlaceholder={handleAddPlaceholder}
+                        onShowShortcuts={() => setShortcutsOpen(true)}
                     />
                 </div>
 
@@ -656,6 +693,7 @@ export default function CoverPageEditorPage() {
                 </div>
             </div>
         </div>
+        </>
 
     );
 }
