@@ -38,6 +38,7 @@ export default function CoverPageEditorPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
     const [selectedObjects, setSelectedObjects] = useState<FabricObject[]>([]);
+    const [layers, setLayers] = useState<FabricObject[]>([]);
     const [zoom, setZoom] = useState(1);
     const [showGrid, setShowGrid] = useState(true);
     const [showRulers, setShowRulers] = useState(true);
@@ -97,10 +98,20 @@ export default function CoverPageEditorPage() {
 
         // Event listeners
         const updateSelection = () => setSelectedObjects([...c.getActiveObjects()]);
+        const clearSelection = () => setSelectedObjects([]);
+        const updateLayers = () => setLayers([...c.getObjects()]);
         c.on("selection:created", updateSelection);
         c.on("selection:updated", updateSelection);
-        c.on("selection:cleared", () => setSelectedObjects([]));
-        c.on("object:modified", () => pushHistory());
+        c.on("selection:cleared", clearSelection);
+        c.on("object:added", updateLayers);
+        c.on("object:removed", updateLayers);
+        c.on("object:modified", () => {
+            updateLayers();
+            pushHistory();
+        });
+
+        // Initial layers
+        updateLayers();
 
         // Initial history
         const initialJson = JSON.stringify(c.toJSON());
@@ -108,6 +119,12 @@ export default function CoverPageEditorPage() {
         setHistoryIndex(0);
 
         return () => {
+            c.off("selection:created", updateSelection);
+            c.off("selection:updated", updateSelection);
+            c.off("selection:cleared", clearSelection);
+            c.off("object:added", updateLayers);
+            c.off("object:removed", updateLayers);
+            c.off("object:modified");
             c.dispose();
         };
     }, []);
@@ -608,7 +625,8 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
 
         layer.set("visible", !layer.visible);
-        canvas.renderAll();
+        setLayers([...canvas.getObjects()]);
+        canvas.requestRenderAll();
     };
 
     const handleDeleteLayer = (layer: FabricObject) => {
@@ -663,7 +681,6 @@ export default function CoverPageEditorPage() {
     };
 
     const selectedObject = selectedObjects[0] || null;
-    const layers = canvas?.getObjects() || [];
 
     useCanvasKeyboardShortcuts({
         canvas,
