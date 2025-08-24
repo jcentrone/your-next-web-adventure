@@ -87,30 +87,9 @@ export function EditorSidebar(props: EditorSidebarProps) {
         onShowShortcuts,
     } = props;
 
-    const handleSidebarDragStart: React.DragEventHandler<HTMLDivElement> = (e) => {
-        const el = (e.target as HTMLElement).closest<HTMLElement>("[data-drag-type]");
-
-        if (!el) return;
-
-        const type = el.dataset.dragType!;
-        const payload = el.dataset.dragPayload ? JSON.parse(el.dataset.dragPayload) : {};
-        const bundle = JSON.stringify({type, ...payload});
-        console.log("dragstart:", type, payload);
-        e.dataTransfer?.setData("application/x-cover-element", bundle);
-        e.dataTransfer!.effectAllowed = "copy";
-
-        const dragImg = el.querySelector("[data-drag-image]") as HTMLElement | null;
-        if (dragImg) {
-            const rect = dragImg.getBoundingClientRect();
-            e.dataTransfer!.setDragImage(dragImg, rect.width / 2, rect.height / 2);
-        }
-    };
-
-
     return (
         <div
             className="w-[14rem] h-full p-2 border-r space-y-2 overflow-y-auto overflow-x-visible relative pb-16 bg-[#FFFFFF]"
-            onDragStart={handleSidebarDragStart}
         >
 
             <div className="space-y-2">

@@ -53,8 +53,11 @@ export function ImagesSection({
                         key={img.path}
                         className="relative group"
                         draggable
-                        data-drag-type="image"
-                        data-drag-payload={JSON.stringify({url: img.url})}
+                        onDragStart={(e) => {
+                            const payload = JSON.stringify({type: "image", url: img.url});
+                            e.dataTransfer?.setData("application/x-cover-element", payload);
+                            e.dataTransfer!.effectAllowed = "copy";
+                        }}
                     >
                         <img
                             src={img.url}

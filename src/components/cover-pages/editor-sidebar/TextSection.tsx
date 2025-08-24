@@ -9,8 +9,11 @@ export function TextSection({addText}: { addText: () => void }) {
                 type="button"
                 className="w-full"
                 draggable
-                data-drag-type="text"
-                data-drag-payload={JSON.stringify({})}
+                onDragStart={(e) => {
+                    const payload = JSON.stringify({type: "text"});
+                    e.dataTransfer?.setData("application/x-cover-element", payload);
+                    e.dataTransfer!.effectAllowed = "copy";
+                }}
                 onClick={addText}
                 title="Drag onto the canvas or click to add"
             >
