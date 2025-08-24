@@ -39,6 +39,10 @@ export function CanvasWorkspace({
     const MINOR_IN = 0.25;
     const MAJOR_EVERY_IN = 1;
 
+    // Ensure grid lines and ruler ticks share the exact same step and origin.
+    // Offset by 0.5px so 1px lines sit on device pixels and look crisp.
+    const PIXEL_OFFSET = 0.5;
+
     // Screen pixels for each minor tick (account for zoom)
     const hStepScreen = pxPerInchX * MINOR_IN * zoom;
     const vStepScreen = pxPerInchY * MINOR_IN * zoom;
@@ -144,16 +148,25 @@ export function CanvasWorkspace({
                                         const inches = i * MINOR_IN;
                                         const x = i * hStepScreen; // screen px
                                         const isMajor = Math.abs(inches % MAJOR_EVERY_IN) < 1e-6;
+                                        const color = isMajor ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.25)";
+                                        const height = isMajor ? "100%" : "50%";
+                                        const width = isMajor ? 2 : 1;
+                                        const transform = isMajor ? "translateX(-1px)" : undefined;
                                         return (
                                             <div
                                                 key={`h-${i}`}
-                                                className="absolute top-0 h-full border-l border-gray-300/60"
-                                                style={{left: `${x}px`}}
+                                                className="absolute bottom-0"
+                                                style={{
+                                                    left: x + PIXEL_OFFSET,
+                                                    height,
+                                                    borderLeft: `${width}px solid ${color}`,
+                                                    transform,
+                                                }}
                                             >
                                                 {isMajor && (
-                                                    <span className="absolute top-1 left-1 text-xs text-gray-600">
-                            {Math.round(inches)}″
-                          </span>
+                                                    <span className="absolute top-full mt-0.5 left-1 text-xs text-gray-600">
+                                                        {Math.round(inches)}″
+                                                    </span>
                                                 )}
                                             </div>
                                         );
@@ -169,17 +182,26 @@ export function CanvasWorkspace({
                                         const inches = i * MINOR_IN;
                                         const y = i * vStepScreen; // screen px
                                         const isMajor = Math.abs(inches % MAJOR_EVERY_IN) < 1e-6;
+                                        const color = isMajor ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.25)";
+                                        const width = isMajor ? "100%" : "50%";
+                                        const height = isMajor ? 2 : 1;
+                                        const transform = isMajor ? "translateY(-1px)" : undefined;
                                         return (
                                             <div
                                                 key={`v-${i}`}
-                                                className="absolute left-0 w-full border-t border-gray-300/60"
-                                                style={{top: `${y}px`}}
+                                                className="absolute left-0"
+                                                style={{
+                                                    top: y + PIXEL_OFFSET,
+                                                    width,
+                                                    borderTop: `${height}px solid ${color}`,
+                                                    transform,
+                                                }}
                                             >
                                                 {isMajor && (
                                                     <span
                                                         className="absolute top-1 left-1 text-xs text-gray-600 transform -rotate-90 origin-top-left">
-                            {Math.round(inches)}″
-                          </span>
+                                                            {Math.round(inches)}″
+                                                    </span>
                                                 )}
                                             </div>
                                         );
@@ -208,6 +230,7 @@ export function CanvasWorkspace({
                                     className="pointer-events-none absolute inset-0 z-10"
                                     style={{
                                         backgroundSize: `${hStepScreen}px ${vStepScreen}px`,
+                                        backgroundPosition: `${PIXEL_OFFSET}px ${PIXEL_OFFSET}px`,
                                         backgroundImage:
                                             "linear-gradient(to right, rgba(0,0,0,0.12) 1px, transparent 1px)," +
                                             "linear-gradient(to bottom, rgba(0,0,0,0.12) 1px, transparent 1px)",
