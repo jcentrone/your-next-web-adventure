@@ -580,7 +580,7 @@ export default function CoverPageEditorPage() {
                 open={shortcutsOpen}
                 onClose={() => setShortcutsOpen(false)}
             />
-            <div className="flex flex-col h-full overflow-hidden bg-background">
+            <div className=" flex flex-col bg-background">
             {/* Header */}
             <div className="flex items-center justify-between px-4 border-b">
                 {/* Toolbar */}
