@@ -3,16 +3,15 @@ import {useEffect, useRef, useState} from "react";
 import {useForm} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
 import {
-    Canvas as FabricCanvas,
-    Circle,
-    FabricObject,
-    Group,
-    Image as FabricImage,
-    loadSVGFromString,
-    Polygon,
-    Rect,
-    Textbox,
-    util as FabricUtil,
+  Canvas as FabricCanvas,
+  Circle,
+  FabricObject,
+  Group,
+  Image as FabricImage,
+  loadSVGFromString,
+  Polygon,
+  Rect,
+  Textbox,
 } from "fabric";
 
 import useCoverPages from "@/hooks/useCoverPages";
@@ -26,22 +25,22 @@ import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal
 import {useCanvasKeyboardShortcuts} from "@/hooks/useCanvasKeyboardShortcuts";
 import {useCanvasHistory} from "@/hooks/useCanvasHistory";
 
-import {FONTS, GRID_SIZE, PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES,} from "@/constants/coverPageEditor";
+import {FONTS, GRID_SIZE, PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
 
 import {createTableGroup, type TableData} from "@/lib/fabricTables";
 
 import {
-    addArrow as addArrowShape,
-    addBidirectionalArrow as addBidirectionalArrowShape,
-    addCircle as addCircleShape,
-    addImageFromUrl as addImageFromUrlShape,
-    addLucideIconByName,
-    addPolygon,
-    addRect as addRectShape,
-    addStar as addStarShape,
-    addText as addTextShape,
-    addTriangle as addTriangleShape,
-    type Palette,
+  addArrow as addArrowShape,
+  addBidirectionalArrow as addBidirectionalArrowShape,
+  addCircle as addCircleShape,
+  addImageFromUrl as addImageFromUrlShape,
+  addLucideIconByName,
+  addPolygon,
+  addRect as addRectShape,
+  addStar as addStarShape,
+  addText as addTextShape,
+  addTriangle as addTriangleShape,
+  type Palette,
 } from "@/lib/fabricShapes";
 
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
@@ -93,17 +92,13 @@ export default function CoverPageEditorPage() {
     const [showRulers, setShowRulers] = useState(false);
     const [activePanel, setActivePanel] = useState<string | null>("settings");
 
-
     const {images, uploadImage, deleteImage} = useImageLibrary();
 
-    // history hook (replaces local arrays)
-    const {
-        snapshot: pushHistory,
-        undo,
-        redo,
-        canUndo,
-        canRedo,
-    } = useCanvasHistory({canvas, onBgFromJSON: setBgColor});
+    // history
+    const {snapshot: pushHistory, undo, redo, canUndo, canRedo} = useCanvasHistory({
+        canvas,
+        onBgFromJSON: setBgColor,
+    });
 
     // ----- helpers -----
     const updateBgColor = (color: string) => setBgColor(color);
@@ -124,50 +119,99 @@ export default function CoverPageEditorPage() {
 
     const paletteAsHelper: Palette = {colors: [...palette.colors]};
 
-    // Handle drag & drop from sidebar
-    const handleDropElement = (item: {type: string; data: any; x: number; y: number}) => {
+    /**
+     * Utility: ensure the most recently created/active object gets positioned at (x, y)
+     * Works whether helpers return the object or just set it active.
+     */
+    const placeAt = (obj: any | null, x: number, y: number) => {
         if (!canvas) return;
-        
-        switch(item.type) {
+        const target =
+            obj ||
+            canvas.getActiveObject() ||
+            (canvas.getObjects().length ? canvas.getObjects()[canvas.getObjects().length - 1] : null);
+
+        if (!target) return;
+
+        target.set?.({left: x, top: y});
+        target.setCoords?.();
+        canvas.setActiveObject?.(target);
+    };
+
+    // Handle drag & drop from sidebar (robust position regardless of helper behavior)
+    const handleDropElement = (item: { type: string; data: any; x: number; y: number }) => {
+        if (!canvas) return;
+
+        let created: any = null;
+
+        switch (item.type) {
             case "rectangle":
-                addRectShape(canvas, paletteAsHelper, item.x, item.y);
+                // helpers appear to support coords, but we still place after as a safeguard
+                created = (addRectShape(canvas, paletteAsHelper, item.x, item.y) as any) ?? null;
+                placeAt(created, item.x, item.y);
                 break;
+
             case "circle":
-                addCircleShape(canvas, paletteAsHelper, item.x, item.y);
+                created = (addCircleShape(canvas, paletteAsHelper, item.x, item.y) as any) ?? null;
+                placeAt(created, item.x, item.y);
                 break;
+
             case "star":
-                addStarShape(canvas, paletteAsHelper, item.x, item.y);
+                created = (addStarShape(canvas, paletteAsHelper, item.x, item.y) as any) ?? null;
+                placeAt(created, item.x, item.y);
                 break;
+
             case "triangle":
-                addTriangleShape(canvas, paletteAsHelper, item.x, item.y);
+                created = (addTriangleShape(canvas, paletteAsHelper, item.x, item.y) as any) ?? null;
+                placeAt(created, item.x, item.y);
                 break;
+
             case "polygon":
-                addPolygon(canvas, paletteAsHelper, 5, 50, item.x, item.y);
+                created = (addPolygon(canvas, paletteAsHelper, 5, 50, item.x, item.y) as any) ?? null;
+                placeAt(created, item.x, item.y);
                 break;
+
             case "arrow":
-                addArrowShape(canvas, paletteAsHelper, item.x, item.y);
+                created = (addArrowShape(canvas, paletteAsHelper, item.x, item.y) as any) ?? null;
+                placeAt(created, item.x, item.y);
                 break;
+
             case "bidirectionalArrow":
-                addBidirectionalArrowShape(canvas, paletteAsHelper, item.x, item.y);
+                created = (addBidirectionalArrowShape(canvas, paletteAsHelper, item.x, item.y) as any) ?? null;
+                placeAt(created, item.x, item.y);
                 break;
-            case "text":
-                addTextShape(canvas, paletteAsHelper, "Text", item.x, item.y);
-                break;
-            case "icon":
-                if (item.data?.name) {
-                    addLucideIconByName(canvas, item.data.name, paletteAsHelper.colors[0], item.x, item.y);
+
+            case "text": {
+                created = (addTextShape(canvas, paletteAsHelper, "Text", item.x, item.y) as any) ?? null;
+                console.log("created text:", created);
+                placeAt(created, item.x, item.y);
+                // make sure it's visible on light backgrounds
+                try {
+                    created?.set?.({fill: palette.colors[3] || "#111111"});
+                } catch {
                 }
                 break;
+            }
+
+            case "icon":
+                if (item.data?.name) {
+                    created = (addLucideIconByName(canvas, item.data.name, paletteAsHelper.colors[0], item.x, item.y) as any) ?? null;
+                    placeAt(created, item.x, item.y);
+                }
+                break;
+
             case "clipart":
                 if (item.data?.hex) {
-                    // Handle clipart with position
-                    addClipartAtPosition(item.data.hex, item.x, item.y);
+                    // this helper already accepts coords and sets left/top internally
+                    void addClipartAtPosition(item.data.hex, item.x, item.y);
                 }
                 break;
         }
+
+        canvas.requestRenderAll();
         pushHistory();
     };
 
+    // Sidebar "click to add" actions (keep existing UX)
     const addRect = () => {
         if (!canvas) return;
         addRectShape(canvas, paletteAsHelper);
@@ -205,7 +249,9 @@ export default function CoverPageEditorPage() {
     };
     const addText = () => {
         if (!canvas) return;
-        addTextShape(canvas, paletteAsHelper, "Text");
+        const tb = addTextShape(canvas, paletteAsHelper, "Text") as any;
+        tb?.set?.({fill: palette.colors[3] || "#111111"});
+        canvas?.requestRenderAll();
         pushHistory();
     };
     const addImageFromUrl = async (url: string) => {
@@ -218,16 +264,16 @@ export default function CoverPageEditorPage() {
         await addLucideIconByName(canvas, name, palette.colors[1] || palette.colors[0]);
         pushHistory();
     };
+
     const addClipartAtPosition = async (hex: string, x: number, y: number) => {
         if (!canvas) return;
         try {
             const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
             const svg = await fetch(url).then((r) => r.text());
             await new Promise<void>((resolve) => {
-                loadSVGFromString(svg, (objects, options) => {
+                loadSVGFromString(svg, (objects) => {
                     if (objects) {
-                        // In Fabric.js v6, objects is the parsed SVG group already
-                        const obj = objects as any;
+                        const obj = objects as any; // Fabric v6: parsed group
                         obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5});
                         canvas.add(obj);
                         canvas.setActiveObject(obj);
@@ -238,8 +284,10 @@ export default function CoverPageEditorPage() {
             });
             pushHistory();
         } catch {
+            // ignore
         }
     };
+
     const addClipart = async (hex: string) => {
         if (!canvas) return;
         await addClipartAtPosition(hex, 100, 100);
@@ -366,9 +414,7 @@ export default function CoverPageEditorPage() {
         if (!selected || !canvas) return;
 
         if (selected instanceof Group) {
-            selected.getObjects().forEach((obj) =>
-                (obj as unknown as FabricObject).set(prop as never, value as never)
-            );
+            selected.getObjects().forEach((obj) => (obj as unknown as FabricObject).set(prop as never, value as never));
         } else {
             (selected as unknown as FabricObject).set(prop as never, value as never);
             if (selected instanceof Textbox) {
@@ -584,16 +630,12 @@ export default function CoverPageEditorPage() {
         return () => document.removeEventListener("pointerdown", onPointerDown, true);
     }, [activePanel]);
 
-    // fit-to-wrapper scaling
+    // fit-to-wrapper scaling (drives CanvasWorkspace's zoom prop)
     useEffect(() => {
         const updateScale = () => {
             const wrapper = wrapperRef.current;
             if (!wrapper) return;
-            const scale = Math.min(
-                (wrapper.clientWidth - 32) / 816,
-                (wrapper.clientHeight - 32) / 1056,
-                1
-            );
+            const scale = Math.min((wrapper.clientWidth - 32) / 816, (wrapper.clientHeight - 32) / 1056, 1);
             setFitScale(scale);
         };
         updateScale();
@@ -637,7 +679,7 @@ export default function CoverPageEditorPage() {
             <div className="flex h-full">
                 {/* Right panel: toolbar on top, then sidebar + canvas */}
                 <div className="flex-1 relative flex h-full flex-col bg-[#ededed]">
-                    {/* Sticky toolbar (doesn't affect the sidebar height now) */}
+                    {/* Sticky toolbar */}
                     <div
                         className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/75 border-b">
                         <EditorToolbar
@@ -676,24 +718,24 @@ export default function CoverPageEditorPage() {
                                 canvas.requestRenderAll();
                                 pushHistory();
                             }}
-            onBringToFront={() => {
-                if (!selected || !canvas) return;
-                canvas.bringObjectToFront(selected);
-                canvas.requestRenderAll();
-                pushHistory();
-            }}
-            onSendToBack={() => {
-                if (!selected || !canvas) return;
-                canvas.sendObjectToBack(selected);
-                canvas.requestRenderAll();
-                pushHistory();
-            }}
+                            onBringToFront={() => {
+                                if (!selected || !canvas) return;
+                                canvas.bringObjectToFront(selected);
+                                canvas.requestRenderAll();
+                                pushHistory();
+                            }}
+                            onSendToBack={() => {
+                                if (!selected || !canvas) return;
+                                canvas.sendObjectToBack(selected);
+                                canvas.requestRenderAll();
+                                pushHistory();
+                            }}
                         />
                     </div>
 
                     {/* Main row: Sidebar + Canvas */}
                     <div className="flex-1 flex overflow-hidden">
-                        {/* Sidebar now lives under the toolbar */}
+                        {/* Sidebar */}
                         <EditorSidebar
                             activePanel={activePanel}
                             setActivePanel={setActivePanel}
@@ -752,29 +794,23 @@ export default function CoverPageEditorPage() {
                         />
 
                         {/* Scrollable canvas region */}
-                        <div
-                            ref={wrapperRef}
-                            className="flex-1 overflow-auto flex items-center justify-center [scroll-padding-top:3rem]"
-                        >
-                        <CanvasWorkspace
-                            canvasRef={canvasRef}
-                            canvas={canvas}
-                            zoom={fitScale * zoom}
-                            showGrid={showGrid}
-                            showRulers={showRulers}
-                            onDropElement={handleDropElement}
-                        />
+                        <div ref={wrapperRef}
+                             className="flex-1 overflow-auto flex items-center justify-center [scroll-padding-top:3rem]">
+                            <CanvasWorkspace
+                                canvasRef={canvasRef}
+                                canvas={canvas}
+                                zoom={fitScale * zoom}
+                                showGrid={showGrid}
+                                showRulers={showRulers}
+                                onDropElement={handleDropElement}
+                            />
                         </div>
                     </div>
 
                     {/* Modals */}
-                    <KeyboardShortcutsModal
-                        open={showShortcuts}
-                        onClose={() => setShowShortcuts(false)}
-                    />
+                    <KeyboardShortcutsModal open={showShortcuts} onClose={() => setShowShortcuts(false)}/>
                 </div>
             </div>
         </div>
     );
-
 }

@@ -5,6 +5,7 @@ import {Label} from "@/components/ui/label.tsx";
 import {AlignCenter, AlignLeft, AlignRight, Bold, Italic, Plus} from "lucide-react";
 
 export function TextSection({
+                                addText,            // <-- include it so click still works
                                 selected,
                                 updateSelected,
                                 fonts,
@@ -16,19 +17,17 @@ export function TextSection({
 }) {
     const isTextbox = selected?.type === "textbox";
 
-    const handleDragStart = (e: React.DragEvent) => {
-        e.dataTransfer.setData(
-            "application/x-cover-element",
-            JSON.stringify({type: "text"})
-        );
-    };
-
     return (
         <div className="space-y-2">
+            {/* Drag OR Click to add text */}
             <Button
-                draggable
-                onDragStart={handleDragStart}
+                type="button"
                 className="w-full"
+                draggable
+                data-drag-type="text"                        // <-- used by the delegated handler
+                data-drag-payload={JSON.stringify({})}       // <-- optional; keep for symmetry
+                onClick={addText}                             // <-- click still adds a textbox
+                title="Drag onto the canvas or click to add"
             >
                 <Plus className="mr-2 h-4 w-4"/> Add Text Box
             </Button>
@@ -44,6 +43,7 @@ export function TextSection({
                             onChange={(e) => updateSelected("fill", e.target.value)}
                         />
                     </div>
+
                     <div>
                         <Label htmlFor="text-font-size">Font Size</Label>
                         <Input
@@ -53,6 +53,7 @@ export function TextSection({
                             onChange={(e) => updateSelected("fontSize", parseInt(e.target.value, 10))}
                         />
                     </div>
+
                     <div>
                         <Label htmlFor="fontFamily">Font Family</Label>
                         <select
@@ -62,9 +63,7 @@ export function TextSection({
                             onChange={(e) => updateSelected("fontFamily", e.target.value)}
                         >
                             {fonts.map((f) => (
-                                <option key={f} value={f}>
-                                    {f}
-                                </option>
+                                <option key={f} value={f}>{f}</option>
                             ))}
                         </select>
                     </div>
