@@ -41,6 +41,7 @@ export default function CoverPageEditorPage() {
     const [zoom, setZoom] = useState(1);
     const [showGrid, setShowGrid] = useState(true);
     const [showRulers, setShowRulers] = useState(true);
+    const [snapEnabled, setSnapEnabled] = useState(false);
     const [history, setHistory] = useState<string[]>([]);
     const [historyIndex, setHistoryIndex] = useState(-1);
     const [palette, setPalette] = useState<ColorPalette>(COLOR_PALETTES[0]);
@@ -142,6 +143,22 @@ export default function CoverPageEditorPage() {
             canvas.renderAll();
         }
     }, [canvas, bgColor]);
+
+    useEffect(() => {
+        if (!canvas) return;
+        const handleObjectMoving = (e: any) => {
+            if (!snapEnabled || !e.target) return;
+            const grid = 16; // pixels per grid step
+            e.target.set({
+                left: Math.round(e.target.left / grid) * grid,
+                top: Math.round(e.target.top / grid) * grid,
+            });
+        };
+        canvas.on("object:moving", handleObjectMoving);
+        return () => {
+            canvas.off("object:moving", handleObjectMoving);
+        };
+    }, [canvas, snapEnabled]);
 
     const pushHistory = () => {
         if (!canvas) return;
@@ -598,6 +615,8 @@ export default function CoverPageEditorPage() {
                     onToggleGrid={() => setShowGrid(!showGrid)}
                     showRulers={showRulers}
                     onToggleRulers={() => setShowRulers(!showRulers)}
+                    snapEnabled={snapEnabled}
+                    onToggleSnap={() => setSnapEnabled((v) => !v)}
                     selectedObjects={selectedObjects}
                     onCopy={handleCopy}
                     onDelete={handleDelete}
