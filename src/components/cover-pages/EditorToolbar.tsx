@@ -84,8 +84,8 @@ export function EditorToolbar(props: EditorToolbarProps) {
     return (
         <TooltipProvider>
             <div id="editor_toolbar" className="w-full">
-                <div className="w-full">
-                    <div className="flex items-center justify-center gap-2 p-3 bg-transparent">
+                <div className="w-full overflow-x-auto">
+                    <div className="flex w-max items-center justify-center gap-2 p-3 bg-transparent">
                         <div className="flex items-center gap-2 p-3 bg-white text-foreground border rounded-md shadow-sm">
 
                         {/* History */}
@@ -138,59 +138,61 @@ export function EditorToolbar(props: EditorToolbarProps) {
 
                         {/* Align + Distribute */}
                         <div className="flex items-center gap-1">
-                            <Tip label="Align left">
+                            <Tip label={hasMultipleSelection ? "Align left" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("left")}
-                                        disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
+                                        disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
                                     <AlignLeft className="h-4 w-4"/>
                                 </Button>
                             </Tip>
-                            <Tip label="Align horizontal center">
+                            <Tip label={hasMultipleSelection ? "Align horizontal center" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("centerH")}
-                                        disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
+                                        disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
                                     <AlignHorizontalJustifyCenter className="h-4 w-4"/>
                                 </Button>
                             </Tip>
-                            <Tip label="Align right">
+                            <Tip label={hasMultipleSelection ? "Align right" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("right")}
-                                        disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
+                                        disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
                                     <AlignRight className="h-4 w-4"/>
                                 </Button>
                             </Tip>
-                            <Tip label="Align top">
+                            <Tip label={hasMultipleSelection ? "Align top" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("top")}
-                                        disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
+                                        disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
                                     <ArrowUp className="h-4 w-4"/>
                                 </Button>
                             </Tip>
-                            <Tip label="Align vertical center">
+                            <Tip label={hasMultipleSelection ? "Align vertical center" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("centerV")}
-                                        disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
+                                        disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
                                     <AlignVerticalJustifyCenter className="h-4 w-4"/>
                                 </Button>
                             </Tip>
-                            <Tip label="Align bottom">
+                            <Tip label={hasMultipleSelection ? "Align bottom" : "Select multiple objects to align"}>
                                 <Button variant="ghost" size="sm" onClick={() => onAlign("bottom")}
-                                        disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
+                                        disabled={!hasMultipleSelection} aria-disabled={!hasMultipleSelection} className="h-8 w-8 p-0">
                                     <ArrowDown className="h-4 w-4"/>
                                 </Button>
                             </Tip>
 
                             {/* Distribute (optional) */}
-                            <Tip label="Distribute horizontally">
+                            <Tip label={hasMultipleSelection ? "Distribute horizontally" : "Select multiple objects to align"}>
                                 <Button
                                     variant="ghost" size="sm"
                                     onClick={() => onDistribute?.("h")}
                                     disabled={!hasMultipleSelection || !onDistribute}
+                                    aria-disabled={!hasMultipleSelection || !onDistribute}
                                     className="h-8 w-8 p-0"
                                 >
                                     <BetweenHorizontalStart className="h-4 w-4"/>
                                 </Button>
                             </Tip>
-                            <Tip label="Distribute vertically">
+                            <Tip label={hasMultipleSelection ? "Distribute vertically" : "Select multiple objects to align"}>
                                 <Button
                                     variant="ghost" size="sm"
                                     onClick={() => onDistribute?.("v")}
                                     disabled={!hasMultipleSelection || !onDistribute}
+                                    aria-disabled={!hasMultipleSelection || !onDistribute}
                                     className="h-8 w-8 p-0"
                                 >
                                     <BetweenVerticalStart className="h-4 w-4"/>
