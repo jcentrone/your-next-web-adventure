@@ -626,7 +626,8 @@ export default function CoverPageEditorPage() {
             {/* Main Layout */}
             <div className="flex flex-1 overflow-hidden">
                 {/* Left Sidebar */}
-                <EditorSidebar
+                <div className="flex-none">
+                    <EditorSidebar
                     activePanel={activePanel}
                     setActivePanel={setActivePanel}
                     onSettingsSubmit={handleSubmit(onSubmit)}
@@ -664,10 +665,11 @@ export default function CoverPageEditorPage() {
                     presetBgColors={PRESET_BG_COLORS}
                     updateBgColor={updateBgColor}
                     onAddPlaceholder={handleAddPlaceholder}
-                />
+                    />
+                </div>
 
                 {/* Canvas Workspace */}
-                <div className={"mt-4"}>
+                <div className="mt-4 flex-1 overflow-auto">
                     <CanvasWorkspace
                         canvasRef={canvasRef}
                         canvas={canvas}
@@ -679,18 +681,20 @@ export default function CoverPageEditorPage() {
                 </div>
 
                 {/* Right Properties Panel */}
-                <PropertiesPanel
-                    selectedObject={selectedObject}
-                    onUpdateProperty={handleUpdateProperty}
-                    onDeleteObject={handleDelete}
-                    onDuplicateObject={handleCopy}
-                    onBringForward={handleBringForward}
-                    onSendBackward={handleSendBackward}
-                    onToggleLock={handleToggleLock}
-                    onToggleVisible={handleToggleVisible}
-                    layers={layers}
-                    onSelectLayer={handleSelectLayer}
-                />
+                <div className="flex-none">
+                    <PropertiesPanel
+                        selectedObject={selectedObject}
+                        onUpdateProperty={handleUpdateProperty}
+                        onDeleteObject={handleDelete}
+                        onDuplicateObject={handleCopy}
+                        onBringForward={handleBringForward}
+                        onSendBackward={handleSendBackward}
+                        onToggleLock={handleToggleLock}
+                        onToggleVisible={handleToggleVisible}
+                        layers={layers}
+                        onSelectLayer={handleSelectLayer}
+                    />
+                </div>
             </div>
         </div>
 

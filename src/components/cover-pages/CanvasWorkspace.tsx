@@ -24,12 +24,12 @@ export function CanvasWorkspace({
     const PAGE_W_IN = 8.5;
     const PAGE_H_IN = 11;
 
-    const width = canvas?.getWidth() ?? 0;    // includes zoom
-    const height = canvas?.getHeight() ?? 0;  // includes zoom
+    const width = canvas?.getWidth() ?? 0;
+    const height = canvas?.getHeight() ?? 0;
 
-    // Derive base (unzoomed) size so this keeps working if you change zoom or DPI
-    const baseWidth = width / Math.max(zoom, 0.0001);
-    const baseHeight = height / Math.max(zoom, 0.0001);
+    // Canvas dimensions remain constant; zoom is handled via fabric's viewport
+    const baseWidth = width;
+    const baseHeight = height;
 
     // Pixels per inch along each axis (works even if you change base canvas size)
     const pxPerInchX = baseWidth > 0 ? baseWidth / PAGE_W_IN : 96;
@@ -60,11 +60,8 @@ export function CanvasWorkspace({
     useEffect(() => {
         if (!canvas) return;
 
-        canvas.setDimensions({
-            width: 816 * zoom,
-            height: 1056 * zoom,
-        });
-        canvas.setZoom(1);
+        canvas.setDimensions({width: 816, height: 1056});
+        canvas.setZoom(zoom);
         canvas.renderAll();
     }, [canvas, zoom]);
 
@@ -106,7 +103,7 @@ export function CanvasWorkspace({
             }
             const {type, ...rest} = payload;
 
-            const pt = canvas.getPointer(e as unknown as MouseEvent); // ✅ coords safe under zoom
+            const pt = canvas.getPointer(e as unknown as MouseEvent, true); // ignore viewport zoom
             onDropElement?.({type, data: rest, x: pt.x, y: pt.y});
         };
 
