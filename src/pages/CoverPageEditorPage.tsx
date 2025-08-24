@@ -397,7 +397,9 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
 
         if (x === undefined || y === undefined) {
-            const {left, top} = (canvas as any).getViewportTransform();
+            const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+            const left = transform[4];
+            const top = transform[5];
             x = canvas.getWidth() / 2 - left;
             y = canvas.getHeight() / 2 - top;
         }
@@ -417,7 +419,9 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
 
         if (x === undefined || y === undefined) {
-            const {left, top} = (canvas as any).getViewportTransform();
+            const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+            const left = transform[4];
+            const top = transform[5];
             x = canvas.getWidth() / 2 - left;
             y = canvas.getHeight() / 2 - top;
         }
@@ -495,7 +499,9 @@ export default function CoverPageEditorPage() {
     };
     const addRect = () => {
         if (!canvas) return;
-        const {left, top} = (canvas as any).getViewportTransform();
+        const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+        const left = transform[4];
+        const top = transform[5];
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddRect(canvas, palette, x, y);
@@ -504,7 +510,9 @@ export default function CoverPageEditorPage() {
     };
     const addCircle = () => {
         if (!canvas) return;
-        const {left, top} = (canvas as any).getViewportTransform();
+        const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+        const left = transform[4];
+        const top = transform[5];
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddCircle(canvas, palette, x, y);
@@ -513,7 +521,9 @@ export default function CoverPageEditorPage() {
     };
     const addStar = () => {
         if (!canvas) return;
-        const {left, top} = (canvas as any).getViewportTransform();
+        const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+        const left = transform[4];
+        const top = transform[5];
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddStar(canvas, palette, x, y);
@@ -522,7 +532,9 @@ export default function CoverPageEditorPage() {
     };
     const addTriangle = () => {
         if (!canvas) return;
-        const {left, top} = (canvas as any).getViewportTransform();
+        const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+        const left = transform[4];
+        const top = transform[5];
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddTriangle(canvas, palette, x, y);
@@ -531,7 +543,9 @@ export default function CoverPageEditorPage() {
     };
     const addPolygonShape = () => {
         if (!canvas) return;
-        const {left, top} = (canvas as any).getViewportTransform();
+        const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+        const left = transform[4];
+        const top = transform[5];
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddPolygon(canvas, palette, 5, 50, x, y);
@@ -540,7 +554,9 @@ export default function CoverPageEditorPage() {
     };
     const addArrow = () => {
         if (!canvas) return;
-        const {left, top} = (canvas as any).getViewportTransform();
+        const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+        const left = transform[4];
+        const top = transform[5];
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddArrow(canvas, palette, x, y);
@@ -549,7 +565,9 @@ export default function CoverPageEditorPage() {
     };
     const addBidirectionalArrow = () => {
         if (!canvas) return;
-        const {left, top} = (canvas as any).getViewportTransform();
+        const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
+        const left = transform[4];
+        const top = transform[5];
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddBidirectionalArrow(canvas, palette, x, y);
