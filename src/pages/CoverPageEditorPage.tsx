@@ -6,6 +6,7 @@ import {
     addArrow as fabricAddArrow,
     addBidirectionalArrow as fabricAddBidirectionalArrow,
     addCircle as fabricAddCircle,
+    addLucideIconByName,
     addPolygon as fabricAddPolygon,
     addRect as fabricAddRect,
     addStar as fabricAddStar,
@@ -25,7 +26,6 @@ import {useCanvasKeyboardShortcuts} from "@/hooks/useCanvasKeyboardShortcuts";
 import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
-import * as LucideIcons from "lucide-react";
 import {toast} from "sonner";
 
 interface FormValues {
@@ -391,33 +391,11 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const handleAddIcon = (iconName: string, x = 100, y = 100) => {
+    const handleAddIcon = async (iconName: string, x = 100, y = 100) => {
         if (!canvas) return;
 
-        const IconComponent = (LucideIcons as any)[iconName];
-        if (!IconComponent) return;
-
-        // Create SVG string from Lucide icon
-        const svg = `<svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="${palette.colors[0]}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <!-- This would need to be the actual SVG path for the icon -->
-    </svg>`;
-
-        loadSVGFromString(svg, (objects) => {
-            const obj = objects[0];
-            if (obj) {
-                obj.set({
-                    left: x,
-                    top: y,
-                    scaleX: 2,
-                    scaleY: 2,
-                    visible: true,
-                });
-                canvas.add(obj);
-                canvas.setActiveObject(obj);
-                canvas.renderAll();
-                pushHistory();
-            }
-        });
+        await addLucideIconByName(canvas, iconName, palette.colors[0], x, y);
+        pushHistory();
     };
 
     const handleAddClipart = async (hex: string, x = 100, y = 100) => {
