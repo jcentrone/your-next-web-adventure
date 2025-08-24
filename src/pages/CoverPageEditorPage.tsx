@@ -576,23 +576,16 @@ export default function CoverPageEditorPage() {
                     onSendBackward={handleSendBackward}
                 />
 
-                {/* Save Form */}
-                <form onSubmit={handleSubmit(onSubmit)} className="flex items-center gap-2">
-                    <Input
-                        {...register("name", {required: true})}
-                        placeholder="Cover page name"
-                        className="w-48"
-                    />
-                    <Button type="submit">
-                        {id ? "Update" : "Create"}
-                    </Button>
-                </form>
+                {/* Action Buttons */}
                 <div className="flex items-center gap-4">
                     <Button
                         variant="outline"
                         onClick={() => navigate("/cover-page-manager")}
                     >
                         Back
+                    </Button>
+                    <Button onClick={handleSubmit(onSubmit)}>
+                        {id ? "Update" : "Create"}
                     </Button>
                 </div>
             </div>
