@@ -413,7 +413,7 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const handleAddImage = (imageUrl: string, x?: number, y?: number) => {
+    const handleAddImage = async (imageUrl: string, x?: number, y?: number) => {
         if (!canvas) return;
 
         if (x === undefined || y === undefined) {
@@ -422,9 +422,12 @@ export default function CoverPageEditorPage() {
             y = canvas.getHeight() / 2 - top;
         }
 
-        FabricImage.fromURL(imageUrl, {
-            crossOrigin: "anonymous",
-        }).then((img) => {
+        try {
+            const sameOrigin = imageUrl.startsWith(window.location.origin);
+            const img = await FabricImage.fromURL(
+                imageUrl,
+                sameOrigin ? undefined : {crossOrigin: "anonymous"},
+            );
             img.set({
                 left: x,
                 top: y,
@@ -437,14 +440,17 @@ export default function CoverPageEditorPage() {
             canvas.renderAll();
             setLayers([...canvas.getObjects()]);
             pushHistory();
-        });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            toast.error(message);
+        }
     };
 
     const handleUploadImage = async (file: File) => {
         try {
             const {url} = await uploadImage(file);
             if (url) {
-                handleAddImage(url);
+                await handleAddImage(url);
                 toast.success("Image uploaded successfully");
             }
         } catch (error) {
@@ -474,7 +480,9 @@ export default function CoverPageEditorPage() {
             palette,
             {type, data, x, y},
             {
-                addImage: handleAddImage,
+                addImage: (url, px, py) => {
+                    void handleAddImage(url, px, py);
+                },
                 addIcon: handleAddIcon,
             },
             pushHistory,
