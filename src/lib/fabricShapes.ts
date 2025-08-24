@@ -150,3 +150,37 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
     } catch {
     }
 }
+
+export async function addOpenmojiClipart(
+    canvas: FabricCanvas,
+    palette: Palette,
+    hex: string,
+    x = 100,
+    y = 100,
+) {
+    try {
+        const res = await fetch(
+            `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`,
+        );
+        if (!res.ok) return;
+        const svg = await res.text();
+        const stroke = palette.colors[1] || palette.colors[0];
+        await new Promise<void>((resolve) => {
+            loadSVGFromString(svg, (objects, options) => {
+                if (objects) {
+                    const obj = objects as any;
+                    obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
+                    obj.set({stroke});
+                    if (obj._objects) {
+                        obj._objects.forEach((o: any) => o.set({stroke}));
+                    }
+                    canvas.add(obj);
+                    canvas.setActiveObject(obj);
+                    canvas.requestRenderAll();
+                }
+                resolve();
+            });
+        });
+    } catch {
+    }
+}

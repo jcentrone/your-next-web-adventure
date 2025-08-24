@@ -1,12 +1,13 @@
 import {type ChangeEvent, useEffect, useRef, useState} from "react";
 import {useForm} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
-import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage, loadSVGFromString,} from "fabric";
+import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage} from "fabric";
 import {
     addArrow as fabricAddArrow,
     addBidirectionalArrow as fabricAddBidirectionalArrow,
     addCircle as fabricAddCircle,
     addLucideIconByName,
+    addOpenmojiClipart,
     addPolygon as fabricAddPolygon,
     addRect as fabricAddRect,
     addStar as fabricAddStar,
@@ -400,22 +401,8 @@ export default function CoverPageEditorPage() {
 
     const handleAddClipart = async (hex: string, x = 100, y = 100) => {
         if (!canvas) return;
-        try {
-            const url = `https://cdn.jsdelivr.net/npm/openmoji@16.0.0/color/svg/${hex}.svg`;
-            const svg = await fetch(url).then((r) => r.text());
-            loadSVGFromString(svg, (objects, options) => {
-                if (objects) {
-                    // In Fabric.js v6, objects is the parsed SVG group already
-                    const obj = objects as any;
-                    obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
-                    canvas.add(obj);
-                    canvas.setActiveObject(obj);
-                    canvas.renderAll();
-                    pushHistory();
-                }
-            });
-        } catch {
-        }
+        await addOpenmojiClipart(canvas, palette, hex, x, y);
+        pushHistory();
     };
 
     const handleAddImage = (imageUrl: string, x = 100, y = 100) => {
@@ -474,7 +461,6 @@ export default function CoverPageEditorPage() {
             {
                 addImage: handleAddImage,
                 addIcon: handleAddIcon,
-                addClipart: handleAddClipart,
             },
             pushHistory,
         );
