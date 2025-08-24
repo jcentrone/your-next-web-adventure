@@ -701,7 +701,7 @@ export default function CoverPageEditorPage() {
                         {/* Scrollable canvas region */}
                         <div
                             ref={wrapperRef}
-                            className="flex-1 overflow-auto flex items-center justify-center"
+                            className="flex-1 overflow-auto flex items-center justify-center [scroll-padding-top:3rem]"
                         >
                             <CanvasWorkspace
                                 canvasRef={canvasRef}

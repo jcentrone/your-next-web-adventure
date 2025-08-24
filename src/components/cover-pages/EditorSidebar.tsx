@@ -91,7 +91,7 @@ export function EditorSidebar(props: EditorSidebarProps) {
     } = props;
 
     return (
-        <div className="w-[14rem] p-2 border-r space-y-2 overflow-y-auto overflow-x-visible relative pb-16">
+        <div className="w-[14rem] p-2 border-r space-y-2 overflow-y-auto overflow-x-visible relative pb-16 bg-[#FAFAFA]">
             <div className="space-y-2">
                 <SidebarCard
                     sectionKey="settings"
