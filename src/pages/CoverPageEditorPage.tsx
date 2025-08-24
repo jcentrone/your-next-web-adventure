@@ -303,6 +303,7 @@ export default function CoverPageEditorPage() {
                     top: y,
                     scaleX: 2,
                     scaleY: 2,
+                    visible: true,
                 });
                 canvas.add(obj);
                 canvas.setActiveObject(obj);
@@ -321,7 +322,7 @@ export default function CoverPageEditorPage() {
                 if (objects) {
                     // In Fabric.js v6, objects is the parsed SVG group already
                     const obj = objects as any;
-                    obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5});
+                    obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
                     canvas.add(obj);
                     canvas.setActiveObject(obj);
                     canvas.renderAll();
@@ -343,6 +344,7 @@ export default function CoverPageEditorPage() {
                 top: y,
                 scaleX: 0.5,
                 scaleY: 0.5,
+                visible: true,
             });
             canvas.add(img);
             canvas.setActiveObject(img);
@@ -521,6 +523,13 @@ export default function CoverPageEditorPage() {
         canvas.renderAll();
     };
 
+    const handleToggleLayerVisibility = (layer: FabricObject) => {
+        if (!canvas) return;
+
+        layer.set("visible", !layer.visible);
+        canvas.renderAll();
+    };
+
     const handleSelectLayer = (object: FabricObject) => {
         if (!canvas) return;
 
@@ -689,6 +698,7 @@ export default function CoverPageEditorPage() {
                         onSendBackward={handleSendBackward}
                         onToggleLock={handleToggleLock}
                         onToggleVisible={handleToggleVisible}
+                        onToggleLayerVisibility={handleToggleLayerVisibility}
                         layers={layers}
                         onSelectLayer={handleSelectLayer}
                     />

@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { FabricObject } from "fabric";
 import {
   ArrowUp,
   ArrowDown,
@@ -26,8 +27,9 @@ interface PropertiesPanelProps {
   onSendBackward: () => void;
   onToggleLock: () => void;
   onToggleVisible: () => void;
-  layers: any[];
-  onSelectLayer: (object: any) => void;
+  onToggleLayerVisibility: (layer: FabricObject) => void;
+  layers: FabricObject[];
+  onSelectLayer: (object: FabricObject) => void;
 }
 
 const FONTS = [
@@ -50,6 +52,7 @@ export function PropertiesPanel({
   onSendBackward,
   onToggleLock,
   onToggleVisible,
+  onToggleLayerVisibility,
   layers,
   onSelectLayer,
 }: PropertiesPanelProps) {
@@ -337,9 +340,23 @@ export function PropertiesPanel({
                   variant={layer === selectedObject ? "default" : "ghost"}
                   size="sm"
                   onClick={() => onSelectLayer(layer)}
-                  className="w-full justify-start text-xs"
+                  className="w-full justify-between text-xs"
                 >
-                  {layer.type === "textbox" ? "Text" : layer.type || "Object"} {index + 1}
+                  <span>
+                    {layer.type === "textbox" ? "Text" : layer.type || "Object"} {index + 1}
+                  </span>
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleLayerVisibility(layer);
+                    }}
+                  >
+                    {layer.visible ? (
+                      <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
+                    )}
+                  </span>
                 </Button>
               ))}
             </div>
