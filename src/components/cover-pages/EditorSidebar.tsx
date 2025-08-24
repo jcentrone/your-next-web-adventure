@@ -35,9 +35,6 @@ export interface EditorSidebarProps {
 
     // TEXT
     addText: () => void;
-    selected: any | null;
-    updateSelected: (prop: string, value: unknown) => void;
-    fonts: string[];
 
     // IMAGES
     images: ImageLibItem[];
@@ -80,7 +77,7 @@ export function EditorSidebar(props: EditorSidebarProps) {
     const {
         activePanel, setActivePanel,
         onSettingsSubmit, register, reportTypes, reportTypeOptions, toggleReportType,
-        addText, selected, updateSelected, fonts,
+        addText,
         images, onImageUpload, onDeleteImage, onAddImageFromUrl,
         addRect, addCircle, addStar, addTriangle, addPolygonShape, addArrow, addBidirectionalArrow, addIcon, addClipart,
         addTable,
@@ -141,12 +138,7 @@ export function EditorSidebar(props: EditorSidebarProps) {
                     icon={<TypeIcon className="h-4 w-4"/>}
                     title="Text"
                 >
-                    <TextSection
-                        addText={addText}
-                        selected={selected}
-                        updateSelected={updateSelected}
-                        fonts={fonts}
-                    />
+                    <TextSection addText={addText}/>
                 </SidebarCard>
 
                 <SidebarCard
