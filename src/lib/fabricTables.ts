@@ -11,6 +11,7 @@ export interface TableData {
     borderWidth: number;
     cellPadX: number;
     cellPadY: number;
+    headerRow?: boolean;
 }
 
 export function createTable(
@@ -98,6 +99,127 @@ export function setCellContent(
     }
     const data = (cell as any).data;
     if (data) data.content = content;
+    table.dirty = true;
+    table.canvas?.requestRenderAll();
+}
+
+function createCell(
+    row: number,
+    col: number,
+    data: TableData
+) {
+    const rect = new Rect({
+        left: 0,
+        top: 0,
+        width: data.cellW,
+        height: data.cellH,
+        fill: "white",
+        stroke: data.borderColor,
+        strokeWidth: data.borderWidth,
+        selectable: false,
+    });
+    const textbox = new Textbox("", {
+        left: data.cellPadX,
+        top: data.cellPadY,
+        width: data.cellW - 2 * data.cellPadX,
+        height: data.cellH - 2 * data.cellPadY,
+        fontSize: 14,
+        fill: "#000",
+        selectable: false,
+    });
+    const cell = new Group([rect, textbox], {
+        left: col * data.cellW,
+        top: row * data.cellH,
+        selectable: false,
+        name: "Cell",
+    });
+    (cell as any).data = {row, col, content: ""};
+    return cell;
+}
+
+export function insertRow(table: Group, index?: number) {
+    const data = (table as any).data as TableData;
+    const rowIndex = index ?? data.rows;
+    for (let c = 0; c < data.cols; c++) {
+        const cell = createCell(rowIndex, c, data);
+        table.addWithUpdate(cell);
+    }
+    data.rows += 1;
+    table.height = data.rows * data.cellH;
+    table.dirty = true;
+    table.canvas?.requestRenderAll();
+}
+
+export function deleteRow(table: Group, index?: number) {
+    const data = (table as any).data as TableData;
+    if (data.rows <= 1) return;
+    const rowIndex = index ?? data.rows - 1;
+    table.getObjects()
+        .filter((o) => (o as any).data?.row === rowIndex)
+        .forEach((o) => table.remove(o));
+    // Shift rows above removed row
+    table.getObjects().forEach((o) => {
+        const d = (o as any).data;
+        if (d && typeof d.row === "number" && d.row > rowIndex) {
+            d.row -= 1;
+            o.top = d.row * data.cellH;
+        }
+    });
+    data.rows -= 1;
+    table.height = data.rows * data.cellH;
+    table.dirty = true;
+    table.canvas?.requestRenderAll();
+}
+
+export function insertColumn(table: Group, index?: number) {
+    const data = (table as any).data as TableData;
+    const colIndex = index ?? data.cols;
+    for (let r = 0; r < data.rows; r++) {
+        const cell = createCell(r, colIndex, data);
+        table.addWithUpdate(cell);
+    }
+    data.cols += 1;
+    table.width = data.cols * data.cellW;
+    table.dirty = true;
+    table.canvas?.requestRenderAll();
+}
+
+export function deleteColumn(table: Group, index?: number) {
+    const data = (table as any).data as TableData;
+    if (data.cols <= 1) return;
+    const colIndex = index ?? data.cols - 1;
+    table.getObjects()
+        .filter((o) => (o as any).data?.col === colIndex)
+        .forEach((o) => table.remove(o));
+    table.getObjects().forEach((o) => {
+        const d = (o as any).data;
+        if (d && typeof d.col === "number" && d.col > colIndex) {
+            d.col -= 1;
+            o.left = d.col * data.cellW;
+        }
+    });
+    data.cols -= 1;
+    table.width = data.cols * data.cellW;
+    table.dirty = true;
+    table.canvas?.requestRenderAll();
+}
+
+export function toggleHeaderRow(table: Group) {
+    const data = (table as any).data as TableData;
+    data.headerRow = !data.headerRow;
+    table.getObjects().forEach((o) => {
+        const d = (o as any).data;
+        if (d?.row === 0) {
+            const rect = o
+                .getObjects()
+                .find((obj) => obj.type === "rect") as Rect | undefined;
+            const textbox = o
+                .getObjects()
+                .find((obj) => obj.type === "textbox") as Textbox | undefined;
+            if (rect) rect.set({fill: data.headerRow ? "#f0f0f0" : "white"});
+            if (textbox) textbox.set({fontWeight: data.headerRow ? "bold" : "normal"});
+        }
+    });
     table.dirty = true;
     table.canvas?.requestRenderAll();
 }
