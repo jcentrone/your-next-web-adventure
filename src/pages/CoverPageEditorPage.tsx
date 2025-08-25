@@ -22,6 +22,7 @@ import {
     insertColumn,
     deleteColumn,
     toggleHeaderRow,
+    layoutTable,
 } from "@/lib/fabricTables";
 import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
 import {Button} from "@/components/ui/button";
@@ -599,8 +600,16 @@ export default function CoverPageEditorPage() {
                     const tblData = (table as any).data;
                     const relX = (x - left) / (table.scaleX || 1);
                     const relY = (y - top) / (table.scaleY || 1);
-                    const col = Math.floor(relX / tblData.cellW);
-                    const row = Math.floor(relY / tblData.cellH);
+                    const findIndex = (arr: number[], v: number) => {
+                        let sum = 0;
+                        for (let i = 0; i < arr.length; i++) {
+                            sum += arr[i];
+                            if (v < sum) return i;
+                        }
+                        return arr.length - 1;
+                    };
+                    const col = findIndex(tblData.colWidths, relX);
+                    const row = findIndex(tblData.rowHeights, relY);
                     const cell = table
                         .getObjects()
                         .find((o) => (o as any).data?.row === row && (o as any).data?.col === col) as Group | undefined;
@@ -779,10 +788,13 @@ export default function CoverPageEditorPage() {
             .find((o) => o.type === "textbox") as Textbox | undefined;
         const scaleX = table.scaleX || 1;
         const scaleY = table.scaleY || 1;
-        const left = (table.left || 0) + (cell.left || 0) * scaleX + tableData.cellPadX * scaleX;
-        const top = (table.top || 0) + (cell.top || 0) * scaleY + tableData.cellPadY * scaleY;
-        const width = tableData.cellW * scaleX - 2 * tableData.cellPadX * scaleX;
-        const height = tableData.cellH * scaleY - 2 * tableData.cellPadY * scaleY;
+        const pad = tableData.cellPaddings[cellData.row][cellData.col];
+        const cellWidth = tableData.colWidths[cellData.col];
+        const cellHeight = tableData.rowHeights[cellData.row];
+        const left = (table.left || 0) + (cell.left || 0) * scaleX + pad.x * scaleX;
+        const top = (table.top || 0) + (cell.top || 0) * scaleY + pad.y * scaleY;
+        const width = cellWidth * scaleX - 2 * pad.x * scaleX;
+        const height = cellHeight * scaleY - 2 * pad.y * scaleY;
         const overlay = new Textbox(existing?.text || "", {
             left,
             top,
@@ -808,8 +820,9 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
         const tableData = (table as any).data;
         const cellData = (cell as any).data;
-        const innerW = tableData.cellW - 2 * tableData.cellPadX;
-        const innerH = tableData.cellH - 2 * tableData.cellPadY;
+        const pad = tableData.cellPaddings[cellData.row][cellData.col];
+        const innerW = tableData.colWidths[cellData.col] - 2 * pad.x;
+        const innerH = tableData.rowHeights[cellData.row] - 2 * pad.y;
         const sameOrigin = url.startsWith(window.location.origin);
         const finalUrl = sameOrigin ? url : `${IMAGE_PROXY_URL}?url=${encodeURIComponent(url)}`;
         const img = await FabricImage.fromURL(
@@ -821,8 +834,8 @@ export default function CoverPageEditorPage() {
             innerH / (img.height || innerH),
         );
         img.set({
-            left: tableData.cellPadX,
-            top: tableData.cellPadY,
+            left: pad.x,
+            top: pad.y,
             scaleX: scale,
             scaleY: scale,
             selectable: false,
@@ -899,8 +912,49 @@ export default function CoverPageEditorPage() {
         if (!canvas || selectedObjects.length === 0) return;
 
         selectedObjects.forEach((obj) => {
-            obj.set(property, value);
-            obj.setCoords();
+            if ((obj as any).data?.type === "table") {
+                const data = (obj as any).data as any;
+                switch (property) {
+                    case "cellPadX":
+                        data.cellPadX = value;
+                        data.cellPaddings.forEach((row: any[]) =>
+                            row.forEach((p) => (p.x = value))
+                        );
+                        layoutTable(obj as Group);
+                        break;
+                    case "cellPadY":
+                        data.cellPadY = value;
+                        data.cellPaddings.forEach((row: any[]) =>
+                            row.forEach((p) => (p.y = value))
+                        );
+                        layoutTable(obj as Group);
+                        break;
+                    case "borderColor":
+                        data.borderColor = value;
+                        layoutTable(obj as Group);
+                        break;
+                    case "backgroundColor":
+                        data.cellBgColors.forEach((row: string[], r: number) =>
+                            row.forEach((_, c: number) => (data.cellBgColors[r][c] = value))
+                        );
+                        layoutTable(obj as Group);
+                        break;
+                    case "alignment":
+                        obj.getObjects().forEach((o: any) => {
+                            const tb = o
+                                .getObjects?.()
+                                .find((i: any) => i.type === "textbox");
+                            if (tb) tb.set({textAlign: value});
+                        });
+                        break;
+                    default:
+                        (obj as any).set(property, value);
+                        obj.setCoords();
+                }
+            } else {
+                obj.set(property, value);
+                obj.setCoords();
+            }
         });
 
         canvas.renderAll();

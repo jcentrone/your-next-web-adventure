@@ -18,6 +18,12 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import { Switch } from "@/components/ui/switch";
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from "@/components/ui/context-menu";
 import { FabricObject } from "fabric";
 import {
   Eye,
@@ -67,6 +73,8 @@ export function PropertiesPanel({
 }: PropertiesPanelProps) {
   const multipleSelection = selectedObjects.length > 1;
   const isTextObject = !multipleSelection && selectedObject?.type === "textbox";
+  const isTable =
+    !multipleSelection && (selectedObject as any)?.data?.type === "table";
   const hasPosition =
     !multipleSelection &&
     selectedObject &&
@@ -81,6 +89,8 @@ export function PropertiesPanel({
   const hasSkewY = !multipleSelection && selectedObject && "skewY" in selectedObject;
   const defaultSection = multipleSelection
     ? "layers"
+    : isTable
+    ? "table"
     : hasPosition
     ? "position"
     : isTextObject
@@ -119,6 +129,110 @@ export function PropertiesPanel({
             </div>
           )}
           <Accordion type="single" collapsible defaultValue={defaultSection}>
+            {!multipleSelection && isTable && (
+              <AccordionItem value="table">
+                <AccordionTrigger className="text-sm font-medium">
+                  Table
+                </AccordionTrigger>
+                <AccordionContent className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="padx" className="text-xs">
+                        Padding X
+                      </Label>
+                      <Input
+                        id="padx"
+                        type="number"
+                        value={(selectedObject as any).data?.cellPadX ?? 0}
+                        onChange={(e) =>
+                          onUpdateProperty("cellPadX", Number(e.target.value))
+                        }
+                        className="h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="pady" className="text-xs">
+                        Padding Y
+                      </Label>
+                      <Input
+                        id="pady"
+                        type="number"
+                        value={(selectedObject as any).data?.cellPadY ?? 0}
+                        onChange={(e) =>
+                          onUpdateProperty("cellPadY", Number(e.target.value))
+                        }
+                        className="h-8"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Alignment</Label>
+                    <Select
+                      value={(selectedObject as any).data?.alignment || "left"}
+                      onValueChange={(v) => onUpdateProperty("alignment", v)}
+                    >
+                      <SelectTrigger className="h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="left">Left</SelectItem>
+                        <SelectItem value="center">Center</SelectItem>
+                        <SelectItem value="right">Right</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="borderColor" className="text-xs">
+                        Border
+                      </Label>
+                      <Input
+                        id="borderColor"
+                        type="color"
+                        value={(selectedObject as any).data?.borderColor || "#000000"}
+                        onChange={(e) =>
+                          onUpdateProperty("borderColor", e.target.value)
+                        }
+                        className="h-8 w-full p-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="bgColor" className="text-xs">
+                        Background
+                      </Label>
+                      <Input
+                        id="bgColor"
+                        type="color"
+                        value={(selectedObject as any).data?.backgroundColor || "#ffffff"}
+                        onChange={(e) =>
+                          onUpdateProperty("backgroundColor", e.target.value)
+                        }
+                        className="h-8 w-full p-1"
+                      />
+                    </div>
+                  </div>
+                  <ContextMenu>
+                    <ContextMenuTrigger>
+                      <Button variant="outline" className="w-full">
+                        Cell Options
+                      </Button>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem
+                        onClick={() => onUpdateProperty("mergeCells", null)}
+                      >
+                        Merge Cells
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onClick={() => onUpdateProperty("splitCell", null)}
+                      >
+                        Split Cell
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                </AccordionContent>
+              </AccordionItem>
+            )}
             {!multipleSelection && hasPosition && (
               <AccordionItem value="position">
                 <AccordionTrigger className="text-sm font-medium">
