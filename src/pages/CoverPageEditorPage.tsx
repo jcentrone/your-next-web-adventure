@@ -13,6 +13,7 @@ import {
     addStar as fabricAddStar,
     addText as fabricAddText,
     addTriangle as fabricAddTriangle,
+    enableScalingHandles,
 } from "@/lib/fabricShapes";
 import {createTableGroup} from "@/lib/fabricTables";
 import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
@@ -126,7 +127,7 @@ export default function CoverPageEditorPage() {
         updateLayers();
 
         // Initial history
-        const initialJson = JSON.stringify(c.toJSON());
+        const initialJson = JSON.stringify(c.toJSON(["lockAspectRatio"]));
         setHistory([initialJson]);
         setHistoryIndex(0);
 
@@ -169,6 +170,7 @@ export default function CoverPageEditorPage() {
 
         if (!loaded.current && cp.design_json) {
             canvas.loadFromJSON(cp.design_json as any, () => {
+                restoreLockState(canvas);
                 canvas.requestRenderAll();
                 setLayers([...canvas.getObjects()]);
             });
@@ -200,9 +202,16 @@ export default function CoverPageEditorPage() {
         };
     }, [canvas, snapEnabled]);
 
+    const restoreLockState = (c: FabricCanvas) => {
+        c.getObjects().forEach((obj) => {
+            enableScalingHandles(obj);
+            (obj as any).lockUniScaling = (obj as any).lockAspectRatio || false;
+        });
+    };
+
     const pushHistory = () => {
         if (!canvas) return;
-        const json = JSON.stringify(canvas.toJSON());
+        const json = JSON.stringify(canvas.toJSON(["lockAspectRatio"]));
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push(json);
         setHistory(newHistory);
@@ -214,6 +223,7 @@ export default function CoverPageEditorPage() {
         if (historyIndex > 0) {
             setHistoryIndex(historyIndex - 1);
             canvas?.loadFromJSON(JSON.parse(history[historyIndex - 1]), () => {
+                restoreLockState(canvas);
                 canvas.renderAll();
             });
         }
@@ -223,6 +233,7 @@ export default function CoverPageEditorPage() {
         if (historyIndex < history.length - 1) {
             setHistoryIndex(historyIndex + 1);
             canvas?.loadFromJSON(JSON.parse(history[historyIndex + 1]), () => {
+                restoreLockState(canvas);
                 canvas.renderAll();
             });
         }
@@ -241,6 +252,10 @@ export default function CoverPageEditorPage() {
                     left: (cloned.left || 0) + 10,
                     top: (cloned.top || 0) + 10,
                 });
+                const locked = (obj as any).lockAspectRatio || false;
+                (cloned as any).set("lockAspectRatio", locked);
+                (cloned as any).lockUniScaling = locked;
+                enableScalingHandles(cloned);
                 canvas.add(cloned);
                 canvas.setActiveObject(cloned);
                 canvas.renderAll();
@@ -797,7 +812,7 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
 
         try {
-            const designJson = canvas.toJSON();
+            const designJson = canvas.toJSON(["lockAspectRatio"]);
 
             if (id) {
                 await updateCoverPage({

@@ -15,6 +15,23 @@ import {
 
 export type Palette = { colors: string[] };
 
+export function enableScalingHandles(obj: FabricObject) {
+    obj.setControlsVisibility?.({
+        tl: true,
+        tr: true,
+        bl: true,
+        br: true,
+        ml: true,
+        mr: true,
+        mt: true,
+        mb: true,
+        mtr: true,
+    });
+    (obj as any).lockUniScaling = false;
+    (obj as any).set?.("lockAspectRatio", (obj as any).lockAspectRatio ?? false);
+    return obj;
+}
+
 export function addRect(canvas: FabricCanvas, palette: Palette, x = 100, y = 100) {
     const rect = new Rect({
         left: x, top: y, width: 100, height: 100,
@@ -22,6 +39,7 @@ export function addRect(canvas: FabricCanvas, palette: Palette, x = 100, y = 100
         visible: true,
         name: "Rectangle"
     });
+    enableScalingHandles(rect);
     canvas.add(rect);
     canvas.setActiveObject(rect);
     canvas.requestRenderAll();
@@ -36,6 +54,7 @@ export function addCircle(canvas: FabricCanvas, palette: Palette, x = 100, y = 1
         visible: true,
         name: "Circle"
     });
+    enableScalingHandles(circle);
     canvas.add(circle);
     canvas.setActiveObject(circle);
     canvas.requestRenderAll();
@@ -56,6 +75,7 @@ export function addStar(canvas: FabricCanvas, palette: Palette, x = 100, y = 100
         visible: true,
         name: "Star"
     });
+    enableScalingHandles(star);
     canvas.add(star);
     canvas.setActiveObject(star);
     canvas.requestRenderAll();
@@ -67,6 +87,7 @@ export function addTriangle(canvas: FabricCanvas, palette: Palette, x = 100, y =
         [{x: 50, y: 0}, {x: 100, y: 100}, {x: 0, y: 100}],
         {left: x, top: y, fill: palette.colors[0], stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2, visible: true, name: "Triangle"}
     );
+    enableScalingHandles(tri);
     canvas.add(tri);
     canvas.setActiveObject(tri);
     canvas.requestRenderAll();
@@ -84,6 +105,7 @@ export function addPolygon(canvas: FabricCanvas, palette: Palette, sides = 5, ra
         visible: true,
         name: "Polygon"
     });
+    enableScalingHandles(poly);
     canvas.add(poly);
     canvas.setActiveObject(poly);
     canvas.requestRenderAll();
@@ -97,6 +119,7 @@ export function addArrow(canvas: FabricCanvas, palette: Palette, x = 100, y = 10
     });
     const g = new Group([line, head], {left: x, top: y, visible: true});
     g.set({name: "Arrow"});
+    enableScalingHandles(g);
     canvas.add(g);
     canvas.setActiveObject(g);
     canvas.requestRenderAll();
@@ -113,6 +136,7 @@ export function addBidirectionalArrow(canvas: FabricCanvas, palette: Palette, x 
     });
     const g = new Group([line, headL, headR], {left: x, top: y, visible: true});
     g.set({name: "Bidirectional Arrow"});
+    enableScalingHandles(g);
     canvas.add(g);
     canvas.setActiveObject(g);
     canvas.requestRenderAll();
@@ -143,6 +167,7 @@ export function addFreeformPath(
             visible: true,
             name: "Freeform Path",
         });
+        enableScalingHandles(path);
         canvas.isDrawingMode = false;
         canvas.setActiveObject(path);
         canvas.off("path:created", handleCreated);
@@ -168,6 +193,7 @@ export function addBezierCurve(
         visible: true,
         name: "Bezier Curve",
     });
+    enableScalingHandles(path);
     canvas.add(path);
     canvas.setActiveObject(path);
     canvas.requestRenderAll();
@@ -176,6 +202,7 @@ export function addBezierCurve(
 
 export function addText(canvas: FabricCanvas, palette: Palette, text = "Text", x = 120, y = 120) {
     const tb = new Textbox(text, {left: x, top: y, fontSize: 24, fill: palette.colors[3] || palette.colors[0], visible: true, name: text});
+    enableScalingHandles(tb);
     canvas.add(tb);
     canvas.setActiveObject(tb);
     canvas.requestRenderAll();
@@ -185,6 +212,7 @@ export function addText(canvas: FabricCanvas, palette: Palette, text = "Text", x
 export async function addImageFromUrl(canvas: FabricCanvas, url: string, x = 150, y = 150) {
     const img = await FabricImage.fromURL(url);
     img.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true, name: "Image"});
+    enableScalingHandles(img);
     canvas.add(img);
     canvas.setActiveObject(img);
     canvas.requestRenderAll();
@@ -204,6 +232,7 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
             : (objects as FabricObject);
 
         obj.set({left: x, top: y, stroke, fill: "none", visible: true, name});
+        enableScalingHandles(obj);
         canvas.add(obj);
         canvas.setActiveObject(obj);
         canvas.requestRenderAll();
@@ -233,6 +262,7 @@ export async function addOpenmojiClipart(
 
         obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true, name: "Clipart"});
         obj.set({stroke});
+        enableScalingHandles(obj);
         (obj as FabricObject & { _objects?: FabricObject[] })._objects?.forEach((o) =>
             o.set({stroke}),
         );
