@@ -23,6 +23,17 @@ export function ImagesSection({
     const handleAdd = () => {
         const trimmed = url.trim();
         if (!trimmed) return;
+        
+        console.log("Adding image from URL:", trimmed);
+        
+        // Basic URL validation
+        try {
+            new URL(trimmed);
+        } catch (error) {
+            console.error("Invalid URL:", trimmed, error);
+            return;
+        }
+        
         // Use the common add-image handler so uploads and manual URLs share the same path
         onAddImageFromUrl(trimmed);
         setUrl("");
@@ -54,7 +65,11 @@ export function ImagesSection({
                         className="relative group"
                         draggable
                         onDragStart={(e) => {
-                            const payload = JSON.stringify({type: "image", url: img.url});
+                            console.log("Starting drag with image:", img.url);
+                            const payload = JSON.stringify({
+                                type: "image", 
+                                data: { url: img.url, name: img.name }
+                            });
                             e.dataTransfer?.setData("application/x-cover-element", payload);
                             e.dataTransfer!.effectAllowed = "copy";
                         }}

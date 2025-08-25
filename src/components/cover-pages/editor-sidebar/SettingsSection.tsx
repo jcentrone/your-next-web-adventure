@@ -16,6 +16,8 @@ export function SettingsSection({
     reportTypeOptions: { value: string; label: string }[];
     toggleReportType: (rt: string) => void;
 }) {
+    console.log("SettingsSection render - reportTypes:", reportTypes, "options:", reportTypeOptions);
+    
     return (
         <form onSubmit={onSettingsSubmit} className="space-y-2">
             <div>

@@ -148,11 +148,25 @@ export default function CoverPageEditorPage() {
         const selectedReportTypes = Object.entries(assignments)
             .filter(([_, cpId]) => cpId === id)
             .map(([rt]) => rt);
+        
+        console.log("Loading cover page data:", {
+            name: cp.name,
+            template: cp.template_slug,
+            selectedReportTypes,
+            assignments
+        });
+        
         form.reset({
             name: cp.name,
             template: (cp.template_slug as keyof typeof TEMPLATES) || "default",
             reportTypes: selectedReportTypes,
         });
+        
+        // Force update the form values
+        setValue("name", cp.name);
+        setValue("template", (cp.template_slug as keyof typeof TEMPLATES) || "default");
+        setValue("reportTypes", selectedReportTypes);
+        
         if (!loaded.current && cp.design_json) {
             canvas.loadFromJSON(cp.design_json as any, () => {
                 canvas.requestRenderAll();
@@ -160,7 +174,7 @@ export default function CoverPageEditorPage() {
             });
             loaded.current = true;
         }
-    }, [canvas, id, coverPages, assignments, form]);
+    }, [canvas, id, coverPages, assignments, form, setValue]);
 
     useEffect(() => {
         if (canvas) {
