@@ -75,6 +75,7 @@ export function createTable(
     (group as any).data = data;
     enableScalingHandles(group);
     layoutTable(group);
+    group.setCoords();
     return group;
 }
 
@@ -187,8 +188,14 @@ function attachResizeHandles(table: Group) {
     }
     const moveHandler = (table as any)._tableMoveHandler as (() => void) | undefined;
     if (moveHandler) table.off("moving", moveHandler);
+    const deselectHandler = (table as any)._tableDeselectHandler as (() => void) | undefined;
+    if (deselectHandler) {
+        canvas?.off("selection:cleared", deselectHandler);
+        canvas?.off("selection:updated", deselectHandler);
+    }
     if (!canvas || canvas.getActiveObject() !== table) {
         (table as any)._tableMoveHandler = undefined;
+        (table as any)._tableDeselectHandler = undefined;
         (table as any).tableHandles = undefined;
         canvas?.requestRenderAll();
         return;
@@ -271,6 +278,10 @@ function attachResizeHandles(table: Group) {
     const newMoveHandler = () => updateHandles(table);
     (table as any)._tableMoveHandler = newMoveHandler;
     table.on("moving", newMoveHandler);
+    const newDeselectHandler = () => updateHandles(table);
+    (table as any)._tableDeselectHandler = newDeselectHandler;
+    canvas.on("selection:cleared", newDeselectHandler);
+    canvas.on("selection:updated", newDeselectHandler);
     table.setCoords();
 }
 

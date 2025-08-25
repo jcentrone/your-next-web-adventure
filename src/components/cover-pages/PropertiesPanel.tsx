@@ -83,23 +83,14 @@ export function PropertiesPanel({
   const hasStroke = !multipleSelection && selectedObject && "stroke" in selectedObject;
   const hasSkewX = !multipleSelection && selectedObject && "skewX" in selectedObject;
   const hasSkewY = !multipleSelection && selectedObject && "skewY" in selectedObject;
-  const defaultSection = multipleSelection
-    ? "layers"
-    : isTable
-    ? "table"
-    : hasPosition
-    ? "position"
-    : isTextObject
-    ? "text"
-    : hasFill || hasStroke
-    ? "appearance"
-    : "layers";
 
-  const [value, setValue] = React.useState<string>(defaultSection);
+  const [value, setValue] = React.useState<string>("layers");
 
   React.useEffect(() => {
-    setValue(defaultSection);
-  }, [selectedObject, selectedObjects]);
+    if (!multipleSelection && isTable) {
+      setValue("table");
+    }
+  }, [isTable, multipleSelection, selectedObject, selectedObjects]);
 
   return (
     <div className="w-80 h-full border-l bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

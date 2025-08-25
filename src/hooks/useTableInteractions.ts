@@ -168,6 +168,7 @@ export function useTableInteractions({canvas}: Args) {
             }
             table.bringToFront?.();
             canvas.setActiveObject(table);
+            table.setCoords();
             canvas.requestRenderAll();
             selectionRef.current.table.on("moving", updateOverlay);
             updateOverlay();
