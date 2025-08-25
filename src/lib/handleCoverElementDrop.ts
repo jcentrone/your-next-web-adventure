@@ -14,7 +14,7 @@ import {
 
 interface DropPayload {
     type: string;
-    data: unknown;
+    data: { url?: string; name?: string; hex?: string } | undefined;
     x: number;
     y: number;
 }

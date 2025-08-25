@@ -284,7 +284,7 @@ export default function CoverPageEditorPage() {
 
         const bounds = objects.reduce(
             (acc, obj) => {
-                const rect = obj.getBoundingRect(true);
+                const rect = obj.getBoundingRect();
                 return {
                     left: Math.min(acc.left, rect.left),
                     top: Math.min(acc.top, rect.top),
@@ -296,7 +296,7 @@ export default function CoverPageEditorPage() {
         );
 
         objects.forEach((obj) => {
-            const rect = obj.getBoundingRect(true);
+            const rect = obj.getBoundingRect();
             const offsetX = rect.left - (obj.left ?? 0);
             const offsetY = rect.top - (obj.top ?? 0);
 
@@ -803,11 +803,6 @@ export default function CoverPageEditorPage() {
                     onUngroup={handleUngroup}
                     onAlign={handleAlign}
                     onDistribute={handleDistribute}
-                    selected={selectedObject}
-                    isTable={false}
-                    updateSelected={updateSelected}
-                    updateTable={() => {
-                    }}
                     onBringForward={handleBringForward}
                     onSendBackward={handleSendBackward}
                     onBringToFront={handleBringToFront}

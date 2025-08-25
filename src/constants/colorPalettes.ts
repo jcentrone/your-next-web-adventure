@@ -1,7 +1,7 @@
 export interface ColorPalette {
   id: string;
   name: string;
-  colors: readonly string[];
+  colors: string[];
 }
 
 export const COLOR_PALETTES: ColorPalette[] = [
