@@ -24,6 +24,9 @@ export function useTableInteractions({canvas}: Args) {
 
         const clear = () => {
             const sel = selectionRef.current;
+            if (sel) {
+                sel.table.off("moving", updateOverlay);
+            }
             if (sel && overlayRef.current) {
                 canvas.remove(overlayRef.current);
                 overlayRef.current = null;
@@ -44,8 +47,9 @@ export function useTableInteractions({canvas}: Args) {
             const top = data.rowHeights.slice(0, r1).reduce((a, b) => a + b, 0);
             const width = data.colWidths.slice(c1, c2 + 1).reduce((a, b) => a + b, 0);
             const height = data.rowHeights.slice(r1, r2 + 1).reduce((a, b) => a + b, 0);
-            const baseLeft = (sel.table.left || 0) + left;
-            const baseTop = (sel.table.top || 0) + top;
+            const rect = sel.table.getBoundingRect(true);
+            const baseLeft = rect.left + left;
+            const baseTop = rect.top + top;
             if (!overlayRef.current) {
                 overlayRef.current = new Rect({
                     left: baseLeft,
@@ -158,6 +162,7 @@ export function useTableInteractions({canvas}: Args) {
             } else {
                 selectionRef.current = {table, start: {row: 0, col: 0}, end: {row: 0, col: 0}};
             }
+            selectionRef.current.table.on("moving", updateOverlay);
             updateOverlay();
         };
 
