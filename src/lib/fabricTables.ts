@@ -64,7 +64,14 @@ export function createTable(
             cells.push(cell);
         }
     }
-    const group = new Group(cells, {left, top, name: "Table", subTargetCheck: true});
+    const group = new Group(cells, {
+        left,
+        top,
+        name: "Table",
+        subTargetCheck: true,
+        originX: "left",
+        originY: "top",
+    });
     (group as any).data = data;
     enableScalingHandles(group);
     layoutTable(group);
@@ -134,6 +141,7 @@ export function layoutTable(table: Group) {
     table.width = data.colWidths.reduce((a, b) => a + b, 0);
     table.height = data.rowHeights.reduce((a, b) => a + b, 0);
     attachResizeHandles(table);
+    table.setCoords();
     table.dirty = true;
     table.canvas?.requestRenderAll();
 }
@@ -145,7 +153,10 @@ function attachResizeHandles(table: Group) {
     if (existing) {
         existing.forEach((h) => canvas?.remove(h));
     }
+    const moveHandler = (table as any)._tableMoveHandler as (() => void) | undefined;
+    if (moveHandler) table.off("moving", moveHandler);
     if (!canvas || canvas.getActiveObject() !== table) {
+        (table as any)._tableMoveHandler = undefined;
         (table as any).tableHandles = undefined;
         canvas?.requestRenderAll();
         return;
@@ -153,11 +164,12 @@ function attachResizeHandles(table: Group) {
     const handles: Group[] = [];
     const totalHeight = data.rowHeights.reduce((a, b) => a + b, 0);
     const totalWidth = data.colWidths.reduce((a, b) => a + b, 0);
+    const {left: tableLeft, top: tableTop} = table.getBoundingRect(true);
     // Column handles
     for (let c = 1; c < data.cols; c++) {
         const x = data.colWidths.slice(0, c).reduce((a, b) => a + b, 0) - 2;
-        const baseX = (table.left || 0) + x;
-        const baseY = table.top || 0;
+        const baseX = tableLeft + x;
+        const baseY = tableTop;
         const handle = new Rect({
             left: baseX,
             top: baseY,
@@ -171,7 +183,7 @@ function attachResizeHandles(table: Group) {
         });
         (handle as any).data = {type: "col-handle", col: c};
         handle.on("moving", () => {
-            const boundary = (table.left || 0) + data.colWidths.slice(0, c).reduce((a, b) => a + b, 0);
+            const boundary = tableLeft + data.colWidths.slice(0, c).reduce((a, b) => a + b, 0);
             const delta = handle.left + handle.width / 2 - boundary;
             if (delta === 0) return;
             const prev = data.colWidths[c - 1] + delta;
@@ -191,8 +203,8 @@ function attachResizeHandles(table: Group) {
     // Row handles
     for (let r = 1; r < data.rows; r++) {
         const y = data.rowHeights.slice(0, r).reduce((a, b) => a + b, 0) - 2;
-        const baseY = (table.top || 0) + y;
-        const baseX = table.left || 0;
+        const baseY = tableTop + y;
+        const baseX = tableLeft;
         const handle = new Rect({
             left: baseX,
             top: baseY,
@@ -206,7 +218,7 @@ function attachResizeHandles(table: Group) {
         });
         (handle as any).data = {type: "row-handle", row: r};
         handle.on("moving", () => {
-            const boundary = (table.top || 0) + data.rowHeights.slice(0, r).reduce((a, b) => a + b, 0);
+            const boundary = tableTop + data.rowHeights.slice(0, r).reduce((a, b) => a + b, 0);
             const delta = handle.top + handle.height / 2 - boundary;
             if (delta === 0) return;
             const prev = data.rowHeights[r - 1] + delta;
@@ -224,6 +236,9 @@ function attachResizeHandles(table: Group) {
         canvas.add(handle);
     }
     (table as any).tableHandles = handles;
+    const newMoveHandler = () => updateHandles(table);
+    (table as any)._tableMoveHandler = newMoveHandler;
+    table.on("moving", newMoveHandler);
     table.setCoords();
 }
 
@@ -240,16 +255,17 @@ function updateHandles(table: Group) {
     }
     const totalHeight = data.rowHeights.reduce((a, b) => a + b, 0);
     const totalWidth = data.colWidths.reduce((a, b) => a + b, 0);
+    const {left: tableLeft, top: tableTop} = table.getBoundingRect(true);
     handles.forEach((h) => {
         const d = (h as any).data;
         if (d?.type === "col-handle") {
             const x = data.colWidths.slice(0, d.col).reduce((a, b) => a + b, 0) - h.width / 2;
-            const baseX = (table.left || 0) + x;
-            h.set({left: baseX, top: table.top || 0, height: totalHeight});
+            const baseX = tableLeft + x;
+            h.set({left: baseX, top: tableTop, height: totalHeight});
         } else if (d?.type === "row-handle") {
             const y = data.rowHeights.slice(0, d.row).reduce((a, b) => a + b, 0) - h.height / 2;
-            const baseY = (table.top || 0) + y;
-            h.set({top: baseY, left: table.left || 0, width: totalWidth});
+            const baseY = tableTop + y;
+            h.set({top: baseY, left: tableLeft, width: totalWidth});
         }
         h.setCoords();
     });
