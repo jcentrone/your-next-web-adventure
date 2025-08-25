@@ -2,6 +2,7 @@ import {Button} from "@/components/ui/button.tsx";
 import {Input} from "@/components/ui/input.tsx";
 import {Label} from "@/components/ui/label.tsx";
 import {Checkbox} from "@/components/ui/checkbox.tsx";
+import {useEffect} from "react";
 
 export function SettingsSection({
                                     onSettingsSubmit,
@@ -17,6 +18,10 @@ export function SettingsSection({
     toggleReportType: (rt: string) => void;
 }) {
     console.log("SettingsSection render - reportTypes:", reportTypes, "options:", reportTypeOptions);
+
+    useEffect(() => {
+        console.log("SettingsSection reportTypes prop changed:", reportTypes);
+    }, [reportTypes]);
     
     return (
         <form onSubmit={onSettingsSubmit} className="space-y-2">

@@ -80,7 +80,7 @@ export default function CoverPageEditorPage() {
     }, [register]);
 
     const template = watch("template") as keyof typeof TEMPLATES;
-    const reportTypes = watch("reportTypes");
+    const reportTypes = watch("reportTypes", []);
     const loaded = useRef(false);
 
     useEffect(() => {
@@ -166,6 +166,7 @@ export default function CoverPageEditorPage() {
         setValue("name", cp.name);
         setValue("template", (cp.template_slug as keyof typeof TEMPLATES) || "default");
         setValue("reportTypes", selectedReportTypes);
+        console.log("After setValue reportTypes:", {selectedReportTypes, watched: watch("reportTypes")});
         
         if (!loaded.current && cp.design_json) {
             canvas.loadFromJSON(cp.design_json as any, () => {
@@ -883,11 +884,11 @@ export default function CoverPageEditorPage() {
                         reportTypes={reportTypes}
                         reportTypeOptions={REPORT_TYPES}
                         toggleReportType={(rt) => {
-                            if (reportTypes.includes(rt)) {
-                                setValue("reportTypes", reportTypes.filter((t) => t !== rt));
-                            } else {
-                                setValue("reportTypes", [...reportTypes, rt]);
-                            }
+                            const updatedReportTypes = reportTypes.includes(rt)
+                                ? reportTypes.filter((t) => t !== rt)
+                                : [...reportTypes, rt];
+                            setValue("reportTypes", updatedReportTypes);
+                            console.log("Toggled report type:", rt, "watch result:", watch("reportTypes"));
                         }}
                         addText={addText}
                         images={images}
