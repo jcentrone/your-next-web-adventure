@@ -25,10 +25,9 @@ export function useTableInteractions({canvas}: Args) {
         const clear = () => {
             const sel = selectionRef.current;
             if (sel && overlayRef.current) {
-                sel.table.remove(overlayRef.current);
+                canvas.remove(overlayRef.current);
                 overlayRef.current = null;
-                sel.table.dirty = true;
-                sel.table.canvas?.requestRenderAll();
+                canvas.requestRenderAll();
             }
             selectionRef.current = null;
         };
@@ -45,10 +44,12 @@ export function useTableInteractions({canvas}: Args) {
             const top = data.rowHeights.slice(0, r1).reduce((a, b) => a + b, 0);
             const width = data.colWidths.slice(c1, c2 + 1).reduce((a, b) => a + b, 0);
             const height = data.rowHeights.slice(r1, r2 + 1).reduce((a, b) => a + b, 0);
+            const baseLeft = (sel.table.left || 0) + left;
+            const baseTop = (sel.table.top || 0) + top;
             if (!overlayRef.current) {
                 overlayRef.current = new Rect({
-                    left,
-                    top,
+                    left: baseLeft,
+                    top: baseTop,
                     width,
                     height,
                     fill: "rgba(33,150,243,0.1)",
@@ -56,14 +57,15 @@ export function useTableInteractions({canvas}: Args) {
                     strokeWidth: 1,
                     selectable: false,
                     evented: false,
+                    absolutePositioned: true,
+                    excludeFromExport: true,
                 });
-                sel.table.add(overlayRef.current);
+                canvas.add(overlayRef.current);
             } else {
-                overlayRef.current.set({left, top, width, height});
+                overlayRef.current.set({left: baseLeft, top: baseTop, width, height});
             }
             overlayRef.current.bringToFront?.();
-            sel.table.dirty = true;
-            sel.table.canvas?.requestRenderAll();
+            canvas.requestRenderAll();
         };
 
         const handleKeyDown = (e: KeyboardEvent) => {
