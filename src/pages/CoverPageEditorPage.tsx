@@ -1,7 +1,7 @@
 import {type ChangeEvent, useEffect, useRef, useState} from "react";
 import {useForm, useWatch} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
-import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage} from "fabric";
+import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage, Textbox, Rect} from "fabric";
 import {
     addArrow as fabricAddArrow,
     addBidirectionalArrow as fabricAddBidirectionalArrow,
@@ -117,6 +117,7 @@ export default function CoverPageEditorPage() {
         setCanvas(c);
 
         // Event listeners
+        c.subTargetCheck = true;
         const updateSelection = () => setSelectedObjects([...c.getActiveObjects()]);
         const clearSelection = () => setSelectedObjects([]);
         const updateLayers = () => setLayers([...c.getObjects()]);
@@ -128,6 +129,20 @@ export default function CoverPageEditorPage() {
         c.on("object:modified", () => {
             updateLayers();
             pushHistory();
+        });
+        c.on("mouse:dblclick", (e: any) => {
+            const target = e.target;
+            if (!target) return;
+            let cell: Group | null = null;
+            let table: Group | null = null;
+            if (target.name === "Cell") {
+                cell = target as Group;
+                table = cell.group as Group;
+            } else if (target.group && target.group.name === "Cell") {
+                cell = target.group as Group;
+                table = cell.group as Group;
+            }
+            if (cell && table) startCellEdit(cell, table);
         });
 
         // Initial layers
@@ -145,6 +160,7 @@ export default function CoverPageEditorPage() {
             c.off("object:added", updateLayers);
             c.off("object:removed", updateLayers);
             c.off("object:modified");
+            c.off("mouse:dblclick");
             c.dispose();
         };
     }, []);
@@ -568,7 +584,33 @@ export default function CoverPageEditorPage() {
         }
     };
 
-    const handleDropElement = ({type, data, x, y}: { type: string; data: unknown; x: number; y: number }) =>
+    const handleDropElement = ({type, data, x, y}: { type: string; data: any; x: number; y: number }) => {
+        if (!canvas) return;
+        if (type === "image" && data?.url) {
+            const tables = canvas
+                .getObjects()
+                .filter((o) => (o as any).data?.type === "table") as Group[];
+            for (const table of tables) {
+                const width = (table.width || 0) * (table.scaleX || 1);
+                const height = (table.height || 0) * (table.scaleY || 1);
+                const left = table.left || 0;
+                const top = table.top || 0;
+                if (x >= left && x <= left + width && y >= top && y <= top + height) {
+                    const tblData = (table as any).data;
+                    const relX = (x - left) / (table.scaleX || 1);
+                    const relY = (y - top) / (table.scaleY || 1);
+                    const col = Math.floor(relX / tblData.cellW);
+                    const row = Math.floor(relY / tblData.cellH);
+                    const cell = table
+                        .getObjects()
+                        .find((o) => (o as any).data?.row === row && (o as any).data?.col === col) as Group | undefined;
+                    if (cell) {
+                        void addImageToCell(table, cell, data.url);
+                        return;
+                    }
+                }
+            }
+        }
         handleCoverElementDrop(
             canvas,
             palette,
@@ -581,6 +623,7 @@ export default function CoverPageEditorPage() {
             },
             pushHistory,
         );
+    };
 
     const addText = () => {
         if (!canvas) return;
@@ -725,6 +768,78 @@ export default function CoverPageEditorPage() {
             canvas.requestRenderAll();
             pushHistory();
         }
+    };
+
+    const startCellEdit = (cell: Group, table: Group) => {
+        if (!canvas) return;
+        const tableData = (table as any).data;
+        const cellData = (cell as any).data;
+        const existing = cell
+            .getObjects()
+            .find((o) => o.type === "textbox") as Textbox | undefined;
+        const scaleX = table.scaleX || 1;
+        const scaleY = table.scaleY || 1;
+        const left = (table.left || 0) + (cell.left || 0) * scaleX + tableData.cellPadX * scaleX;
+        const top = (table.top || 0) + (cell.top || 0) * scaleY + tableData.cellPadY * scaleY;
+        const width = tableData.cellW * scaleX - 2 * tableData.cellPadX * scaleX;
+        const height = tableData.cellH * scaleY - 2 * tableData.cellPadY * scaleY;
+        const overlay = new Textbox(existing?.text || "", {
+            left,
+            top,
+            width,
+            height,
+            fontSize: 14 * scaleY,
+            fill: "#000",
+        });
+        overlay.on("editing:exited", () => {
+            const text = overlay.text || "";
+            if (existing) existing.set({ text });
+            if (cellData) cellData.content = text;
+            canvas.remove(overlay);
+            canvas.requestRenderAll();
+            pushHistory();
+        });
+        canvas.add(overlay);
+        canvas.setActiveObject(overlay);
+        overlay.enterEditing();
+    };
+
+    const addImageToCell = async (table: Group, cell: Group, url: string) => {
+        if (!canvas) return;
+        const tableData = (table as any).data;
+        const cellData = (cell as any).data;
+        const innerW = tableData.cellW - 2 * tableData.cellPadX;
+        const innerH = tableData.cellH - 2 * tableData.cellPadY;
+        const sameOrigin = url.startsWith(window.location.origin);
+        const finalUrl = sameOrigin ? url : `${IMAGE_PROXY_URL}?url=${encodeURIComponent(url)}`;
+        const img = await FabricImage.fromURL(
+            finalUrl,
+            sameOrigin ? undefined : { crossOrigin: "anonymous" },
+        );
+        const scale = Math.min(
+            innerW / (img.width || innerW),
+            innerH / (img.height || innerH),
+        );
+        img.set({
+            left: tableData.cellPadX,
+            top: tableData.cellPadY,
+            scaleX: scale,
+            scaleY: scale,
+            selectable: false,
+            evented: false,
+            clipPath: new Rect({
+                left: 0,
+                top: 0,
+                width: innerW,
+                height: innerH,
+                originX: "left",
+                originY: "top",
+            }),
+        });
+        cell.addWithUpdate(img);
+        if (cellData) cellData.imageUrl = url;
+        canvas.requestRenderAll();
+        pushHistory();
     };
     const addIcon = (name: string) => handleAddIcon(name);
     const addClipart = (hex: string) => handleAddClipart(hex);
