@@ -54,7 +54,7 @@ export function createTable(
                 selectable: false,
                 name: "Cell",
             });
-            (cell as any).data = {row: r, col: c, content: ""};
+            (cell as any).data = {row: r, col: c, content: "", imageUrl: ""};
             cells.push(cell);
         }
     }
@@ -133,7 +133,7 @@ function createCell(
         selectable: false,
         name: "Cell",
     });
-    (cell as any).data = {row, col, content: ""};
+    (cell as any).data = {row, col, content: "", imageUrl: ""};
     return cell;
 }
 
