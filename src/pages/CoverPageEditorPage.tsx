@@ -1,5 +1,5 @@
 import {type ChangeEvent, useEffect, useRef, useState} from "react";
-import {useForm} from "react-hook-form";
+import {useForm, useWatch} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
 import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage} from "fabric";
 import {
@@ -75,12 +75,8 @@ export default function CoverPageEditorPage() {
 
     const {register, handleSubmit, setValue, watch} = form;
 
-    useEffect(() => {
-        register("reportTypes");
-    }, [register]);
-
     const template = watch("template") as keyof typeof TEMPLATES;
-    const reportTypes = watch("reportTypes", []);
+    const reportTypes = useWatch({ control: form.control, name: "reportTypes", defaultValue: [] });
     const loaded = useRef(false);
 
     useEffect(() => {
