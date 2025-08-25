@@ -57,6 +57,7 @@ export function useCanvasKeyboardShortcuts({
         if (!canvas) return;
 
         const handler = async (e: KeyboardEvent) => {
+            if (e.defaultPrevented) return;
             // don’t hijack typing in inputs or while editing a Fabric Textbox
             if (isTypingTarget(e.target)) return;
 
