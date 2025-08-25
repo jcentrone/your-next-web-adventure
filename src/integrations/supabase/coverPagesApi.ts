@@ -10,14 +10,9 @@ export interface CoverPage {
   text_content: Json;
   design_json: Json;
   image_url: string | null;
+  report_types: string[];
   created_at: string;
   updated_at: string;
-}
-
-export interface CoverPageAssignment {
-  user_id: string;
-  report_type: string;
-  cover_page_id: string;
 }
 
 export async function getCoverPages(userId: string): Promise<CoverPage[]> {
@@ -44,6 +39,7 @@ export async function createCoverPage(
     text_content?: Json;
     design_json?: Json;
     image_url?: string | null;
+    report_types?: string[];
   }
 ): Promise<CoverPage> {
   const { data, error } = await supabase
@@ -56,6 +52,7 @@ export async function createCoverPage(
       text_content: payload.text_content ?? {},
       design_json: payload.design_json ?? {},
       image_url: payload.image_url ?? null,
+      report_types: payload.report_types ?? [],
     })
     .select()
     .single();
@@ -73,7 +70,7 @@ export async function updateCoverPage(
   updates: Partial<
     Pick<
       CoverPage,
-      "name" | "template_slug" | "color_palette_key" | "text_content" | "design_json" | "image_url"
+      "name" | "template_slug" | "color_palette_key" | "text_content" | "design_json" | "image_url" | "report_types"
     >
   >
 ): Promise<CoverPage> {
@@ -101,29 +98,6 @@ export async function deleteCoverPage(id: string): Promise<void> {
   }
 }
 
-export async function getCoverPageAssignments(
-  userId: string,
-): Promise<Record<string, string>> {
-  const { data, error } = await supabase
-    .from("cover_page_assignments")
-    .select("report_type, cover_page_id")
-    .eq("user_id", userId);
-
-  if (error) {
-    console.error("Error fetching cover page assignments:", error);
-    throw error;
-  }
-
-  const assignments: Record<string, string> = {};
-  for (const row of (data || []) as {
-    report_type: string;
-    cover_page_id: string;
-  }[]) {
-    assignments[row.report_type] = row.cover_page_id;
-  }
-  return assignments;
-}
-
 export async function getCoverPage(id: string): Promise<CoverPage | null> {
   const { data, error } = await supabase
     .from("cover_pages")
@@ -143,44 +117,19 @@ export async function getAssignedCoverPage(
   userId: string,
   reportType: string,
 ): Promise<CoverPage | null> {
-  const assignments = await getCoverPageAssignments(userId);
-  const coverPageId = assignments[reportType];
-  if (!coverPageId) return null;
-  return await getCoverPage(coverPageId);
-}
-
-export async function setCoverPageAssignment(
-  userId: string,
-  reportType: string,
-  coverPageId: string,
-): Promise<void> {
-  const { error } = await supabase
-    .from("cover_page_assignments")
-    .upsert(
-      { user_id: userId, report_type: reportType, cover_page_id: coverPageId },
-      { onConflict: "user_id,report_type" },
-    );
-
-  if (error) {
-    console.error("Error setting cover page assignment:", error);
-    throw error;
-  }
-}
-
-export async function clearCoverPageAssignment(
-  userId: string,
-  reportType: string,
-): Promise<void> {
-  const { error } = await supabase
-    .from("cover_page_assignments")
-    .delete()
+  const { data, error } = await supabase
+    .from("cover_pages")
+    .select("*")
     .eq("user_id", userId)
-    .eq("report_type", reportType);
+    .contains("report_types", [reportType])
+    .maybeSingle();
 
   if (error) {
-    console.error("Error clearing cover page assignment:", error);
+    console.error("Error fetching assigned cover page:", error);
     throw error;
   }
+
+  return data as CoverPage | null;
 }
 
 export const coverPagesApi = {
@@ -188,9 +137,6 @@ export const coverPagesApi = {
   createCoverPage,
   updateCoverPage,
   deleteCoverPage,
-  getCoverPageAssignments,
   getCoverPage,
   getAssignedCoverPage,
-  setCoverPageAssignment,
-  clearCoverPageAssignment,
 };

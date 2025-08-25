@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   coverPagesApi,
@@ -14,6 +15,7 @@ interface CreateCoverPagePayload {
   text_content?: Json;
   design_json?: Json;
   image_url?: string | null;
+  report_types?: string[];
 }
 
 export const useCoverPages = () => {
@@ -27,15 +29,6 @@ export const useCoverPages = () => {
   } = useQuery<CoverPage[]>({
     queryKey: ["cover-pages", user?.id],
     queryFn: () => coverPagesApi.getCoverPages(user!.id),
-    enabled: !!user?.id,
-  });
-
-  const {
-    data: assignments = {},
-    isLoading: isLoadingAssignments,
-  } = useQuery<Record<string, string>>({
-    queryKey: ["cover-page-assignments", user?.id],
-    queryFn: () => coverPagesApi.getCoverPageAssignments(user!.id),
     enabled: !!user?.id,
   });
 
@@ -89,61 +82,71 @@ export const useCoverPages = () => {
     },
   });
 
-  const setAssignment = useMutation({
-    mutationFn: ({
-      reportType,
-      coverPageId,
-    }: {
-      reportType: string;
-      coverPageId: string;
-    }) => coverPagesApi.setCoverPageAssignment(user!.id, reportType, coverPageId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cover-page-assignments", user?.id] });
+  const assignments = useMemo(() => {
+    const map: Record<string, string> = {};
+    coverPages.forEach((cp) => {
+      (cp.report_types || []).forEach((rt) => {
+        map[rt] = cp.id;
+      });
+    });
+    return map;
+  }, [coverPages]);
+
+  const assignCoverPageToReportType = async (
+    reportType: string,
+    coverPageId: string,
+  ) => {
+    try {
+      // Remove reportType from any other cover page
+      for (const cp of coverPages) {
+        if (cp.id !== coverPageId && (cp.report_types || []).includes(reportType)) {
+          const updated = (cp.report_types || []).filter((rt) => rt !== reportType);
+          await coverPagesApi.updateCoverPage(cp.id, { report_types: updated });
+        }
+      }
+
+      const target = coverPages.find((cp) => cp.id === coverPageId);
+      const updatedReportTypes = Array.from(
+        new Set([...(target?.report_types || []), reportType]),
+      );
+      await coverPagesApi.updateCoverPage(coverPageId, {
+        report_types: updatedReportTypes,
+      });
+      queryClient.invalidateQueries({ queryKey: ["cover-pages", user?.id] });
       toast({ title: "Cover page assigned" });
-    },
-    onError: (error: unknown) => {
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       toast({
         title: "Failed to assign cover page",
         description: message,
         variant: "destructive",
       });
-    },
-  });
+    }
+  };
 
-  const clearAssignment = useMutation({
-    mutationFn: (reportType: string) =>
-      coverPagesApi.clearCoverPageAssignment(user!.id, reportType),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cover-page-assignments", user?.id] });
-      toast({ title: "Assignment removed" });
-    },
-    onError: (error: unknown) => {
+  const removeAssignmentFromReportType = async (reportType: string) => {
+    try {
+      const cp = coverPages.find((c) => (c.report_types || []).includes(reportType));
+      if (cp) {
+        const updated = (cp.report_types || []).filter((rt) => rt !== reportType);
+        await coverPagesApi.updateCoverPage(cp.id, { report_types: updated });
+        queryClient.invalidateQueries({ queryKey: ["cover-pages", user?.id] });
+        toast({ title: "Assignment removed" });
+      }
+    } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       toast({
         title: "Failed to remove assignment",
         description: message,
         variant: "destructive",
       });
-    },
-  });
-
-  const assignCoverPageToReportType = async (
-    reportType: string,
-    coverPageId: string,
-  ) => {
-    await setAssignment.mutateAsync({ reportType, coverPageId });
-  };
-
-  const removeAssignmentFromReportType = async (reportType: string) => {
-    await clearAssignment.mutateAsync(reportType);
+    }
   };
 
   return {
     coverPages,
     assignments,
     isLoadingCoverPages,
-    isLoadingAssignments,
     createCoverPage: createCoverPage.mutateAsync,
     updateCoverPage: updateCoverPage.mutateAsync,
     deleteCoverPage: deleteCoverPage.mutateAsync,
