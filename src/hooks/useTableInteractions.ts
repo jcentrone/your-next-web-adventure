@@ -162,6 +162,9 @@ export function useTableInteractions({canvas}: Args) {
             } else {
                 selectionRef.current = {table, start: {row: 0, col: 0}, end: {row: 0, col: 0}};
             }
+            table.bringToFront?.();
+            canvas.setActiveObject(table);
+            canvas.requestRenderAll();
             selectionRef.current.table.on("moving", updateOverlay);
             updateOverlay();
         };
