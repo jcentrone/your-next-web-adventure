@@ -28,8 +28,10 @@ import {useCanvasKeyboardShortcuts} from "@/hooks/useCanvasKeyboardShortcuts";
 import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
+import {SUPABASE_URL} from "@/integrations/supabase/client";
 import {toast} from "sonner";
-const IMAGE_PROXY_URL = import.meta.env.VITE_IMAGE_PROXY_URL || '/api/image-proxy';
+const DEFAULT_PROXY = `${SUPABASE_URL}/functions/v1/image-proxy`;
+const IMAGE_PROXY_URL = import.meta.env.VITE_IMAGE_PROXY_URL ?? DEFAULT_PROXY;
 
 interface FormValues {
     name: string;
