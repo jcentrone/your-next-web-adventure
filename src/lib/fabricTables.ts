@@ -176,6 +176,7 @@ function attachResizeHandles(table: Group) {
             data.colWidths[c] = next;
             layoutTable(table);
         });
+        handle.set({absolutePositioned: true, excludeFromExport: true});
         handles.push(handle);
         table.add(handle);
     }
@@ -208,10 +209,12 @@ function attachResizeHandles(table: Group) {
             data.rowHeights[r] = next;
             layoutTable(table);
         });
+        handle.set({absolutePositioned: true, excludeFromExport: true});
         handles.push(handle);
         table.add(handle);
     }
     (table as any).handles = handles;
+    table.setCoords();
 }
 
 function updateHandles(table: Group) {
@@ -231,6 +234,7 @@ function updateHandles(table: Group) {
         }
         h.setCoords();
     });
+    table.setCoords();
     table.dirty = true;
     table.canvas?.requestRenderAll();
 }
