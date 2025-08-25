@@ -39,6 +39,7 @@ interface PropertiesPanelProps {
   onDeleteLayer: (layer: FabricObject) => void;
   layers: FabricObject[];
   onSelectLayer: (object: FabricObject) => void;
+  onUpdateLayer: (layer: FabricObject, property: string, value: any) => void;
 }
 
 const FONTS = [
@@ -61,6 +62,7 @@ export function PropertiesPanel({
   onDeleteLayer,
   layers,
   onSelectLayer,
+  onUpdateLayer,
 }: PropertiesPanelProps) {
   const multipleSelection = selectedObjects.length > 1;
   const isTextObject = !multipleSelection && selectedObject?.type === "textbox";
@@ -421,19 +423,44 @@ export function PropertiesPanel({
               <AccordionContent className="space-y-3">
                 <div className="space-y-1">
                   {layers.map((layer, index) => (
-                    <Button
+                    <div
                       key={index}
-                      variant={layer === selectedObject ? "default" : "ghost"}
-                      size="sm"
                       onClick={() => onSelectLayer(layer)}
-                      className="w-full justify-between text-xs"
+                      className={`flex items-center gap-1 p-1 rounded cursor-pointer ${
+                        layer === selectedObject
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-accent"
+                      }`}
                     >
-                      <span>
-                        {layer.type === "textbox"
-                          ? "Text"
-                          : layer.type || "Object"} {index + 1}
-                      </span>
-                      <div className="flex items-center gap-1">
+                      <Input
+                        value={
+                          layer.name ||
+                          `${layer.type === "textbox" ? "Text" : layer.type || "Object"} ${
+                            index + 1
+                          }`
+                        }
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) =>
+                          onUpdateLayer(layer, "name", e.target.value)
+                        }
+                        className="h-6 text-xs flex-1"
+                      />
+                      <Input
+                        type="number"
+                        value={Math.round((layer.opacity ?? 1) * 100)}
+                        min={0}
+                        max={100}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) =>
+                          onUpdateLayer(
+                            layer,
+                            "opacity",
+                            Number(e.target.value) / 100,
+                          )
+                        }
+                        className="h-6 w-14 text-xs"
+                      />
+                      <div className="flex items-center gap-1 ml-1">
                         <span
                           onClick={(e) => {
                             e.stopPropagation();
@@ -455,7 +482,7 @@ export function PropertiesPanel({
                           <Trash2 className="h-4 w-4" />
                         </span>
                       </div>
-                    </Button>
+                    </div>
                   ))}
                 </div>
               </AccordionContent>

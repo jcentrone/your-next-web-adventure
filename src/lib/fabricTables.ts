@@ -43,7 +43,7 @@ export function createTableGroup(
             }),
         );
     }
-    const group = new Group(lines, {left, top});
+    const group = new Group(lines, {left, top, name: "Table"});
     const data: TableData = {
         type: "table",
         rows,

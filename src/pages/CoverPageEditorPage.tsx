@@ -716,6 +716,19 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
+    const handleUpdateLayerProperty = (
+        layer: FabricObject,
+        property: string,
+        value: any,
+    ) => {
+        if (!canvas) return;
+        layer.set(property, value);
+        layer.setCoords?.();
+        canvas.renderAll();
+        setLayers([...canvas.getObjects()]);
+        pushHistory();
+    };
+
     const handleBringForward = () => {
         if (!canvas || selectedObjects.length === 0) return;
 
@@ -966,6 +979,7 @@ export default function CoverPageEditorPage() {
                             onDeleteLayer={handleDeleteLayer}
                             layers={layers}
                             onSelectLayer={handleSelectLayer}
+                            onUpdateLayer={handleUpdateLayerProperty}
                         />
                     </div>
                 </div>

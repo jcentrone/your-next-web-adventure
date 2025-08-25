@@ -19,7 +19,8 @@ export function addRect(canvas: FabricCanvas, palette: Palette, x = 100, y = 100
     const rect = new Rect({
         left: x, top: y, width: 100, height: 100,
         fill: palette.colors[0], stroke: palette.colors[1] || palette.colors[0],
-        visible: true
+        visible: true,
+        name: "Rectangle"
     });
     canvas.add(rect);
     canvas.setActiveObject(rect);
@@ -32,7 +33,8 @@ export function addCircle(canvas: FabricCanvas, palette: Palette, x = 100, y = 1
         left: x, top: y, radius: 50,
         fill: palette.colors[0],
         stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2,
-        visible: true
+        visible: true,
+        name: "Circle"
     });
     canvas.add(circle);
     canvas.setActiveObject(circle);
@@ -51,7 +53,8 @@ export function addStar(canvas: FabricCanvas, palette: Palette, x = 100, y = 100
     const star = new Polygon(points, {
         left: x, top: y, fill: palette.colors[0],
         stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2,
-        visible: true
+        visible: true,
+        name: "Star"
     });
     canvas.add(star);
     canvas.setActiveObject(star);
@@ -62,7 +65,7 @@ export function addStar(canvas: FabricCanvas, palette: Palette, x = 100, y = 100
 export function addTriangle(canvas: FabricCanvas, palette: Palette, x = 100, y = 100) {
     const tri = new Polygon(
         [{x: 50, y: 0}, {x: 100, y: 100}, {x: 0, y: 100}],
-        {left: x, top: y, fill: palette.colors[0], stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2, visible: true}
+        {left: x, top: y, fill: palette.colors[0], stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2, visible: true, name: "Triangle"}
     );
     canvas.add(tri);
     canvas.setActiveObject(tri);
@@ -78,7 +81,8 @@ export function addPolygon(canvas: FabricCanvas, palette: Palette, sides = 5, ra
     const poly = new Polygon(pts, {
         left: x, top: y, fill: palette.colors[0],
         stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2,
-        visible: true
+        visible: true,
+        name: "Polygon"
     });
     canvas.add(poly);
     canvas.setActiveObject(poly);
@@ -92,6 +96,7 @@ export function addArrow(canvas: FabricCanvas, palette: Palette, x = 100, y = 10
         fill: palette.colors[1] || palette.colors[0], stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2
     });
     const g = new Group([line, head], {left: x, top: y, visible: true});
+    g.set({name: "Arrow"});
     canvas.add(g);
     canvas.setActiveObject(g);
     canvas.requestRenderAll();
@@ -107,6 +112,7 @@ export function addBidirectionalArrow(canvas: FabricCanvas, palette: Palette, x 
         fill: palette.colors[1] || palette.colors[0], stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2
     });
     const g = new Group([line, headL, headR], {left: x, top: y, visible: true});
+    g.set({name: "Bidirectional Arrow"});
     canvas.add(g);
     canvas.setActiveObject(g);
     canvas.requestRenderAll();
@@ -135,6 +141,7 @@ export function addFreeformPath(
             stroke: palette.colors[1] || palette.colors[0],
             strokeWidth: 2,
             visible: true,
+            name: "Freeform Path",
         });
         canvas.isDrawingMode = false;
         canvas.setActiveObject(path);
@@ -159,6 +166,7 @@ export function addBezierCurve(
         strokeWidth: 2,
         fill: "transparent",
         visible: true,
+        name: "Bezier Curve",
     });
     canvas.add(path);
     canvas.setActiveObject(path);
@@ -167,7 +175,7 @@ export function addBezierCurve(
 }
 
 export function addText(canvas: FabricCanvas, palette: Palette, text = "Text", x = 120, y = 120) {
-    const tb = new Textbox(text, {left: x, top: y, fontSize: 24, fill: palette.colors[3] || palette.colors[0], visible: true});
+    const tb = new Textbox(text, {left: x, top: y, fontSize: 24, fill: palette.colors[3] || palette.colors[0], visible: true, name: text});
     canvas.add(tb);
     canvas.setActiveObject(tb);
     canvas.requestRenderAll();
@@ -176,7 +184,7 @@ export function addText(canvas: FabricCanvas, palette: Palette, text = "Text", x
 
 export async function addImageFromUrl(canvas: FabricCanvas, url: string, x = 150, y = 150) {
     const img = await FabricImage.fromURL(url);
-    img.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
+    img.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true, name: "Image"});
     canvas.add(img);
     canvas.setActiveObject(img);
     canvas.requestRenderAll();
@@ -195,7 +203,7 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
             ? FabricUtil.groupSVGElements(objects, options)
             : (objects as FabricObject);
 
-        obj.set({left: x, top: y, stroke, fill: "none", visible: true});
+        obj.set({left: x, top: y, stroke, fill: "none", visible: true, name});
         canvas.add(obj);
         canvas.setActiveObject(obj);
         canvas.requestRenderAll();
@@ -223,7 +231,7 @@ export async function addOpenmojiClipart(
             ? FabricUtil.groupSVGElements(objects, options)
             : (objects as FabricObject);
 
-        obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
+        obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true, name: "Clipart"});
         obj.set({stroke});
         (obj as FabricObject & { _objects?: FabricObject[] })._objects?.forEach((o) =>
             o.set({stroke}),
