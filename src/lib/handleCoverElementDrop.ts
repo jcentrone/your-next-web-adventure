@@ -67,7 +67,11 @@ export function handleCoverElementDrop(
             pushHistory?.();
             break;
         case "image":
-            if (data?.url) handlers.addImage?.(data.url, x, y);
+            if (data?.url) {
+                console.log("Handling image drop:", { url: data.url, x, y });
+                handlers.addImage?.(data.url, x, y);
+                pushHistory?.();
+            }
             break;
         case "icon":
             if (data?.name) handlers.addIcon?.(data.name, x, y);

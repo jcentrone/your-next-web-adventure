@@ -434,6 +434,8 @@ export default function CoverPageEditorPage() {
 
     const handleAddImage = async (imageUrl: string, x?: number, y?: number) => {
         if (!canvas) return;
+        
+        console.log("handleAddImage called with:", { imageUrl, x, y });
 
         if (x === undefined || y === undefined) {
             const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
@@ -441,31 +443,63 @@ export default function CoverPageEditorPage() {
             const top = transform[5];
             x = canvas.getWidth() / 2 - left;
             y = canvas.getHeight() / 2 - top;
+            console.log("Calculated position:", { x, y, canvasSize: { width: canvas.getWidth(), height: canvas.getHeight() } });
         }
 
         try {
             const sameOrigin = imageUrl.startsWith(window.location.origin);
+            const finalUrl = sameOrigin
+                ? imageUrl
+                : `${IMAGE_PROXY_URL}?url=${encodeURIComponent(imageUrl)}`;
+            
+            console.log("Loading image from URL:", finalUrl);
+            
             const img = await FabricImage.fromURL(
-                sameOrigin
-                    ? imageUrl
-                    : `${IMAGE_PROXY_URL}?url=${encodeURIComponent(imageUrl)}`,
+                finalUrl,
                 sameOrigin ? undefined : {crossOrigin: "anonymous"},
             );
+            
+            console.log("Image loaded successfully, dimensions:", { width: img.width, height: img.height });
+            
+            // Ensure the image is positioned within canvas bounds
+            const maxWidth = canvas.getWidth();
+            const maxHeight = canvas.getHeight();
+            
+            // Calculate scale to fit image nicely
+            const scaleX = Math.min(200 / (img.width || 200), 0.8);
+            const scaleY = Math.min(200 / (img.height || 200), 0.8);
+            const scale = Math.min(scaleX, scaleY);
+            
             img.set({
-                left: x,
-                top: y,
-                scaleX: 0.5,
-                scaleY: 0.5,
+                left: Math.max(0, Math.min(x || 100, maxWidth - 100)),
+                top: Math.max(0, Math.min(y || 100, maxHeight - 100)),
+                scaleX: scale,
+                scaleY: scale,
                 visible: true,
+                selectable: true,
+                evented: true,
             });
+            
+            console.log("Adding image to canvas with properties:", {
+                left: img.left,
+                top: img.top,
+                scaleX: img.scaleX,
+                scaleY: img.scaleY,
+                visible: img.visible
+            });
+            
             canvas.add(img);
             canvas.setActiveObject(img);
             canvas.renderAll();
             setLayers([...canvas.getObjects()]);
             pushHistory();
+            
+            console.log("Image successfully added to canvas");
+            toast.success("Image added to canvas");
         } catch (error) {
+            console.error("Error adding image:", error);
             const message = error instanceof Error ? error.message : String(error);
-            toast.error(message);
+            toast.error(`Failed to add image: ${message}`);
         }
     };
 
