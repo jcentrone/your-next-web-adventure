@@ -453,13 +453,23 @@ export default function CoverPageEditorPage() {
                 ? imageUrl
                 : `${IMAGE_PROXY_URL}?url=${encodeURIComponent(imageUrl)}`;
             
+            let img: FabricImage;
             console.log("Loading image from URL:", finalUrl);
-            
-            const img = await FabricImage.fromURL(
-                finalUrl,
-                sameOrigin ? undefined : {crossOrigin: "anonymous"},
-            );
-            
+            try {
+                img = await FabricImage.fromURL(
+                    finalUrl,
+                    sameOrigin ? undefined : {crossOrigin: "anonymous"},
+                );
+                console.log("Image loaded via proxy successfully");
+            } catch (proxyError) {
+                console.error("Proxy load failed, retrying original URL", proxyError);
+                img = await FabricImage.fromURL(
+                    imageUrl,
+                    sameOrigin ? undefined : {crossOrigin: "anonymous"},
+                );
+                console.log("Loaded image directly from original URL");
+            }
+
             console.log("Image loaded successfully, dimensions:", { width: img.width, height: img.height });
             
             // Ensure the image is positioned within canvas bounds
