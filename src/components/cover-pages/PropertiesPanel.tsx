@@ -17,6 +17,7 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
+import { Switch } from "@/components/ui/switch";
 import { FabricObject } from "fabric";
 import {
   Eye,
@@ -167,13 +168,15 @@ export function PropertiesPanel({
                             (selectedObject.width || 0) *
                               (selectedObject.scaleX || 1)
                           )}
-                          onChange={(e) =>
-                            onUpdateProperty(
-                              "scaleX",
+                          onChange={(e) => {
+                            const newScale =
                               Number(e.target.value) /
-                                (selectedObject.width || 1)
-                            )
-                          }
+                              (selectedObject.width || 1);
+                            if (selectedObject.lockAspectRatio) {
+                              selectedObject.set("scaleY", newScale);
+                            }
+                            onUpdateProperty("scaleX", newScale);
+                          }}
                           className="h-8"
                         />
                       </div>
@@ -188,15 +191,30 @@ export function PropertiesPanel({
                             (selectedObject.height || 0) *
                               (selectedObject.scaleY || 1)
                           )}
-                          onChange={(e) =>
-                            onUpdateProperty(
-                              "scaleY",
+                          onChange={(e) => {
+                            const newScale =
                               Number(e.target.value) /
-                                (selectedObject.height || 1)
-                            )
-                          }
+                              (selectedObject.height || 1);
+                            if (selectedObject.lockAspectRatio) {
+                              selectedObject.set("scaleX", newScale);
+                            }
+                            onUpdateProperty("scaleY", newScale);
+                          }}
                           className="h-8"
                         />
+                      </div>
+                      <div className="col-span-2 flex items-center gap-2">
+                        <Switch
+                          id="lockAspectRatio"
+                          checked={selectedObject.lockAspectRatio || false}
+                          onCheckedChange={(checked) => {
+                            selectedObject.set("lockUniScaling", checked);
+                            onUpdateProperty("lockAspectRatio", checked);
+                          }}
+                        />
+                        <Label htmlFor="lockAspectRatio" className="text-xs">
+                          Lock aspect ratio
+                        </Label>
                       </div>
                     </div>
                   )}

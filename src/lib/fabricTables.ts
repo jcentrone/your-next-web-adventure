@@ -1,4 +1,5 @@
 import {Group, Line} from "fabric";
+import {enableScalingHandles} from "./fabricShapes";
 
 export interface TableData {
     type: "table";
@@ -56,5 +57,6 @@ export function createTableGroup(
         cellPadY,
     };
     (group as any).data = data;
+    enableScalingHandles(group);
     return group;
 }
