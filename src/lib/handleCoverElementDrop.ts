@@ -8,6 +8,8 @@ import {
     addPolygon as fabricAddPolygon,
     addArrow as fabricAddArrow,
     addBidirectionalArrow as fabricAddBidirectionalArrow,
+    addFreeformPath as fabricAddFreeformPath,
+    addBezierCurve as fabricAddBezierCurve,
     addText as fabricAddText,
     addOpenmojiClipart,
 } from "@/lib/fabricShapes";
@@ -65,6 +67,13 @@ export function handleCoverElementDrop(
             break;
         case "bidirectionalArrow":
             fabricAddBidirectionalArrow(canvas, palette, x, y);
+            pushHistory?.();
+            break;
+        case "freeformPath":
+            fabricAddFreeformPath(canvas, palette, () => pushHistory?.());
+            break;
+        case "bezierCurve":
+            fabricAddBezierCurve(canvas, palette, x, y);
             pushHistory?.();
             break;
         case "image":
