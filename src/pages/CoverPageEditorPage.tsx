@@ -33,6 +33,7 @@ import {CanvasWorkspace} from "@/components/cover-pages/CanvasWorkspace";
 import useCoverPages from "@/hooks/useCoverPages";
 import useImageLibrary from "@/hooks/useImageLibrary";
 import {useCanvasKeyboardShortcuts} from "@/hooks/useCanvasKeyboardShortcuts";
+import {useTableInteractions} from "@/hooks/useTableInteractions";
 import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
@@ -1083,6 +1084,8 @@ export default function CoverPageEditorPage() {
     };
 
     const selectedObject = selectedObjects[0] || null;
+
+    useTableInteractions({canvas});
 
     useCanvasKeyboardShortcuts({
         canvas,
