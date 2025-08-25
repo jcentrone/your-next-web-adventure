@@ -102,10 +102,11 @@ export function CanvasWorkspace({
             } catch {
                 return;
             }
-            const {type, ...rest} = payload;
+            const { type, data: payloadData } = payload;
 
             const pt = canvas.getPointer(e as unknown as MouseEvent, true); // ignore viewport zoom
-            onDropElement?.({type, data: rest, x: pt.x, y: pt.y});
+            console.log({ type, payloadData, x: pt.x, y: pt.y });
+            onDropElement?.({ type, data: payloadData, x: pt.x, y: pt.y });
         };
 
         // const onDrop = (e: DragEvent) => {
