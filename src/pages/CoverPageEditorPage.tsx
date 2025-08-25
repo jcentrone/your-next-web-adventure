@@ -15,7 +15,7 @@ import {
     addTriangle as fabricAddTriangle,
     enableScalingHandles,
 } from "@/lib/fabricShapes";
-import {createTableGroup} from "@/lib/fabricTables";
+import {createTable} from "@/lib/fabricTables";
 import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
 import {Button} from "@/components/ui/button";
 import {EditorToolbar} from "@/components/cover-pages/EditorToolbar";
@@ -659,7 +659,7 @@ export default function CoverPageEditorPage() {
     };
     const addTable = (rows: number, cols: number, borderColor: string) => {
         if (!canvas) return;
-        const tbl = createTableGroup(rows, cols, 80, 24, borderColor, 2);
+        const tbl = createTable(rows, cols, 80, 24, borderColor, 2);
         canvas.add(tbl);
         canvas.setActiveObject(tbl);
         canvas.requestRenderAll();
