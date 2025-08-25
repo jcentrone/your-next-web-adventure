@@ -58,14 +58,7 @@ export default function CoverPageEditorPage() {
     const {id} = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    const {
-        createCoverPage,
-        updateCoverPage,
-        assignments,
-        assignCoverPageToReportType,
-        removeAssignmentFromReportType,
-        coverPages,
-    } = useCoverPages();
+    const {createCoverPage, updateCoverPage, coverPages} = useCoverPages();
 
     const {images, uploadImage, deleteImage} = useImageLibrary();
 
@@ -149,9 +142,7 @@ export default function CoverPageEditorPage() {
         const cp = coverPages.find((c) => String(c.id) === sid);
         if (!cp) return;
 
-        const selectedReportTypes = Object.entries(assignments)
-            .filter(([, cpId]) => String(cpId) === sid)
-            .map(([rt]) => String(rt));
+        const selectedReportTypes = (cp.report_types || []).map((rt) => String(rt));
 
         // 1) atomic reset
         form.reset({
@@ -174,7 +165,7 @@ export default function CoverPageEditorPage() {
             });
             loaded.current = true;
         }
-    }, [canvas, id, coverPages, assignments, form]);
+    }, [canvas, id, coverPages, form]);
 
 
     useEffect(() => {
@@ -793,19 +784,16 @@ export default function CoverPageEditorPage() {
                         name: data.name,
                         template_slug: data.template,
                         design_json: designJson as any,
+                        report_types: data.reportTypes,
                     },
                 });
             } else {
-                const newCoverPage = await createCoverPage({
+                await createCoverPage({
                     name: data.name,
                     template_slug: data.template,
                     design_json: designJson as any,
+                    report_types: data.reportTypes,
                 });
-
-                // Handle assignments
-                for (const reportType of data.reportTypes) {
-                    await assignCoverPageToReportType(reportType, newCoverPage.id);
-                }
             }
 
             toast.success(id ? "Cover page updated!" : "Cover page created!");
