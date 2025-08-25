@@ -31,8 +31,7 @@ export interface EditorSidebarProps {
     register: any;
     reportTypes: string[];
     reportTypeOptions: { value: string; label: string }[];
-    toggleReportType: (rt: string) => void;
-
+    toggleReportType: (rt: string, checked: boolean) => void;
     // TEXT
     addText: () => void;
 

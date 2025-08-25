@@ -76,8 +76,12 @@ export default function CoverPageEditorPage() {
     const {register, handleSubmit, setValue, watch} = form;
 
     const template = watch("template") as keyof typeof TEMPLATES;
-    const reportTypes = useWatch({ control: form.control, name: "reportTypes", defaultValue: [] });
+    const reportTypes = useWatch({control: form.control, name: "reportTypes", defaultValue: []});
     const loaded = useRef(false);
+
+    useEffect(() => {
+        form.register("reportTypes");
+    }, [form]);
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -137,25 +141,32 @@ export default function CoverPageEditorPage() {
     }, []);
 
     // Load existing cover page
+    // Load existing cover page
     useEffect(() => {
         if (!canvas || !id || !coverPages.length) return;
 
-        // normalize id types both sides
-        const cp = coverPages.find((c) => String(c.id) === String(id));
+        const sid = String(id);
+        const cp = coverPages.find((c) => String(c.id) === sid);
         if (!cp) return;
 
         const selectedReportTypes = Object.entries(assignments)
-            .filter(([, cpId]) => String(cpId) === String(id))
-            .map(([rt]) => rt);
+            .filter(([, cpId]) => String(cpId) === sid)
+            .map(([rt]) => String(rt));
 
-        // One atomic form update so watchers (and your checkboxes) re-render correctly
+        // 1) atomic reset
         form.reset({
             name: cp.name,
             template: (cp.template_slug as keyof typeof TEMPLATES) || "default",
             reportTypes: selectedReportTypes,
         });
 
-        // Load canvas JSON once
+        // 2) explicitly set to nudge useWatch on registered field
+        form.setValue("reportTypes", selectedReportTypes, {
+            shouldDirty: false,
+            shouldTouch: false,
+            shouldValidate: false,
+        });
+
         if (!loaded.current && cp.design_json) {
             canvas.loadFromJSON(cp.design_json as any, () => {
                 canvas.requestRenderAll();
@@ -163,7 +174,7 @@ export default function CoverPageEditorPage() {
             });
             loaded.current = true;
         }
-    }, [canvas, id, coverPages, assignments, form, setValue]);
+    }, [canvas, id, coverPages, assignments, form]);
 
 
     useEffect(() => {
@@ -886,12 +897,16 @@ export default function CoverPageEditorPage() {
                             register={register}
                             reportTypes={reportTypes}
                             reportTypeOptions={REPORT_TYPES}
-                            toggleReportType={(rt) => {
-                                const updatedReportTypes = reportTypes.includes(rt)
-                                    ? reportTypes.filter((t) => t !== rt)
-                                    : [...reportTypes, rt];
-                                setValue("reportTypes", updatedReportTypes);
-                                console.log("Toggled report type:", rt, "watch result:", watch("reportTypes"));
+                            toggleReportType={(rt, checked) => {
+                                const next = checked
+                                    ? Array.from(new Set([...(reportTypes || []), rt])) // add
+                                    : (reportTypes || []).filter((t) => t !== rt);      // remove
+
+                                setValue("reportTypes", next, {
+                                    shouldDirty: true,
+                                    shouldTouch: true,
+                                    shouldValidate: false,
+                                });
                             }}
                             addText={addText}
                             images={images}
