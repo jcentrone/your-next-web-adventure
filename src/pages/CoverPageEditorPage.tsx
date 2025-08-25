@@ -62,6 +62,7 @@ export default function CoverPageEditorPage() {
         createCoverPage,
         updateCoverPage,
         assignments,
+        isLoadingAssignments,
         assignCoverPageToReportType,
         removeAssignmentFromReportType,
         coverPages,
@@ -142,7 +143,7 @@ export default function CoverPageEditorPage() {
 
     // Load existing cover page
     useEffect(() => {
-        if (!canvas || !id || !coverPages.length) return;
+        if (!canvas || !id || !coverPages.length || isLoadingAssignments) return;
         const cp = coverPages.find((c) => c.id === id);
         if (!cp) return;
         const selectedReportTypes = Object.entries(assignments)
@@ -175,7 +176,7 @@ export default function CoverPageEditorPage() {
             });
             loaded.current = true;
         }
-    }, [canvas, id, coverPages, assignments, form, setValue]);
+    }, [canvas, id, coverPages, assignments, isLoadingAssignments, form, setValue]);
 
     useEffect(() => {
         if (canvas) {
