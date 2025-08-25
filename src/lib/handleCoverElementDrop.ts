@@ -32,6 +32,7 @@ export function handleCoverElementDrop(
     pushHistory?: () => void,
 ) {
     if (!canvas) return;
+    console.log('Dropping element', { type, data, x, y });
 
     switch (type) {
         case "text":
@@ -68,8 +69,8 @@ export function handleCoverElementDrop(
             break;
         case "image":
             if (data?.url) {
-                console.log("Handling image drop:", { url: data.url, x, y });
                 handlers.addImage?.(data.url, x, y);
+                console.log('Image added', { url: data.url, x, y });
                 pushHistory?.();
             }
             break;
