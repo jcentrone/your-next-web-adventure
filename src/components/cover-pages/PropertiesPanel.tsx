@@ -99,6 +99,12 @@ export function PropertiesPanel({
     ? "appearance"
     : "layers";
 
+  const [value, setValue] = React.useState<string>(defaultSection);
+
+  React.useEffect(() => {
+    setValue(defaultSection);
+  }, [selectedObject, selectedObjects]);
+
   return (
     <div className="w-80 h-full border-l bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <ScrollArea className="h-full">
@@ -128,7 +134,12 @@ export function PropertiesPanel({
               <p className="text-xs text-muted-foreground mt-2">Align selected objects</p>
             </div>
           )}
-          <Accordion type="single" collapsible defaultValue={defaultSection}>
+          <Accordion
+            type="single"
+            collapsible
+            value={value}
+            onValueChange={setValue}
+          >
             {!multipleSelection && isTable && (
               <AccordionItem value="table">
                 <AccordionTrigger className="text-sm font-medium">
