@@ -40,6 +40,7 @@ export function useTableInteractions({canvas}: Args) {
         const updateOverlay = () => {
             const sel = selectionRef.current;
             if (!sel) return;
+            sel.table.setCoords();
             const data = (sel.table as unknown as {data: TableData}).data;
             const r1 = Math.min(sel.start.row, sel.end.row);
             const r2 = Math.max(sel.start.row, sel.end.row);
@@ -49,9 +50,10 @@ export function useTableInteractions({canvas}: Args) {
             const top = data.rowHeights.slice(0, r1).reduce((a, b) => a + b, 0);
             const width = data.colWidths.slice(c1, c2 + 1).reduce((a, b) => a + b, 0);
             const height = data.rowHeights.slice(r1, r2 + 1).reduce((a, b) => a + b, 0);
-            const rect = sel.table.getBoundingRect(true);
-            const baseLeft = rect.left + left;
-            const baseTop = rect.top + top;
+            const tableLeft = sel.table.left ?? 0;
+            const tableTop = sel.table.top ?? 0;
+            const baseLeft = tableLeft + left;
+            const baseTop = tableTop + top;
             if (!overlayRef.current) {
                 overlayRef.current = new Rect({
                     left: baseLeft,
@@ -266,7 +268,7 @@ export function useTableInteractions({canvas}: Args) {
                     });
                     img.scale(scale);
                     cell.addWithUpdate(img);
-                    (cell as any).data.imageUrl = reader.result as string;
+                    (cell as unknown as {data: {imageUrl?: string}}).data.imageUrl = reader.result as string;
                     table.dirty = true;
                     canvas.requestRenderAll();
                 });
