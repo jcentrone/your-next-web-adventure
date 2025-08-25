@@ -58,7 +58,14 @@ export default function CoverPageEditorPage() {
     const {id} = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    const {createCoverPage, updateCoverPage, coverPages} = useCoverPages();
+    const {
+        createCoverPage,
+        updateCoverPage,
+        coverPages,
+        assignments,
+        assignCoverPageToReportType,
+        removeAssignmentFromReportType,
+    } = useCoverPages();
 
     const {images, uploadImage, deleteImage} = useImageLibrary();
 
@@ -71,6 +78,7 @@ export default function CoverPageEditorPage() {
     const template = watch("template") as keyof typeof TEMPLATES;
     const reportTypes = useWatch({control: form.control, name: "reportTypes", defaultValue: []});
     const loaded = useRef(false);
+    const originalReportTypes = useRef<string[]>([]);
 
     useEffect(() => {
         form.register("reportTypes");
@@ -143,6 +151,7 @@ export default function CoverPageEditorPage() {
         if (!cp) return;
 
         const selectedReportTypes = (cp.report_types || []).map((rt) => String(rt));
+        originalReportTypes.current = selectedReportTypes;
 
         // 1) atomic reset
         form.reset({
@@ -165,7 +174,7 @@ export default function CoverPageEditorPage() {
             });
             loaded.current = true;
         }
-    }, [canvas, id, coverPages, form]);
+    }, [canvas, id, coverPages, assignments, form]);
 
 
     useEffect(() => {
@@ -784,16 +793,28 @@ export default function CoverPageEditorPage() {
                         name: data.name,
                         template_slug: data.template,
                         design_json: designJson as any,
-                        report_types: data.reportTypes,
                     },
                 });
+
+                const prev = originalReportTypes.current;
+                const added = data.reportTypes.filter((rt) => !prev.includes(rt));
+                const removed = prev.filter((rt) => !data.reportTypes.includes(rt));
+
+                await Promise.all([
+                    ...added.map((rt) => assignCoverPageToReportType(rt, id)),
+                    ...removed.map((rt) => removeAssignmentFromReportType(rt)),
+                ]);
             } else {
-                await createCoverPage({
+                const created = await createCoverPage({
                     name: data.name,
                     template_slug: data.template,
                     design_json: designJson as any,
                     report_types: data.reportTypes,
                 });
+
+                await Promise.all(
+                    data.reportTypes.map((rt) => assignCoverPageToReportType(rt, created.id)),
+                );
             }
 
             toast.success(id ? "Cover page updated!" : "Cover page created!");
