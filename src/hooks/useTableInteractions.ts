@@ -1,7 +1,8 @@
 import {useEffect, useRef} from "react";
-import {Group, Rect} from "fabric";
+import {Group, Rect, Image} from "fabric";
 import type {Canvas as FabricCanvas, FabricObject} from "fabric";
 import type {TableData} from "@/lib/fabricTables";
+import {startCellEdit} from "@/lib/fabricTables";
 
 type CellPos = {row: number; col: number};
 
@@ -18,6 +19,7 @@ type Args = {
 export function useTableInteractions({canvas}: Args) {
     const selectionRef = useRef<Selection | null>(null);
     const overlayRef = useRef<Rect | null>(null);
+    const draggingRef = useRef(false);
 
     useEffect(() => {
         if (!canvas) return;
@@ -167,6 +169,113 @@ export function useTableInteractions({canvas}: Args) {
             canvas.requestRenderAll();
             selectionRef.current.table.on("moving", updateOverlay);
             updateOverlay();
+            draggingRef.current = true;
+        };
+
+        const handleMouseMove = (opt: {target?: FabricObject | null; e: MouseEvent}) => {
+            if (!draggingRef.current) return;
+            const sel = selectionRef.current;
+            if (!sel) return;
+            const t = canvas.findTarget(opt.e, true) as (FabricObject & {
+                name?: string;
+                group?: Group | null;
+                data?: Record<string, unknown>;
+            }) | null;
+            if (!t) return;
+            let cell: Group | null = null;
+            if (t.name === "Cell") {
+                cell = t as unknown as Group;
+            } else if (t.group && t.group.name === "Cell") {
+                cell = t.group as Group;
+            }
+            if (!cell || cell.group !== sel.table) return;
+            const cellData = (cell as unknown as {data: {row: number; col: number}}).data;
+            sel.end = {row: cellData.row, col: cellData.col};
+            updateOverlay();
+        };
+
+        const handleMouseUp = () => {
+            draggingRef.current = false;
+        };
+
+        const handleDblClick = (opt: {target?: FabricObject | null; e: MouseEvent}) => {
+            const target = opt.target as (FabricObject & {name?: string; group?: Group | null; data?: Record<string, unknown>}) | undefined;
+            if (!target) return;
+            let cell: Group | null = null;
+            let table: Group | null = null;
+            if (target.name === "Cell") {
+                cell = target as unknown as Group;
+                table = (cell.group as Group) || null;
+            } else if (target.group && target.group.name === "Cell") {
+                cell = target.group as Group;
+                table = (cell.group as Group) || null;
+            }
+            if (!cell || !table) return;
+            const cellData = (cell as unknown as {data: {row: number; col: number}}).data;
+            startCellEdit(table, cellData.row, cellData.col);
+        };
+
+        const handleDrop = (opt: {e: DragEvent}) => {
+            opt.e.preventDefault();
+            const file = opt.e.dataTransfer?.files?.[0];
+            if (!file) return;
+            const target = canvas.findTarget(opt.e, true) as (FabricObject & {
+                name?: string;
+                group?: Group | null;
+                data?: Record<string, unknown>;
+            }) | null;
+            if (!target) return;
+            let cell: Group | null = null;
+            let table: Group | null = null;
+            if (target.name === "Cell") {
+                cell = target as unknown as Group;
+                table = (cell.group as Group) || null;
+            } else if (target.group && target.group.name === "Cell") {
+                cell = target.group as Group;
+                table = (cell.group as Group) || null;
+            }
+            if (!cell || !table) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                Image.fromURL(reader.result as string, (img) => {
+                    const cellData = (cell as unknown as {data: {row: number; col: number}}).data;
+                    const data = (table as unknown as {data: TableData}).data;
+                    const pad = data.cellPaddings[cellData.row][cellData.col];
+                    const width = data.colWidths[cellData.col] - 2 * pad.x;
+                    const height = data.rowHeights[cellData.row] - 2 * pad.y;
+                    cell.getObjects("image").forEach((o) => cell.remove(o));
+                    const clip = new Rect({
+                        left: 0,
+                        top: 0,
+                        width,
+                        height,
+                        originX: "left",
+                        originY: "top",
+                    });
+                    const scale = Math.min(
+                        width / (img.width || 1),
+                        height / (img.height || 1),
+                    );
+                    img.set({
+                        left: pad.x,
+                        top: pad.y,
+                        originX: "left",
+                        originY: "top",
+                        selectable: false,
+                        clipPath: clip,
+                    });
+                    img.scale(scale);
+                    cell.addWithUpdate(img);
+                    (cell as any).data.imageUrl = reader.result as string;
+                    table.dirty = true;
+                    canvas.requestRenderAll();
+                });
+            };
+            reader.readAsDataURL(file);
+        };
+
+        const handleDragOver = (opt: {e: DragEvent}) => {
+            opt.e.preventDefault();
         };
 
         const handleSelectionCleared = () => {
@@ -174,15 +283,27 @@ export function useTableInteractions({canvas}: Args) {
         };
 
         canvas.on("mouse:down", handleMouseDown);
+        canvas.on("mouse:move", handleMouseMove);
+        canvas.on("mouse:up", handleMouseUp);
+        canvas.on("mouse:dblclick", handleDblClick);
+        canvas.on("drop", handleDrop);
+        canvas.on("dragover", handleDragOver);
         canvas.on("selection:cleared", handleSelectionCleared);
         document.addEventListener("keydown", handleKeyDown);
 
         return () => {
             canvas.off("mouse:down", handleMouseDown);
+            canvas.off("mouse:move", handleMouseMove);
+            canvas.off("mouse:up", handleMouseUp);
+            canvas.off("mouse:dblclick", handleDblClick);
+            canvas.off("drop", handleDrop);
+            canvas.off("dragover", handleDragOver);
             canvas.off("selection:cleared", handleSelectionCleared);
             document.removeEventListener("keydown", handleKeyDown);
+            draggingRef.current = false;
             clear();
         };
     }, [canvas]);
+    return selectionRef;
 }
 

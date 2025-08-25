@@ -106,6 +106,38 @@ export function setCellContent(
     table.canvas?.requestRenderAll();
 }
 
+export function startCellEdit(table: Group, row: number, col: number) {
+    const cell = getCell(table, row, col);
+    if (!cell) return;
+    const canvas = table.canvas;
+    if (!canvas) return;
+    const data = (table as any).data as TableData;
+    const pad = data.cellPaddings[row][col];
+    const cellRect = cell.getBoundingRect(true);
+    const editor = new Textbox((cell as any).data?.content || "", {
+        left: cellRect.left + pad.x,
+        top: cellRect.top + pad.y,
+        width: cellRect.width - 2 * pad.x,
+        height: cellRect.height - 2 * pad.y,
+        absolutePositioned: true,
+    });
+    canvas.add(editor);
+    canvas.setActiveObject(editor);
+    editor.enterEditing();
+    editor.selectAll();
+    const commit = () => {
+        setCellContent(table, row, col, editor.text || "");
+        canvas.remove(editor);
+        canvas.requestRenderAll();
+    };
+    editor.on("editing:exited", commit);
+    editor.on("keydown", (opt) => {
+        if ((opt as any).e.key === "Enter" && !(opt as any).e.shiftKey) {
+            editor.exitEditing();
+        }
+    });
+}
+
 export function layoutTable(table: Group) {
     const data = (table as any).data as TableData;
     let top = 0;
