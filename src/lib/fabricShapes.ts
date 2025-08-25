@@ -1,6 +1,7 @@
 import {
     Canvas as FabricCanvas,
     Circle,
+    Path,
     Group,
     Image as FabricImage,
     Line,
@@ -8,7 +9,8 @@ import {
     Polygon,
     Rect,
     Textbox,
-    util as FabricUtil
+    util as FabricUtil,
+    FabricObject
 } from "fabric";
 
 export type Palette = { colors: string[] };
@@ -111,6 +113,59 @@ export function addBidirectionalArrow(canvas: FabricCanvas, palette: Palette, x 
     return g;
 }
 
+export function addFreeformPath(
+    canvas: FabricCanvas,
+    palette: Palette,
+    pushHistory?: () => void,
+) {
+    if (!canvas) return;
+
+    canvas.isDrawingMode = true;
+    const brush = canvas.freeDrawingBrush;
+    if (brush) {
+        brush.color = palette.colors[1] || palette.colors[0];
+        // @ts-expect-error brush type may not define width
+        brush.width = 2;
+    }
+
+    const handleCreated = (e: { path: Path }) => {
+        const path = e.path;
+        path.set({
+            fill: "transparent",
+            stroke: palette.colors[1] || palette.colors[0],
+            strokeWidth: 2,
+            visible: true,
+        });
+        canvas.isDrawingMode = false;
+        canvas.setActiveObject(path);
+        canvas.off("path:created", handleCreated);
+        canvas.requestRenderAll();
+        pushHistory?.();
+    };
+
+    canvas.on("path:created", handleCreated);
+}
+
+export function addBezierCurve(
+    canvas: FabricCanvas,
+    palette: Palette,
+    x = 100,
+    y = 100,
+) {
+    const path = new Path("M 0 100 C 50 0 150 0 200 100", {
+        left: x,
+        top: y,
+        stroke: palette.colors[1] || palette.colors[0],
+        strokeWidth: 2,
+        fill: "transparent",
+        visible: true,
+    });
+    canvas.add(path);
+    canvas.setActiveObject(path);
+    canvas.requestRenderAll();
+    return path;
+}
+
 export function addText(canvas: FabricCanvas, palette: Palette, text = "Text", x = 120, y = 120) {
     const tb = new Textbox(text, {left: x, top: y, fontSize: 24, fill: palette.colors[3] || palette.colors[0], visible: true});
     canvas.add(tb);
@@ -138,12 +193,13 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
         const { objects, options } = await loadSVGFromString(svg);
         const obj = Array.isArray(objects)
             ? FabricUtil.groupSVGElements(objects, options)
-            : (objects as any);
+            : (objects as FabricObject);
 
         obj.set({left: x, top: y, stroke, fill: "none", visible: true});
         canvas.add(obj);
         canvas.setActiveObject(obj);
         canvas.requestRenderAll();
+    // eslint-disable-next-line no-empty
     } catch {
     }
 }
@@ -165,16 +221,17 @@ export async function addOpenmojiClipart(
         const { objects, options } = await loadSVGFromString(svg);
         const obj = Array.isArray(objects)
             ? FabricUtil.groupSVGElements(objects, options)
-            : (objects as any);
+            : (objects as FabricObject);
 
         obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
         obj.set({stroke});
-        if (obj._objects) {
-            obj._objects.forEach((o: any) => o.set({stroke}));
-        }
+        (obj as FabricObject & { _objects?: FabricObject[] })._objects?.forEach((o) =>
+            o.set({stroke}),
+        );
         canvas.add(obj);
         canvas.setActiveObject(obj);
         canvas.requestRenderAll();
+    // eslint-disable-next-line no-empty
     } catch {
     }
 }

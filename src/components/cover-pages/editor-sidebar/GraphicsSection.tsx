@@ -10,7 +10,9 @@ import {
     Pentagon,
     Square,
     Star as StarIcon,
-    Triangle as TriangleIcon
+    Triangle as TriangleIcon,
+    Pencil,
+    PenTool
 } from "lucide-react";
 import {icons as lucideIcons} from "lucide";
 
@@ -22,6 +24,8 @@ export function GraphicsSection({
                                     addPolygonShape,
                                     addArrow,
                                     addBidirectionalArrow,
+                                    addFreeformPath,
+                                    addBezierCurve,
                                     addIcon,
                                     addClipart,
                                 }: {
@@ -32,12 +36,15 @@ export function GraphicsSection({
     addPolygonShape: () => void;
     addArrow: () => void;
     addBidirectionalArrow: () => void;
+    addFreeformPath: () => void;
+    addBezierCurve: () => void;
     addIcon: (name: string) => void;
     addClipart: (hex: string) => void;
 }) {
     const [iconSearch, setIconSearch] = useState("");
     const [clipartSearch, setClipartSearch] = useState("");
-    const [openmojis, setOpenmojis] = useState<any[]>([]);
+    type Openmoji = { annotation: string; hexcode: string };
+    const [openmojis, setOpenmojis] = useState<Openmoji[]>([]);
 
     useEffect(() => {
         fetch("https://cdn.jsdelivr.net/npm/openmoji@16.0.0/data/openmoji.json")
@@ -141,6 +148,32 @@ export function GraphicsSection({
                 >
                     <ArrowLeftRight className="stroke-black"/>
                 </Button>
+                <Button
+                    draggable
+                    onDragStart={(e) => {
+                        const payload = JSON.stringify({type: "freeformPath"});
+                        e.dataTransfer?.setData("application/x-cover-element", payload);
+                        e.dataTransfer!.effectAllowed = "copy";
+                    }}
+                    onClick={addFreeformPath}
+                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
+                    aria-label="Freeform Path"
+                >
+                    <Pencil className="stroke-black"/>
+                </Button>
+                <Button
+                    draggable
+                    onDragStart={(e) => {
+                        const payload = JSON.stringify({type: "bezierCurve"});
+                        e.dataTransfer?.setData("application/x-cover-element", payload);
+                        e.dataTransfer!.effectAllowed = "copy";
+                    }}
+                    onClick={addBezierCurve}
+                    className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
+                    aria-label="Bezier Curve"
+                >
+                    <PenTool className="stroke-black"/>
+                </Button>
             </div>
 
             {/* Icons */}
@@ -161,7 +194,8 @@ export function GraphicsSection({
                                 .split("-")
                                 .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
                                 .join("");
-                            const IconComp = (LucideIcons as any)[pascal] as ComponentType<{ className?: string }>;
+                            const iconRecord = LucideIcons as Record<string, ComponentType<{ className?: string }>>;
+                            const IconComp = iconRecord[pascal];
                             if (!IconComp) return null;
                             return (
                                 <button
