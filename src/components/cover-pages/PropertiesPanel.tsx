@@ -18,12 +18,6 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import { Switch } from "@/components/ui/switch";
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-  ContextMenuContent,
-  ContextMenuItem,
-} from "@/components/ui/context-menu";
 import { FabricObject } from "fabric";
 import {
   Eye,
@@ -35,6 +29,8 @@ import {
   AlignVerticalJustifyCenter,
   ArrowDown,
   Trash2,
+  TableCellsMerge,
+  TableCellsSplit,
 } from "lucide-react";
 
 interface PropertiesPanelProps {
@@ -222,25 +218,22 @@ export function PropertiesPanel({
                       />
                     </div>
                   </div>
-                  <ContextMenu>
-                    <ContextMenuTrigger>
-                      <Button variant="outline" className="w-full">
-                        Cell Options
-                      </Button>
-                    </ContextMenuTrigger>
-                    <ContextMenuContent>
-                      <ContextMenuItem
-                        onClick={() => onUpdateProperty("mergeCells", null)}
-                      >
-                        Merge Cells
-                      </ContextMenuItem>
-                      <ContextMenuItem
-                        onClick={() => onUpdateProperty("splitCell", null)}
-                      >
-                        Split Cell
-                      </ContextMenuItem>
-                    </ContextMenuContent>
-                  </ContextMenu>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onUpdateProperty("mergeCells", null)}
+                    >
+                      <TableCellsMerge className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onUpdateProperty("splitCell", null)}
+                    >
+                      <TableCellsSplit className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             )}
