@@ -64,10 +64,18 @@ export function PropertiesPanel({
 }: PropertiesPanelProps) {
   const multipleSelection = selectedObjects.length > 1;
   const isTextObject = !multipleSelection && selectedObject?.type === "textbox";
-  const hasPosition = !multipleSelection && selectedObject && ("left" in selectedObject || "top" in selectedObject);
+  const hasPosition =
+    !multipleSelection &&
+    selectedObject &&
+    ("left" in selectedObject ||
+      "top" in selectedObject ||
+      "skewX" in selectedObject ||
+      "skewY" in selectedObject);
   const hasSize = !multipleSelection && selectedObject && ("width" in selectedObject || "height" in selectedObject);
   const hasFill = !multipleSelection && selectedObject && "fill" in selectedObject;
   const hasStroke = !multipleSelection && selectedObject && "stroke" in selectedObject;
+  const hasSkewX = !multipleSelection && selectedObject && "skewX" in selectedObject;
+  const hasSkewY = !multipleSelection && selectedObject && "skewY" in selectedObject;
   const defaultSection = multipleSelection
     ? "layers"
     : hasPosition
@@ -204,6 +212,48 @@ export function PropertiesPanel({
                       className="h-8"
                     />
                   </div>
+                  {(hasSkewX || hasSkewY) && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {hasSkewX && (
+                        <div>
+                          <Label htmlFor="skewX" className="text-xs">
+                            Skew X
+                          </Label>
+                          <Input
+                            id="skewX"
+                            type="number"
+                            value={Math.round(selectedObject.skewX || 0)}
+                            onChange={(e) =>
+                              onUpdateProperty(
+                                "skewX",
+                                Number(e.target.value)
+                              )
+                            }
+                            className="h-8"
+                          />
+                        </div>
+                      )}
+                      {hasSkewY && (
+                        <div>
+                          <Label htmlFor="skewY" className="text-xs">
+                            Skew Y
+                          </Label>
+                          <Input
+                            id="skewY"
+                            type="number"
+                            value={Math.round(selectedObject.skewY || 0)}
+                            onChange={(e) =>
+                              onUpdateProperty(
+                                "skewY",
+                                Number(e.target.value)
+                              )
+                            }
+                            className="h-8"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             )}
