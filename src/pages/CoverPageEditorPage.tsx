@@ -17,7 +17,6 @@ import {
 import {createTableGroup} from "@/lib/fabricTables";
 import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
 import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
 import {EditorToolbar} from "@/components/cover-pages/EditorToolbar";
 import {EditorSidebar} from "@/components/cover-pages/EditorSidebar";
 import {PropertiesPanel} from "@/components/cover-pages/PropertiesPanel";
@@ -30,6 +29,7 @@ import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
 import {SUPABASE_URL} from "@/integrations/supabase/client";
 import {toast} from "sonner";
+
 const DEFAULT_PROXY = `${SUPABASE_URL}/functions/v1/image-proxy`;
 const IMAGE_PROXY_URL = import.meta.env.VITE_IMAGE_PROXY_URL ?? DEFAULT_PROXY;
 
@@ -62,7 +62,6 @@ export default function CoverPageEditorPage() {
         createCoverPage,
         updateCoverPage,
         assignments,
-        isLoadingAssignments,
         assignCoverPageToReportType,
         removeAssignmentFromReportType,
         coverPages,
@@ -77,8 +76,12 @@ export default function CoverPageEditorPage() {
     const {register, handleSubmit, setValue, watch} = form;
 
     const template = watch("template") as keyof typeof TEMPLATES;
-    const reportTypes = useWatch({ control: form.control, name: "reportTypes", defaultValue: [] });
+    const reportTypes = useWatch({control: form.control, name: "reportTypes", defaultValue: []});
     const loaded = useRef(false);
+
+    useEffect(() => {
+        form.register("reportTypes");
+    }, [form]);
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -138,33 +141,32 @@ export default function CoverPageEditorPage() {
     }, []);
 
     // Load existing cover page
+    // Load existing cover page
     useEffect(() => {
-        if (!canvas || !id || !coverPages.length || isLoadingAssignments) return;
-        const cp = coverPages.find((c) => c.id === id);
+        if (!canvas || !id || !coverPages.length) return;
+
+        const sid = String(id);
+        const cp = coverPages.find((c) => String(c.id) === sid);
         if (!cp) return;
+
         const selectedReportTypes = Object.entries(assignments)
-            .filter(([_, cpId]) => cpId === id)
-            .map(([rt]) => rt);
-        
-        console.log("Loading cover page data:", {
-            name: cp.name,
-            template: cp.template_slug,
-            selectedReportTypes,
-            assignments
-        });
-        
+            .filter(([, cpId]) => String(cpId) === sid)
+            .map(([rt]) => String(rt));
+
+        // 1) atomic reset
         form.reset({
             name: cp.name,
             template: (cp.template_slug as keyof typeof TEMPLATES) || "default",
             reportTypes: selectedReportTypes,
         });
-        
-        // Force update the form values
-        setValue("name", cp.name);
-        setValue("template", (cp.template_slug as keyof typeof TEMPLATES) || "default");
-        setValue("reportTypes", selectedReportTypes);
-        console.log("After setValue reportTypes:", {selectedReportTypes, watched: watch("reportTypes")});
-        
+
+        // 2) explicitly set to nudge useWatch on registered field
+        form.setValue("reportTypes", selectedReportTypes, {
+            shouldDirty: false,
+            shouldTouch: false,
+            shouldValidate: false,
+        });
+
         if (!loaded.current && cp.design_json) {
             canvas.loadFromJSON(cp.design_json as any, () => {
                 canvas.requestRenderAll();
@@ -172,7 +174,8 @@ export default function CoverPageEditorPage() {
             });
             loaded.current = true;
         }
-    }, [canvas, id, coverPages, assignments, isLoadingAssignments, form, setValue]);
+    }, [canvas, id, coverPages, assignments, form]);
+
 
     useEffect(() => {
         if (canvas) {
@@ -432,8 +435,8 @@ export default function CoverPageEditorPage() {
 
     const handleAddImage = async (imageUrl: string, x?: number, y?: number) => {
         if (!canvas) return;
-        
-        console.log("handleAddImage called with:", { imageUrl, x, y });
+
+        console.log("handleAddImage called with:", {imageUrl, x, y});
 
         if (x === undefined || y === undefined) {
             const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
@@ -441,7 +444,11 @@ export default function CoverPageEditorPage() {
             const top = transform[5];
             x = canvas.getWidth() / 2 - left;
             y = canvas.getHeight() / 2 - top;
-            console.log("Calculated position:", { x, y, canvasSize: { width: canvas.getWidth(), height: canvas.getHeight() } });
+            console.log("Calculated position:", {
+                x,
+                y,
+                canvasSize: {width: canvas.getWidth(), height: canvas.getHeight()}
+            });
         }
 
         try {
@@ -449,7 +456,7 @@ export default function CoverPageEditorPage() {
             const finalUrl = sameOrigin
                 ? imageUrl
                 : `${IMAGE_PROXY_URL}?url=${encodeURIComponent(imageUrl)}`;
-            
+
             let img: FabricImage;
             console.log("Loading image from URL:", finalUrl);
             try {
@@ -467,17 +474,17 @@ export default function CoverPageEditorPage() {
                 console.log("Loaded image directly from original URL");
             }
 
-            console.log("Image loaded successfully, dimensions:", { width: img.width, height: img.height });
-            
+            console.log("Image loaded successfully, dimensions:", {width: img.width, height: img.height});
+
             // Ensure the image is positioned within canvas bounds
             const maxWidth = canvas.getWidth();
             const maxHeight = canvas.getHeight();
-            
+
             // Calculate scale to fit image nicely
             const scaleX = Math.min(200 / (img.width || 200), 0.8);
             const scaleY = Math.min(200 / (img.height || 200), 0.8);
             const scale = Math.min(scaleX, scaleY);
-            
+
             img.set({
                 left: Math.max(0, Math.min(x || 100, maxWidth - 100)),
                 top: Math.max(0, Math.min(y || 100, maxHeight - 100)),
@@ -487,7 +494,7 @@ export default function CoverPageEditorPage() {
                 selectable: true,
                 evented: true,
             });
-            
+
             console.log("Adding image to canvas with properties:", {
                 left: img.left,
                 top: img.top,
@@ -495,13 +502,13 @@ export default function CoverPageEditorPage() {
                 scaleY: img.scaleY,
                 visible: img.visible
             });
-            
+
             canvas.add(img);
             canvas.setActiveObject(img);
             canvas.renderAll();
             setLayers([...canvas.getObjects()]);
             pushHistory();
-            
+
             console.log("Image successfully added to canvas");
             toast.success("Image added to canvas");
         } catch (error) {
@@ -834,122 +841,126 @@ export default function CoverPageEditorPage() {
                 onClose={() => setShortcutsOpen(false)}
             />
             <div className=" flex flex-col bg-background">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 border-b">
-                {/* Toolbar */}
-                <EditorToolbar
-                    onUndo={handleUndo}
-                    onRedo={handleRedo}
-                    canUndo={historyIndex > 0}
-                    canRedo={historyIndex < history.length - 1}
-                    onZoomIn={handleZoomIn}
-                    onZoomOut={handleZoomOut}
-                    zoom={zoom}
-                    onZoomChange={handleZoomChange}
-                    showGrid={showGrid}
-                    onToggleGrid={() => setShowGrid(!showGrid)}
-                    showRulers={showRulers}
-                    onToggleRulers={() => setShowRulers(!showRulers)}
-                    snapEnabled={snapEnabled}
-                    onToggleSnap={() => setSnapEnabled((v) => !v)}
-                    selectedObjects={selectedObjects}
-                    onCopy={handleCopy}
-                    onDelete={handleDelete}
-                    onGroup={handleGroup}
-                    onUngroup={handleUngroup}
-                    onAlign={handleAlign}
-                    onDistribute={handleDistribute}
-                    onBringForward={handleBringForward}
-                    onSendBackward={handleSendBackward}
-                    onBringToFront={handleBringToFront}
-                    onSendToBack={handleSendToBack}
-                />
-
-                {/* Action Buttons */}
-                <div className="flex items-center gap-4">
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate("/cover-page-manager")}
-                    >
-                        Back
-                    </Button>
-                    <Button onClick={handleSubmit(onSubmit)}>
-                        {id ? "Update" : "Create"}
-                    </Button>
-                </div>
-            </div>
-
-            {/* Main Layout */}
-            <div className="flex flex-1 overflow-hidden">
-                {/* Left Sidebar */}
-                <div className="flex-none">
-                    <EditorSidebar
-                        activePanel={activePanel}
-                        setActivePanel={setActivePanel}
-                        onSettingsSubmit={handleSubmit(onSubmit)}
-                        register={register}
-                        reportTypes={reportTypes}
-                        reportTypeOptions={REPORT_TYPES}
-                        toggleReportType={(rt) => {
-                            const updatedReportTypes = reportTypes.includes(rt)
-                                ? reportTypes.filter((t) => t !== rt)
-                                : [...reportTypes, rt];
-                            setValue("reportTypes", updatedReportTypes);
-                            console.log("Toggled report type:", rt, "watch result:", watch("reportTypes"));
-                        }}
-                        addText={addText}
-                        images={images}
-                        onImageUpload={handleImageUpload}
-                        onDeleteImage={handleDeleteImage}
-                        onAddImageFromUrl={handleAddImage}
-                        addRect={addRect}
-                        addCircle={addCircle}
-                        addStar={addStar}
-                        addTriangle={addTriangle}
-                        addPolygonShape={addPolygonShape}
-                        addArrow={addArrow}
-                        addBidirectionalArrow={addBidirectionalArrow}
-                        addIcon={addIcon}
-                        addClipart={addClipart}
-                        addTable={addTable}
-                        templateOptions={Object.keys(TEMPLATES)}
-                        palette={palette}
-                        onApplyPalette={applyPalette}
-                        bgColor={bgColor}
-                        presetBgColors={PRESET_BG_COLORS}
-                        updateBgColor={updateBgColor}
-                        onAddPlaceholder={handleAddPlaceholder}
-                        onShowShortcuts={() => setShortcutsOpen(true)}
-                    />
-                </div>
-
-                {/* Canvas Workspace */}
-                <div className="flex-1 overflow-auto">
-                    <CanvasWorkspace
-                        canvasRef={canvasRef}
-                        canvas={canvas}
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 border-b">
+                    {/* Toolbar */}
+                    <EditorToolbar
+                        onUndo={handleUndo}
+                        onRedo={handleRedo}
+                        canUndo={historyIndex > 0}
+                        canRedo={historyIndex < history.length - 1}
+                        onZoomIn={handleZoomIn}
+                        onZoomOut={handleZoomOut}
                         zoom={zoom}
+                        onZoomChange={handleZoomChange}
                         showGrid={showGrid}
+                        onToggleGrid={() => setShowGrid(!showGrid)}
                         showRulers={showRulers}
-                        onDropElement={handleDropElement}
+                        onToggleRulers={() => setShowRulers(!showRulers)}
+                        snapEnabled={snapEnabled}
+                        onToggleSnap={() => setSnapEnabled((v) => !v)}
+                        selectedObjects={selectedObjects}
+                        onCopy={handleCopy}
+                        onDelete={handleDelete}
+                        onGroup={handleGroup}
+                        onUngroup={handleUngroup}
+                        onAlign={handleAlign}
+                        onDistribute={handleDistribute}
+                        onBringForward={handleBringForward}
+                        onSendBackward={handleSendBackward}
+                        onBringToFront={handleBringToFront}
+                        onSendToBack={handleSendToBack}
                     />
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate("/cover-page-manager")}
+                        >
+                            Back
+                        </Button>
+                        <Button onClick={handleSubmit(onSubmit)}>
+                            {id ? "Update" : "Create"}
+                        </Button>
+                    </div>
                 </div>
 
-                {/* Right Properties Panel */}
-                <div className="flex-none">
-                    <PropertiesPanel
-                        selectedObject={selectedObject}
-                        selectedObjects={selectedObjects}
-                        onAlign={handleAlign}
-                        onUpdateProperty={handleUpdateProperty}
-                        onToggleLayerVisibility={handleToggleLayerVisibility}
-                        onDeleteLayer={handleDeleteLayer}
-                        layers={layers}
-                        onSelectLayer={handleSelectLayer}
-                    />
+                {/* Main Layout */}
+                <div className="flex flex-1 overflow-hidden">
+                    {/* Left Sidebar */}
+                    <div className="flex-none">
+                        <EditorSidebar
+                            activePanel={activePanel}
+                            setActivePanel={setActivePanel}
+                            onSettingsSubmit={handleSubmit(onSubmit)}
+                            register={register}
+                            reportTypes={reportTypes}
+                            reportTypeOptions={REPORT_TYPES}
+                            toggleReportType={(rt, checked) => {
+                                const next = checked
+                                    ? Array.from(new Set([...(reportTypes || []), rt])) // add
+                                    : (reportTypes || []).filter((t) => t !== rt);      // remove
+
+                                setValue("reportTypes", next, {
+                                    shouldDirty: true,
+                                    shouldTouch: true,
+                                    shouldValidate: false,
+                                });
+                            }}
+                            addText={addText}
+                            images={images}
+                            onImageUpload={handleImageUpload}
+                            onDeleteImage={handleDeleteImage}
+                            onAddImageFromUrl={handleAddImage}
+                            addRect={addRect}
+                            addCircle={addCircle}
+                            addStar={addStar}
+                            addTriangle={addTriangle}
+                            addPolygonShape={addPolygonShape}
+                            addArrow={addArrow}
+                            addBidirectionalArrow={addBidirectionalArrow}
+                            addIcon={addIcon}
+                            addClipart={addClipart}
+                            addTable={addTable}
+                            templateOptions={Object.keys(TEMPLATES)}
+                            palette={palette}
+                            onApplyPalette={applyPalette}
+                            bgColor={bgColor}
+                            presetBgColors={PRESET_BG_COLORS}
+                            updateBgColor={updateBgColor}
+                            onAddPlaceholder={handleAddPlaceholder}
+                            onShowShortcuts={() => setShortcutsOpen(true)}
+                        />
+                    </div>
+
+                    {/* Canvas Workspace */}
+                    <div className="flex-1 overflow-auto">
+                        <CanvasWorkspace
+                            canvasRef={canvasRef}
+                            canvas={canvas}
+                            zoom={zoom}
+                            showGrid={showGrid}
+                            showRulers={showRulers}
+                            onDropElement={handleDropElement}
+                        />
+                    </div>
+
+                    {/* Right Properties Panel */}
+                    <div className="flex-none">
+                        <PropertiesPanel
+                            selectedObject={selectedObject}
+                            selectedObjects={selectedObjects}
+                            onAlign={handleAlign}
+                            onUpdateProperty={handleUpdateProperty}
+                            onToggleLayerVisibility={handleToggleLayerVisibility}
+                            onDeleteLayer={handleDeleteLayer}
+                            layers={layers}
+                            onSelectLayer={handleSelectLayer}
+                        />
+                    </div>
                 </div>
             </div>
-        </div>
         </>
 
     );
