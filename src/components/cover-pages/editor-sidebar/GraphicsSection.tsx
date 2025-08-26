@@ -12,7 +12,8 @@ import {
     Star as StarIcon,
     Triangle as TriangleIcon,
     Pencil,
-    PenTool
+    PenTool,
+    Spline,
 } from "lucide-react";
 import {icons as lucideIcons} from "lucide";
 
@@ -172,7 +173,7 @@ export function GraphicsSection({
                     className="bg-[#ededed] w-16 h-16 p-0 rounded-md hover:bg-gray-300 flex items-center justify-center [&>svg]:!size-10"
                     aria-label="Bezier Curve"
                 >
-                    <PenTool className="stroke-black"/>
+                    <Spline className="stroke-black"/>
                 </Button>
             </div>
 
