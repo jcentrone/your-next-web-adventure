@@ -29,5 +29,7 @@ export function replaceMergeFields(text: string, { organization, inspector, repo
       reportDetails.weather_conditions || (report as any)?.reportData?.weather_conditions || "",
   };
 
-  return text.replace(/{{[^}]+}}/g, (match) => replacements[match] ?? "");
+  return text.replace(/{{[^}]+}}/g, (match) =>
+    Object.prototype.hasOwnProperty.call(replacements, match) ? replacements[match] : match
+  );
 }
