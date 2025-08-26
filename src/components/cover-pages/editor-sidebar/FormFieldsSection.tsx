@@ -5,7 +5,7 @@ import {contactFields, inspectorFields, organizationFields, imageFields} from "@
 export function FormFieldsSection({
                                       onAddPlaceholder,
                                   }: {
-    onAddPlaceholder: (token: string) => void;
+    onAddPlaceholder: (label: string, token: string) => void;
 }) {
     return (
         <Accordion type="single" collapsible defaultValue="organization" className="w-full">
@@ -18,7 +18,13 @@ export function FormFieldsSection({
                                 key={field.token}
                                 variant="outline"
                                 className="w-full justify-start"
-                                onClick={() => onAddPlaceholder(field.token)}
+                                draggable
+                                onDragStart={(e) => {
+                                    const payload = JSON.stringify({ type: "merge-field", data: { label: field.label, token: field.token } });
+                                    e.dataTransfer?.setData("application/x-cover-element", payload);
+                                    e.dataTransfer!.effectAllowed = "copy";
+                                }}
+                                onClick={() => onAddPlaceholder(field.label, field.token)}
                             >
                                 {field.label}
                             </Button>
@@ -36,7 +42,13 @@ export function FormFieldsSection({
                                 key={field.token}
                                 variant="outline"
                                 className="w-full justify-start"
-                                onClick={() => onAddPlaceholder(field.token)}
+                                draggable
+                                onDragStart={(e) => {
+                                    const payload = JSON.stringify({ type: "merge-field", data: { label: field.label, token: field.token } });
+                                    e.dataTransfer?.setData("application/x-cover-element", payload);
+                                    e.dataTransfer!.effectAllowed = "copy";
+                                }}
+                                onClick={() => onAddPlaceholder(field.label, field.token)}
                             >
                                 {field.label}
                             </Button>
@@ -54,7 +66,13 @@ export function FormFieldsSection({
                                 key={field.token}
                                 variant="outline"
                                 className="w-full justify-start"
-                                onClick={() => onAddPlaceholder(field.token)}
+                                draggable
+                                onDragStart={(e) => {
+                                    const payload = JSON.stringify({ type: "merge-field", data: { label: field.label, token: field.token } });
+                                    e.dataTransfer?.setData("application/x-cover-element", payload);
+                                    e.dataTransfer!.effectAllowed = "copy";
+                                }}
+                                onClick={() => onAddPlaceholder(field.label, field.token)}
                             >
                                 {field.label}
                             </Button>

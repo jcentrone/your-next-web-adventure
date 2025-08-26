@@ -671,8 +671,8 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const handleAddPlaceholder = (token: string) => {
-        handleAddText(token);
+    const handleAddPlaceholder = (label: string, token: string) => {
+        handleAddText(`${label}: ${token}`);
     };
 
     const applyPalette = (p: ColorPalette) => {
