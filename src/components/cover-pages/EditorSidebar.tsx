@@ -62,6 +62,7 @@ export interface EditorSidebarProps {
 
     // FORM FIELDS
     onAddPlaceholder: (label: string, token: string) => void;
+    onAddImageField: (token: string) => void;
 
     // SHORTCUTS
     onShowShortcuts?: () => void;
@@ -76,7 +77,7 @@ export function EditorSidebar(props: EditorSidebarProps) {
         addRect, addCircle, addStar, addTriangle, addPolygonShape, addArrow, addBidirectionalArrow, addIcon, addClipart,
         templateOptions, palette, onApplyPalette,
         bgColor, presetBgColors, updateBgColor,
-        onAddPlaceholder,
+        onAddPlaceholder, onAddImageField,
         onShowShortcuts,
     } = props;
 
@@ -184,7 +185,7 @@ export function EditorSidebar(props: EditorSidebarProps) {
                     icon={<List className="h-4 w-4"/>}
                     title="Form Fields"
                 >
-                    <FormFieldsSection onAddPlaceholder={onAddPlaceholder}/>
+                    <FormFieldsSection onAddPlaceholder={onAddPlaceholder} onAddImageField={onAddImageField}/>
                 </SidebarCard>
             </div>
 

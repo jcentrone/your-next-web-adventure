@@ -1,14 +1,39 @@
 import {Button} from "@/components/ui/button.tsx";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion.tsx";
-import {contactFields, inspectorFields, organizationFields, reportFields} from "@/constants/coverPageFields.ts";
+import {contactFields, inspectorFields, organizationFields, reportFields, imageFields} from "@/constants/coverPageFields.ts";
 
 export function FormFieldsSection({
                                       onAddPlaceholder,
+                                      onAddImageField,
                                   }: {
     onAddPlaceholder: (label: string, token: string) => void;
+    onAddImageField: (token: string) => void;
 }) {
     return (
         <Accordion type="single" collapsible defaultValue="organization" className="w-full">
+            <AccordionItem value="images">
+                <AccordionTrigger>Image Fields</AccordionTrigger>
+                <AccordionContent className="data-[state=open]:animate-none data-[state=open]:h-auto">
+                    <div className="flex flex-col space-y-2">
+                        {imageFields.map((field) => (
+                            <Button
+                                key={field.token}
+                                variant="outline"
+                                className="w-full justify-start"
+                                draggable
+                                onDragStart={(e) => {
+                                    const payload = JSON.stringify({ type: "image-field", data: { token: field.token } });
+                                    e.dataTransfer?.setData("application/x-cover-element", payload);
+                                    e.dataTransfer!.effectAllowed = "copy";
+                                }}
+                                onClick={() => onAddImageField(field.token)}
+                            >
+                                {field.label}
+                            </Button>
+                        ))}
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
             <AccordionItem value="organization">
                 <AccordionTrigger>Organization Details</AccordionTrigger>
                 <AccordionContent className="data-[state=open]:animate-none data-[state=open]:h-auto">
