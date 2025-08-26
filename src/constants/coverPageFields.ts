@@ -22,3 +22,7 @@ export const contactFields: MergeField[] = [
   { label: "Client Email", token: "{{contact.email}}" },
   { label: "Client Phone", token: "{{contact.phone}}" },
 ];
+
+export const imageFields: MergeField[] = [
+  { label: "Cover Image", token: "{{report.cover_image}}" },
+];

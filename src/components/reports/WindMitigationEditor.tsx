@@ -5,6 +5,10 @@ import {WindMitigationData, WindMitigationDataSchema, WindMitigationReport} from
 import {Form} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
 import {toast} from "@/hooks/use-toast";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {uploadFindingFiles, getSignedUrlFromSupabaseUrl, isSupabaseUrl} from "@/integrations/supabase/storage";
+import {useAuth} from "@/contexts/AuthContext";
 import {WIND_MITIGATION_QUESTIONS} from "@/constants/windMitigationQuestions";
 import {BuildingCodeQuestion} from "./windmitigation/BuildingCodeQuestion";
 import {RoofCoveringQuestion} from "./windmitigation/RoofCoveringQuestion";
@@ -21,6 +25,29 @@ interface WindMitigationEditorProps {
 const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUpdate}) => {
     console.log("WindMitigationEditor render", {reportId: report.id, reportData: report.reportData});
 
+    const {user} = useAuth();
+    const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>("");
+
+    React.useEffect(() => {
+        if (!report.coverImage) return;
+        if (!user || !isSupabaseUrl(report.coverImage)) {
+            setCoverPreviewUrl(report.coverImage);
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            try {
+                const signed = await getSignedUrlFromSupabaseUrl(report.coverImage);
+                if (!cancelled) setCoverPreviewUrl(signed);
+            } catch (e) {
+                console.error("Failed to sign cover image", e);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [user, report.coverImage]);
+
     const form = useForm<WindMitigationData>({
         resolver: zodResolver(WindMitigationDataSchema),
         defaultValues: report.reportData || {
@@ -35,6 +62,39 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
     });
 
     const {watch, control} = form;
+
+    const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (user) {
+            try {
+                const uploaded = await uploadFindingFiles({
+                    userId: user.id,
+                    reportId: report.id,
+                    findingId: "cover",
+                    files: [file],
+                });
+                if (uploaded[0]) {
+                    const updated = {...report, coverImage: uploaded[0].url};
+                    onUpdate(updated);
+                    const signed = await getSignedUrlFromSupabaseUrl(uploaded[0].url);
+                    setCoverPreviewUrl(signed);
+                    await dbUpdateReport(updated);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        } else {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const url = reader.result as string;
+                const updated = {...report, coverImage: url};
+                onUpdate(updated);
+                setCoverPreviewUrl(url);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
 
     const handleSave = async () => {
@@ -82,6 +142,14 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
                         Save Report
                     </Button>
                 </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label className="text-sm font-medium">Cover Image</Label>
+                {coverPreviewUrl && (
+                    <img src={coverPreviewUrl} alt="Cover" className="h-40 w-auto rounded border" />
+                )}
+                <Input type="file" accept="image/*" onChange={handleCoverImageUpload} />
             </div>
 
             <Form {...form}>

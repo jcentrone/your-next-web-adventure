@@ -1,4 +1,4 @@
-import { Canvas as FabricCanvas } from "fabric";
+import { Canvas as FabricCanvas, Image as FabricImage } from "fabric";
 import { ColorPalette } from "@/constants/colorPalettes";
 import {
     addRect as fabricAddRect,
@@ -82,6 +82,18 @@ export function handleCoverElementDrop(
                 console.log('Image added', { url: data.url, x, y });
                 pushHistory?.();
             }
+            break;
+        case "image-field":
+            const transparentPng =
+                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgD1Q9FAAAAAASUVORK5CYII=";
+            FabricImage.fromURL(transparentPng, (img) => {
+                img.set({ left: x, top: y, mergeField: "report.coverImage" } as any);
+                img.scaleToWidth(200);
+                img.scaleToHeight(200);
+                canvas.add(img);
+                canvas.setActiveObject(img);
+                pushHistory?.();
+            });
             break;
         case "icon":
             if (data?.name) handlers.addIcon?.(data.name, x, y);

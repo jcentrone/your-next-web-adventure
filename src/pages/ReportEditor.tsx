@@ -522,6 +522,36 @@ const ReportEditor: React.FC = () => {
     toast({ title: "Report finalized. Use Preview to print/PDF." });
   };
 
+  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !report) return;
+    if (user) {
+      try {
+        const uploaded = await uploadFindingFiles({
+          userId: user.id,
+          reportId: report.id,
+          findingId: "cover",
+          files: [file],
+        });
+        if (uploaded[0]) {
+          setReport((prev) => (prev ? { ...prev, coverImage: uploaded[0].url } : prev));
+          const signed = await getSignedUrlFromSupabaseUrl(uploaded[0].url);
+          setCoverPreviewUrl(signed);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const url = reader.result as string;
+        setReport((prev) => (prev ? { ...prev, coverImage: url } : prev));
+        setCoverPreviewUrl(url);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const excludedKeys = ["finalize", "reportDetails", "summary"];
 
   if (report && report.reportType === "wind_mitigation") {
@@ -958,6 +988,13 @@ const ReportEditor: React.FC = () => {
           {showDetails && (
             <section className="rounded-md border p-4 space-y-4">
               <h2 className="text-lg font-medium">Report Details</h2>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Cover Image</Label>
+                {coverPreviewUrl && (
+                  <img src={coverPreviewUrl} alt="Cover" className="h-40 w-auto rounded border" />
+                )}
+                <Input type="file" accept="image/*" onChange={handleCoverImageUpload} />
+              </div>
               {guidance['report_details']?.infoFields?.length > 0 ? (
                 guidance['report_details'].infoFields.map((field, idx) => {
                   const fieldName = typeof field === "string" ? field : field.name;

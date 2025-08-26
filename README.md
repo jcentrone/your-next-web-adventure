@@ -87,6 +87,10 @@ The app supports fully customizable cover pages for reports.
 After a cover page is assigned, generate a report PDF from the report preview. The
 selected cover page will appear at the beginning of the PDF.
 
+### Cover image merge field
+
+Reports now support a dedicated cover image. Upload an image in the report editor and it will be stored on the report as `coverImage`. In the cover page editor, drag the **Cover Image** field into the canvas to place a resizable placeholder. During preview and PDF generation this placeholder is replaced with the report's cover image.
+
 ## Image Proxy
 
 When adding external images, the app routes the request through `/api/image-proxy`.
