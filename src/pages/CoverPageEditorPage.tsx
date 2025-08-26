@@ -1,7 +1,7 @@
 import {type ChangeEvent, useEffect, useRef, useState} from "react";
 import {useForm, useWatch} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
-import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage, Textbox, Rect} from "fabric";
+import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage} from "fabric";
 import {
     addArrow as fabricAddArrow,
     addBidirectionalArrow as fabricAddBidirectionalArrow,
@@ -15,7 +15,6 @@ import {
     addTriangle as fabricAddTriangle,
     enableScalingHandles,
 } from "@/lib/fabricShapes";
-import {layoutTable} from "@/lib/fabricTables";
 import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
 import {Button} from "@/components/ui/button";
 import {EditorToolbar} from "@/components/cover-pages/EditorToolbar";
@@ -25,7 +24,6 @@ import {CanvasWorkspace} from "@/components/cover-pages/CanvasWorkspace";
 import useCoverPages from "@/hooks/useCoverPages";
 import useImageLibrary from "@/hooks/useImageLibrary";
 import {useCanvasKeyboardShortcuts} from "@/hooks/useCanvasKeyboardShortcuts";
-import {useTableInteractions} from "@/hooks/useTableInteractions";
 import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
@@ -124,20 +122,6 @@ export default function CoverPageEditorPage() {
             updateLayers();
             pushHistory();
         });
-        c.on("mouse:dblclick", (e: any) => {
-            const target = e.target;
-            if (!target) return;
-            let cell: Group | null = null;
-            let table: Group | null = null;
-            if (target.name === "Cell") {
-                cell = target as Group;
-                table = cell.group as Group;
-            } else if (target.group && target.group.name === "Cell") {
-                cell = target.group as Group;
-                table = cell.group as Group;
-            }
-            if (cell && table) startCellEdit(cell, table);
-        });
 
         // Initial layers
         updateLayers();
@@ -154,7 +138,6 @@ export default function CoverPageEditorPage() {
             c.off("object:added", updateLayers);
             c.off("object:removed", updateLayers);
             c.off("object:modified");
-            c.off("mouse:dblclick");
             c.dispose();
         };
     }, []);
@@ -580,39 +563,6 @@ export default function CoverPageEditorPage() {
 
     const handleDropElement = ({type, data, x, y}: { type: string; data: any; x: number; y: number }) => {
         if (!canvas) return;
-        if (type === "image" && data?.url) {
-            const tables = canvas
-                .getObjects()
-                .filter((o) => (o as any).data?.type === "table") as Group[];
-            for (const table of tables) {
-                const width = (table.width || 0) * (table.scaleX || 1);
-                const height = (table.height || 0) * (table.scaleY || 1);
-                const left = table.left || 0;
-                const top = table.top || 0;
-                if (x >= left && x <= left + width && y >= top && y <= top + height) {
-                    const tblData = (table as any).data;
-                    const relX = (x - left) / (table.scaleX || 1);
-                    const relY = (y - top) / (table.scaleY || 1);
-                    const findIndex = (arr: number[], v: number) => {
-                        let sum = 0;
-                        for (let i = 0; i < arr.length; i++) {
-                            sum += arr[i];
-                            if (v < sum) return i;
-                        }
-                        return arr.length - 1;
-                    };
-                    const col = findIndex(tblData.colWidths, relX);
-                    const row = findIndex(tblData.rowHeights, relY);
-                    const cell = table
-                        .getObjects()
-                        .find((o) => (o as any).data?.row === row && (o as any).data?.col === col) as Group | undefined;
-                    if (cell) {
-                        void addImageToCell(table, cell, data.url);
-                        return;
-                    }
-                }
-            }
-        }
         handleCoverElementDrop(
             canvas,
             palette,
@@ -709,81 +659,6 @@ export default function CoverPageEditorPage() {
         setLayers([...canvas.getObjects()]);
         pushHistory();
     };
-    const startCellEdit = (cell: Group, table: Group) => {
-        if (!canvas) return;
-        const tableData = (table as any).data;
-        const cellData = (cell as any).data;
-        const existing = cell
-            .getObjects()
-            .find((o) => o.type === "textbox") as Textbox | undefined;
-        const scaleX = table.scaleX || 1;
-        const scaleY = table.scaleY || 1;
-        const pad = tableData.cellPaddings[cellData.row][cellData.col];
-        const cellWidth = tableData.colWidths[cellData.col];
-        const cellHeight = tableData.rowHeights[cellData.row];
-        const left = (table.left || 0) + (cell.left || 0) * scaleX + pad.x * scaleX;
-        const top = (table.top || 0) + (cell.top || 0) * scaleY + pad.y * scaleY;
-        const width = cellWidth * scaleX - 2 * pad.x * scaleX;
-        const height = cellHeight * scaleY - 2 * pad.y * scaleY;
-        const overlay = new Textbox(existing?.text || "", {
-            left,
-            top,
-            width,
-            height,
-            fontSize: 14 * scaleY,
-            fill: "#000",
-        });
-        overlay.on("editing:exited", () => {
-            const text = overlay.text || "";
-            if (existing) existing.set({ text });
-            if (cellData) cellData.content = text;
-            canvas.remove(overlay);
-            canvas.requestRenderAll();
-            pushHistory();
-        });
-        canvas.add(overlay);
-        canvas.setActiveObject(overlay);
-        overlay.enterEditing();
-    };
-
-    const addImageToCell = async (table: Group, cell: Group, url: string) => {
-        if (!canvas) return;
-        const tableData = (table as any).data;
-        const cellData = (cell as any).data;
-        const pad = tableData.cellPaddings[cellData.row][cellData.col];
-        const innerW = tableData.colWidths[cellData.col] - 2 * pad.x;
-        const innerH = tableData.rowHeights[cellData.row] - 2 * pad.y;
-        const sameOrigin = url.startsWith(window.location.origin);
-        const finalUrl = sameOrigin ? url : `${IMAGE_PROXY_URL}?url=${encodeURIComponent(url)}`;
-        const img = await FabricImage.fromURL(
-            finalUrl,
-            sameOrigin ? undefined : { crossOrigin: "anonymous" },
-        );
-        const scale = Math.min(
-            innerW / (img.width || innerW),
-            innerH / (img.height || innerH),
-        );
-        img.set({
-            left: pad.x,
-            top: pad.y,
-            scaleX: scale,
-            scaleY: scale,
-            selectable: false,
-            evented: false,
-            clipPath: new Rect({
-                left: 0,
-                top: 0,
-                width: innerW,
-                height: innerH,
-                originX: "left",
-                originY: "top",
-            }),
-        });
-        cell.addWithUpdate(img);
-        if (cellData) cellData.imageUrl = url;
-        canvas.requestRenderAll();
-        pushHistory();
-    };
     const addIcon = (name: string) => handleAddIcon(name);
     const addClipart = (hex: string) => handleAddClipart(hex);
 
@@ -842,49 +717,8 @@ export default function CoverPageEditorPage() {
         if (!canvas || selectedObjects.length === 0) return;
 
         selectedObjects.forEach((obj) => {
-            if ((obj as any).data?.type === "table") {
-                const data = (obj as any).data as any;
-                switch (property) {
-                    case "cellPadX":
-                        data.cellPadX = value;
-                        data.cellPaddings.forEach((row: any[]) =>
-                            row.forEach((p) => (p.x = value))
-                        );
-                        layoutTable(obj as Group);
-                        break;
-                    case "cellPadY":
-                        data.cellPadY = value;
-                        data.cellPaddings.forEach((row: any[]) =>
-                            row.forEach((p) => (p.y = value))
-                        );
-                        layoutTable(obj as Group);
-                        break;
-                    case "borderColor":
-                        data.borderColor = value;
-                        layoutTable(obj as Group);
-                        break;
-                    case "backgroundColor":
-                        data.cellBgColors.forEach((row: string[], r: number) =>
-                            row.forEach((_, c: number) => (data.cellBgColors[r][c] = value))
-                        );
-                        layoutTable(obj as Group);
-                        break;
-                    case "alignment":
-                        obj.getObjects().forEach((o: any) => {
-                            const tb = o
-                                .getObjects?.()
-                                .find((i: any) => i.type === "textbox");
-                            if (tb) tb.set({textAlign: value});
-                        });
-                        break;
-                    default:
-                        (obj as any).set(property, value);
-                        obj.setCoords();
-                }
-            } else {
-                obj.set(property, value);
-                obj.setCoords();
-            }
+            obj.set(property as any, value);
+            obj.setCoords();
         });
 
         canvas.renderAll();
@@ -1014,7 +848,6 @@ export default function CoverPageEditorPage() {
 
     const selectedObject = selectedObjects[0] || null;
 
-    useTableInteractions({canvas});
 
     useCanvasKeyboardShortcuts({
         canvas,
