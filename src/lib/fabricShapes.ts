@@ -10,8 +10,11 @@ import {
     Rect,
     Textbox,
     util as FabricUtil,
-    FabricObject
+    FabricObject,
 } from "fabric";
+import lucidePkg from "lucide/package.json" assert { type: "json" };
+
+const LUCIDE_VERSION = (lucidePkg as { version: string }).version;
 
 export type Palette = { colors: string[] };
 
@@ -220,17 +223,31 @@ export async function addImageFromUrl(canvas: FabricCanvas, url: string, x = 150
 }
 
 /** Slim icon loader (runtime fetch) to avoid bundling all lucide icons */
-export async function addLucideIconByName(canvas: FabricCanvas, name: string, stroke = "#000", x = 100, y = 100) {
+export async function addLucideIconByName(
+    canvas: FabricCanvas,
+    name: string,
+    stroke = "#000",
+    x = 100,
+    y = 100,
+) {
     try {
-        const iconName = name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-        const res = await fetch(`https://unpkg.com/lucide-static@latest/icons/${iconName}.svg`);
-        if (!res.ok) return;
+        const iconName = name
+            .replace(/([A-Z])/g, "-$1")
+            .toLowerCase()
+            .replace(/^-/, "");
+        const res = await fetch(
+            `https://unpkg.com/lucide-static@${LUCIDE_VERSION}/icons/${iconName}.svg`,
+        );
+        if (!res.ok) {
+            console.warn(`Failed to fetch icon '${iconName}': ${res.status}`);
+            return;
+        }
         const svg = await res.text();
         const { objects, options } = await loadSVGFromString(svg);
         const obj = Array.isArray(objects)
             ? FabricUtil.groupSVGElements(objects, options)
             : (objects as FabricObject);
-        obj.set({left: x, top: y, visible: true, name});
+        obj.set({ left: x, top: y, visible: true, name });
         if (obj instanceof Group) {
             obj.getObjects().forEach((child) => {
                 (child as any).set({ stroke, fill: "none" });
@@ -242,8 +259,8 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
         canvas.add(obj);
         canvas.setActiveObject(obj);
         canvas.requestRenderAll();
-    // eslint-disable-next-line no-empty
-    } catch {
+    } catch (err) {
+        console.warn(`Error loading icon '${name}':`, err);
     }
 }
 

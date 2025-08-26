@@ -1,4 +1,4 @@
-import { Canvas as FabricCanvas, Image as FabricImage } from "fabric";
+import { Canvas as FabricCanvas, Image as FabricImage, Text as FabricText } from "fabric";
 import { ColorPalette } from "@/constants/colorPalettes";
 import {
     addRect as fabricAddRect,
@@ -86,11 +86,22 @@ export function handleCoverElementDrop(
         case "image-field": {
             const transparentPng =
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgD1Q9FAAAAAASUVORK5CYII=";
-            const mergeField = data?.token
-                ? data.token
-                      .replace(/[{}]/g, "")
-                      .replace(/_([a-z])/g, (_, c) => c.toUpperCase())
-                : "report.coverImage";
+            const mapTokenToMergeField = (token?: string) => {
+                switch (token) {
+                    case "{{cover_image}}":
+                        return "report.coverImage";
+                    case "{{organizational_logo}}":
+                        return "organization.logoUrl";
+                    default:
+                        return token
+                            ? token
+                                  .replace(/[{}]/g, "")
+                                  .replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+                            : "report.coverImage";
+                }
+            };
+            const mergeField = mapTokenToMergeField(data?.token);
+            const displayToken = data?.token ?? "";
             FabricImage.fromURL(transparentPng, (img) => {
                 img.set({
                     left: x,
@@ -103,7 +114,30 @@ export function handleCoverElementDrop(
                 } as unknown as Partial<FabricImage> & { mergeField: string });
                 img.scaleToWidth(200);
                 img.scaleToHeight(200);
+
+                const text = new FabricText(displayToken, {
+                    fontSize: 16,
+                    originX: "center",
+                    originY: "center",
+                    selectable: false,
+                    evented: false,
+                    excludeFromExport: true,
+                });
+                const center = img.getCenterPoint();
+                text.set({ left: center.x, top: center.y });
+
+                const updateText = () => {
+                    const c = img.getCenterPoint();
+                    text.set({ left: c.x, top: c.y });
+                    text.setCoords();
+                };
+                img.on("moving", updateText);
+                img.on("scaling", updateText);
+                img.on("rotating", updateText);
+                img.on("removed", () => canvas.remove(text));
+
                 canvas.add(img);
+                canvas.add(text);
                 canvas.setActiveObject(img);
                 canvas.requestRenderAll();
                 pushHistory?.();

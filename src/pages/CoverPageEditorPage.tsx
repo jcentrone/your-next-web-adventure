@@ -675,6 +675,24 @@ export default function CoverPageEditorPage() {
         handleAddText(`${label}: ${token}`);
     };
 
+    const handleAddImagePlaceholder = (token: string) => {
+        if (!canvas) return;
+        const x = canvas.getWidth() / 2;
+        const y = canvas.getHeight() / 2;
+        handleCoverElementDrop(
+            canvas,
+            palette,
+            { type: "image-field", data: { token }, x, y },
+            {
+                addImage: (url, px, py) => {
+                    void handleAddImage(url, px, py);
+                },
+                addIcon: handleAddIcon,
+            },
+            pushHistory,
+        );
+    };
+
 
     const applyPalette = (p: ColorPalette) => {
         setPalette(p);
@@ -967,6 +985,7 @@ export default function CoverPageEditorPage() {
                             presetBgColors={PRESET_BG_COLORS}
                             updateBgColor={updateBgColor}
                             onAddPlaceholder={handleAddPlaceholder}
+                            onAddImagePlaceholder={handleAddImagePlaceholder}
                             onShowShortcuts={() => setShortcutsOpen(true)}
                         />
                     </div>
