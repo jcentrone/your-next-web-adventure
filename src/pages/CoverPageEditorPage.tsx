@@ -717,6 +717,11 @@ export default function CoverPageEditorPage() {
         if (!canvas || selectedObjects.length === 0) return;
 
         selectedObjects.forEach((obj) => {
+            if (obj instanceof Group) {
+                obj.getObjects().forEach((child) => {
+                    (child as any).set(property, value);
+                });
+            }
             obj.set(property as any, value);
             obj.setCoords();
         });

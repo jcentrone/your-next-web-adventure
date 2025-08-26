@@ -230,8 +230,14 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
         const obj = Array.isArray(objects)
             ? FabricUtil.groupSVGElements(objects, options)
             : (objects as FabricObject);
-
-        obj.set({left: x, top: y, stroke, fill: "none", visible: true, name});
+        obj.set({left: x, top: y, visible: true, name});
+        if (obj instanceof Group) {
+            obj.getObjects().forEach((child) => {
+                (child as any).set({ stroke, fill: "none" });
+            });
+        } else {
+            (obj as any).set({ stroke, fill: "none" });
+        }
         enableScalingHandles(obj);
         canvas.add(obj);
         canvas.setActiveObject(obj);
