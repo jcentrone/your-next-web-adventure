@@ -195,8 +195,8 @@ export function GraphicsSection({
                                 .split("-")
                                 .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
                                 .join("");
-                            const iconRecord = LucideIcons as Record<string, ComponentType<{ className?: string }>>;
-                            const IconComp = iconRecord[pascal];
+                            const iconRecord = LucideIcons as any;
+                            const IconComp = iconRecord[pascal] as ComponentType<{ className?: string }>;
                             if (!IconComp) return null;
                             return (
                                 <button

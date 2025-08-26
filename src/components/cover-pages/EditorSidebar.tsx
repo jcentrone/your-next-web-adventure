@@ -47,6 +47,8 @@ export interface EditorSidebarProps {
     addPolygonShape: () => void;
     addArrow: () => void;
     addBidirectionalArrow: () => void;
+    addFreeformPath?: () => void;
+    addBezierCurve?: () => void;
     addIcon: (name: string) => void;
     addClipart: (hex: string) => void;
 
@@ -73,7 +75,7 @@ export function EditorSidebar(props: EditorSidebarProps) {
         onSettingsSubmit, register, reportTypes, reportTypeOptions, toggleReportType,
         addText,
         images, onImageUpload, onDeleteImage, onAddImageFromUrl,
-        addRect, addCircle, addStar, addTriangle, addPolygonShape, addArrow, addBidirectionalArrow, addIcon, addClipart,
+        addRect, addCircle, addStar, addTriangle, addPolygonShape, addArrow, addBidirectionalArrow, addFreeformPath, addBezierCurve, addIcon, addClipart,
         templateOptions, palette, onApplyPalette,
         bgColor, presetBgColors, updateBgColor,
         onAddPlaceholder,
@@ -143,6 +145,8 @@ export function EditorSidebar(props: EditorSidebarProps) {
                         addPolygonShape={addPolygonShape}
                         addArrow={addArrow}
                         addBidirectionalArrow={addBidirectionalArrow}
+                        addFreeformPath={props.addFreeformPath || (() => {})}
+                        addBezierCurve={props.addBezierCurve || (() => {})}
                         addIcon={addIcon}
                         addClipart={addClipart}
                     />

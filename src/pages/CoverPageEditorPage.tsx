@@ -13,6 +13,8 @@ import {
     addStar as fabricAddStar,
     addText as fabricAddText,
     addTriangle as fabricAddTriangle,
+    addFreeformPath as fabricAddFreeformPath,
+    addBezierCurve as fabricAddBezierCurve,
     enableScalingHandles,
 } from "@/lib/fabricShapes";
 import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
@@ -130,7 +132,6 @@ export default function CoverPageEditorPage() {
         setCanvas(c);
 
         // Event listeners
-        c.subTargetCheck = true;
         const updateSelection = () => setSelectedObjects([...c.getActiveObjects()]);
         const clearSelection = () => setSelectedObjects([]);
         const updateLayers = () => setLayers(getBaseObjects(c));
@@ -148,7 +149,7 @@ export default function CoverPageEditorPage() {
         updateLayers();
 
         // Initial history
-        const initialJson = JSON.stringify(c.toJSON(CUSTOM_PROPS));
+        const initialJson = JSON.stringify(c.toJSON());
         setHistory([initialJson]);
         setHistoryIndex(0);
 
@@ -318,14 +319,14 @@ export default function CoverPageEditorPage() {
                 (obj as any)._overlay = text;
                 (text as any)._overlayParent = obj;
                 c.add(text);
-                text.moveTo(c.getObjects().indexOf(obj) + 1);
+                c.bringObjectToFront(text);
             }
         });
     };
 
     const pushHistory = () => {
         if (!canvas) return;
-        const json = JSON.stringify(canvas.toJSON(CUSTOM_PROPS));
+        const json = JSON.stringify(canvas.toJSON());
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push(json);
         setHistory(newHistory);
@@ -791,6 +792,20 @@ export default function CoverPageEditorPage() {
         setLayers(getBaseObjects(canvas));
         pushHistory();
     };
+
+    const addFreeformPath = () => {
+        if (!canvas) return;
+        fabricAddFreeformPath(canvas, palette, pushHistory);
+        setLayers(getBaseObjects(canvas));
+    };
+
+    const addBezierCurve = () => {
+        if (!canvas) return;
+        fabricAddBezierCurve(canvas, palette);
+        setLayers(getBaseObjects(canvas));
+        pushHistory();
+    };
+
     const addIcon = (name: string) => handleAddIcon(name);
     const addClipart = (hex: string) => handleAddClipart(hex);
 
@@ -898,9 +913,9 @@ export default function CoverPageEditorPage() {
         updated.splice(to, 0, moved);
         let idx = 0;
         updated.forEach((layer) => {
-            canvas.moveTo(layer, idx++);
+            canvas.moveObjectTo(layer, idx++);
             if ((layer as any)._overlay) {
-                canvas.moveTo((layer as any)._overlay, idx++);
+                canvas.moveObjectTo((layer as any)._overlay, idx++);
             }
         });
         setLayers(updated);
@@ -914,7 +929,7 @@ export default function CoverPageEditorPage() {
         selectedObjects.forEach((obj) => {
             canvas.bringObjectForward(obj);
             if ((obj as any)._overlay) {
-                canvas.moveTo(
+                canvas.moveObjectTo(
                     (obj as any)._overlay,
                     canvas.getObjects().indexOf(obj) + 1,
                 );
@@ -930,7 +945,7 @@ export default function CoverPageEditorPage() {
         selectedObjects.forEach((obj) => {
             canvas.sendObjectBackwards(obj);
             if ((obj as any)._overlay) {
-                canvas.moveTo(
+                canvas.moveObjectTo(
                     (obj as any)._overlay,
                     canvas.getObjects().indexOf(obj) + 1,
                 );
@@ -946,7 +961,7 @@ export default function CoverPageEditorPage() {
         selectedObjects.forEach((obj) => {
             canvas.bringObjectToFront(obj);
             if ((obj as any)._overlay) {
-                canvas.moveTo(
+                canvas.moveObjectTo(
                     (obj as any)._overlay,
                     canvas.getObjects().indexOf(obj) + 1,
                 );
@@ -962,7 +977,7 @@ export default function CoverPageEditorPage() {
         selectedObjects.forEach((obj) => {
             canvas.sendObjectToBack(obj);
             if ((obj as any)._overlay) {
-                canvas.moveTo(
+                canvas.moveObjectTo(
                     (obj as any)._overlay,
                     canvas.getObjects().indexOf(obj) + 1,
                 );
@@ -1007,7 +1022,7 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
 
         try {
-            const designJson = canvas.toJSON(CUSTOM_PROPS);
+            const designJson = canvas.toJSON();
 
             if (id) {
                 await updateCoverPage({
@@ -1153,6 +1168,8 @@ export default function CoverPageEditorPage() {
                             addPolygonShape={addPolygonShape}
                             addArrow={addArrow}
                             addBidirectionalArrow={addBidirectionalArrow}
+                            addFreeformPath={addFreeformPath}
+                            addBezierCurve={addBezierCurve}
                             addIcon={addIcon}
                             addClipart={addClipart}
                             templateOptions={Object.keys(TEMPLATES)}

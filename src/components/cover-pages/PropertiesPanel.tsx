@@ -447,7 +447,7 @@ export function PropertiesPanel({
                     } ${index + 1}`;
                     const label = (layer as any).mergeField
                       ? (layer as any).displayToken ?? "Merge Field"
-                      : layer.name || defaultLabel;
+                      : (layer as any).name || defaultLabel;
                     return (
                     <div
                       key={index}

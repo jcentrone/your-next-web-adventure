@@ -13,10 +13,8 @@ import {
     util as FabricUtil,
     FabricObject,
 } from "fabric";
-import lucidePkg from "lucide/package.json" assert { type: "json" };
 
-const LUCIDE_VERSION = (lucidePkg as { version: string }).version;
-import { version as LUCIDE_VERSION } from "lucide/package.json";
+const LUCIDE_VERSION = "0.462.0";
 
 export type Palette = { colors: string[] };
 
@@ -42,8 +40,8 @@ export function addRect(canvas: FabricCanvas, palette: Palette, x = 100, y = 100
         left: x, top: y, width: 100, height: 100,
         fill: palette.colors[0], stroke: palette.colors[1] || palette.colors[0],
         visible: true,
-        name: "Rectangle"
     });
+    (rect as any).name = "Rectangle";
     enableScalingHandles(rect);
     canvas.add(rect);
     canvas.setActiveObject(rect);
@@ -57,8 +55,8 @@ export function addCircle(canvas: FabricCanvas, palette: Palette, x = 100, y = 1
         fill: palette.colors[0],
         stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2,
         visible: true,
-        name: "Circle"
     });
+    (circle as any).name = "Circle";
     enableScalingHandles(circle);
     canvas.add(circle);
     canvas.setActiveObject(circle);
@@ -78,8 +76,8 @@ export function addStar(canvas: FabricCanvas, palette: Palette, x = 100, y = 100
         left: x, top: y, fill: palette.colors[0],
         stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2,
         visible: true,
-        name: "Star"
     });
+    (star as any).name = "Star";
     enableScalingHandles(star);
     canvas.add(star);
     canvas.setActiveObject(star);
@@ -90,8 +88,9 @@ export function addStar(canvas: FabricCanvas, palette: Palette, x = 100, y = 100
 export function addTriangle(canvas: FabricCanvas, palette: Palette, x = 100, y = 100) {
     const tri = new Polygon(
         [{x: 50, y: 0}, {x: 100, y: 100}, {x: 0, y: 100}],
-        {left: x, top: y, fill: palette.colors[0], stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2, visible: true, name: "Triangle"}
+        {left: x, top: y, fill: palette.colors[0], stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2, visible: true}
     );
+    (tri as any).name = "Triangle";
     enableScalingHandles(tri);
     canvas.add(tri);
     canvas.setActiveObject(tri);
@@ -108,8 +107,8 @@ export function addPolygon(canvas: FabricCanvas, palette: Palette, sides = 5, ra
         left: x, top: y, fill: palette.colors[0],
         stroke: palette.colors[1] || palette.colors[0], strokeWidth: 2,
         visible: true,
-        name: "Polygon"
     });
+    (poly as any).name = "Polygon";
     enableScalingHandles(poly);
     canvas.add(poly);
     canvas.setActiveObject(poly);
@@ -159,7 +158,6 @@ export function addFreeformPath(
     const brush = canvas.freeDrawingBrush;
     if (brush) {
         brush.color = palette.colors[1] || palette.colors[0];
-        // @ts-expect-error brush type may not define width
         brush.width = 2;
     }
 
@@ -170,8 +168,8 @@ export function addFreeformPath(
             stroke: palette.colors[1] || palette.colors[0],
             strokeWidth: 2,
             visible: true,
-            name: "Freeform Path",
         });
+        (path as any).name = "Freeform Path";
         enableScalingHandles(path);
         canvas.isDrawingMode = false;
         canvas.setActiveObject(path);
@@ -196,8 +194,8 @@ export function addBezierCurve(
         strokeWidth: 2,
         fill: "transparent",
         visible: true,
-        name: "Bezier Curve",
     });
+    (path as any).name = "Bezier Curve";
     enableScalingHandles(path);
     canvas.add(path);
     canvas.setActiveObject(path);
@@ -206,7 +204,8 @@ export function addBezierCurve(
 }
 
 export function addText(canvas: FabricCanvas, palette: Palette, text = "Text", x = 120, y = 120) {
-    const tb = new Textbox(text, {left: x, top: y, fontSize: 24, fill: palette.colors[3] || palette.colors[0], visible: true, name: text});
+    const tb = new Textbox(text, {left: x, top: y, fontSize: 24, fill: palette.colors[3] || palette.colors[0], visible: true});
+    (tb as any).name = text;
     enableScalingHandles(tb);
     canvas.add(tb);
     canvas.setActiveObject(tb);
@@ -272,7 +271,8 @@ export function addMergeField(canvas: FabricCanvas, token: string, x = 120, y = 
 
 export async function addImageFromUrl(canvas: FabricCanvas, url: string, x = 150, y = 150) {
     const img = await FabricImage.fromURL(url);
-    img.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true, name: "Image"});
+    img.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
+    (img as any).name = "Image";
     enableScalingHandles(img);
     canvas.add(img);
     canvas.setActiveObject(img);
@@ -305,7 +305,8 @@ export async function addLucideIconByName(
         const obj = Array.isArray(objects)
             ? FabricUtil.groupSVGElements(objects, options)
             : (objects as FabricObject);
-        obj.set({ left: x, top: y, visible: true, name });
+        obj.set({ left: x, top: y, visible: true });
+        (obj as any).name = name;
         if (obj instanceof Group) {
             obj.getObjects().forEach((child) => {
                 (child as any).set({ stroke, fill: "none" });
@@ -342,7 +343,8 @@ export async function addOpenmojiClipart(
             ? FabricUtil.groupSVGElements(objects, options)
             : (objects as FabricObject);
 
-        obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true, name: "Clipart"});
+        obj.set({left: x, top: y, scaleX: 0.5, scaleY: 0.5, visible: true});
+        (obj as any).name = "Clipart";
         obj.set({stroke});
         enableScalingHandles(obj);
         (obj as FabricObject & { _objects?: FabricObject[] })._objects?.forEach((o) =>
