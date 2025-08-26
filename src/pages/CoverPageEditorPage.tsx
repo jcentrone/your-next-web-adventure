@@ -257,9 +257,30 @@ export default function CoverPageEditorPage() {
     };
 
     const restoreMergeFieldOverlays = (c: FabricCanvas) => {
+        const mapMergeFieldToToken = (mf?: string) => {
+            switch (mf) {
+                case "report.coverImage":
+                    return "{{cover_image}}";
+                case "organization.logoUrl":
+                    return "{{organizational_logo}}";
+                default:
+                    return mf
+                        ? `{{${mf
+                              .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+                              .toLowerCase()}}}`
+                        : "";
+            }
+        };
+
         c.getObjects().forEach((obj) => {
-            const token = (obj as any).displayToken;
-            const mergeField = (obj as any).mergeField;
+            const mergeField = (obj as any).mergeField as string | undefined;
+            let token = (obj as any).displayToken as string | undefined;
+
+            if (!token && mergeField) {
+                token = mapMergeFieldToToken(mergeField);
+                (obj as any).displayToken = token;
+            }
+
             if (mergeField && token) {
                 const text = new FabricText(token, {
                     fontSize: 16,
