@@ -15,6 +15,7 @@ import {
 import lucidePkg from "lucide/package.json" assert { type: "json" };
 
 const LUCIDE_VERSION = (lucidePkg as { version: string }).version;
+import { version as LUCIDE_VERSION } from "lucide/package.json";
 
 export type Palette = { colors: string[] };
 
@@ -261,6 +262,7 @@ export async function addLucideIconByName(
         canvas.requestRenderAll();
     } catch (err) {
         console.warn(`Error loading icon '${name}':`, err);
+
     }
 }
 

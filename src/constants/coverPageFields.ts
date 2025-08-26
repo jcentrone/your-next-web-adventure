@@ -31,3 +31,13 @@ export const reportFields: MergeField[] = [
   { label: "Weather Conditions", token: "{{report.weather_conditions}}" },
   { label: "Cover Image", token: "{{cover_image}}" },
 ];
+
+const IMAGE_FIELD_REGEX = /logo|image/i;
+export const IMAGE_FIELD_TOKENS = [
+  ...organizationFields,
+  ...inspectorFields,
+  ...contactFields,
+  ...reportFields,
+]
+  .filter((field) => IMAGE_FIELD_REGEX.test(field.label))
+  .map((field) => field.token);

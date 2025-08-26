@@ -1,7 +1,7 @@
 import {type ChangeEvent, useEffect, useRef, useState} from "react";
 import {useForm, useWatch} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
-import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage} from "fabric";
+import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage, Text as FabricText} from "fabric";
 import {
     addArrow as fabricAddArrow,
     addBidirectionalArrow as fabricAddBidirectionalArrow,
@@ -27,11 +27,24 @@ import {useCanvasKeyboardShortcuts} from "@/hooks/useCanvasKeyboardShortcuts";
 import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
-import {SUPABASE_URL} from "@/integrations/supabase/client";
+import {SUPABASE_URL, supabase} from "@/integrations/supabase/client";
 import {toast} from "sonner";
 
 const DEFAULT_PROXY = `${SUPABASE_URL}/functions/v1/image-proxy`;
 const IMAGE_PROXY_URL = import.meta.env.VITE_IMAGE_PROXY_URL ?? DEFAULT_PROXY;
+
+const CUSTOM_PROPS = [
+    "lockAspectRatio",
+    "storagePath",
+    "mergeField",
+    "displayToken",
+    "lockMovementX",
+    "lockMovementY",
+    "lockRotation",
+    "selectable",
+    "evented",
+    "name",
+];
 
 interface FormValues {
     name: string;
@@ -62,7 +75,6 @@ export default function CoverPageEditorPage() {
         createCoverPage,
         updateCoverPage,
         coverPages,
-        assignments,
         assignCoverPageToReportType,
         removeAssignmentFromReportType,
     } = useCoverPages();
@@ -79,6 +91,7 @@ export default function CoverPageEditorPage() {
     const reportTypes = useWatch({control: form.control, name: "reportTypes", defaultValue: []});
     const loaded = useRef(false);
     const originalReportTypes = useRef<string[]>([]);
+    const ready = !!canvas && coverPages.length > 0;
 
     useEffect(() => {
         form.register("reportTypes");
@@ -127,7 +140,7 @@ export default function CoverPageEditorPage() {
         updateLayers();
 
         // Initial history
-        const initialJson = JSON.stringify(c.toJSON(["lockAspectRatio"]));
+        const initialJson = JSON.stringify(c.toJSON(CUSTOM_PROPS));
         setHistory([initialJson]);
         setHistoryIndex(0);
 
@@ -142,10 +155,9 @@ export default function CoverPageEditorPage() {
         };
     }, []);
 
-    // Load existing cover page
-    // Load existing cover page
+    // Load existing cover page once data and canvas are ready
     useEffect(() => {
-        if (!canvas || !id || !coverPages.length) return;
+        if (!ready || !id || loaded.current) return;
 
         const sid = String(id);
         const cp = coverPages.find((c) => String(c.id) === sid);
@@ -168,15 +180,42 @@ export default function CoverPageEditorPage() {
             shouldValidate: false,
         });
 
-        if (!loaded.current && cp.design_json) {
-            canvas.loadFromJSON(cp.design_json as any, () => {
-                restoreLockState(canvas);
-                canvas.requestRenderAll();
-                setLayers([...canvas.getObjects()]);
-            });
-            loaded.current = true;
+        if (cp.design_json) {
+            const loadDesign = async () => {
+                const design =
+                    typeof cp.design_json === "string"
+                        ? JSON.parse(cp.design_json)
+                        : JSON.parse(JSON.stringify(cp.design_json));
+
+                const refreshUrls = async (obj: any): Promise<void> => {
+                    if (obj.storagePath) {
+                        const { data } = await supabase.storage
+                            .from("image-library")
+                            .createSignedUrl(obj.storagePath, 3600);
+                        if (data?.signedUrl) {
+                            obj.src = data.signedUrl;
+                        }
+                    }
+                    if (obj.objects) {
+                        await Promise.all(obj.objects.map((o: any) => refreshUrls(o)));
+                    }
+                };
+
+                if (design.objects) {
+                    await Promise.all(design.objects.map((o: any) => refreshUrls(o)));
+                }
+
+                canvas?.loadFromJSON(design as any, () => {
+                    restoreLockState(canvas!);
+                    restoreMergeFieldOverlays(canvas!);
+                    canvas?.requestRenderAll();
+                    setLayers([...canvas!.getObjects()]);
+                });
+            };
+            void loadDesign();
         }
-    }, [canvas, id, coverPages, assignments, form]);
+        loaded.current = true;
+    }, [ready, id, coverPages, form]);
 
 
     useEffect(() => {
@@ -206,12 +245,50 @@ export default function CoverPageEditorPage() {
         c.getObjects().forEach((obj) => {
             enableScalingHandles(obj);
             (obj as any).lockUniScaling = (obj as any).lockAspectRatio || false;
+            obj.set({
+                lockMovementX: (obj as any).lockMovementX ?? false,
+                lockMovementY: (obj as any).lockMovementY ?? false,
+                lockRotation: (obj as any).lockRotation ?? false,
+                selectable: obj.selectable ?? true,
+                evented: obj.evented ?? true,
+            });
+            obj.setCoords();
+        });
+    };
+
+    const restoreMergeFieldOverlays = (c: FabricCanvas) => {
+        c.getObjects().forEach((obj) => {
+            if (obj.type === "image" && (obj as any).mergeField) {
+                const img = obj as FabricImage & { mergeField: string; displayToken?: string };
+                const token = (img as any).displayToken ?? "";
+                const text = new FabricText(token, {
+                    fontSize: 16,
+                    originX: "center",
+                    originY: "center",
+                    selectable: false,
+                    evented: false,
+                    excludeFromExport: true,
+                });
+                const center = img.getCenterPoint();
+                text.set({ left: center.x, top: center.y });
+                const updateText = () => {
+                    const cpt = img.getCenterPoint();
+                    text.set({ left: cpt.x, top: cpt.y });
+                    text.setCoords();
+                };
+                img.on("moving", updateText);
+                img.on("scaling", updateText);
+                img.on("rotating", updateText);
+                img.on("removed", () => c.remove(text));
+                c.add(text);
+                text.moveTo(c.getObjects().indexOf(img) + 1);
+            }
         });
     };
 
     const pushHistory = () => {
         if (!canvas) return;
-        const json = JSON.stringify(canvas.toJSON(["lockAspectRatio"]));
+        const json = JSON.stringify(canvas.toJSON(CUSTOM_PROPS));
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push(json);
         setHistory(newHistory);
@@ -224,6 +301,7 @@ export default function CoverPageEditorPage() {
             setHistoryIndex(historyIndex - 1);
             canvas?.loadFromJSON(JSON.parse(history[historyIndex - 1]), () => {
                 restoreLockState(canvas);
+                restoreMergeFieldOverlays(canvas);
                 canvas.renderAll();
             });
         }
@@ -234,6 +312,7 @@ export default function CoverPageEditorPage() {
             setHistoryIndex(historyIndex + 1);
             canvas?.loadFromJSON(JSON.parse(history[historyIndex + 1]), () => {
                 restoreLockState(canvas);
+                restoreMergeFieldOverlays(canvas);
                 canvas.renderAll();
             });
         }
@@ -448,10 +527,15 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const handleAddImage = async (imageUrl: string, x?: number, y?: number) => {
+    const handleAddImage = async (
+        imageUrl: string,
+        x?: number,
+        y?: number,
+        path?: string,
+    ) => {
         if (!canvas) return;
 
-        console.log("handleAddImage called with:", {imageUrl, x, y});
+        console.log("handleAddImage called with:", {imageUrl, x, y, path});
 
         if (x === undefined || y === undefined) {
             const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
@@ -508,7 +592,8 @@ export default function CoverPageEditorPage() {
                 visible: true,
                 selectable: true,
                 evented: true,
-            });
+                storagePath: path,
+            } as any);
 
             console.log("Adding image to canvas with properties:", {
                 left: img.left,
@@ -535,9 +620,9 @@ export default function CoverPageEditorPage() {
 
     const handleUploadImage = async (file: File) => {
         try {
-            const {url} = await uploadImage(file);
+            const {url, path} = await uploadImage(file);
             if (url) {
-                await handleAddImage(url);
+                await handleAddImage(url, undefined, undefined, path);
                 toast.success("Image uploaded successfully");
             }
         } catch (error) {
@@ -561,15 +646,25 @@ export default function CoverPageEditorPage() {
         }
     };
 
-    const handleDropElement = ({type, data, x, y}: { type: string; data: any; x: number; y: number }) => {
+    const handleDropElement = ({
+        type,
+        data,
+        x,
+        y,
+    }: {
+        type: string;
+        data: any;
+        x: number;
+        y: number;
+    }) => {
         if (!canvas) return;
         handleCoverElementDrop(
             canvas,
             palette,
             {type, data, x, y},
             {
-                addImage: (url, px, py) => {
-                    void handleAddImage(url, px, py);
+                addImage: (url, px, py, path) => {
+                    void handleAddImage(url, px, py, path);
                 },
                 addIcon: handleAddIcon,
             },
@@ -830,7 +925,7 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
 
         try {
-            const designJson = canvas.toJSON(["lockAspectRatio"]);
+            const designJson = canvas.toJSON(CUSTOM_PROPS);
 
             if (id) {
                 await updateCoverPage({

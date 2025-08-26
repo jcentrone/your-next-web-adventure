@@ -16,13 +16,22 @@ import {
 
 interface DropPayload {
     type: string;
-    data: { url?: string; name?: string; hex?: string; label?: string; token?: string } | undefined;
+    data:
+        | {
+              url?: string;
+              name?: string;
+              path?: string;
+              hex?: string;
+              label?: string;
+              token?: string;
+          }
+        | undefined;
     x: number;
     y: number;
 }
 
 interface ExtraHandlers {
-    addImage?: (url: string, x: number, y: number) => void;
+    addImage?: (url: string, x: number, y: number, path?: string) => void;
     addIcon?: (name: string, x: number, y: number) => void;
 }
 
@@ -78,8 +87,8 @@ export function handleCoverElementDrop(
             break;
         case "image":
             if (data?.url) {
-                handlers.addImage?.(data.url, x, y);
-                console.log('Image added', { url: data.url, x, y });
+                handlers.addImage?.(data.url, x, y, data.path);
+                console.log('Image added', { url: data.url, path: data.path, x, y });
                 pushHistory?.();
             }
             break;
@@ -107,11 +116,12 @@ export function handleCoverElementDrop(
                     left: x,
                     top: y,
                     mergeField,
+                    displayToken,
                     stroke: "#888",
                     strokeWidth: 2,
                     strokeDashArray: [6, 4],
                     backgroundColor: "#f3f4f6",
-                } as unknown as Partial<FabricImage> & { mergeField: string });
+                } as unknown as Partial<FabricImage> & { mergeField: string; displayToken: string });
                 img.scaleToWidth(200);
                 img.scaleToHeight(200);
 

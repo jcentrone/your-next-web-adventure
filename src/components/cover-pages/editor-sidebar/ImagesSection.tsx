@@ -67,8 +67,8 @@ export function ImagesSection({
                         onDragStart={(e) => {
                             console.log("Starting drag with image:", img.url);
                             const payload = JSON.stringify({
-                                type: "image", 
-                                data: { url: img.url, name: img.name }
+                                type: "image",
+                                data: { url: img.url, name: img.name, path: img.path }
                             });
                             e.dataTransfer?.setData("application/x-cover-element", payload);
                             e.dataTransfer!.effectAllowed = "copy";
