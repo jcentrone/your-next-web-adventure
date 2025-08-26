@@ -879,6 +879,19 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
+    const handleReorderLayers = (from: number, to: number) => {
+        if (!canvas) return;
+        const updated = [...layers];
+        const [moved] = updated.splice(from, 1);
+        updated.splice(to, 0, moved);
+        updated.forEach((layer, idx) => {
+            canvas.moveTo(layer, idx);
+        });
+        setLayers(updated);
+        canvas.renderAll();
+        pushHistory();
+    };
+
     const handleBringForward = () => {
         if (!canvas || selectedObjects.length === 0) return;
 
@@ -1130,6 +1143,7 @@ export default function CoverPageEditorPage() {
                             layers={layers}
                             onSelectLayer={handleSelectLayer}
                             onUpdateLayer={handleUpdateLayerProperty}
+                            onReorderLayer={handleReorderLayers}
                         />
                     </div>
                 </div>

@@ -41,6 +41,7 @@ interface PropertiesPanelProps {
   layers: FabricObject[];
   onSelectLayer: (object: FabricObject) => void;
   onUpdateLayer: (layer: FabricObject, property: string, value: any) => void;
+  onReorderLayer: (fromIndex: number, toIndex: number) => void;
 }
 
 const FONTS = [
@@ -64,6 +65,7 @@ export function PropertiesPanel({
   layers,
   onSelectLayer,
   onUpdateLayer,
+  onReorderLayer,
 }: PropertiesPanelProps) {
   const multipleSelection = selectedObjects.length > 1;
   const isTextObject = !multipleSelection && selectedObject?.type === "textbox";
@@ -81,6 +83,7 @@ export function PropertiesPanel({
   const hasSkewY = !multipleSelection && selectedObject && "skewY" in selectedObject;
 
   const [value, setValue] = React.useState<string>("layers");
+  const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
 
   return (
     <div className="w-80 h-full border-l bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -441,8 +444,18 @@ export function PropertiesPanel({
                   {layers.map((layer, index) => (
                     <div
                       key={index}
+                      draggable
+                      onDragStart={() => setDraggedIndex(index)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        if (draggedIndex !== null && draggedIndex !== index) {
+                          onReorderLayer(draggedIndex, index);
+                        }
+                        setDraggedIndex(null);
+                      }}
+                      onDragEnd={() => setDraggedIndex(null)}
                       onClick={() => onSelectLayer(layer)}
-                      className={`flex items-center gap-2 p-2 rounded cursor-pointer ${
+                      className={`flex items-center gap-2 p-2 rounded cursor-move ${
                         layer === selectedObject
                           ? "bg-primary text-primary-foreground"
                           : "hover:bg-accent"
@@ -474,7 +487,11 @@ export function PropertiesPanel({
                         onChange={(e) =>
                           onUpdateLayer(layer, "name", e.target.value)
                         }
-                        className="h-7 text-xs flex-1"
+                        className={`h-7 text-xs flex-1 ${
+                          layer === selectedObject
+                            ? "bg-primary text-primary-foreground placeholder:text-primary-foreground border-primary-foreground"
+                            : ""
+                        }`}
                       />
                       <div
                         className="flex items-center gap-2 w-32"
