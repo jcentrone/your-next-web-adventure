@@ -1,4 +1,4 @@
-import { Canvas as FabricCanvas, Image as FabricImage, Text as FabricText } from "fabric";
+import { Canvas as FabricCanvas } from "fabric";
 import { ColorPalette } from "@/constants/colorPalettes";
 import {
     addRect as fabricAddRect,
@@ -12,6 +12,7 @@ import {
     addBezierCurve as fabricAddBezierCurve,
     addText as fabricAddText,
     addOpenmojiClipart,
+    addMergeField as fabricAddMergeField,
 } from "@/lib/fabricShapes";
 
 interface DropPayload {
@@ -92,71 +93,9 @@ export function handleCoverElementDrop(
                 pushHistory?.();
             }
             break;
-        case "image-field": {
-            const transparentPng =
-                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgD1Q9FAAAAAASUVORK5CYII=";
-            const mapTokenToMergeField = (token?: string) => {
-                switch (token) {
-                    case "{{cover_image}}":
-                        return "report.coverImage";
-                    case "{{organizational_logo}}":
-                        return "organization.logoUrl";
-                    default:
-                        return token
-                            ? token
-                                  .replace(/[{}]/g, "")
-                                  .replace(/_([a-z])/g, (_, c) => c.toUpperCase())
-                            : "report.coverImage";
-                }
-            };
-            const mergeField = mapTokenToMergeField(data?.token);
-            const displayToken = data?.token ?? "";
-            FabricImage.fromURL(transparentPng, (img) => {
-                img.set({
-                    left: x,
-                    top: y,
-                    mergeField,
-                    displayToken,
-                    stroke: "#888",
-                    strokeWidth: 2,
-                    strokeDashArray: [6, 4],
-                    backgroundColor: "#f3f4f6",
-                } as unknown as Partial<FabricImage> & { mergeField: string; displayToken: string });
-                img.scaleToWidth(200);
-                img.scaleToHeight(200);
-
-                const text = new FabricText(displayToken, {
-                    fontSize: 16,
-                    originX: "center",
-                    originY: "center",
-                    selectable: false,
-                    evented: false,
-                    excludeFromExport: true,
-                });
-                const center = img.getCenterPoint();
-                text.set({ left: center.x, top: center.y });
-
-                const updateText = () => {
-                    const c = img.getCenterPoint();
-                    text.set({ left: c.x, top: c.y });
-                    text.setCoords();
-                };
-                img.on("moving", updateText);
-                img.on("scaling", updateText);
-                img.on("rotating", updateText);
-                img.on("removed", () => canvas.remove(text));
-
-                canvas.add(img);
-                canvas.add(text);
-                canvas.setActiveObject(img);
-                canvas.requestRenderAll();
-                pushHistory?.();
-            });
-            break;
-        }
         case "merge-field":
-            if (data?.label && data?.token) {
-                fabricAddText(canvas, palette, `${data.label}: ${data.token}`, x, y);
+            if (data?.token) {
+                fabricAddMergeField(canvas, data.token, x, y);
                 pushHistory?.();
             }
             break;
