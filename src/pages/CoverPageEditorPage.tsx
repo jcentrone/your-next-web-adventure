@@ -27,7 +27,7 @@ import {useCanvasKeyboardShortcuts} from "@/hooks/useCanvasKeyboardShortcuts";
 import {KeyboardShortcutsModal} from "@/components/modals/KeyboardShortcutsModal";
 import {COLOR_PALETTES, type ColorPalette} from "@/constants/colorPalettes";
 import {PRESET_BG_COLORS, REPORT_TYPES, TEMPLATES} from "@/constants/coverPageEditor";
-import {SUPABASE_URL} from "@/integrations/supabase/client";
+import {SUPABASE_URL, supabase} from "@/integrations/supabase/client";
 import {toast} from "sonner";
 
 const DEFAULT_PROXY = `${SUPABASE_URL}/functions/v1/image-proxy`;
@@ -35,6 +35,7 @@ const IMAGE_PROXY_URL = import.meta.env.VITE_IMAGE_PROXY_URL ?? DEFAULT_PROXY;
 
 const CUSTOM_PROPS = [
     "lockAspectRatio",
+    "storagePath",
     "mergeField",
     "displayToken",
     "lockMovementX",
@@ -180,12 +181,38 @@ export default function CoverPageEditorPage() {
         });
 
         if (cp.design_json) {
-            canvas?.loadFromJSON(cp.design_json as any, () => {
-                restoreLockState(canvas!);
-                restoreMergeFieldOverlays(canvas!);
-                canvas?.requestRenderAll();
-                setLayers([...canvas!.getObjects()]);
-            });
+            const loadDesign = async () => {
+                const design =
+                    typeof cp.design_json === "string"
+                        ? JSON.parse(cp.design_json)
+                        : JSON.parse(JSON.stringify(cp.design_json));
+
+                const refreshUrls = async (obj: any): Promise<void> => {
+                    if (obj.storagePath) {
+                        const { data } = await supabase.storage
+                            .from("image-library")
+                            .createSignedUrl(obj.storagePath, 3600);
+                        if (data?.signedUrl) {
+                            obj.src = data.signedUrl;
+                        }
+                    }
+                    if (obj.objects) {
+                        await Promise.all(obj.objects.map((o: any) => refreshUrls(o)));
+                    }
+                };
+
+                if (design.objects) {
+                    await Promise.all(design.objects.map((o: any) => refreshUrls(o)));
+                }
+
+                canvas?.loadFromJSON(design as any, () => {
+                    restoreLockState(canvas!);
+                    restoreMergeFieldOverlays(canvas!);
+                    canvas?.requestRenderAll();
+                    setLayers([...canvas!.getObjects()]);
+                });
+            };
+            void loadDesign();
         }
         loaded.current = true;
     }, [ready, id, coverPages, form]);
@@ -500,10 +527,15 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const handleAddImage = async (imageUrl: string, x?: number, y?: number) => {
+    const handleAddImage = async (
+        imageUrl: string,
+        x?: number,
+        y?: number,
+        path?: string,
+    ) => {
         if (!canvas) return;
 
-        console.log("handleAddImage called with:", {imageUrl, x, y});
+        console.log("handleAddImage called with:", {imageUrl, x, y, path});
 
         if (x === undefined || y === undefined) {
             const transform = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
@@ -560,7 +592,8 @@ export default function CoverPageEditorPage() {
                 visible: true,
                 selectable: true,
                 evented: true,
-            });
+                storagePath: path,
+            } as any);
 
             console.log("Adding image to canvas with properties:", {
                 left: img.left,
@@ -587,9 +620,9 @@ export default function CoverPageEditorPage() {
 
     const handleUploadImage = async (file: File) => {
         try {
-            const {url} = await uploadImage(file);
+            const {url, path} = await uploadImage(file);
             if (url) {
-                await handleAddImage(url);
+                await handleAddImage(url, undefined, undefined, path);
                 toast.success("Image uploaded successfully");
             }
         } catch (error) {
@@ -613,15 +646,25 @@ export default function CoverPageEditorPage() {
         }
     };
 
-    const handleDropElement = ({type, data, x, y}: { type: string; data: any; x: number; y: number }) => {
+    const handleDropElement = ({
+        type,
+        data,
+        x,
+        y,
+    }: {
+        type: string;
+        data: any;
+        x: number;
+        y: number;
+    }) => {
         if (!canvas) return;
         handleCoverElementDrop(
             canvas,
             palette,
             {type, data, x, y},
             {
-                addImage: (url, px, py) => {
-                    void handleAddImage(url, px, py);
+                addImage: (url, px, py, path) => {
+                    void handleAddImage(url, px, py, path);
                 },
                 addIcon: handleAddIcon,
             },
