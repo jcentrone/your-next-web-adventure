@@ -86,11 +86,12 @@ export function handleCoverElementDrop(
         case "image-field": {
             const transparentPng =
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgD1Q9FAAAAAASUVORK5CYII=";
+            const mergeField = data?.token ? data.token.replace(/[{}]/g, "") : "report.coverImage";
             FabricImage.fromURL(transparentPng, (img) => {
                 img.set({
                     left: x,
                     top: y,
-                    mergeField: "report.coverImage",
+                    mergeField,
                     stroke: "#888",
                     strokeWidth: 2,
                     strokeDashArray: [6, 4],
