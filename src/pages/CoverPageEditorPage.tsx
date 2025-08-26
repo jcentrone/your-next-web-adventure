@@ -33,6 +33,17 @@ import {toast} from "sonner";
 const DEFAULT_PROXY = `${SUPABASE_URL}/functions/v1/image-proxy`;
 const IMAGE_PROXY_URL = import.meta.env.VITE_IMAGE_PROXY_URL ?? DEFAULT_PROXY;
 
+const CUSTOM_PROPS = [
+    "lockAspectRatio",
+    "mergeField",
+    "lockMovementX",
+    "lockMovementY",
+    "lockRotation",
+    "selectable",
+    "evented",
+    "name",
+];
+
 interface FormValues {
     name: string;
     template: keyof typeof TEMPLATES;
@@ -62,7 +73,6 @@ export default function CoverPageEditorPage() {
         createCoverPage,
         updateCoverPage,
         coverPages,
-        assignments,
         assignCoverPageToReportType,
         removeAssignmentFromReportType,
     } = useCoverPages();
@@ -79,6 +89,7 @@ export default function CoverPageEditorPage() {
     const reportTypes = useWatch({control: form.control, name: "reportTypes", defaultValue: []});
     const loaded = useRef(false);
     const originalReportTypes = useRef<string[]>([]);
+    const ready = !!canvas && coverPages.length > 0;
 
     useEffect(() => {
         form.register("reportTypes");
@@ -127,7 +138,7 @@ export default function CoverPageEditorPage() {
         updateLayers();
 
         // Initial history
-        const initialJson = JSON.stringify(c.toJSON(["lockAspectRatio"]));
+        const initialJson = JSON.stringify(c.toJSON(CUSTOM_PROPS));
         setHistory([initialJson]);
         setHistoryIndex(0);
 
@@ -142,10 +153,9 @@ export default function CoverPageEditorPage() {
         };
     }, []);
 
-    // Load existing cover page
-    // Load existing cover page
+    // Load existing cover page once data and canvas are ready
     useEffect(() => {
-        if (!canvas || !id || !coverPages.length) return;
+        if (!ready || !id || loaded.current) return;
 
         const sid = String(id);
         const cp = coverPages.find((c) => String(c.id) === sid);
@@ -168,15 +178,15 @@ export default function CoverPageEditorPage() {
             shouldValidate: false,
         });
 
-        if (!loaded.current && cp.design_json) {
-            canvas.loadFromJSON(cp.design_json as any, () => {
-                restoreLockState(canvas);
-                canvas.requestRenderAll();
-                setLayers([...canvas.getObjects()]);
+        if (cp.design_json) {
+            canvas?.loadFromJSON(cp.design_json as any, () => {
+                restoreLockState(canvas!);
+                canvas?.requestRenderAll();
+                setLayers([...canvas!.getObjects()]);
             });
-            loaded.current = true;
         }
-    }, [canvas, id, coverPages, assignments, form]);
+        loaded.current = true;
+    }, [ready, id, coverPages, form]);
 
 
     useEffect(() => {
@@ -206,12 +216,20 @@ export default function CoverPageEditorPage() {
         c.getObjects().forEach((obj) => {
             enableScalingHandles(obj);
             (obj as any).lockUniScaling = (obj as any).lockAspectRatio || false;
+            obj.set({
+                lockMovementX: (obj as any).lockMovementX ?? false,
+                lockMovementY: (obj as any).lockMovementY ?? false,
+                lockRotation: (obj as any).lockRotation ?? false,
+                selectable: obj.selectable ?? true,
+                evented: obj.evented ?? true,
+            });
+            obj.setCoords();
         });
     };
 
     const pushHistory = () => {
         if (!canvas) return;
-        const json = JSON.stringify(canvas.toJSON(["lockAspectRatio"]));
+        const json = JSON.stringify(canvas.toJSON(CUSTOM_PROPS));
         const newHistory = history.slice(0, historyIndex + 1);
         newHistory.push(json);
         setHistory(newHistory);
@@ -830,7 +848,7 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
 
         try {
-            const designJson = canvas.toJSON(["lockAspectRatio"]);
+            const designJson = canvas.toJSON(CUSTOM_PROPS);
 
             if (id) {
                 await updateCoverPage({
