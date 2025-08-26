@@ -87,7 +87,15 @@ export function handleCoverElementDrop(
             const transparentPng =
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgD1Q9FAAAAAASUVORK5CYII=";
             FabricImage.fromURL(transparentPng, (img) => {
-                img.set({ left: x, top: y, mergeField: "report.coverImage" } as any);
+                img.set({
+                    left: x,
+                    top: y,
+                    mergeField: "report.coverImage",
+                    stroke: "#888",
+                    strokeWidth: 2,
+                    strokeDashArray: [6, 4],
+                    backgroundColor: "#f3f4f6",
+                } as any);
                 img.scaleToWidth(200);
                 img.scaleToHeight(200);
                 canvas.add(img);

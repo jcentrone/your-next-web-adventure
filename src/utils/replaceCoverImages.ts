@@ -6,6 +6,10 @@ interface FabricObject extends Record<string, unknown> {
   mergeField?: string;
   src?: string;
   objects?: unknown;
+  stroke?: string;
+  strokeWidth?: number;
+  strokeDashArray?: number[];
+  backgroundColor?: string;
 }
 
 export async function replaceCoverImages(json: unknown, report: Report) {
@@ -23,6 +27,10 @@ export async function replaceCoverImages(json: unknown, report: Report) {
       const o = obj as FabricObject;
       if (o.type === "image" && o.mergeField === "report.coverImage") {
         o.src = url;
+        o.stroke = undefined;
+        o.strokeWidth = undefined;
+        o.strokeDashArray = undefined;
+        o.backgroundColor = undefined;
       }
       if (o.objects) traverse(o.objects);
     }
