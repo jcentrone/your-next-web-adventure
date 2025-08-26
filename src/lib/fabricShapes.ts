@@ -9,6 +9,7 @@ import {
     Polygon,
     Rect,
     Textbox,
+    Text as FabricText,
     util as FabricUtil,
     FabricObject,
 } from "fabric";
@@ -211,6 +212,59 @@ export function addText(canvas: FabricCanvas, palette: Palette, text = "Text", x
     canvas.setActiveObject(tb);
     canvas.requestRenderAll();
     return tb;
+}
+
+export function addMergeField(canvas: FabricCanvas, token: string, x = 120, y = 120) {
+    const mapTokenToMergeField = (t?: string) => {
+        switch (t) {
+            case "{{cover_image}}":
+                return "report.coverImage";
+            case "{{organizational_logo}}":
+                return "organization.logoUrl";
+            default:
+                return t ? t.replace(/[{}]/g, "").replace(/_([a-z])/g, (_, c) => c.toUpperCase()) : "";
+        }
+    };
+    const mergeField = mapTokenToMergeField(token);
+    const rect = new Rect({
+        left: x,
+        top: y,
+        width: 200,
+        height: 50,
+        stroke: "#888",
+        strokeWidth: 2,
+        strokeDashArray: [6, 4],
+        fill: "#f3f4f6",
+        backgroundColor: "#f3f4f6",
+        mergeField,
+        displayToken: token,
+        name: "Merge Field",
+    } as unknown as Partial<Rect> & { mergeField: string; displayToken: string });
+    enableScalingHandles(rect);
+    const text = new FabricText(token, {
+        fontSize: 16,
+        originX: "center",
+        originY: "center",
+        selectable: false,
+        evented: false,
+        excludeFromExport: true,
+    });
+    const center = rect.getCenterPoint();
+    text.set({ left: center.x, top: center.y });
+    const updateText = () => {
+        const cpt = rect.getCenterPoint();
+        text.set({ left: cpt.x, top: cpt.y });
+        text.setCoords();
+    };
+    rect.on("moving", updateText);
+    rect.on("scaling", updateText);
+    rect.on("rotating", updateText);
+    rect.on("removed", () => canvas.remove(text));
+    canvas.add(rect);
+    canvas.add(text);
+    canvas.setActiveObject(rect);
+    canvas.requestRenderAll();
+    return rect;
 }
 
 export async function addImageFromUrl(canvas: FabricCanvas, url: string, x = 150, y = 150) {

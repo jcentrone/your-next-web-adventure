@@ -61,8 +61,7 @@ export interface EditorSidebarProps {
     updateBgColor: (color: string) => void;
 
     // FORM FIELDS
-    onAddPlaceholder: (label: string, token: string) => void;
-    onAddImagePlaceholder: (token: string) => void;
+    onAddPlaceholder: (token: string) => void;
 
     // SHORTCUTS
     onShowShortcuts?: () => void;
@@ -78,7 +77,6 @@ export function EditorSidebar(props: EditorSidebarProps) {
         templateOptions, palette, onApplyPalette,
         bgColor, presetBgColors, updateBgColor,
         onAddPlaceholder,
-        onAddImagePlaceholder,
         onShowShortcuts,
     } = props;
 
@@ -188,7 +186,6 @@ export function EditorSidebar(props: EditorSidebarProps) {
                 >
                     <FormFieldsSection
                         onAddPlaceholder={onAddPlaceholder}
-                        onAddImagePlaceholder={onAddImagePlaceholder}
                     />
                 </SidebarCard>
             </div>

@@ -258,9 +258,9 @@ export default function CoverPageEditorPage() {
 
     const restoreMergeFieldOverlays = (c: FabricCanvas) => {
         c.getObjects().forEach((obj) => {
-            if (obj.type === "image" && (obj as any).mergeField) {
-                const img = obj as FabricImage & { mergeField: string; displayToken?: string };
-                const token = (img as any).displayToken ?? "";
+            const token = (obj as any).displayToken;
+            const mergeField = (obj as any).mergeField;
+            if (mergeField && token) {
                 const text = new FabricText(token, {
                     fontSize: 16,
                     originX: "center",
@@ -269,19 +269,19 @@ export default function CoverPageEditorPage() {
                     evented: false,
                     excludeFromExport: true,
                 });
-                const center = img.getCenterPoint();
+                const center = obj.getCenterPoint();
                 text.set({ left: center.x, top: center.y });
                 const updateText = () => {
-                    const cpt = img.getCenterPoint();
+                    const cpt = obj.getCenterPoint();
                     text.set({ left: cpt.x, top: cpt.y });
                     text.setCoords();
                 };
-                img.on("moving", updateText);
-                img.on("scaling", updateText);
-                img.on("rotating", updateText);
-                img.on("removed", () => c.remove(text));
+                obj.on("moving", updateText);
+                obj.on("scaling", updateText);
+                obj.on("rotating", updateText);
+                obj.on("removed", () => c.remove(text));
                 c.add(text);
-                text.moveTo(c.getObjects().indexOf(img) + 1);
+                text.moveTo(c.getObjects().indexOf(obj) + 1);
             }
         });
     };
@@ -766,21 +766,17 @@ export default function CoverPageEditorPage() {
         pushHistory();
     };
 
-    const handleAddPlaceholder = (label: string, token: string) => {
-        handleAddText(`${label}: ${token}`);
-    };
-
-    const handleAddImagePlaceholder = (token: string) => {
+    const handleAddPlaceholder = (token: string) => {
         if (!canvas) return;
         const x = canvas.getWidth() / 2;
         const y = canvas.getHeight() / 2;
         handleCoverElementDrop(
             canvas,
             palette,
-            { type: "image-field", data: { token }, x, y },
+            { type: "merge-field", data: { token }, x, y },
             {
-                addImage: (url, px, py) => {
-                    void handleAddImage(url, px, py);
+                addImage: (url, px, py, path) => {
+                    void handleAddImage(url, px, py, path);
                 },
                 addIcon: handleAddIcon,
             },
@@ -1080,7 +1076,6 @@ export default function CoverPageEditorPage() {
                             presetBgColors={PRESET_BG_COLORS}
                             updateBgColor={updateBgColor}
                             onAddPlaceholder={handleAddPlaceholder}
-                            onAddImagePlaceholder={handleAddImagePlaceholder}
                             onShowShortcuts={() => setShortcutsOpen(true)}
                         />
                     </div>

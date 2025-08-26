@@ -5,17 +5,12 @@ import {
     inspectorFields,
     organizationFields,
     reportFields,
-    IMAGE_FIELD_TOKENS,
 } from "@/constants/coverPageFields.ts";
-
-const IMAGE_FIELD_TOKENS = ["{{organizational_logo}}", "{{cover_image}}"];
 
 export function FormFieldsSection({
                                       onAddPlaceholder,
-                                      onAddImagePlaceholder,
                                   }: {
-    onAddPlaceholder: (label: string, token: string) => void;
-    onAddImagePlaceholder: (token: string) => void;
+    onAddPlaceholder: (token: string) => void;
 }) {
     return (
         <Accordion type="single" collapsible defaultValue="organization" className="w-full">
@@ -23,34 +18,22 @@ export function FormFieldsSection({
                 <AccordionTrigger>Organization Details</AccordionTrigger>
                 <AccordionContent className="data-[state=open]:animate-none data-[state=open]:h-auto">
                     <div className="flex flex-col space-y-2">
-                        {organizationFields.map((field) => {
-                            const isImage = IMAGE_FIELD_TOKENS.includes(field.token);
-                            return (
-                                <Button
-                                    key={field.token}
-                                    variant="outline"
-                                    className="w-full justify-start"
-                                    draggable
-                                    onDragStart={(e) => {
-                                        const payload = JSON.stringify({
-                                            type: isImage ? "image-field" : "merge-field",
-                                            data: isImage
-                                                ? { token: field.token }
-                                                : { label: field.label, token: field.token },
-                                        });
-                                        e.dataTransfer?.setData("application/x-cover-element", payload);
-                                        e.dataTransfer!.effectAllowed = "copy";
-                                    }}
-                                    onClick={() =>
-                                        isImage
-                                            ? onAddImagePlaceholder(field.token)
-                                            : onAddPlaceholder(field.label, field.token)
-                                    }
-                                >
-                                    {field.label}
-                                </Button>
-                            );
-                        })}
+                        {organizationFields.map((field) => (
+                            <Button
+                                key={field.token}
+                                variant="outline"
+                                className="w-full justify-start"
+                                draggable
+                                onDragStart={(e) => {
+                                    const payload = JSON.stringify({ type: "merge-field", data: { token: field.token } });
+                                    e.dataTransfer?.setData("application/x-cover-element", payload);
+                                    e.dataTransfer!.effectAllowed = "copy";
+                                }}
+                                onClick={() => onAddPlaceholder(field.token)}
+                            >
+                                {field.label}
+                            </Button>
+                        ))}
                     </div>
                 </AccordionContent>
             </AccordionItem>
@@ -66,11 +49,11 @@ export function FormFieldsSection({
                                 className="w-full justify-start"
                                 draggable
                                 onDragStart={(e) => {
-                                    const payload = JSON.stringify({ type: "merge-field", data: { label: field.label, token: field.token } });
+                                    const payload = JSON.stringify({ type: "merge-field", data: { token: field.token } });
                                     e.dataTransfer?.setData("application/x-cover-element", payload);
                                     e.dataTransfer!.effectAllowed = "copy";
                                 }}
-                                onClick={() => onAddPlaceholder(field.label, field.token)}
+                                onClick={() => onAddPlaceholder(field.token)}
                             >
                                 {field.label}
                             </Button>
@@ -90,11 +73,11 @@ export function FormFieldsSection({
                                 className="w-full justify-start"
                                 draggable
                                 onDragStart={(e) => {
-                                    const payload = JSON.stringify({ type: "merge-field", data: { label: field.label, token: field.token } });
+                                    const payload = JSON.stringify({ type: "merge-field", data: { token: field.token } });
                                     e.dataTransfer?.setData("application/x-cover-element", payload);
                                     e.dataTransfer!.effectAllowed = "copy";
                                 }}
-                                onClick={() => onAddPlaceholder(field.label, field.token)}
+                                onClick={() => onAddPlaceholder(field.token)}
                             >
                                 {field.label}
                             </Button>
@@ -107,34 +90,22 @@ export function FormFieldsSection({
                 <AccordionTrigger>Report Details</AccordionTrigger>
                 <AccordionContent className="data-[state=open]:animate-none data-[state=open]:h-auto">
                     <div className="flex flex-col space-y-2">
-                        {reportFields.map((field) => {
-                            const isImage = IMAGE_FIELD_TOKENS.includes(field.token);
-                            return (
-                                <Button
-                                    key={field.token}
-                                    variant="outline"
-                                    className="w-full justify-start"
-                                    draggable
-                                    onDragStart={(e) => {
-                                        const payload = JSON.stringify({
-                                            type: isImage ? "image-field" : "merge-field",
-                                            data: isImage
-                                                ? { token: field.token }
-                                                : { label: field.label, token: field.token },
-                                        });
-                                        e.dataTransfer?.setData("application/x-cover-element", payload);
-                                        e.dataTransfer!.effectAllowed = "copy";
-                                    }}
-                                    onClick={() =>
-                                        isImage
-                                            ? onAddImagePlaceholder(field.token)
-                                            : onAddPlaceholder(field.label, field.token)
-                                    }
-                                >
-                                    {field.label}
-                                </Button>
-                            );
-                        })}
+                        {reportFields.map((field) => (
+                            <Button
+                                key={field.token}
+                                variant="outline"
+                                className="w-full justify-start"
+                                draggable
+                                onDragStart={(e) => {
+                                    const payload = JSON.stringify({ type: "merge-field", data: { token: field.token } });
+                                    e.dataTransfer?.setData("application/x-cover-element", payload);
+                                    e.dataTransfer!.effectAllowed = "copy";
+                                }}
+                                onClick={() => onAddPlaceholder(field.token)}
+                            >
+                                {field.label}
+                            </Button>
+                        ))}
                     </div>
                 </AccordionContent>
             </AccordionItem>
