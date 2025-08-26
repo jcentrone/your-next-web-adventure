@@ -504,7 +504,7 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         if (assignedCoverPage.design_json) {
             const canvasEl = document.createElement("canvas");
             const fabricCanvas = new FabricCanvas(canvasEl, {width, height});
-            const replaced = await replaceCoverImages(assignedCoverPage.design_json, report);
+            const replaced = await replaceCoverImages(assignedCoverPage.design_json, report, organization);
             await new Promise<void>((resolve) => {
                 fabricCanvas.loadFromJSON(replaced as any, () => {
                     fabricCanvas.renderAll();

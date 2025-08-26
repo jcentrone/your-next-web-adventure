@@ -21,6 +21,7 @@ import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
 import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
 import { Canvas as FabricCanvas } from "fabric";
 import { replaceCoverImages } from "@/utils/replaceCoverImages";
+import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 
 
 function ButtonBar({id}: { id: string }) {
@@ -223,11 +224,12 @@ const ReportPreview: React.FC = () => {
             // assigned cover page
             if (user) {
                 try {
+                    const organization = await getMyOrganization();
                     const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
                     if (cp && cp.design_json) {
                         const canvasEl = document.createElement("canvas");
                         coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
-                        const replaced = await replaceCoverImages(cp.design_json, report);
+                        const replaced = await replaceCoverImages(cp.design_json, report, organization);
                         coverCanvas.loadFromJSON(replaced as any, () => {
                             coverCanvas?.renderAll();
                             const url = coverCanvas?.toDataURL({ format: "png", multiplier: 1 });

@@ -1,5 +1,6 @@
 import { isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import type { Report } from "@/lib/reportSchemas";
+import type { Organization } from "@/integrations/supabase/organizationsApi";
 
 interface FabricObject extends Record<string, unknown> {
   type?: string;
@@ -12,11 +13,22 @@ interface FabricObject extends Record<string, unknown> {
   backgroundColor?: string;
 }
 
-export async function replaceCoverImages(json: unknown, report: Report) {
-  if (!json || !report?.coverImage) return json;
-  const url = isSupabaseUrl(report.coverImage)
-    ? await getSignedUrlFromSupabaseUrl(report.coverImage)
-    : report.coverImage;
+export async function replaceCoverImages(
+  json: unknown,
+  report: Report,
+  organization?: Organization | null,
+) {
+  if (!json) return json;
+  const coverUrl = report.coverImage
+    ? isSupabaseUrl(report.coverImage)
+      ? await getSignedUrlFromSupabaseUrl(report.coverImage)
+      : report.coverImage
+    : null;
+  const logoUrl = organization?.logo_url
+    ? isSupabaseUrl(organization.logo_url)
+      ? await getSignedUrlFromSupabaseUrl(organization.logo_url)
+      : organization.logo_url
+    : null;
   const clone: FabricObject = JSON.parse(JSON.stringify(json));
   const traverse = (obj: unknown): void => {
     if (Array.isArray(obj)) {
@@ -25,12 +37,21 @@ export async function replaceCoverImages(json: unknown, report: Report) {
     }
     if (obj && typeof obj === "object") {
       const o = obj as FabricObject;
-      if (o.type === "image" && o.mergeField === "report.coverImage") {
-        o.src = url;
-        o.stroke = undefined;
-        o.strokeWidth = undefined;
-        o.strokeDashArray = undefined;
-        o.backgroundColor = undefined;
+      if (o.type === "image") {
+        if (o.mergeField === "report.coverImage" && coverUrl) {
+          o.src = coverUrl;
+          o.stroke = undefined;
+          o.strokeWidth = undefined;
+          o.strokeDashArray = undefined;
+          o.backgroundColor = undefined;
+        }
+        if (o.mergeField === "organization.logoUrl" && logoUrl) {
+          o.src = logoUrl;
+          o.stroke = undefined;
+          o.strokeWidth = undefined;
+          o.strokeDashArray = undefined;
+          o.backgroundColor = undefined;
+        }
       }
       if (o.objects) traverse(o.objects);
     }
