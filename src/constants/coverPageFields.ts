@@ -27,3 +27,8 @@ export const reportFields: MergeField[] = [
   { label: "Inspection Date", token: "{{report.inspection_date}}" },
   { label: "Weather Conditions", token: "{{report.weather_conditions}}" },
 ];
+
+export const imageFields: MergeField[] = [
+  { label: "Cover Image", token: "{{report.cover_image}}" },
+  { label: "Organization Logo", token: "{{organization.logo_url}}" },
+];
