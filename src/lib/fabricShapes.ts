@@ -12,6 +12,7 @@ import {
     util as FabricUtil,
     FabricObject
 } from "fabric";
+import { version as LUCIDE_VERSION } from "lucide/package.json";
 
 export type Palette = { colors: string[] };
 
@@ -222,9 +223,17 @@ export async function addImageFromUrl(canvas: FabricCanvas, url: string, x = 150
 /** Slim icon loader (runtime fetch) to avoid bundling all lucide icons */
 export async function addLucideIconByName(canvas: FabricCanvas, name: string, stroke = "#000", x = 100, y = 100) {
     try {
-        const iconName = name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-        const res = await fetch(`https://unpkg.com/lucide-static@latest/icons/${iconName}.svg`);
-        if (!res.ok) return;
+        const iconName = name
+            .replace(/([A-Z])/g, '-$1')
+            .toLowerCase()
+            .replace(/^-/, '');
+        const res = await fetch(
+            `https://unpkg.com/lucide-static@${LUCIDE_VERSION}/icons/${iconName}.svg`,
+        );
+        if (!res.ok) {
+            console.warn(`Failed to load lucide icon "${name}": ${res.status} ${res.statusText}`);
+            return;
+        }
         const svg = await res.text();
         const { objects, options } = await loadSVGFromString(svg);
         const obj = Array.isArray(objects)
@@ -243,7 +252,8 @@ export async function addLucideIconByName(canvas: FabricCanvas, name: string, st
         canvas.setActiveObject(obj);
         canvas.requestRenderAll();
     // eslint-disable-next-line no-empty
-    } catch {
+    } catch (err) {
+        console.warn(`Error loading lucide icon "${name}":`, err);
     }
 }
 
