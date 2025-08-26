@@ -1,7 +1,7 @@
 import {type ChangeEvent, useEffect, useRef, useState} from "react";
 import {useForm, useWatch} from "react-hook-form";
 import {useNavigate, useParams} from "react-router-dom";
-import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage} from "fabric";
+import {Canvas as FabricCanvas, FabricObject, Group, Image as FabricImage, Text as FabricText} from "fabric";
 import {
     addArrow as fabricAddArrow,
     addBidirectionalArrow as fabricAddBidirectionalArrow,
@@ -36,6 +36,7 @@ const IMAGE_PROXY_URL = import.meta.env.VITE_IMAGE_PROXY_URL ?? DEFAULT_PROXY;
 const CUSTOM_PROPS = [
     "lockAspectRatio",
     "mergeField",
+    "displayToken",
     "lockMovementX",
     "lockMovementY",
     "lockRotation",
@@ -181,6 +182,7 @@ export default function CoverPageEditorPage() {
         if (cp.design_json) {
             canvas?.loadFromJSON(cp.design_json as any, () => {
                 restoreLockState(canvas!);
+                restoreMergeFieldOverlays(canvas!);
                 canvas?.requestRenderAll();
                 setLayers([...canvas!.getObjects()]);
             });
@@ -227,6 +229,36 @@ export default function CoverPageEditorPage() {
         });
     };
 
+    const restoreMergeFieldOverlays = (c: FabricCanvas) => {
+        c.getObjects().forEach((obj) => {
+            if (obj.type === "image" && (obj as any).mergeField) {
+                const img = obj as FabricImage & { mergeField: string; displayToken?: string };
+                const token = (img as any).displayToken ?? "";
+                const text = new FabricText(token, {
+                    fontSize: 16,
+                    originX: "center",
+                    originY: "center",
+                    selectable: false,
+                    evented: false,
+                    excludeFromExport: true,
+                });
+                const center = img.getCenterPoint();
+                text.set({ left: center.x, top: center.y });
+                const updateText = () => {
+                    const cpt = img.getCenterPoint();
+                    text.set({ left: cpt.x, top: cpt.y });
+                    text.setCoords();
+                };
+                img.on("moving", updateText);
+                img.on("scaling", updateText);
+                img.on("rotating", updateText);
+                img.on("removed", () => c.remove(text));
+                c.add(text);
+                text.moveTo(c.getObjects().indexOf(img) + 1);
+            }
+        });
+    };
+
     const pushHistory = () => {
         if (!canvas) return;
         const json = JSON.stringify(canvas.toJSON(CUSTOM_PROPS));
@@ -242,6 +274,7 @@ export default function CoverPageEditorPage() {
             setHistoryIndex(historyIndex - 1);
             canvas?.loadFromJSON(JSON.parse(history[historyIndex - 1]), () => {
                 restoreLockState(canvas);
+                restoreMergeFieldOverlays(canvas);
                 canvas.renderAll();
             });
         }
@@ -252,6 +285,7 @@ export default function CoverPageEditorPage() {
             setHistoryIndex(historyIndex + 1);
             canvas?.loadFromJSON(JSON.parse(history[historyIndex + 1]), () => {
                 restoreLockState(canvas);
+                restoreMergeFieldOverlays(canvas);
                 canvas.renderAll();
             });
         }
