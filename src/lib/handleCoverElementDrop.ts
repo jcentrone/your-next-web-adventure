@@ -107,11 +107,12 @@ export function handleCoverElementDrop(
                     left: x,
                     top: y,
                     mergeField,
+                    displayToken,
                     stroke: "#888",
                     strokeWidth: 2,
                     strokeDashArray: [6, 4],
                     backgroundColor: "#f3f4f6",
-                } as unknown as Partial<FabricImage> & { mergeField: string });
+                } as unknown as Partial<FabricImage> & { mergeField: string; displayToken: string });
                 img.scaleToWidth(200);
                 img.scaleToHeight(200);
 
