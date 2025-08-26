@@ -8,6 +8,7 @@ export const organizationFields: MergeField[] = [
   { label: "Organization Address", token: "{{organization.address}}" },
   { label: "Organization Phone", token: "{{organization.phone}}" },
   { label: "Organization Email", token: "{{organization.email}}" },
+  { label: "Organization Logo", token: "{{organizational_logo}}" },
 ];
 
 export const inspectorFields: MergeField[] = [
@@ -26,9 +27,5 @@ export const contactFields: MergeField[] = [
 export const reportFields: MergeField[] = [
   { label: "Inspection Date", token: "{{report.inspection_date}}" },
   { label: "Weather Conditions", token: "{{report.weather_conditions}}" },
-];
-
-export const imageFields: MergeField[] = [
-  { label: "Cover Image", token: "{{report.cover_image}}" },
-  { label: "Organization Logo", token: "{{organization.logo_url}}" },
+  { label: "Cover Image", token: "{{cover_image}}" },
 ];
