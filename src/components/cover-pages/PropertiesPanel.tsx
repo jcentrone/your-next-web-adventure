@@ -278,7 +278,7 @@ export function PropertiesPanel({
                 </AccordionContent>
               </AccordionItem>
             )}
-
+            {/*Multiple Selections*/}
             {!multipleSelection && isTextObject && (
               <AccordionItem value="text">
                 <AccordionTrigger className="text-sm font-medium">
