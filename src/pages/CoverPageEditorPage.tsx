@@ -46,6 +46,11 @@ const CUSTOM_PROPS = [
     "name",
 ];
 
+// Ensure Fabric retains custom properties like mergeField and displayToken
+(FabricObject.prototype as any).customProperties = Array.from(
+    new Set([...(FabricObject.prototype as any).customProperties || [], ...CUSTOM_PROPS]),
+);
+
 interface FormValues {
     name: string;
     template: keyof typeof TEMPLATES;
@@ -157,7 +162,7 @@ export default function CoverPageEditorPage() {
 
     // Load existing cover page once data and canvas are ready
     useEffect(() => {
-        if (!ready || !id || loaded.current) return;
+        if (!ready || !id || !canvas || loaded.current) return;
 
         const sid = String(id);
         const cp = coverPages.find((c) => String(c.id) === sid);
@@ -215,7 +220,7 @@ export default function CoverPageEditorPage() {
             void loadDesign();
         }
         loaded.current = true;
-    }, [ready, id, coverPages, form]);
+    }, [ready, id, coverPages, form, canvas]);
 
 
     useEffect(() => {
