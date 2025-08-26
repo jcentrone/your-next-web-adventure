@@ -29,8 +29,6 @@ import {
   AlignVerticalJustifyCenter,
   ArrowDown,
   Trash2,
-  TableCellsMerge,
-  TableCellsSplit,
 } from "lucide-react";
 
 interface PropertiesPanelProps {
@@ -69,8 +67,6 @@ export function PropertiesPanel({
 }: PropertiesPanelProps) {
   const multipleSelection = selectedObjects.length > 1;
   const isTextObject = !multipleSelection && selectedObject?.type === "textbox";
-  const isTable =
-    !multipleSelection && (selectedObject as any)?.data?.type === "table";
   const hasPosition =
     !multipleSelection &&
     selectedObject &&
@@ -85,12 +81,6 @@ export function PropertiesPanel({
   const hasSkewY = !multipleSelection && selectedObject && "skewY" in selectedObject;
 
   const [value, setValue] = React.useState<string>("layers");
-
-  React.useEffect(() => {
-    if (!multipleSelection && isTable) {
-      setValue("table");
-    }
-  }, [isTable, multipleSelection, selectedObject, selectedObjects]);
 
   return (
     <div className="w-80 h-full border-l bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -127,107 +117,6 @@ export function PropertiesPanel({
             value={value}
             onValueChange={setValue}
           >
-            {!multipleSelection && isTable && (
-              <AccordionItem value="table">
-                <AccordionTrigger className="text-sm font-medium">
-                  Table
-                </AccordionTrigger>
-                <AccordionContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="padx" className="text-xs">
-                        Padding X
-                      </Label>
-                      <Input
-                        id="padx"
-                        type="number"
-                        value={(selectedObject as any).data?.cellPadX ?? 0}
-                        onChange={(e) =>
-                          onUpdateProperty("cellPadX", Number(e.target.value))
-                        }
-                        className="h-8"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="pady" className="text-xs">
-                        Padding Y
-                      </Label>
-                      <Input
-                        id="pady"
-                        type="number"
-                        value={(selectedObject as any).data?.cellPadY ?? 0}
-                        onChange={(e) =>
-                          onUpdateProperty("cellPadY", Number(e.target.value))
-                        }
-                        className="h-8"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs">Alignment</Label>
-                    <Select
-                      value={(selectedObject as any).data?.alignment || "left"}
-                      onValueChange={(v) => onUpdateProperty("alignment", v)}
-                    >
-                      <SelectTrigger className="h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="left">Left</SelectItem>
-                        <SelectItem value="center">Center</SelectItem>
-                        <SelectItem value="right">Right</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="borderColor" className="text-xs">
-                        Border
-                      </Label>
-                      <Input
-                        id="borderColor"
-                        type="color"
-                        value={(selectedObject as any).data?.borderColor || "#000000"}
-                        onChange={(e) =>
-                          onUpdateProperty("borderColor", e.target.value)
-                        }
-                        className="h-8 w-full p-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="bgColor" className="text-xs">
-                        Background
-                      </Label>
-                      <Input
-                        id="bgColor"
-                        type="color"
-                        value={(selectedObject as any).data?.backgroundColor || "#ffffff"}
-                        onChange={(e) =>
-                          onUpdateProperty("backgroundColor", e.target.value)
-                        }
-                        className="h-8 w-full p-1"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => onUpdateProperty("mergeCells", null)}
-                    >
-                      <TableCellsMerge className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => onUpdateProperty("splitCell", null)}
-                    >
-                      <TableCellsSplit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            )}
             {!multipleSelection && hasPosition && (
               <AccordionItem value="position">
                 <AccordionTrigger className="text-sm font-medium">
