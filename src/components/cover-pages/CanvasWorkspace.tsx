@@ -24,7 +24,7 @@ export function CanvasWorkspace({
     const PAGE_W_IN = 8.5;
     const PAGE_H_IN = 11;
 
-    // Canvas dimensions remain constant; zoom is handled via fabric's viewport
+    // Canvas dimensions remain constant; zoom is handled via CSS transforms
     const CANVAS_WIDTH = 816;
     const CANVAS_HEIGHT = 1056;
     const baseWidth = CANVAS_WIDTH;
@@ -62,17 +62,8 @@ export function CanvasWorkspace({
         if (!canvas) return;
 
         canvas.setDimensions({width: CANVAS_WIDTH, height: CANVAS_HEIGHT});
-        canvas.setZoom(zoom);
         canvas.renderAll();
-
-        const upper: HTMLCanvasElement =
-            (canvas as any).upperCanvasEl ??
-            (canvas.getSelectionElement && canvas.getSelectionElement());
-        if (upper) {
-            upper.style.transform = `scale(${zoom})`;
-            upper.style.transformOrigin = "top left";
-        }
-    }, [canvas, zoom]);
+    }, [canvas]);
 
 
     // CanvasWorkspace.tsx
@@ -110,7 +101,7 @@ export function CanvasWorkspace({
             }
             const { type, data: payloadData } = payload;
 
-            const pt = canvas.getPointer(e as unknown as MouseEvent, true); // ignore viewport zoom
+            const pt = canvas.getPointer(e as unknown as MouseEvent);
             console.log({ type, payloadData, x: pt.x, y: pt.y });
             onDropElement?.({ type, data: payloadData, x: pt.x, y: pt.y });
         };
@@ -132,12 +123,12 @@ export function CanvasWorkspace({
             upper.removeEventListener("dragover", onDragOver);
             upper.removeEventListener("drop", onDrop);
         };
-    }, [canvas, zoom, onDropElement, canvasRef]);
+    }, [canvas, onDropElement, canvasRef]);
 
 
     return (
         <div className="flex-1 relative bg-muted/50 ">
-            <div className="flex items-start justify-center min-h-full py-6">
+            <div className="flex items-center justify-center min-h-full py-6">
                 {/* Add left/top padding to make room for rulers */}
                 <div
                     ref={workspaceRef}
