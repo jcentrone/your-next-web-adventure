@@ -15,15 +15,7 @@ import {
     addTriangle as fabricAddTriangle,
     enableScalingHandles,
 } from "@/lib/fabricShapes";
-import {
-    createTable,
-    insertRow,
-    deleteRow,
-    insertColumn,
-    deleteColumn,
-    toggleHeaderRow,
-    layoutTable,
-} from "@/lib/fabricTables";
+import {layoutTable} from "@/lib/fabricTables";
 import {handleCoverElementDrop} from "@/lib/handleCoverElementDrop";
 import {Button} from "@/components/ui/button";
 import {EditorToolbar} from "@/components/cover-pages/EditorToolbar";
@@ -717,69 +709,6 @@ export default function CoverPageEditorPage() {
         setLayers([...canvas.getObjects()]);
         pushHistory();
     };
-    const addTable = (
-        rows: number,
-        cols: number,
-        borderColor: string,
-        header: boolean,
-    ) => {
-        if (!canvas) return;
-        const tbl = createTable(rows, cols, 80, 24, borderColor, 2);
-        canvas.add(tbl);
-        if (header) {
-            toggleHeaderRow(tbl);
-        }
-        canvas.setActiveObject(tbl);
-        canvas.requestRenderAll();
-        pushHistory();
-    };
-
-    const insertTableRow = () => {
-        if (!canvas || selectedObjects.length !== 1) return;
-        const obj = selectedObjects[0];
-        if ((obj as any).data?.type === "table") {
-            insertRow(obj as Group);
-            canvas.requestRenderAll();
-            pushHistory();
-        }
-    };
-    const deleteTableRow = () => {
-        if (!canvas || selectedObjects.length !== 1) return;
-        const obj = selectedObjects[0];
-        if ((obj as any).data?.type === "table") {
-            deleteRow(obj as Group);
-            canvas.requestRenderAll();
-            pushHistory();
-        }
-    };
-    const insertTableColumn = () => {
-        if (!canvas || selectedObjects.length !== 1) return;
-        const obj = selectedObjects[0];
-        if ((obj as any).data?.type === "table") {
-            insertColumn(obj as Group);
-            canvas.requestRenderAll();
-            pushHistory();
-        }
-    };
-    const deleteTableColumn = () => {
-        if (!canvas || selectedObjects.length !== 1) return;
-        const obj = selectedObjects[0];
-        if ((obj as any).data?.type === "table") {
-            deleteColumn(obj as Group);
-            canvas.requestRenderAll();
-            pushHistory();
-        }
-    };
-    const toggleTableHeader = () => {
-        if (!canvas || selectedObjects.length !== 1) return;
-        const obj = selectedObjects[0];
-        if ((obj as any).data?.type === "table") {
-            toggleHeaderRow(obj as Group);
-            canvas.requestRenderAll();
-            pushHistory();
-        }
-    };
-
     const startCellEdit = (cell: Group, table: Group) => {
         if (!canvas) return;
         const tableData = (table as any).data;
@@ -1192,12 +1121,6 @@ export default function CoverPageEditorPage() {
                             addBidirectionalArrow={addBidirectionalArrow}
                             addIcon={addIcon}
                             addClipart={addClipart}
-                            addTable={addTable}
-                            insertTableRow={insertTableRow}
-                            deleteTableRow={deleteTableRow}
-                            insertTableColumn={insertTableColumn}
-                            deleteTableColumn={deleteTableColumn}
-                            toggleHeaderRow={toggleTableHeader}
                             templateOptions={Object.keys(TEMPLATES)}
                             palette={palette}
                             onApplyPalette={applyPalette}
