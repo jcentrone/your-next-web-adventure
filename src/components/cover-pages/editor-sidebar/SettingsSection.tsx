@@ -40,7 +40,6 @@ export function SettingsSection({
         console.log("reportTypes prop (raw):", reportTypes);
         console.log("selected (normalized):", selected);
         console.log("reportTypeOptions:", reportTypeOptions);
-        console.table(rows);
         console.groupEnd();
     });
 
