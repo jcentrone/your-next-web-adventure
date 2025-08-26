@@ -61,7 +61,7 @@ export interface EditorSidebarProps {
     updateBgColor: (color: string) => void;
 
     // FORM FIELDS
-    onAddPlaceholder: (token: string) => void;
+    onAddPlaceholder: (label: string, token: string) => void;
 
     // SHORTCUTS
     onShowShortcuts?: () => void;

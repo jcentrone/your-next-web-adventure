@@ -16,7 +16,7 @@ import {
 
 interface DropPayload {
     type: string;
-    data: { url?: string; name?: string; hex?: string } | undefined;
+    data: { url?: string; name?: string; hex?: string; label?: string; token?: string } | undefined;
     x: number;
     y: number;
 }
@@ -94,6 +94,12 @@ export function handleCoverElementDrop(
                 canvas.setActiveObject(img);
                 pushHistory?.();
             });
+            break;
+        case "merge-field":
+            if (data?.label && data?.token) {
+                fabricAddText(canvas, palette, `${data.label}: ${data.token}`, x, y);
+                pushHistory?.();
+            }
             break;
         case "icon":
             if (data?.name) handlers.addIcon?.(data.name, x, y);
