@@ -44,9 +44,9 @@ export function CanvasWorkspace({
     // Offset by 0.5px so 1px lines sit on device pixels and look crisp.
     const PIXEL_OFFSET = 0.5;
 
-    // Screen pixels for each minor tick (account for zoom)
-    const hStepScreen = pxPerInchX * MINOR_IN * zoom;
-    const vStepScreen = pxPerInchY * MINOR_IN * zoom;
+    // Base pixel distance for each minor tick (zoom is handled via CSS transforms)
+    const hStep = pxPerInchX * MINOR_IN;
+    const vStep = pxPerInchY * MINOR_IN;
 
     // How many ticks to draw
     const horizontalTicks = Math.max(
@@ -64,6 +64,14 @@ export function CanvasWorkspace({
         canvas.setDimensions({width: CANVAS_WIDTH, height: CANVAS_HEIGHT});
         canvas.setZoom(zoom);
         canvas.renderAll();
+
+        const upper: HTMLCanvasElement =
+            (canvas as any).upperCanvasEl ??
+            (canvas.getSelectionElement && canvas.getSelectionElement());
+        if (upper) {
+            upper.style.transform = `scale(${zoom})`;
+            upper.style.transformOrigin = "top left";
+        }
     }, [canvas, zoom]);
 
 
@@ -75,8 +83,6 @@ export function CanvasWorkspace({
         const upper: HTMLCanvasElement =
             (canvas as any).upperCanvasEl ??
             (canvas.getSelectionElement && canvas.getSelectionElement());
-
-        console.info('upper canvas element:', upper);
 
         if (!upper) return;
 
@@ -140,18 +146,23 @@ export function CanvasWorkspace({
                     {showRulers && (
                         <>
                             {/* Horizontal Ruler */}
-                        <div
+                            <div
                                 className="absolute top-0 right-0 h-8 bg-gray-200 border-b border-gray-300 z-20 pointer-events-none"
-                                style={{ left: RULER_SIZE }}
+                                style={{
+                                    left: RULER_SIZE,
+                                    width: CANVAS_WIDTH,
+                                    transform: `scaleX(${zoom})`,
+                                    transformOrigin: "top left",
+                                }}
                             >
                                 <div className="relative h-full">
                                     {Array.from({length: horizontalTicks}).map((_, i) => {
                                         const inches = i * MINOR_IN;
-                                        const x = i * hStepScreen; // screen px
+                                        const x = i * hStep; // base pixels
                                         const isMajor = Math.abs(inches % MAJOR_EVERY_IN) < 1e-6;
                                         const color = isMajor ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.25)";
                                         const height = isMajor ? "100%" : "50%";
-                                        const width = isMajor ? 2 : 1;
+                                        const tickWidth = isMajor ? 2 : 1;
                                         const transform = isMajor ? "translateX(-1px)" : undefined;
                                         return (
                                             <div
@@ -160,7 +171,7 @@ export function CanvasWorkspace({
                                                 style={{
                                                     left: x + PIXEL_OFFSET,
                                                     height,
-                                                    borderLeft: `${width}px solid ${color}`,
+                                                    borderLeft: `${tickWidth}px solid ${color}`,
                                                     transform,
                                                 }}
                                             >
@@ -178,12 +189,17 @@ export function CanvasWorkspace({
                             {/* Vertical Ruler */}
                             <div
                                 className="absolute left-0 bottom-0 w-8 bg-gray-200 border-r border-gray-300 z-20 pointer-events-none"
-                                style={{ top: RULER_SIZE }}
+                                style={{
+                                    top: RULER_SIZE,
+                                    height: CANVAS_HEIGHT,
+                                    transform: `scaleY(${zoom})`,
+                                    transformOrigin: "top left",
+                                }}
                             >
                                 <div className="relative w-full h-full">
                                     {Array.from({length: verticalTicks}).map((_, i) => {
                                         const inches = i * MINOR_IN;
-                                        const y = i * vStepScreen; // screen px
+                                        const y = i * vStep; // base pixels
                                         const isMajor = Math.abs(inches % MAJOR_EVERY_IN) < 1e-6;
                                         const color = isMajor ? "rgba(0,0,0,0.5)" : "rgba(0,0,0,0.25)";
                                         const width = isMajor ? "100%" : "50%";
@@ -202,8 +218,9 @@ export function CanvasWorkspace({
                                             >
                                                 {isMajor && (
                                                     <span
-                                                        className="absolute top-1 left-1 text-xs text-gray-600 transform -rotate-90 origin-top-left">
-                                                            {Math.round(inches)}″
+                                                        className="absolute top-1 left-1 text-xs text-gray-600 transform -rotate-90 origin-top-left"
+                                                    >
+                                                        {Math.round(inches)}″
                                                     </span>
                                                 )}
                                             </div>
@@ -214,7 +231,12 @@ export function CanvasWorkspace({
 
                             {/* Corner block */}
                             <div
-                                className="absolute top-0 left-0 w-8 h-8 bg-gray-200 border-r border-b border-gray-300 z-30 pointer-events-none"/>
+                                className="absolute top-0 left-0 w-8 h-8 bg-gray-200 border-r border-b border-gray-300 z-30 pointer-events-none"
+                                style={{
+                                    transform: `scale(${zoom})`,
+                                    transformOrigin: "top left",
+                                }}
+                            />
                         </>
                     )}
 
@@ -222,11 +244,16 @@ export function CanvasWorkspace({
                     <div className="relative inline-block">
                         <div
                             className="relative bg-white shadow-lg"
-                            style={{width: CANVAS_WIDTH * zoom, height: CANVAS_HEIGHT * zoom}}
+                            style={{
+                                width: CANVAS_WIDTH,
+                                height: CANVAS_HEIGHT,
+                                transform: `scale(${zoom})`,
+                                transformOrigin: "top left",
+                            }}
                         >
                             <canvas
                                 ref={canvasRef}
-                                style={{width: CANVAS_WIDTH * zoom, height: CANVAS_HEIGHT * zoom}}
+                                style={{width: CANVAS_WIDTH, height: CANVAS_HEIGHT}}
                             />
 
                             {/* Grid overlay (on top of canvas) */}
@@ -234,9 +261,9 @@ export function CanvasWorkspace({
                                 <div
                                     className="pointer-events-none absolute top-0 left-0 z-10"
                                     style={{
-                                        width: CANVAS_WIDTH * zoom,
-                                        height: CANVAS_HEIGHT * zoom,
-                                        backgroundSize: `${hStepScreen}px ${vStepScreen}px`,
+                                        width: CANVAS_WIDTH,
+                                        height: CANVAS_HEIGHT,
+                                        backgroundSize: `${hStep}px ${vStep}px`,
                                         backgroundPosition: `${PIXEL_OFFSET}px ${PIXEL_OFFSET}px`,
                                         backgroundImage:
                                             "linear-gradient(to right, rgba(0,0,0,0.12) 1px, transparent 1px)," +
