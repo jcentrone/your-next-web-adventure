@@ -83,7 +83,7 @@ export function handleCoverElementDrop(
                 pushHistory?.();
             }
             break;
-        case "image-field":
+        case "image-field": {
             const transparentPng =
                 "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgD1Q9FAAAAAASUVORK5CYII=";
             FabricImage.fromURL(transparentPng, (img) => {
@@ -95,14 +95,16 @@ export function handleCoverElementDrop(
                     strokeWidth: 2,
                     strokeDashArray: [6, 4],
                     backgroundColor: "#f3f4f6",
-                } as any);
+                } as unknown as Partial<FabricImage> & { mergeField: string });
                 img.scaleToWidth(200);
                 img.scaleToHeight(200);
                 canvas.add(img);
                 canvas.setActiveObject(img);
+                canvas.requestRenderAll();
                 pushHistory?.();
             });
             break;
+        }
         case "merge-field":
             if (data?.label && data?.token) {
                 fabricAddText(canvas, palette, `${data.label}: ${data.token}`, x, y);
