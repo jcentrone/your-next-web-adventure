@@ -553,62 +553,66 @@ export function PropertiesPanel({
                     <div
                       key={index}
                       onClick={() => onSelectLayer(layer)}
-                      className={`flex items-center gap-1 p-1 rounded cursor-pointer ${
+                      className={`flex items-center gap-2 p-2 rounded cursor-pointer ${
                         layer === selectedObject
                           ? "bg-primary text-primary-foreground"
                           : "hover:bg-accent"
                       }`}
                     >
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleLayerVisibility(layer);
+                        }}
+                        className="shrink-0"
+                      >
+                        {layer.visible ? (
+                          <Eye className="h-4 w-4" />
+                        ) : (
+                          <EyeOff className="h-4 w-4" />
+                        )}
+                      </span>
                       <Input
                         value={
                           layer.name ||
-                          `${layer.type === "textbox" ? "Text" : layer.type || "Object"} ${
-                            index + 1
-                          }`
+                          `${
+                            layer.type === "textbox"
+                              ? "Text"
+                              : layer.type || "Object"
+                          } ${index + 1}`
                         }
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) =>
                           onUpdateLayer(layer, "name", e.target.value)
                         }
-                        className="h-6 text-xs flex-1"
+                        className="h-7 text-xs flex-1"
                       />
-                      <Input
-                        type="number"
-                        value={Math.round((layer.opacity ?? 1) * 100)}
-                        min={0}
-                        max={100}
+                      <div
+                        className="flex items-center gap-2 w-32"
                         onClick={(e) => e.stopPropagation()}
-                        onChange={(e) =>
-                          onUpdateLayer(
-                            layer,
-                            "opacity",
-                            Number(e.target.value) / 100,
-                          )
-                        }
-                        className="h-6 w-14 text-xs"
-                      />
-                      <div className="flex items-center gap-1 ml-1">
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleLayerVisibility(layer);
-                          }}
-                        >
-                          {layer.visible ? (
-                            <Eye className="h-4 w-4" />
-                          ) : (
-                            <EyeOff className="h-4 w-4" />
-                          )}
-                        </span>
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteLayer(layer);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
+                      >
+                        <Slider
+                          value={[Math.round((layer.opacity ?? 1) * 100)]}
+                          onValueChange={([value]) =>
+                            onUpdateLayer(layer, "opacity", value / 100)
+                          }
+                          max={100}
+                          step={1}
+                          className="flex-1"
+                        />
+                        <span className="text-xs w-8 text-right">
+                          {Math.round((layer.opacity ?? 1) * 100)}%
                         </span>
                       </div>
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteLayer(layer);
+                        }}
+                        className="shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </span>
                     </div>
                   ))}
                 </div>
