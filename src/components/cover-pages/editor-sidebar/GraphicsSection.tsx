@@ -201,10 +201,10 @@ export function GraphicsSection({
                                 <button
                                     key={name}
                                     type="button"
-                                    className="p-1 border rounded hover:bg-accent flex items-center justify-center"
-                                    draggable
-                                    onDragStart={(e) => {
-                                        const payload = JSON.stringify({type: "icon", name});
+                                className="p-1 border rounded hover:bg-accent flex items-center justify-center"
+                                draggable
+                                onDragStart={(e) => {
+                                        const payload = JSON.stringify({type: "icon", data: {name}});
                                         e.dataTransfer?.setData("application/x-cover-element", payload);
                                         e.dataTransfer!.effectAllowed = "copy";
                                     }}
@@ -238,7 +238,7 @@ export function GraphicsSection({
                                 className="p-1 border rounded hover:bg-accent flex items-center justify-center"
                                 draggable
                                 onDragStart={(e) => {
-                                    const payload = JSON.stringify({type: "clipart", hex: c.hexcode});
+                                    const payload = JSON.stringify({type: "clipart", data: {hex: c.hexcode}});
                                     e.dataTransfer?.setData("application/x-cover-element", payload);
                                     e.dataTransfer!.effectAllowed = "copy";
                                 }}

@@ -92,7 +92,7 @@ export function FormFieldsSection({
                                 className="w-full justify-start"
                                 draggable
                                 onDragStart={(e) => {
-                                    const payload = JSON.stringify({ type: "image-field" });
+                                    const payload = JSON.stringify({ type: "image-field", data: { token: field.token } });
                                     e.dataTransfer?.setData("application/x-cover-element", payload);
                                     e.dataTransfer!.effectAllowed = "copy";
                                 }}
