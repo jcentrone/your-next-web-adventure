@@ -57,6 +57,9 @@ interface FormValues {
     reportTypes: string[];
 }
 
+const getBaseObjects = (c: FabricCanvas) =>
+    c.getObjects().filter((o) => !(o as any)._overlayParent);
+
 export default function CoverPageEditorPage() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
@@ -130,7 +133,7 @@ export default function CoverPageEditorPage() {
         c.subTargetCheck = true;
         const updateSelection = () => setSelectedObjects([...c.getActiveObjects()]);
         const clearSelection = () => setSelectedObjects([]);
-        const updateLayers = () => setLayers([...c.getObjects()]);
+        const updateLayers = () => setLayers(getBaseObjects(c));
         c.on("selection:created", updateSelection);
         c.on("selection:updated", updateSelection);
         c.on("selection:cleared", clearSelection);
@@ -214,7 +217,7 @@ export default function CoverPageEditorPage() {
                     restoreLockState(canvas!);
                     restoreMergeFieldOverlays(canvas!);
                     canvas?.requestRenderAll();
-                    setLayers([...canvas!.getObjects()]);
+                    setLayers(getBaseObjects(canvas!));
                 });
             };
             void loadDesign();
@@ -248,6 +251,7 @@ export default function CoverPageEditorPage() {
 
     const restoreLockState = (c: FabricCanvas) => {
         c.getObjects().forEach((obj) => {
+            if ((obj as any)._overlayParent) return;
             enableScalingHandles(obj);
             (obj as any).lockUniScaling = (obj as any).lockAspectRatio || false;
             obj.set({
@@ -278,6 +282,7 @@ export default function CoverPageEditorPage() {
         };
 
         c.getObjects().forEach((obj) => {
+            if ((obj as any)._overlayParent) return;
             const mergeField = (obj as any).mergeField as string | undefined;
             let token = (obj as any).displayToken as string | undefined;
 
@@ -306,6 +311,8 @@ export default function CoverPageEditorPage() {
                 obj.on("scaling", updateText);
                 obj.on("rotating", updateText);
                 obj.on("removed", () => c.remove(text));
+                (obj as any)._overlay = text;
+                (text as any)._overlayParent = obj;
                 c.add(text);
                 text.moveTo(c.getObjects().indexOf(obj) + 1);
             }
@@ -543,7 +550,7 @@ export default function CoverPageEditorPage() {
         }
 
         await addLucideIconByName(canvas, iconName, palette.colors[0], x, y);
-        setLayers([...canvas.getObjects()]);
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
 
@@ -632,7 +639,7 @@ export default function CoverPageEditorPage() {
             canvas.add(img);
             canvas.setActiveObject(img);
             canvas.renderAll();
-            setLayers([...canvas.getObjects()]);
+            setLayers(getBaseObjects(canvas));
             pushHistory();
 
             console.log("Image successfully added to canvas");
@@ -711,7 +718,7 @@ export default function CoverPageEditorPage() {
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddRect(canvas, palette, x, y);
-        setLayers([...canvas.getObjects()]);
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
     const addCircle = () => {
@@ -722,7 +729,7 @@ export default function CoverPageEditorPage() {
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddCircle(canvas, palette, x, y);
-        setLayers([...canvas.getObjects()]);
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
     const addStar = () => {
@@ -733,7 +740,7 @@ export default function CoverPageEditorPage() {
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddStar(canvas, palette, x, y);
-        setLayers([...canvas.getObjects()]);
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
     const addTriangle = () => {
@@ -744,7 +751,7 @@ export default function CoverPageEditorPage() {
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddTriangle(canvas, palette, x, y);
-        setLayers([...canvas.getObjects()]);
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
     const addPolygonShape = () => {
@@ -755,7 +762,7 @@ export default function CoverPageEditorPage() {
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddPolygon(canvas, palette, 5, 50, x, y);
-        setLayers([...canvas.getObjects()]);
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
     const addArrow = () => {
@@ -766,7 +773,7 @@ export default function CoverPageEditorPage() {
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddArrow(canvas, palette, x, y);
-        setLayers([...canvas.getObjects()]);
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
     const addBidirectionalArrow = () => {
@@ -777,7 +784,7 @@ export default function CoverPageEditorPage() {
         const x = canvas.getWidth() / 2 - left;
         const y = canvas.getHeight() / 2 - top;
         fabricAddBidirectionalArrow(canvas, palette, x, y);
-        setLayers([...canvas.getObjects()]);
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
     const addIcon = (name: string) => handleAddIcon(name);
@@ -816,6 +823,7 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
 
         const applyToObject = (obj: FabricObject, inGroup = false) => {
+            if ((obj as any)._overlayParent) return;
             if (obj instanceof Group) {
                 obj.getObjects().forEach((child) => applyToObject(child, true));
                 return;
@@ -875,7 +883,7 @@ export default function CoverPageEditorPage() {
         layer.set(property, value);
         layer.setCoords?.();
         canvas.renderAll();
-        setLayers([...canvas.getObjects()]);
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
 
@@ -884,8 +892,12 @@ export default function CoverPageEditorPage() {
         const updated = [...layers];
         const [moved] = updated.splice(from, 1);
         updated.splice(to, 0, moved);
-        updated.forEach((layer, idx) => {
-            canvas.moveTo(layer, idx);
+        let idx = 0;
+        updated.forEach((layer) => {
+            canvas.moveTo(layer, idx++);
+            if ((layer as any)._overlay) {
+                canvas.moveTo((layer as any)._overlay, idx++);
+            }
         });
         setLayers(updated);
         canvas.renderAll();
@@ -897,6 +909,12 @@ export default function CoverPageEditorPage() {
 
         selectedObjects.forEach((obj) => {
             canvas.bringObjectForward(obj);
+            if ((obj as any)._overlay) {
+                canvas.moveTo(
+                    (obj as any)._overlay,
+                    canvas.getObjects().indexOf(obj) + 1,
+                );
+            }
         });
         canvas.renderAll();
         pushHistory();
@@ -907,6 +925,12 @@ export default function CoverPageEditorPage() {
 
         selectedObjects.forEach((obj) => {
             canvas.sendObjectBackwards(obj);
+            if ((obj as any)._overlay) {
+                canvas.moveTo(
+                    (obj as any)._overlay,
+                    canvas.getObjects().indexOf(obj) + 1,
+                );
+            }
         });
         canvas.renderAll();
         pushHistory();
@@ -917,6 +941,12 @@ export default function CoverPageEditorPage() {
 
         selectedObjects.forEach((obj) => {
             canvas.bringObjectToFront(obj);
+            if ((obj as any)._overlay) {
+                canvas.moveTo(
+                    (obj as any)._overlay,
+                    canvas.getObjects().indexOf(obj) + 1,
+                );
+            }
         });
         canvas.renderAll();
         pushHistory();
@@ -927,6 +957,12 @@ export default function CoverPageEditorPage() {
 
         selectedObjects.forEach((obj) => {
             canvas.sendObjectToBack(obj);
+            if ((obj as any)._overlay) {
+                canvas.moveTo(
+                    (obj as any)._overlay,
+                    canvas.getObjects().indexOf(obj) + 1,
+                );
+            }
         });
         canvas.renderAll();
         pushHistory();
@@ -936,15 +972,22 @@ export default function CoverPageEditorPage() {
         if (!canvas) return;
 
         layer.set("visible", !layer.visible);
-        setLayers([...canvas.getObjects()]);
+        if ((layer as any)._overlay) {
+            ((layer as any)._overlay as FabricObject).set("visible", layer.visible);
+        }
+        setLayers(getBaseObjects(canvas));
         canvas.requestRenderAll();
     };
 
     const handleDeleteLayer = (layer: FabricObject) => {
+        if ((layer as any)._overlay) {
+            canvas.remove((layer as any)._overlay);
+        }
         canvas.remove(layer);
         canvas.discardActiveObject();
         setSelectedObjects(canvas.getActiveObjects());
         canvas.renderAll();
+        setLayers(getBaseObjects(canvas));
         pushHistory();
     };
 

@@ -250,6 +250,8 @@ export function addMergeField(canvas: FabricCanvas, token: string, x = 120, y = 
         evented: false,
         excludeFromExport: true,
     });
+    (rect as any)._overlay = text;
+    (text as any)._overlayParent = rect;
     const center = rect.getCenterPoint();
     text.set({ left: center.x, top: center.y });
     const updateText = () => {
