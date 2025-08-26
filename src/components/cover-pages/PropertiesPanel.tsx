@@ -441,7 +441,14 @@ export function PropertiesPanel({
               </AccordionTrigger>
               <AccordionContent className="space-y-3">
                 <div className="space-y-1">
-                  {layers.map((layer, index) => (
+                  {layers.map((layer, index) => {
+                    const defaultLabel = `${
+                      layer.type === "textbox" ? "Text" : layer.type || "Object"
+                    } ${index + 1}`;
+                    const label = (layer as any).mergeField
+                      ? (layer as any).displayToken ?? "Merge Field"
+                      : layer.name || defaultLabel;
+                    return (
                     <div
                       key={index}
                       draggable
@@ -475,14 +482,7 @@ export function PropertiesPanel({
                         )}
                       </span>
                       <Input
-                        value={
-                          layer.name ||
-                          `${
-                            layer.type === "textbox"
-                              ? "Text"
-                              : layer.type || "Object"
-                          } ${index + 1}`
-                        }
+                        value={label}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) =>
                           onUpdateLayer(layer, "name", e.target.value)
@@ -520,7 +520,8 @@ export function PropertiesPanel({
                         <Trash2 className="h-4 w-4" />
                       </span>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </AccordionContent>
             </AccordionItem>

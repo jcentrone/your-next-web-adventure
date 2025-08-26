@@ -291,6 +291,10 @@ export default function CoverPageEditorPage() {
                 (obj as any).displayToken = token;
             }
 
+            if (mergeField) {
+                (obj as any).set({ name: (obj as any).name ?? "Merge Field" });
+            }
+
             if (mergeField && token) {
                 const text = new FabricText(token, {
                     fontSize: 16,
