@@ -1,8 +1,12 @@
 import {Button} from "@/components/ui/button.tsx";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion.tsx";
-import {contactFields, inspectorFields, organizationFields, reportFields} from "@/constants/coverPageFields.ts";
-
-const IMAGE_FIELD_TOKENS = ["{{organizational_logo}}", "{{cover_image}}"];
+import {
+    contactFields,
+    inspectorFields,
+    organizationFields,
+    reportFields,
+    IMAGE_FIELD_TOKENS,
+} from "@/constants/coverPageFields.ts";
 
 export function FormFieldsSection({
                                       onAddPlaceholder,
