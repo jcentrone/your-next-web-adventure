@@ -5,7 +5,6 @@ import {
     Settings,
     Shapes,
     Square,
-    Table as TableIcon,
     Type as TypeIcon
 } from "lucide-react";
 import {SidebarCard} from "./editor-sidebar/SidebarCard.tsx";
@@ -13,7 +12,6 @@ import {SettingsSection} from "./editor-sidebar/SettingsSection.tsx";
 import {TextSection} from "./editor-sidebar/TextSection.tsx";
 import {ImagesSection} from "./editor-sidebar/ImagesSection.tsx";
 import {GraphicsSection} from "./editor-sidebar/GraphicsSection.tsx";
-import {TablesSection} from "./editor-sidebar/TablesSection.tsx";
 import {DesignSection} from "./editor-sidebar/DesignSection.tsx";
 import {BackgroundSection} from "./editor-sidebar/BackgroundSection.tsx";
 import {FormFieldsSection} from "./editor-sidebar/FormFieldsSection.tsx";
@@ -52,14 +50,6 @@ export interface EditorSidebarProps {
     addIcon: (name: string) => void;
     addClipart: (hex: string) => void;
 
-    // TABLES
-    addTable?: (rows: number, cols: number, borderColor: string, headerRow: boolean) => void;
-    insertTableRow?: () => void;
-    deleteTableRow?: () => void;
-    insertTableColumn?: () => void;
-    deleteTableColumn?: () => void;
-    toggleHeaderRow?: () => void;
-
     // DESIGN
     templateOptions: string[];
     palette: ColorPalette;
@@ -84,7 +74,6 @@ export function EditorSidebar(props: EditorSidebarProps) {
         addText,
         images, onImageUpload, onDeleteImage, onAddImageFromUrl,
         addRect, addCircle, addStar, addTriangle, addPolygonShape, addArrow, addBidirectionalArrow, addIcon, addClipart,
-        addTable, insertTableRow, deleteTableRow, insertTableColumn, deleteTableColumn, toggleHeaderRow,
         templateOptions, palette, onApplyPalette,
         bgColor, presetBgColors, updateBgColor,
         onAddPlaceholder,
@@ -156,23 +145,6 @@ export function EditorSidebar(props: EditorSidebarProps) {
                         addBidirectionalArrow={addBidirectionalArrow}
                         addIcon={addIcon}
                         addClipart={addClipart}
-                    />
-                </SidebarCard>
-
-                <SidebarCard
-                    sectionKey="tables"
-                    activePanel={activePanel}
-                    setActivePanel={setActivePanel}
-                    icon={<TableIcon className="h-4 w-4"/>}
-                    title="Tables"
-                >
-                    <TablesSection
-                        addTable={addTable}
-                        insertRow={insertTableRow}
-                        deleteRow={deleteTableRow}
-                        insertColumn={insertTableColumn}
-                        deleteColumn={deleteTableColumn}
-                        toggleHeader={toggleHeaderRow}
                     />
                 </SidebarCard>
 
