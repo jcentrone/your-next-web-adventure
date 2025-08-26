@@ -225,48 +225,38 @@ export function addMergeField(canvas: FabricCanvas, token: string, x = 120, y = 
         }
     };
     const mergeField = mapTokenToMergeField(token);
-    const rect = new Rect({
+    
+    // Create a styled text object for the merge field
+    const mergeFieldText = new Textbox(token, {
         left: x,
         top: y,
-        width: 200,
-        height: 50,
-
-        color: "#000",
-        strokeWidth: 2,
-        strokeDashArray: [6, 4],
-        fill: "transparent",
-        backgroundColor: "transparent",
+        fontSize: 16,
+        fill: "#666666",
+        backgroundColor: "#f0f0f0",
+        borderColor: "#999999",
+        stroke: "#999999",
+        strokeWidth: 1,
+        strokeDashArray: [4, 2],
+        padding: 8,
+        textAlign: "center",
+        fontFamily: "monospace",
+        visible: true,
+        // Custom properties to identify this as a merge field
         mergeField,
         displayToken: token,
         name: "Merge Field",
-    } as unknown as Partial<Rect> & { mergeField: string; displayToken: string });
-    enableScalingHandles(rect);
-    const text = new FabricText(token, {
-        fontSize: 16,
-        originX: "center",
-        originY: "center",
-        selectable: false,
-        evented: false,
-        excludeFromExport: true,
+        isMergeField: true,
+    } as unknown as Partial<Textbox> & { 
+        mergeField: string; 
+        displayToken: string; 
+        isMergeField: boolean;
     });
-    (rect as any)._overlay = text;
-    (text as any)._overlayParent = rect;
-    const center = rect.getCenterPoint();
-    text.set({ left: center.x, top: center.y });
-    const updateText = () => {
-        const cpt = rect.getCenterPoint();
-        text.set({ left: cpt.x, top: cpt.y });
-        text.setCoords();
-    };
-    rect.on("moving", updateText);
-    rect.on("scaling", updateText);
-    rect.on("rotating", updateText);
-    rect.on("removed", () => canvas.remove(text));
-    canvas.add(rect);
-    canvas.add(text);
-    canvas.setActiveObject(rect);
+    
+    enableScalingHandles(mergeFieldText);
+    canvas.add(mergeFieldText);
+    canvas.setActiveObject(mergeFieldText);
     canvas.requestRenderAll();
-    return rect;
+    return mergeFieldText;
 }
 
 export async function addImageFromUrl(canvas: FabricCanvas, url: string, x = 150, y = 150) {
