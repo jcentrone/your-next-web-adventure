@@ -20,6 +20,7 @@ import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
 import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
 import { Canvas as FabricCanvas } from "fabric";
+import { replaceCoverImages } from "@/utils/replaceCoverImages";
 
 
 function ButtonBar({id}: { id: string }) {
@@ -226,7 +227,8 @@ const ReportPreview: React.FC = () => {
                     if (cp && cp.design_json) {
                         const canvasEl = document.createElement("canvas");
                         coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
-                        coverCanvas.loadFromJSON(cp.design_json as any, () => {
+                        const replaced = await replaceCoverImages(cp.design_json, report);
+                        coverCanvas.loadFromJSON(replaced as any, () => {
                             coverCanvas?.renderAll();
                             const url = coverCanvas?.toDataURL({ format: "png", multiplier: 1 });
                             if (!cancelled && url) {
