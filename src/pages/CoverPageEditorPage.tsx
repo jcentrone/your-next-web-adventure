@@ -44,7 +44,7 @@ export default function CoverPageEditorPage() {
     const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
     const [selectedObjects, setSelectedObjects] = useState<FabricObject[]>([]);
     const [layers, setLayers] = useState<FabricObject[]>([]);
-    const [zoom, setZoom] = useState(1);
+    const [zoom, setZoom] = useState(0.5);
     const [showGrid, setShowGrid] = useState(true);
     const [showRulers, setShowRulers] = useState(true);
     const [snapEnabled, setSnapEnabled] = useState(false);

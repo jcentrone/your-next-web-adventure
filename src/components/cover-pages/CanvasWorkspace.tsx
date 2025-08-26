@@ -223,16 +223,18 @@ export function CanvasWorkspace({
                             {/* Corner block */}
                             <div
                                 className="absolute top-0 left-0 w-8 h-8 bg-gray-200 border-r border-b border-gray-300 z-30 pointer-events-none"
-                                style={{
-                                    transform: `scale(${zoom})`,
-                                    transformOrigin: "top left",
-                                }}
                             />
                         </>
                     )}
 
                     {/* Canvas Container */}
-                    <div className="relative inline-block">
+                    <div
+                        className="relative inline-block"
+                        style={{
+                            width: CANVAS_WIDTH * zoom,
+                            height: CANVAS_HEIGHT * zoom,
+                        }}
+                    >
                         <div
                             className="relative bg-white shadow-lg"
                             style={{
