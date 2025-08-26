@@ -8,6 +8,8 @@ import {
     IMAGE_FIELD_TOKENS,
 } from "@/constants/coverPageFields.ts";
 
+const IMAGE_FIELD_TOKENS = ["{{organizational_logo}}", "{{cover_image}}"];
+
 export function FormFieldsSection({
                                       onAddPlaceholder,
                                       onAddImagePlaceholder,
