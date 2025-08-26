@@ -1,6 +1,6 @@
 import {Button} from "@/components/ui/button.tsx";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion.tsx";
-import {contactFields, inspectorFields, organizationFields, imageFields} from "@/constants/coverPageFields.ts";
+import {contactFields, inspectorFields, organizationFields, reportFields} from "@/constants/coverPageFields.ts";
 
 export function FormFieldsSection({
                                       onAddPlaceholder,
@@ -81,21 +81,22 @@ export function FormFieldsSection({
                 </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="images">
-                <AccordionTrigger>Image Fields</AccordionTrigger>
+            <AccordionItem value="report">
+                <AccordionTrigger>Report Details</AccordionTrigger>
                 <AccordionContent className="data-[state=open]:animate-none data-[state=open]:h-auto">
                     <div className="flex flex-col space-y-2">
-                        {imageFields.map((field) => (
+                        {reportFields.map((field) => (
                             <Button
                                 key={field.token}
                                 variant="outline"
                                 className="w-full justify-start"
                                 draggable
                                 onDragStart={(e) => {
-                                    const payload = JSON.stringify({ type: "image-field", data: { token: field.token } });
+                                    const payload = JSON.stringify({ type: "merge-field", data: { label: field.label, token: field.token } });
                                     e.dataTransfer?.setData("application/x-cover-element", payload);
                                     e.dataTransfer!.effectAllowed = "copy";
                                 }}
+                                onClick={() => onAddPlaceholder(field.label, field.token)}
                             >
                                 {field.label}
                             </Button>

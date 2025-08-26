@@ -10,6 +10,7 @@ interface MergeData {
 export function replaceMergeFields(text: string, { organization, inspector, report }: MergeData) {
   if (!text) return "";
 
+  const reportDetails = (report as any)?.sections?.find((s: any) => s.key === "report_details")?.info || {};
   const replacements: Record<string, string> = {
     "{{organization.name}}": organization?.name ?? "",
     "{{organization.address}}": organization?.address ?? "",
@@ -23,6 +24,9 @@ export function replaceMergeFields(text: string, { organization, inspector, repo
     "{{contact.email}}": (report as any)?.email ?? "",
     "{{contact.phone}}":
       (report as any)?.phoneHome || (report as any)?.phoneWork || (report as any)?.phoneCell || "",
+    "{{report.inspection_date}}": (report as any)?.inspectionDate ?? "",
+    "{{report.weather_conditions}}":
+      reportDetails.weather_conditions || (report as any)?.reportData?.weather_conditions || "",
   };
 
   return text.replace(/{{[^}]+}}/g, (match) => replacements[match] ?? "");
