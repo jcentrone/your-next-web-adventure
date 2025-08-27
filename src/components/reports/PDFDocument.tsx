@@ -10,6 +10,7 @@ import { Canvas as FabricCanvas } from "fabric";
 import { replaceCoverMergeFields } from "@/utils/replaceCoverMergeFields";
 import { replaceCoverImages } from "@/utils/replaceCoverImages";
 import { getMyOrganization, getMyProfile } from "@/integrations/supabase/organizationsApi";
+import { isSupabaseUrl } from "@/integrations/supabase/storage";
 
 interface PDFDocumentProps {
   report: Report;
@@ -60,23 +61,24 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
             canvas.loadFromJSON(designJson as any, () => {
               console.log("✅ Canvas loaded successfully");
               canvas.renderAll();
-              
+
               // Generate image
-              const url = canvas.toDataURL({ 
-                format: "png", 
+              const url = canvas.toDataURL({
+                format: "png",
                 multiplier: 1,
-                quality: 0.8 
+                quality: 0.8
               });
-              
+
               console.log("🖼️ Generated cover page URL:", url ? "✅ Success" : "❌ Failed");
-              
+
               if (!cancelled && url) {
                 setCoverPage(url);
               }
-              
-              // Clean up
-              canvas.dispose();
-              canvasEl.remove();
+
+              requestAnimationFrame(() => {
+                canvas.dispose();
+                canvasEl.remove();
+              });
             });
           } else {
             console.log("❌ No cover page template found");
@@ -268,14 +270,25 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                       {f.media.length > 0 && (
                         <div className="mt-2 grid grid-cols-2 gap-3">
                           {f.media.map((m) => {
+                            const hasSignedUrl = !isSupabaseUrl(m.url) || !!mediaUrlMap[m.id];
+                            if (!hasSignedUrl) {
+                              return (
+                                <figure key={m.id}>
+                                  <div className="w-full h-32 bg-gray-100 rounded border" />
+                                  {m.caption && (
+                                    <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
+                                  )}
+                                </figure>
+                              );
+                            }
                             const resolvedUrl = mediaUrlMap[m.id] || m.url;
                             return (
                               <figure key={m.id}>
                                 {m.type === "image" ? (
-                                  <img 
-                                    src={resolvedUrl} 
-                                    alt={m.caption || f.title} 
-                                    className="w-full max-h-64 object-contain rounded border pdf-image" 
+                                  <img
+                                    src={resolvedUrl}
+                                    alt={m.caption || f.title}
+                                    className="w-full max-h-64 object-contain rounded border pdf-image"
                                   />
                                 ) : m.type === "video" ? (
                                   <div className="w-full h-32 bg-gray-100 rounded border flex items-center justify-center">

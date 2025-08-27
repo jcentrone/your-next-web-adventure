@@ -116,10 +116,19 @@ export async function getMyOrganization(): Promise<Organization | null> {
 
   let organizationId = profile.organization_id;
 
-  const createDefaultOrganization = async () => {
-    const org = await createOrganization({ name: 'My Organization' });
-    organizationId = org.id;
-    return org;
+  const createDefaultOrganization = async (): Promise<Organization | null> => {
+    try {
+      const org = await createOrganization({ name: 'My Organization' });
+      organizationId = org.id;
+      return org;
+    } catch (err: any) {
+      if (err.code === '42501') {
+        console.warn('Not authorized to create organization');
+        return null;
+      }
+      console.error('Failed to create default organization', err);
+      return null;
+    }
   };
 
   if (!organizationId) {
@@ -135,12 +144,7 @@ export async function getMyOrganization(): Promise<Organization | null> {
   if (error && error.code !== 'PGRST116') throw error;
 
   if (!data || error?.code === 'PGRST116') {
-    try {
-      return await createDefaultOrganization();
-    } catch (createError) {
-      console.error('Failed to create default organization', createError);
-      return null;
-    }
+    return await createDefaultOrganization();
   }
 
   return data;
