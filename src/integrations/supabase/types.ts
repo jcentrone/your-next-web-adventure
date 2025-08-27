@@ -515,10 +515,8 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
-          is_individual: boolean
           last_sign_in_at: string | null
           license_number: string | null
-          organization_id: string | null
           phone: string | null
           provider: string | null
           updated_at: string
@@ -530,10 +528,8 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
-          is_individual?: boolean
           last_sign_in_at?: string | null
           license_number?: string | null
-          organization_id?: string | null
           phone?: string | null
           provider?: string | null
           updated_at?: string
@@ -545,24 +541,14 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
-          is_individual?: boolean
           last_sign_in_at?: string | null
           license_number?: string | null
-          organization_id?: string | null
           phone?: string | null
           provider?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reports: {
         Row: {

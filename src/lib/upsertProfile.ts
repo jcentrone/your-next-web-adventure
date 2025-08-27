@@ -1,5 +1,6 @@
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { createOrganization } from "@/integrations/supabase/organizationsApi";
 
 export async function upsertProfile(session: Session | null) {
   const user = session?.user;
@@ -33,6 +34,25 @@ export async function upsertProfile(session: Session | null) {
     console.error("upsertProfile error:", error.message);
   } else {
     console.log("Profile upserted for", user.id);
-    // Organization creation is now handled by the database trigger
+
+    // Ensure the user has an organization membership
+    const { data: member } = await supabase
+      .from('organization_members')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!member) {
+      try {
+        await createOrganization({
+          name: meta.organization_name || full_name || email || 'My Organization',
+          email: email || undefined,
+          phone: meta.phone || undefined,
+          license_number: meta.license_number || undefined,
+        });
+      } catch (e: any) {
+        console.error('createOrganization error:', e.message || e);
+      }
+    }
   }
 }

@@ -50,8 +50,6 @@ export type Profile = {
   avatar_url: string | null;
   phone: string | null;
   license_number: string | null;
-  organization_id: string | null;
-  is_individual: boolean;
   provider: string | null;
   last_sign_in_at: string | null;
   created_at: string;
@@ -86,17 +84,6 @@ export async function createOrganization(data: {
 
   if (memberError) throw memberError;
 
-  // Update the user's profile to link to the organization
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({
-      organization_id: org.id,
-      is_individual: false
-    })
-    .eq('user_id', (await supabase.auth.getUser()).data.user!.id);
-
-  if (profileError) throw profileError;
-
   return org;
 }
 
@@ -106,22 +93,10 @@ export async function getMyOrganization(): Promise<Organization | null> {
   } = await supabase.auth.getUser();
   const userId = user!.id;
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('organization_id')
-    .eq('user_id', userId)
-    .single();
-
-  if (profileError) throw profileError;
-  const organizationId = profile.organization_id;
-  if (!organizationId) {
-    return null;
-  }
-
   const { data, error } = await supabase
-    .from('organizations')
-    .select('*')
-    .eq('id', organizationId)
+    .from('organization_members')
+    .select('organizations(*)')
+    .eq('user_id', userId)
     .single();
 
   if (error) {
@@ -131,7 +106,7 @@ export async function getMyOrganization(): Promise<Organization | null> {
     throw error;
   }
 
-  return data;
+  return (data as any)?.organizations || null;
 }
 
 export async function updateOrganization(id: string, data: Partial<Organization>) {
@@ -219,17 +194,6 @@ export async function acceptInvitation(token: string) {
 
   if (memberError) throw memberError;
 
-  // Update profile
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({
-      organization_id: invitation.organization_id,
-      is_individual: false
-    })
-    .eq('user_id', (await supabase.auth.getUser()).data.user!.id);
-
-  if (profileError) throw profileError;
-
   // Mark invitation as accepted
   const { error: updateError } = await supabase
     .from('organization_invitations')
@@ -272,17 +236,6 @@ export async function removeMemberFromOrganization(organizationId: string, userI
     .eq('user_id', userId);
 
   if (error) throw error;
-
-  // Update their profile to be individual
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({
-      organization_id: null,
-      is_individual: true
-    })
-    .eq('user_id', userId);
-
-  if (profileError) throw profileError;
 }
 
 export async function updateMemberRole(organizationId: string, userId: string, role: 'admin' | 'inspector' | 'viewer') {
