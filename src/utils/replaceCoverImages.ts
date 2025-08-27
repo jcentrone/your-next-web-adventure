@@ -30,9 +30,9 @@ export async function replaceCoverImages(
       : organization.logo_url
     : null;
   const clone: FabricObject = JSON.parse(JSON.stringify(json));
-  const traverse = (obj: unknown): void => {
+  const traverse = async (obj: unknown): Promise<void> => {
     if (Array.isArray(obj)) {
-      obj.forEach(traverse);
+      await Promise.all(obj.map((item) => traverse(item)));
       return;
     }
     if (obj && typeof obj === "object") {
@@ -52,10 +52,13 @@ export async function replaceCoverImages(
           o.strokeDashArray = undefined;
           o.backgroundColor = undefined;
         }
+        if (o.src && isSupabaseUrl(o.src)) {
+          o.src = await getSignedUrlFromSupabaseUrl(o.src);
+        }
       }
-      if (o.objects) traverse(o.objects);
+      if (o.objects) await traverse(o.objects);
     }
   };
-  if (clone.objects) traverse(clone.objects);
+  if (clone.objects) await traverse(clone.objects);
   return clone;
 }
