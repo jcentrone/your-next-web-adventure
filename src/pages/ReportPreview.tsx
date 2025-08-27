@@ -248,19 +248,20 @@ const ReportPreview: React.FC = () => {
 
                             // First replace merge fields with actual data
                             const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
-                                organization,
+                                organization: organization ?? null,
                                 inspector,
                                 report
                             });
                             console.log("after replaceCoverMergeFields", mergeFieldsReplaced);
 
                             // Then replace image placeholders with actual images
-                            const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization);
+                            const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization ?? null);
                             console.log("after replaceCoverImages", imagesReplaced);
 
                             coverCanvas.loadFromJSON(imagesReplaced as any, () => {
-                                console.log("loadFromJSON success");
+                                console.log("loadFromJSON success", coverCanvas.getObjects().length);
                                 coverCanvas?.renderAll();
+                                setHasCoverPage(true);
                             });
                         }
                     } else if (!cancelled) {
