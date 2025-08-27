@@ -53,13 +53,13 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
               getMyProfile()
             ]);
             let designJson: any = await replaceCoverMergeFields(cp.design_json, {
-              organization,
+              organization: organization ?? null,
               inspector,
               report
             });
-            designJson = await replaceCoverImages(designJson, report, organization);
+            designJson = await replaceCoverImages(designJson, report, organization ?? null);
             canvas.loadFromJSON(designJson as any, () => {
-              console.log("✅ Canvas loaded successfully");
+              console.log("✅ Canvas loaded successfully", canvas.getObjects().length);
               canvas.renderAll();
 
               // Generate image

@@ -113,38 +113,22 @@ export async function getMyOrganization(): Promise<Organization | null> {
     .single();
 
   if (profileError) throw profileError;
-
-  let organizationId = profile.organization_id;
-
-  const createDefaultOrganization = async (): Promise<Organization | null> => {
-    try {
-      const org = await createOrganization({ name: 'My Organization' });
-      organizationId = org.id;
-      return org;
-    } catch (err: any) {
-      if (err.code === '42501') {
-        console.warn('Not authorized to create organization');
-        return null;
-      }
-      console.error('Failed to create default organization', err);
-      return null;
-    }
-  };
-
+  const organizationId = profile.organization_id;
   if (!organizationId) {
-    return await createDefaultOrganization();
+    return null;
   }
 
   const { data, error } = await supabase
     .from('organizations')
     .select('*')
     .eq('id', organizationId)
-    .maybeSingle();
+    .single();
 
-  if (error && error.code !== 'PGRST116') throw error;
-
-  if (!data || error?.code === 'PGRST116') {
-    return await createDefaultOrganization();
+  if (error) {
+    if (error.code === 'PGRST116' || error.status === 403) {
+      return null;
+    }
+    throw error;
   }
 
   return data;
