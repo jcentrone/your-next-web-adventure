@@ -192,11 +192,6 @@ const ReportPreview: React.FC = () => {
 
     // Resolve signed URLs for all media in the report (only when authenticated)
     React.useEffect(() => {
-        console.log("cover page effect start", {
-            reportId: report?.id,
-            reportType: report?.reportType,
-            hasCanvasRef: !!coverCanvasRef.current,
-        });
         if (!user || !report || report.reportType !== "home_inspection" || !coverCanvasRef.current) return;
         if (!fabricRef.current) {
             fabricRef.current = new fabric.Canvas(coverCanvasRef.current);
@@ -240,7 +235,6 @@ const ReportPreview: React.FC = () => {
                         getMyOrganization(),
                         getMyProfile()
                     ]);
-                    console.log("assigned cover page", cp);
 
                     if (cp && cp.design_json) {
                         if (!cancelled) setHasCoverPage(true);
@@ -251,22 +245,17 @@ const ReportPreview: React.FC = () => {
                             inspector,
                             report
                         });
-                        console.log("after replaceCoverMergeFields", mergeFieldsReplaced);
 
                         // Then replace image placeholders with actual images
                         const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization ?? null);
-                        console.log("after replaceCoverImages", imagesReplaced);
 
                         fabricRef.current?.loadFromJSON(
                             imagesReplaced as unknown as Record<string, unknown>,
                             () => {
-                                const count = fabricRef.current?.getObjects().length ?? 0;
-                                console.log("loadFromJSON success", count);
                                 fabricRef.current?.renderAll();
                             }
                         );
                     } else if (!cancelled) {
-                        console.warn("No cover page template found; hasCoverPage set to false");
                         setHasCoverPage(false);
                     }
                 } catch (err) {
@@ -275,12 +264,17 @@ const ReportPreview: React.FC = () => {
             }
         })();
 
-        return () => {
+         return () => {
             cancelled = true;
+        };
+    }, [report?.id, coverCanvasRef.current]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    React.useEffect(() => {
+        return () => {
             fabricRef.current?.dispose();
             fabricRef.current = null;
         };
-    }, [report?.id, coverCanvasRef.current]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
     if (!report) return null;
 
