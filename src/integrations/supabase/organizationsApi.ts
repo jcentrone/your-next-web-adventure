@@ -259,7 +259,7 @@ export async function updateMyProfile(data: Partial<Profile>) {
     .eq('user_id', (await supabase.auth.getUser()).data.user!.id)
     .select()
     .single();
-
+  console.log({ error, updated });
   if (error) throw error;
   return updated;
 }
