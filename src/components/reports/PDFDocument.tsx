@@ -29,17 +29,22 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
       let canvasDisposed = false;
       (async () => {
         try {
+          console.log("🎨 Starting cover page generation for report type:", report.reportType);
           const [cp, organization, inspector] = await Promise.all([
             coverPagesApi.getAssignedCoverPage(user.id, report.reportType),
             getMyOrganization(),
             getMyProfile()
           ]);
           
+          console.log("📋 Cover page data:", { cp: !!cp, organization: !!organization, inspector: !!inspector });
+          
           if (cp && cp.design_json) {
+            console.log("🎯 Found cover page template, generating canvas...");
             const canvasEl = document.createElement("canvas");
             coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
             
             // First replace merge fields with actual data
+            console.log("🔄 Replacing merge fields...");
             const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
               organization,
               inspector,
@@ -47,22 +52,29 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
             });
             
             // Then replace image placeholders with actual images
+            console.log("🖼️ Replacing images...");
             const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization);
             
+            console.log("📐 Loading JSON into canvas...");
             coverCanvas.loadFromJSON(imagesReplaced as any, () => {
+              console.log("✅ Canvas loaded, rendering...");
               coverCanvas?.renderAll();
               const url = coverCanvas?.toDataURL({ format: "png", multiplier: 2 });
+              console.log("🖼️ Generated cover page URL:", url ? "✅ Success" : "❌ Failed");
               if (!cancelled && url) {
                 setCoverPage(url);
               }
               coverCanvas?.dispose();
               canvasDisposed = true;
             });
-          } else if (!cancelled) {
-            setCoverPage(null);
+          } else {
+            console.log("❌ No cover page template found for report type:", report.reportType);
+            if (!cancelled) {
+              setCoverPage(null);
+            }
           }
         } catch (err) {
-          console.error("Error generating cover page:", err);
+          console.error("❌ Error generating cover page:", err);
         }
       })();
       return () => {
