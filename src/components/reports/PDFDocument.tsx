@@ -7,6 +7,9 @@ import SectionInfoDisplay from "./SectionInfoDisplay";
 import { useAuth } from "@/contexts/AuthContext";
 import { coverPagesApi } from "@/integrations/supabase/coverPagesApi";
 import { Canvas as FabricCanvas } from "fabric";
+import { replaceCoverMergeFields } from "@/utils/replaceCoverMergeFields";
+import { replaceCoverImages } from "@/utils/replaceCoverImages";
+import { getMyOrganization, getMyProfile } from "@/integrations/supabase/organizationsApi";
 
 interface PDFDocumentProps {
   report: Report;
@@ -26,13 +29,29 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
       let canvasDisposed = false;
       (async () => {
         try {
-          const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
+          const [cp, organization, inspector] = await Promise.all([
+            coverPagesApi.getAssignedCoverPage(user.id, report.reportType),
+            getMyOrganization(),
+            getMyProfile()
+          ]);
+          
           if (cp && cp.design_json) {
             const canvasEl = document.createElement("canvas");
             coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
-            coverCanvas.loadFromJSON(cp.design_json as any, () => {
+            
+            // First replace merge fields with actual data
+            const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
+              organization,
+              inspector,
+              report
+            });
+            
+            // Then replace image placeholders with actual images
+            const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization);
+            
+            coverCanvas.loadFromJSON(imagesReplaced as any, () => {
               coverCanvas?.renderAll();
-              const url = coverCanvas?.toDataURL({ format: "png", multiplier: 1 });
+              const url = coverCanvas?.toDataURL({ format: "png", multiplier: 2 });
               if (!cancelled && url) {
                 setCoverPage(url);
               }
@@ -43,7 +62,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
             setCoverPage(null);
           }
         } catch (err) {
-          console.error(err);
+          console.error("Error generating cover page:", err);
         }
       })();
       return () => {
@@ -105,24 +124,31 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
     return (
       <div ref={ref} className="pdf-document">
+        {/* Custom Cover Page from Template */}
         {coverPage && (
           <section className="pdf-page-break flex justify-center">
             <img src={coverPage} alt="Cover Page" className="max-w-full h-auto" />
           </section>
         )}
+        
+        {/* Fallback Cover Page (only if no custom cover page) */}
+        {!coverPage && (
+          <article className={tpl.container}>
+            <section className={`${tpl.cover} pdf-page-break`}>
+              <header className="mb-4 text-center">
+                <h1 className={tpl.coverTitle}>{report.title}</h1>
+                <p className={tpl.coverSubtitle}>
+                  {report.clientName} • {new Date(report.inspectionDate).toLocaleDateString()} • {report.address}
+                </p>
+              </header>
+              {coverUrl && (
+                <img src={coverUrl} alt="Report cover" className="cover max-w-full h-auto rounded border" />
+              )}
+            </section>
+          </article>
+        )}
+        
         <article className={tpl.container}>
-          {/* Cover Page */}
-          <section className={`${tpl.cover} pdf-page-break`}>
-            <header className="mb-4 text-center">
-              <h1 className={tpl.coverTitle}>{report.title}</h1>
-              <p className={tpl.coverSubtitle}>
-                {report.clientName} • {new Date(report.inspectionDate).toLocaleDateString()} • {report.address}
-              </p>
-            </header>
-            {coverUrl && (
-              <img src={coverUrl} alt="Report cover" className="cover max-w-full h-auto rounded border" />
-            )}
-          </section>
 
           {/* Report Details */}
           <section className={`${tpl.reportDetails} pdf-page-break`}>

@@ -21,7 +21,8 @@ import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
 import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
 import { Canvas as FabricCanvas } from "fabric";
 import { replaceCoverImages } from "@/utils/replaceCoverImages";
-import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
+import { replaceCoverMergeFields } from "@/utils/replaceCoverMergeFields";
+import { getMyOrganization, getMyProfile } from "@/integrations/supabase/organizationsApi";
 
 
 function ButtonBar({id}: { id: string }) {
@@ -224,15 +225,29 @@ const ReportPreview: React.FC = () => {
             // assigned cover page
             if (user) {
                 try {
-                    const organization = await getMyOrganization();
-                    const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
+                    const [cp, organization, inspector] = await Promise.all([
+                        coverPagesApi.getAssignedCoverPage(user.id, report.reportType),
+                        getMyOrganization(),
+                        getMyProfile()
+                    ]);
+                    
                     if (cp && cp.design_json) {
                         const canvasEl = document.createElement("canvas");
                         coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
-                        const replaced = await replaceCoverImages(cp.design_json, report, organization);
-                        coverCanvas.loadFromJSON(replaced as any, () => {
+                        
+                        // First replace merge fields with actual data
+                        const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
+                            organization,
+                            inspector,
+                            report
+                        });
+                        
+                        // Then replace image placeholders with actual images
+                        const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization);
+                        
+                        coverCanvas.loadFromJSON(imagesReplaced as any, () => {
                             coverCanvas?.renderAll();
-                            const url = coverCanvas?.toDataURL({ format: "png", multiplier: 1 });
+                            const url = coverCanvas?.toDataURL({ format: "png", multiplier: 2 });
                             if (!cancelled && url) {
                                 setCoverPage(url);
                             }
@@ -243,7 +258,7 @@ const ReportPreview: React.FC = () => {
                         setCoverPage(null);
                     }
                 } catch (err) {
-                    console.error(err);
+                    console.error("Error generating cover page:", err);
                 }
             }
         })();
@@ -349,24 +364,31 @@ const ReportPreview: React.FC = () => {
                     {isGeneratingPDF ? 'Generating PDF...' : 'Download PDF'}
                 </Button>
             </div>
+            {/* Custom Cover Page from Template */}
             {coverPage && (
                 <section className="page-break flex justify-center">
                     <img src={coverPage} alt="Cover Page" className="max-w-full h-auto" />
                 </section>
             )}
+            
+            {/* Fallback Cover Page (only if no custom cover page) */}
+            {!coverPage && (
+                <article className={tpl.container}>
+                    <section className={`${tpl.cover} page-break`}>
+                        <header className="mb-4 text-center">
+                            <h1 className={tpl.coverTitle}>{report.title}</h1>
+                            <p className={tpl.coverSubtitle}>
+                                {report.clientName} • {new Date(report.inspectionDate).toLocaleDateString()} • {report.address}
+                            </p>
+                        </header>
+                        {coverUrl && (
+                            <img src={coverUrl} alt="Report cover" className="w-auto h-100 rounded border"/>
+                        )}
+                    </section>
+                </article>
+            )}
+            
             <article className={tpl.container}>
-                {/* Cover Page */}
-                <section className={`${tpl.cover} page-break`}>
-                    <header className="mb-4 text-center">
-                        <h1 className={tpl.coverTitle}>{report.title}</h1>
-                        <p className={tpl.coverSubtitle}>
-                            {report.clientName} • {new Date(report.inspectionDate).toLocaleDateString()} • {report.address}
-                        </p>
-                    </header>
-                    {coverUrl && (
-                        <img src={coverUrl} alt="Report cover" className="w-auto h-100 rounded border"/>
-                    )}
-                </section>
 
                 {/* Report Details */}
                 <ReportDetailsSection
