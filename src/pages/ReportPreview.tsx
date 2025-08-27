@@ -481,21 +481,38 @@ const ReportPreview: React.FC = () => {
                                         {f.media.length > 0 && (
                                             <div className="mt-2 grid grid-cols-2 gap-3">
                                                 {f.media.map((m) => {
+                                                    const hasSignedUrl = !isSupabaseUrl(m.url) || !!mediaUrlMap[m.id];
+                                                    if (!hasSignedUrl) {
+                                                        return (
+                                                            <figure key={m.id}>
+                                                                <div className="w-full h-32 bg-muted rounded border"/>
+                                                                {m.caption && (
+                                                                    <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
+                                                                )}
+                                                            </figure>
+                                                        );
+                                                    }
                                                     const resolvedUrl = mediaUrlMap[m.id] || m.url;
                                                     return (
                                                         <figure key={m.id}>
                                                             {m.type === "image" ? (
-                                                                <img src={resolvedUrl} alt={m.caption || f.title}
-                                                                     loading="lazy" className="w-full rounded border"/>
+                                                                <img
+                                                                    src={resolvedUrl}
+                                                                    alt={m.caption || f.title}
+                                                                    loading="lazy"
+                                                                    className="w-full rounded border"
+                                                                />
                                                             ) : m.type === "video" ? (
-                                                                <video src={resolvedUrl} controls
-                                                                       className="w-full rounded border"/>
+                                                                <video
+                                                                    src={resolvedUrl}
+                                                                    controls
+                                                                    className="w-full rounded border"
+                                                                />
                                                             ) : (
-                                                                <audio src={resolvedUrl} controls/>
+                                                                <audio src={resolvedUrl} controls />
                                                             )}
                                                             {m.caption && (
-                                                                <figcaption
-                                                                    className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
+                                                                <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
                                                             )}
                                                         </figure>
                                                     );

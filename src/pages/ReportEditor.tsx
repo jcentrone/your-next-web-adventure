@@ -811,65 +811,77 @@ const ReportEditor: React.FC = () => {
                             <div className="mt-3">
                               <label className="block text-sm font-medium mb-1">Media</label>
                               <div className="flex flex-wrap gap-3">
-                                {f.media.map((m) => (
-                                 <div key={m.id} className="relative w-24 h-24 border rounded overflow-hidden">
-  <img
-    src={mediaUrlMap[m.id] || m.url}
-    alt={m.caption || "Media"}
-    className="w-full h-full object-cover cursor-pointer"
-    onClick={() => setZoomImage({ url: mediaUrlMap[m.id] || m.url, caption: m.caption })}
-  />
 
-  {/* Delete button */}
-  <button
-    type="button"
-    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow"
-    onClick={() =>
-      updateFinding(f.id, {
-        media: f.media.filter((x) => x.id !== m.id),
-      })
-    }
-  >
-    <Trash2 className="w-4 h-4 text-red-500" />
-  </button>
+                                  {f.media.map((m) => {
+                                    const hasSignedUrl = !isSupabaseUrl(m.url) || !!mediaUrlMap[m.id];
+                                    const resolvedUrl = hasSignedUrl ? mediaUrlMap[m.id] || m.url : undefined;
+                                    return (
+                                      <div key={m.id} className="relative w-24 h-24 border rounded overflow-hidden">
+                                        {hasSignedUrl ? (
+                                          <img
+                                            src={resolvedUrl}
+                                            alt={m.caption || "Media"}
+                                            className="w-full h-full object-cover cursor-pointer"
+                                            onClick={() =>
+                                              hasSignedUrl && setZoomImage({ url: resolvedUrl!, caption: m.caption })
+                                            }
+                                          />
+                                        ) : (
+                                          <div className="w-full h-full bg-muted" />
+                                        )}
 
-  {/* Annotate button */}
-  {m.type === "image" && (
-    <button
-      type="button"
-      className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
-                       onClick={() => {
-                        const currentFinding = activeSection?.findings.find(f => 
-                          f.media.some(media => media.id === m.id)
-                        );
-                        
-                        if (!currentFinding) {
-                          toast({ title: "Error", description: "Could not find the finding for this media item", variant: "destructive" });
-                          return;
-                        }
-                        
-                        nav(`/reports/${id}/annotate/${currentFinding.id}/${m.id}`);
-                      }}
-    >
-      <Edit3 className="w-4 h-4 text-orange-500" />
-    </button>
-  )}
+                                        {/* Delete button */}
+                                        <button
+                                          type="button"
+                                          className="absolute top-1 right-1 bg-white rounded-full p-1 shadow"
+                                          onClick={() =>
+                                            updateFinding(f.id, {
+                                              media: f.media.filter((x) => x.id !== m.id),
+                                            })
+                                          }
+                                        >
+                                          <Trash2 className="w-4 h-4 text-red-500" />
+                                        </button>
 
-  {/* AI Analysis button */}
-  <button
-    type="button"
-    className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow"
-    onClick={() => {
-      setAiDialogFindingId(f.id);
-      setAiDialogImages([{ id: m.id, url: mediaUrlMap[m.id] || m.url, caption: m.caption }]);
-      setAiDialogOpen(true);
-    }}
-  >
-    <Wand2 className="w-4 h-4 text-blue-500" />
-  </button>
-</div>
+                                        {/* Annotate button */}
+                                        {m.type === "image" && (
+                                          <button
+                                            type="button"
+                                            className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
+                                            onClick={() => {
+                                              const currentFinding = activeSection?.findings.find(f =>
+                                                f.media.some(media => media.id === m.id)
+                                              );
 
-                                ))}
+                                              if (!currentFinding) {
+                                                toast({ title: "Error", description: "Could not find the finding for this media item", variant: "destructive" });
+                                                return;
+                                              }
+
+                                              nav(`/reports/${id}/annotate/${currentFinding.id}/${m.id}`);
+                                            }}
+                                          >
+                                            <Edit3 className="w-4 h-4 text-orange-500" />
+                                          </button>
+                                        )}
+
+                                        {/* AI Analysis button */}
+                                        <button
+                                          type="button"
+                                          className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow"
+                                          onClick={() => {
+                                            if (!hasSignedUrl) return;
+                                            setAiDialogFindingId(f.id);
+                                            setAiDialogImages([{ id: m.id, url: resolvedUrl!, caption: m.caption }]);
+                                            setAiDialogOpen(true);
+                                          }}
+                                        >
+                                          <Wand2 className="w-4 h-4 text-blue-500" />
+                                        </button>
+                                      </div>
+                                    );
+                                  })}
+
                             
                                 {/* Add new media */}
                                 <div className="flex gap-2">
