@@ -47,7 +47,17 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
             });
             
             console.log("📐 Loading design JSON...");
-            canvas.loadFromJSON(cp.design_json as any, () => {
+            const [organization, inspector] = await Promise.all([
+              getMyOrganization(),
+              getMyProfile()
+            ]);
+            let designJson: any = await replaceCoverMergeFields(cp.design_json, {
+              organization,
+              inspector,
+              report
+            });
+            designJson = await replaceCoverImages(designJson, report, organization);
+            canvas.loadFromJSON(designJson as any, () => {
               console.log("✅ Canvas loaded successfully");
               canvas.renderAll();
               
@@ -66,7 +76,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
               
               // Clean up
               canvas.dispose();
-              document.body.removeChild(canvasEl);
+              canvasEl.remove();
             });
           } else {
             console.log("❌ No cover page template found");
