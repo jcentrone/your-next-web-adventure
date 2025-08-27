@@ -196,11 +196,12 @@ const ReportPreview: React.FC = () => {
             reportType: report?.reportType,
             hasCanvasRef: !!coverCanvasRef.current,
         });
-        if (!user || !report || report.reportType !== "home_inspection") return;
+        if (!user || !report || report.reportType !== "home_inspection" || !coverCanvasRef.current) return;
         const allMedia = report.sections.flatMap((s) => s.findings.flatMap((f) => f.media));
         const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
 
         let cancelled = false;
+        const canvasEl = coverCanvasRef.current;
         let coverCanvas: FabricCanvas | null = null;
         (async () => {
             if (needsSigned.length > 0) {
@@ -239,31 +240,29 @@ const ReportPreview: React.FC = () => {
 
                     if (cp && cp.design_json) {
                         if (!cancelled) setHasCoverPage(true);
-                        if (coverCanvasRef.current) {
-                            // Initialize Fabric on the existing canvas element
-                            coverCanvas = new FabricCanvas(coverCanvasRef.current, {
-                                width: 800,
-                                height: 1000
-                            });
 
-                            // First replace merge fields with actual data
-                            const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
-                                organization: organization ?? null,
-                                inspector,
-                                report
-                            });
-                            console.log("after replaceCoverMergeFields", mergeFieldsReplaced);
+                        // Initialize Fabric on the existing canvas element
+                        coverCanvas = new FabricCanvas(canvasEl, {
+                            width: 800,
+                            height: 1000
+                        });
 
-                            // Then replace image placeholders with actual images
-                            const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization ?? null);
-                            console.log("after replaceCoverImages", imagesReplaced);
+                        // First replace merge fields with actual data
+                        const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
+                            organization: organization ?? null,
+                            inspector,
+                            report
+                        });
+                        console.log("after replaceCoverMergeFields", mergeFieldsReplaced);
 
-                            coverCanvas.loadFromJSON(imagesReplaced as any, () => {
-                                console.log("loadFromJSON success", coverCanvas.getObjects().length);
-                                coverCanvas?.renderAll();
-                                setHasCoverPage(true);
-                            });
-                        }
+                        // Then replace image placeholders with actual images
+                        const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization ?? null);
+                        console.log("after replaceCoverImages", imagesReplaced);
+
+                        coverCanvas.loadFromJSON(imagesReplaced as any, () => {
+                            console.log("loadFromJSON success", coverCanvas.getObjects().length);
+                            coverCanvas?.renderAll();
+                        });
                     } else if (!cancelled) {
                         console.warn("No cover page template found; hasCoverPage set to false");
                         setHasCoverPage(false);
@@ -278,7 +277,7 @@ const ReportPreview: React.FC = () => {
             cancelled = true;
             coverCanvas?.dispose();
         };
-    }, [user, report]);
+    }, [user, report, coverCanvasRef]);
 
     if (!report) return null;
 
