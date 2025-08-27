@@ -19,7 +19,7 @@ import SectionInfoDisplay from "@/components/reports/SectionInfoDisplay";
 import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
 import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
-import { Canvas as FabricCanvas } from "fabric";
+import { fabric } from "fabric";
 import { replaceCoverImages } from "@/utils/replaceCoverImages";
 import { replaceCoverMergeFields } from "@/utils/replaceCoverMergeFields";
 import { getMyOrganization, getMyProfile } from "@/integrations/supabase/organizationsApi";
@@ -90,6 +90,7 @@ const ReportPreview: React.FC = () => {
     const [coverUrl, setCoverUrl] = React.useState<string>("");
     const [hasCoverPage, setHasCoverPage] = React.useState(false);
     const coverCanvasRef = React.useRef<HTMLCanvasElement>(null);
+    const fabricRef = React.useRef<fabric.Canvas | null>(null);
     const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
     const pdfRef = React.useRef<HTMLDivElement>(null);
 
@@ -191,18 +192,16 @@ const ReportPreview: React.FC = () => {
 
     // Resolve signed URLs for all media in the report (only when authenticated)
     React.useEffect(() => {
-        console.log("cover page effect start", {
-            reportId: report?.id,
-            reportType: report?.reportType,
-            hasCanvasRef: !!coverCanvasRef.current,
-        });
         if (!user || !report || report.reportType !== "home_inspection" || !coverCanvasRef.current) return;
+        if (!fabricRef.current) {
+            fabricRef.current = new fabric.Canvas(coverCanvasRef.current);
+        } else {
+            fabricRef.current.clear();
+        }
         const allMedia = report.sections.flatMap((s) => s.findings.flatMap((f) => f.media));
         const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
 
         let cancelled = false;
-        const canvasEl = coverCanvasRef.current;
-        let coverCanvas: FabricCanvas | null = null;
         (async () => {
             if (needsSigned.length > 0) {
                 const entries = await Promise.all(
@@ -236,16 +235,9 @@ const ReportPreview: React.FC = () => {
                         getMyOrganization(),
                         getMyProfile()
                     ]);
-                    console.log("assigned cover page", cp);
 
                     if (cp && cp.design_json) {
                         if (!cancelled) setHasCoverPage(true);
-
-                        // Initialize Fabric on the existing canvas element
-                        coverCanvas = new FabricCanvas(canvasEl, {
-                            width: 800,
-                            height: 1000
-                        });
 
                         // First replace merge fields with actual data
                         const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
@@ -253,18 +245,17 @@ const ReportPreview: React.FC = () => {
                             inspector,
                             report
                         });
-                        console.log("after replaceCoverMergeFields", mergeFieldsReplaced);
 
                         // Then replace image placeholders with actual images
                         const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization ?? null);
-                        console.log("after replaceCoverImages", imagesReplaced);
 
-                        coverCanvas.loadFromJSON(imagesReplaced as any, () => {
-                            console.log("loadFromJSON success", coverCanvas.getObjects().length);
-                            coverCanvas?.renderAll();
-                        });
+                        fabricRef.current?.loadFromJSON(
+                            imagesReplaced as unknown as Record<string, unknown>,
+                            () => {
+                                fabricRef.current?.renderAll();
+                            }
+                        );
                     } else if (!cancelled) {
-                        console.warn("No cover page template found; hasCoverPage set to false");
                         setHasCoverPage(false);
                     }
                 } catch (err) {
@@ -275,9 +266,15 @@ const ReportPreview: React.FC = () => {
 
         return () => {
             cancelled = true;
-            coverCanvas?.dispose();
         };
-    }, [user, report, coverCanvasRef]);
+    }, [report?.id, coverCanvasRef.current]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    React.useEffect(() => {
+        return () => {
+            fabricRef.current?.dispose();
+            fabricRef.current = null;
+        };
+    }, []);
 
     if (!report) return null;
 
