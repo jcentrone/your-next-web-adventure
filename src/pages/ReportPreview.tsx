@@ -191,6 +191,11 @@ const ReportPreview: React.FC = () => {
 
     // Resolve signed URLs for all media in the report (only when authenticated)
     React.useEffect(() => {
+        console.log("cover page effect start", {
+            reportId: report?.id,
+            reportType: report?.reportType,
+            hasCanvasRef: !!coverCanvasRef.current,
+        });
         if (!user || !report || report.reportType !== "home_inspection") return;
         const allMedia = report.sections.flatMap((s) => s.findings.flatMap((f) => f.media));
         const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
@@ -230,6 +235,7 @@ const ReportPreview: React.FC = () => {
                         getMyOrganization(),
                         getMyProfile()
                     ]);
+                    console.log("assigned cover page", cp);
 
                     if (cp && cp.design_json) {
                         // Initialize Fabric on the existing canvas element
@@ -244,17 +250,22 @@ const ReportPreview: React.FC = () => {
                             inspector,
                             report
                         });
+                        console.log("after replaceCoverMergeFields", mergeFieldsReplaced);
 
                         // Then replace image placeholders with actual images
                         const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization);
+                        console.log("after replaceCoverImages", imagesReplaced);
 
                         coverCanvas.loadFromJSON(imagesReplaced as any, () => {
+                            console.log("loadFromJSON success");
                             coverCanvas?.renderAll();
                             if (!cancelled) {
                                 setHasCoverPage(true);
+                                console.log("hasCoverPage", true);
                             }
                         });
                     } else if (!cancelled) {
+                        console.warn("No cover page template found; hasCoverPage set to false");
                         setHasCoverPage(false);
                     }
                 } catch (err) {
