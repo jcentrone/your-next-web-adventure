@@ -264,7 +264,7 @@ const ReportPreview: React.FC = () => {
             }
         })();
 
-        return () => {
+         return () => {
             cancelled = true;
         };
     }, [report?.id, coverCanvasRef.current]); // eslint-disable-line react-hooks/exhaustive-deps
