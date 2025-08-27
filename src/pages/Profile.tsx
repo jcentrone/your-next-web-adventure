@@ -492,8 +492,8 @@ const ProfilePage: React.FC = () => {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <Badge variant={profile.is_individual ? "default" : "secondary"}>
-                                        {profile.is_individual ? "Individual Inspector" : "Organization Member"}
+                                    <Badge variant={!organization ? "default" : "secondary"}>
+                                        {!organization ? "Individual Inspector" : "Organization Member"}
                                     </Badge>
                                     {organization && (
                                         <Badge variant="outline">{organization.name}</Badge>

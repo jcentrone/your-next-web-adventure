@@ -11,7 +11,6 @@ import { CheckCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/use-toast";
-import { createOrganization, acceptInvitation } from "@/integrations/supabase/organizationsApi";
 
 const AuthPage: React.FC = () => {
   const nav = useNavigate();

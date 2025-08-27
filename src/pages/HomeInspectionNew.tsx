@@ -15,7 +15,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
 import { contactsApi } from "@/integrations/supabase/crmApi";
-import { supabase } from "@/integrations/supabase/client";
+import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -73,13 +73,7 @@ const HomeInspectionNew: React.FC = () => {
   const onSubmit = async (values: Values) => {
     try {
       if (user) {
-        // Get user's organization if they have one
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('organization_id')
-          .eq('user_id', user.id)
-          .single();
-
+        const organization = await getMyOrganization();
         const report = await dbCreateReport(
           {
             title: values.title,
@@ -90,7 +84,7 @@ const HomeInspectionNew: React.FC = () => {
             reportType: "home_inspection",
           },
           user.id,
-          profile?.organization_id || undefined
+          organization?.id
         );
         toast({ title: "Home inspection report created" });
         nav(`/reports/${report.id}`);
