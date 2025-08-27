@@ -88,7 +88,8 @@ const ReportPreview: React.FC = () => {
     const [report, setReport] = React.useState<Report | null>(null);
     const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
     const [coverUrl, setCoverUrl] = React.useState<string>("");
-    const [coverPage, setCoverPage] = React.useState<string | null>(null);
+    const [hasCoverPage, setHasCoverPage] = React.useState(false);
+    const coverCanvasRef = React.useRef<HTMLCanvasElement>(null);
     const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
     const pdfRef = React.useRef<HTMLDivElement>(null);
 
@@ -196,7 +197,6 @@ const ReportPreview: React.FC = () => {
 
         let cancelled = false;
         let coverCanvas: FabricCanvas | null = null;
-        let canvasDisposed = false;
         (async () => {
             if (needsSigned.length > 0) {
                 const entries = await Promise.all(
@@ -223,39 +223,39 @@ const ReportPreview: React.FC = () => {
                 }
             }
             // assigned cover page
-            if (user) {
+            if (user && coverCanvasRef.current) {
                 try {
                     const [cp, organization, inspector] = await Promise.all([
                         coverPagesApi.getAssignedCoverPage(user.id, report.reportType),
                         getMyOrganization(),
                         getMyProfile()
                     ]);
-                    
+
                     if (cp && cp.design_json) {
-                        const canvasEl = document.createElement("canvas");
-                        coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
-                        
+                        // Initialize Fabric on the existing canvas element
+                        coverCanvas = new FabricCanvas(coverCanvasRef.current, {
+                            width: 800,
+                            height: 1000
+                        });
+
                         // First replace merge fields with actual data
                         const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
                             organization,
                             inspector,
                             report
                         });
-                        
+
                         // Then replace image placeholders with actual images
                         const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization);
-                        
+
                         coverCanvas.loadFromJSON(imagesReplaced as any, () => {
                             coverCanvas?.renderAll();
-                            const url = coverCanvas?.toDataURL({ format: "png", multiplier: 2 });
-                            if (!cancelled && url) {
-                                setCoverPage(url);
+                            if (!cancelled) {
+                                setHasCoverPage(true);
                             }
-                            coverCanvas?.dispose();
-                            canvasDisposed = true;
                         });
                     } else if (!cancelled) {
-                        setCoverPage(null);
+                        setHasCoverPage(false);
                     }
                 } catch (err) {
                     console.error("Error generating cover page:", err);
@@ -265,9 +265,7 @@ const ReportPreview: React.FC = () => {
 
         return () => {
             cancelled = true;
-            if (!canvasDisposed) {
-                coverCanvas?.dispose();
-            }
+            coverCanvas?.dispose();
         };
     }, [user, report]);
 
@@ -365,14 +363,14 @@ const ReportPreview: React.FC = () => {
                 </Button>
             </div>
             {/* Custom Cover Page from Template */}
-            {coverPage && (
+            {hasCoverPage && (
                 <section className="page-break flex justify-center">
-                    <img src={coverPage} alt="Cover Page" className="max-w-full h-auto" />
+                    <canvas ref={coverCanvasRef} width={800} height={1000} className="max-w-full h-auto" />
                 </section>
             )}
-            
+
             {/* Fallback Cover Page (only if no custom cover page) */}
-            {!coverPage && (
+            {!hasCoverPage && (
                 <article className={tpl.container}>
                     <section className={`${tpl.cover} page-break`}>
                         <header className="mb-4 text-center">
