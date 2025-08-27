@@ -25,63 +25,65 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
     React.useEffect(() => {
       if (!user) return;
       let cancelled = false;
-      let coverCanvas: FabricCanvas | null = null;
-      let canvasDisposed = false;
+      
       (async () => {
         try {
-          console.log("🎨 Starting cover page generation for report type:", report.reportType);
-          const [cp, organization, inspector] = await Promise.all([
-            coverPagesApi.getAssignedCoverPage(user.id, report.reportType),
-            getMyOrganization(),
-            getMyProfile()
-          ]);
-          
-          console.log("📋 Cover page data:", { cp: !!cp, organization: !!organization, inspector: !!inspector });
+          console.log("🎨 Loading cover page for report type:", report.reportType);
+          const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
           
           if (cp && cp.design_json) {
-            console.log("🎯 Found cover page template, generating canvas...");
-            const canvasEl = document.createElement("canvas");
-            coverCanvas = new FabricCanvas(canvasEl, { width: 800, height: 1000 });
+            console.log("📋 Found cover page template, creating canvas...");
             
-            // First replace merge fields with actual data
-            console.log("🔄 Replacing merge fields...");
-            const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
-              organization,
-              inspector,
-              report
+            // Create canvas element and add to DOM temporarily
+            const canvasEl = document.createElement("canvas");
+            canvasEl.width = 800;
+            canvasEl.height = 1000;
+            document.body.appendChild(canvasEl);
+            
+            const canvas = new FabricCanvas(canvasEl, { 
+              width: 800, 
+              height: 1000,
+              backgroundColor: '#ffffff'
             });
             
-            // Then replace image placeholders with actual images
-            console.log("🖼️ Replacing images...");
-            const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization);
-            
-            console.log("📐 Loading JSON into canvas...");
-            coverCanvas.loadFromJSON(imagesReplaced as any, () => {
-              console.log("✅ Canvas loaded, rendering...");
-              coverCanvas?.renderAll();
-              const url = coverCanvas?.toDataURL({ format: "png", multiplier: 2 });
+            console.log("📐 Loading design JSON...");
+            canvas.loadFromJSON(cp.design_json as any, () => {
+              console.log("✅ Canvas loaded successfully");
+              canvas.renderAll();
+              
+              // Generate image
+              const url = canvas.toDataURL({ 
+                format: "png", 
+                multiplier: 1,
+                quality: 0.8 
+              });
+              
               console.log("🖼️ Generated cover page URL:", url ? "✅ Success" : "❌ Failed");
+              
               if (!cancelled && url) {
                 setCoverPage(url);
               }
-              coverCanvas?.dispose();
-              canvasDisposed = true;
+              
+              // Clean up
+              canvas.dispose();
+              document.body.removeChild(canvasEl);
             });
           } else {
-            console.log("❌ No cover page template found for report type:", report.reportType);
+            console.log("❌ No cover page template found");
             if (!cancelled) {
               setCoverPage(null);
             }
           }
         } catch (err) {
-          console.error("❌ Error generating cover page:", err);
+          console.error("❌ Error loading cover page:", err);
+          if (!cancelled) {
+            setCoverPage(null);
+          }
         }
       })();
+      
       return () => {
         cancelled = true;
-        if (!canvasDisposed) {
-          coverCanvas?.dispose();
-        }
       };
     }, [user, report.reportType]);
     // Only render PDFs for home inspection reports for now
