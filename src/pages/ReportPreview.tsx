@@ -99,7 +99,7 @@ const ReportPreview: React.FC = () => {
     // react-to-print: use off-screen container (must be measurable, not display:none)
     const pdfContainerRef = React.useRef<HTMLDivElement>(null);
     const handlePrint = useReactToPrint({
-        content: () => pdfContainerRef.current,
+        contentRef: pdfContainerRef,              // ✅ v3 API
         documentTitle: `${report?.title || "Report"} - ${report?.clientName || "Client"}`,
     });
 
@@ -273,11 +273,185 @@ const ReportPreview: React.FC = () => {
                         report,
                     });
 
-                    const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization ?? null);
+                    const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization ?? null, inspector);
 
-                    fabricRef.current.loadFromJSON(imagesReplaced as unknown as Record<string, unknown>, () => {
-                        fabricRef.current?.requestRenderAll();
-                    });
+
+                    // --- replace your loadFromJSON block with this ---
+                    const DEBUG_COVER_FIT = true;
+
+// Decide which root to pass to Fabric: {objects:[...]} or {canvas:{objects:[...]}}
+                    const hasCanvasWrapper =
+                        imagesReplaced &&
+                        typeof imagesReplaced === "object" &&
+                        imagesReplaced.canvas &&
+                        typeof imagesReplaced.canvas === "object" &&
+                        Array.isArray(imagesReplaced.canvas.objects);
+
+                    const payloadRoot = hasCanvasWrapper ? imagesReplaced.canvas : imagesReplaced;
+
+                    if (DEBUG_COVER_FIT) {
+                        console.groupCollapsed("[cover-fit] preparing loadFromJSON");
+                        console.log("  hasCanvasWrapper:", hasCanvasWrapper);
+                        console.log("  payloadRoot keys:", Object.keys(payloadRoot || {}));
+                        console.log(
+                            "  objects length:",
+                            Array.isArray(payloadRoot?.objects) ? payloadRoot.objects.length : 0
+                        );
+                        console.groupEnd();
+                    }
+
+                    fabricRef.current.loadFromJSON(
+                        payloadRoot as any,
+                        () => {
+                            const c = fabricRef.current!;
+                            const objects = c.getObjects();
+                            const isImage = (o: any) => (o?.type?.toLowerCase?.() ?? "") === "image";
+
+                            if (DEBUG_COVER_FIT) {
+                                console.groupCollapsed(
+                                    `[cover-fit] loadFromJSON callback: objs=${objects.length}, canvas {w=${c.getWidth()}, h=${c.getHeight()}, zoom=${c.getZoom()}}`
+                                );
+                                console.log(
+                                    "  object types:",
+                                    objects.map((o: any) => o?.type)
+                                );
+                            }
+
+                            const getIntrinsicSize = (o: any) => {
+                                // Prefer Fabric’s width/height after image element has been attached
+                                if (
+                                    typeof o.width === "number" &&
+                                    o.width > 0 &&
+                                    typeof o.height === "number" &&
+                                    o.height > 0
+                                ) {
+                                    return {iw: o.width as number, ih: o.height as number, via: "fabric.width/height"};
+                                }
+                                const el: any =
+                                    o.getElement?.() ??
+                                    (o as any)._originalElement ??
+                                    (o as any)._element ??
+                                    null;
+                                const iw = el?.naturalWidth ?? el?.videoWidth ?? el?.width ?? 1;
+                                const ih = el?.naturalHeight ?? el?.videoHeight ?? el?.height ?? 1;
+                                return {iw, ih, via: el ? "element.naturalSize" : "fallback=1"};
+                            };
+
+                            objects.forEach((o: any, idx: number) => {
+                                if (!isImage(o)) return;
+
+                                const frameW = Number.isFinite(o._frameW) ? o._frameW : (o.width ?? 0);
+                                const frameH = Number.isFinite(o._frameH) ? o._frameH : (o.height ?? 0);
+                                const frameLeft = Number.isFinite(o._frameLeft) ? o._frameLeft : (o.left ?? 0);
+                                const frameTop = Number.isFinite(o._frameTop) ? o._frameTop : (o.top ?? 0);
+
+                                const {iw, ih, via} = getIntrinsicSize(o);
+                                const fitMode = (o.objectFit || o?.metadata?.objectFit || "contain").toLowerCase();
+
+                                if (DEBUG_COVER_FIT) {
+                                    console.groupCollapsed(`[cover-fit] #${idx} image`);
+                                    console.log("  src:", (o as any).src);
+                                    console.log("  frame:", {frameLeft, frameTop, frameW, frameH});
+                                    console.log("  intrinsic:", {iw, ih, via});
+                                    console.log("  before:", {
+                                        left: o.left,
+                                        top: o.top,
+                                        scaleX: o.scaleX,
+                                        scaleY: o.scaleY,
+                                        getScaledW: o.getScaledWidth?.(),
+                                        getScaledH: o.getScaledHeight?.(),
+                                        objectFit: fitMode,
+                                        clipPath: !!o.clipPath,
+                                    });
+                                }
+
+                                if (frameW > 0 && frameH > 0 && iw > 0 && ih > 0) {
+                                    const sx = frameW / iw;
+                                    const sy = frameH / ih;
+                                    const scale = fitMode === "cover" ? Math.max(sx, sy) : Math.min(sx, sy);
+
+                                    o.set({scaleX: scale, scaleY: scale});
+
+                                    const drawnW = iw * scale;
+                                    const drawnH = ih * scale;
+                                    const left = frameLeft + (frameW - drawnW) / 2;
+                                    const top = frameTop + (frameH - drawnH) / 2;
+
+                                    o.set({left, top});
+
+                                    if (fitMode === "cover") {
+                                        o.set({
+                                            clipPath: new fabric.Rect({
+                                                left: frameLeft,
+                                                top: frameTop,
+                                                width: frameW,
+                                                height: frameH,
+                                                absolutePositioned: true,
+                                            }),
+                                        });
+                                    } else if (o.clipPath) {
+                                        o.set({clipPath: undefined});
+                                    }
+
+                                    // Remove design-time styles & enforce CORS
+                                    o.set({
+                                        crossOrigin: o.crossOrigin ?? "anonymous",
+                                        stroke: undefined,
+                                        strokeWidth: 0,
+                                        strokeDashArray: undefined,
+                                        shadow: undefined,
+                                        backgroundColor: undefined,
+                                    });
+
+                                    delete (o as any)._frameW;
+                                    delete (o as any)._frameH;
+                                    delete (o as any)._frameLeft;
+                                    delete (o as any)._frameTop;
+
+                                    o.setCoords();
+
+                                    if (DEBUG_COVER_FIT) {
+                                        console.log("  computed:", {sx, sy, scale, drawnW, drawnH, left, top});
+                                        console.log("  after:", {
+                                            left: o.left,
+                                            top: o.top,
+                                            scaleX: o.scaleX,
+                                            scaleY: o.scaleY,
+                                            getScaledW: o.getScaledWidth?.(),
+                                            getScaledH: o.getScaledHeight?.(),
+                                            clipPath: !!o.clipPath,
+                                        });
+                                        console.groupEnd();
+                                    }
+                                } else if (DEBUG_COVER_FIT) {
+                                    console.warn("  ⚠️ skipping fit: invalid frame or intrinsic size", {
+                                        frameW,
+                                        frameH,
+                                        iw,
+                                        ih
+                                    });
+                                    console.groupEnd();
+                                }
+                            });
+
+                            if (DEBUG_COVER_FIT) console.groupEnd();
+                            c.requestRenderAll();
+                        },
+                        // Reviver: ensure images get crossOrigin (and log it)
+                        (serialized: any, obj: fabric.Object) => {
+                            if ((obj as any)?.type === "image" && typeof (obj as any).set === "function") {
+                                const before = (obj as any).crossOrigin;
+                                (obj as any).set("crossOrigin", (obj as any).crossOrigin ?? "anonymous");
+                                if (DEBUG_COVER_FIT) {
+                                    console.log(
+                                        `[cover-fit] reviver(image): crossOrigin ${before ?? "<unset>"} -> ${(obj as any).crossOrigin}`
+                                    );
+                                }
+                            }
+                        }
+                    );
+
+
                 } else if (!cancelled) {
                     setHasCoverPage(false);
                 }
