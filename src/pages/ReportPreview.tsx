@@ -191,30 +191,33 @@ const ReportPreview: React.FC = () => {
     }, [id, user]);
 
     
-    // Resolve signed URLs for all media in the report (only when authenticated)
+    // Resolve signed URLs for all media and generate cover page when authenticated
     React.useEffect(() => {
-        if (!user || !report || report.reportType !== "home_inspection") return;
-
-        const allMedia = report.sections.flatMap((s) => s.findings.flatMap((f) => f.media));
-        const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
+        if (!user || !report) return;
 
         let cancelled = false;
         (async () => {
-            if (needsSigned.length > 0) {
-                const entries = await Promise.all(
-                    needsSigned.map(async (m) => {
-                        const signed = await getSignedUrlFromSupabaseUrl(m.url);
-                        return [m.id, signed] as const;
-                    })
-                );
-                if (!cancelled) {
-                    setMediaUrlMap((prev) => {
-                        const next = {...prev};
-                        for (const [id, url] of entries) next[id] = url;
-                        return next;
-                    });
+            if (report.reportType === "home_inspection") {
+                const allMedia = report.sections.flatMap((s) => s.findings.flatMap((f) => f.media));
+                const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
+
+                if (needsSigned.length > 0) {
+                    const entries = await Promise.all(
+                        needsSigned.map(async (m) => {
+                            const signed = await getSignedUrlFromSupabaseUrl(m.url);
+                            return [m.id, signed] as const;
+                        })
+                    );
+                    if (!cancelled) {
+                        setMediaUrlMap((prev) => {
+                            const next = {...prev};
+                            for (const [id, url] of entries) next[id] = url;
+                            return next;
+                        });
+                    }
                 }
             }
+
             // cover image
             if (report.coverImage) {
                 if (isSupabaseUrl(report.coverImage)) {
@@ -224,68 +227,67 @@ const ReportPreview: React.FC = () => {
                     if (!cancelled) setCoverUrl(report.coverImage);
                 }
             }
+
             // assigned cover page
-            if (user) {
-                try {
-                    const [cp, organization, inspector] = await Promise.all([
-                        coverPagesApi.getAssignedCoverPage(user.id, report.reportType),
-                        getMyOrganization(),
-                        getMyProfile()
-                    ]);
+            try {
+                const [cp, organization, inspector] = await Promise.all([
+                    coverPagesApi.getAssignedCoverPage(user.id, report.reportType),
+                    getMyOrganization(),
+                    getMyProfile()
+                ]);
 
-                    if (cp && cp.design_json && coverCanvasRef.current) {
-                        if (!cancelled) setHasCoverPage(true);
+                if (cp && cp.design_json && coverCanvasRef.current) {
+                    if (!cancelled) setHasCoverPage(true);
 
-                        // Initialize Fabric canvas
-                        if (!fabricRef.current) {
-                            fabricRef.current = new Canvas(coverCanvasRef.current, {
-                                width: 850,
-                                height: 1100
-                            });
-                        } else {
-                            fabricRef.current.clear();
-                            fabricRef.current.setDimensions({ width: 850, height: 1100 });
-                        }
-
-                        // Parse design JSON if it's a string
-                        const designJson =
-                            typeof cp.design_json === "string"
-                                ? JSON.parse(cp.design_json)
-                                : cp.design_json;
-
-                        // First replace merge fields with actual data
-                        const mergeFieldsReplaced = await replaceCoverMergeFields(designJson, {
-                            organization: organization ?? null,
-                            inspector,
-                            report
+                    // Initialize Fabric canvas
+                    if (!fabricRef.current) {
+                        fabricRef.current = new Canvas(coverCanvasRef.current, {
+                            width: 850,
+                            height: 1100
                         });
-
-                        // Then replace image placeholders with actual images
-                        const imagesReplaced = await replaceCoverImages(
-                            mergeFieldsReplaced,
-                            report,
-                            organization ?? null
-                        );
-
-                        fabricRef.current.loadFromJSON(
-                            imagesReplaced as unknown as Record<string, unknown>,
-                            () => {
-                                fabricRef.current?.renderAll();
-                            }
-                        );
-                    } else if (!cancelled) {
-                        setHasCoverPage(false);
+                    } else {
+                        fabricRef.current.clear();
+                        fabricRef.current.setDimensions({ width: 850, height: 1100 });
                     }
-                } catch (err) {
-                    console.error("Error generating cover page:", err);
+
+                    // Parse design JSON if it's a string
+                    const designJson =
+                        typeof cp.design_json === "string"
+                            ? JSON.parse(cp.design_json)
+                            : cp.design_json;
+
+                    // First replace merge fields with actual data
+                    const mergeFieldsReplaced = await replaceCoverMergeFields(designJson, {
+                        organization: organization ?? null,
+                        inspector,
+                        report
+                    });
+
+                    // Then replace image placeholders with actual images
+                    const imagesReplaced = await replaceCoverImages(
+                        mergeFieldsReplaced,
+                        report,
+                        organization ?? null
+                    );
+
+                    fabricRef.current.loadFromJSON(
+                        imagesReplaced as unknown as Record<string, unknown>,
+                        () => {
+                            fabricRef.current?.renderAll();
+                        }
+                    );
+                } else if (!cancelled) {
+                    setHasCoverPage(false);
                 }
+            } catch (err) {
+                console.error("Error generating cover page:", err);
             }
         })();
 
-         return () => {
+        return () => {
             cancelled = true;
         };
-    }, [report?.id, coverCanvasRef.current]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [report?.id, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
     React.useEffect(() => {
         return () => {
