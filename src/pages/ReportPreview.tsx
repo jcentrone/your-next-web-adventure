@@ -19,7 +19,7 @@ import SectionInfoDisplay from "@/components/reports/SectionInfoDisplay";
 import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
 import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
-import { fabric } from "fabric";
+import { Canvas } from "fabric";
 import { replaceCoverImages } from "@/utils/replaceCoverImages";
 import { replaceCoverMergeFields } from "@/utils/replaceCoverMergeFields";
 import { getMyOrganization, getMyProfile } from "@/integrations/supabase/organizationsApi";
@@ -90,7 +90,7 @@ const ReportPreview: React.FC = () => {
     const [coverUrl, setCoverUrl] = React.useState<string>("");
     const [hasCoverPage, setHasCoverPage] = React.useState(false);
     const coverCanvasRef = React.useRef<HTMLCanvasElement>(null);
-    const fabricRef = React.useRef<fabric.Canvas | null>(null);
+    const fabricRef = React.useRef<Canvas | null>(null);
     const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
     const pdfRef = React.useRef<HTMLDivElement>(null);
 
@@ -194,7 +194,7 @@ const ReportPreview: React.FC = () => {
     React.useEffect(() => {
         if (!user || !report || report.reportType !== "home_inspection" || !coverCanvasRef.current) return;
         if (!fabricRef.current) {
-            fabricRef.current = new fabric.Canvas(coverCanvasRef.current);
+            fabricRef.current = new Canvas(coverCanvasRef.current);
         } else {
             fabricRef.current.clear();
         }

@@ -100,7 +100,7 @@ export async function getMyOrganization(): Promise<Organization | null> {
     .single();
 
   if (error) {
-    if (error.code === 'PGRST116' || error.status === 403) {
+    if (error.code === 'PGRST116') {
       return null;
     }
     throw error;
