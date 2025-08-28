@@ -191,50 +191,6 @@ const ReportPreview: React.FC = () => {
     }, [id, user]);
 
     
-    // Cover page generation effect  
-    React.useEffect(() => {
-        if (!user || !report || !coverCanvasRef.current) return;
-        
-        const generateCoverPage = async () => {
-            try {
-                console.log('🎨 Starting cover page generation for report preview...');
-                
-                // Get cover page assignment for this report type  
-                const assignment = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType || 'home_inspection');
-                console.log('📋 Cover page assignment:', assignment);
-                
-                if (!assignment?.design_json) {
-                    console.log('❌ No cover page assignment found');
-                    return;
-                }
-
-                // Initialize Fabric canvas
-                if (!fabricRef.current) {
-                    fabricRef.current = new Canvas(coverCanvasRef.current, {
-                        width: 850,
-                        height: 1100
-                    });
-                } else {
-                    fabricRef.current.clear();
-                    fabricRef.current.setDimensions({ width: 850, height: 1100 });
-                }
-
-                // Load the design directly from JSON
-                await fabricRef.current.loadFromJSON(assignment.design_json as string);
-                
-                console.log('📐 Design loaded successfully');
-                
-                console.log('✅ Cover page loaded successfully');
-                fabricRef.current.renderAll();
-                
-            } catch (error) {
-                console.error('❌ Error generating cover page for preview:', error);
-            }
-        };
-        
-        generateCoverPage();
-    }, [user, report]);
-
     // Resolve signed URLs for all media in the report (only when authenticated)
     React.useEffect(() => {
         if (!user || !report || report.reportType !== "home_inspection") return;
@@ -277,20 +233,41 @@ const ReportPreview: React.FC = () => {
                         getMyProfile()
                     ]);
 
-                    if (cp && cp.design_json) {
+                    if (cp && cp.design_json && coverCanvasRef.current) {
                         if (!cancelled) setHasCoverPage(true);
 
+                        // Initialize Fabric canvas
+                        if (!fabricRef.current) {
+                            fabricRef.current = new Canvas(coverCanvasRef.current, {
+                                width: 850,
+                                height: 1100
+                            });
+                        } else {
+                            fabricRef.current.clear();
+                            fabricRef.current.setDimensions({ width: 850, height: 1100 });
+                        }
+
+                        // Parse design JSON if it's a string
+                        const designJson =
+                            typeof cp.design_json === "string"
+                                ? JSON.parse(cp.design_json)
+                                : cp.design_json;
+
                         // First replace merge fields with actual data
-                        const mergeFieldsReplaced = await replaceCoverMergeFields(cp.design_json, {
+                        const mergeFieldsReplaced = await replaceCoverMergeFields(designJson, {
                             organization: organization ?? null,
                             inspector,
                             report
                         });
 
                         // Then replace image placeholders with actual images
-                        const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization ?? null);
+                        const imagesReplaced = await replaceCoverImages(
+                            mergeFieldsReplaced,
+                            report,
+                            organization ?? null
+                        );
 
-                        fabricRef.current?.loadFromJSON(
+                        fabricRef.current.loadFromJSON(
                             imagesReplaced as unknown as Record<string, unknown>,
                             () => {
                                 fabricRef.current?.renderAll();
