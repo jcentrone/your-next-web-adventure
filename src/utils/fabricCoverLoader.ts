@@ -135,7 +135,7 @@ function wrapImageInFrameGroup(
     const all = canvas.getObjects();
     const idx = all.indexOf(img);
     canvas.remove(img);
-    canvas.insertAt(group, Math.max(idx, 0), false);
+    canvas.insertAt(Math.max(idx, 0), group);
     group.setCoords();
 
     if (debug) {
@@ -255,6 +255,8 @@ export async function loadCoverDesignToCanvas(
                         const fit: "cover" | "contain" = String(
                             img?.data?.objectFit || (img as any).objectFit || img?.metadata?.objectFit || defaultFit
                         ).toLowerCase() as any;
+
+                        console.log("fit", fit);
 
                         if (debug) {
                             console.log("[cover-fit] BEFORE →", {
