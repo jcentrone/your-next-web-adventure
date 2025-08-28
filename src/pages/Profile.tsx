@@ -477,7 +477,7 @@ const ProfilePage: React.FC = () => {
                                         <Label htmlFor="phone">Phone</Label>
                                         <Input
                                             id="phone"
-                                            value={profile.phone || ""}
+                                            value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
                                             placeholder="(555) 123-4567"
                                         />
