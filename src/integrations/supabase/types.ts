@@ -304,36 +304,39 @@ export type Database = {
         Row: {
           color_palette_key: string | null
           created_at: string
+          design_json: Json | null
           id: string
           image_url: string | null
           name: string
+          report_types: string[]
           template_slug: string | null
           text_content: Json
-          design_json: Json
           updated_at: string
           user_id: string
         }
         Insert: {
           color_palette_key?: string | null
           created_at?: string
+          design_json?: Json | null
           id?: string
           image_url?: string | null
           name: string
+          report_types?: string[]
           template_slug?: string | null
           text_content?: Json
-          design_json?: Json
           updated_at?: string
           user_id: string
         }
         Update: {
           color_palette_key?: string | null
           created_at?: string
+          design_json?: Json | null
           id?: string
           image_url?: string | null
           name?: string
+          report_types?: string[]
           template_slug?: string | null
           text_content?: Json
-          design_json?: Json
           updated_at?: string
           user_id?: string
         }
@@ -556,14 +559,15 @@ export type Database = {
           archived: boolean
           client_name: string
           contact_id: string | null
+          county: string | null
           cover_image: string | null
-          cover_page_id: string | null
           created_at: string
           email: string | null
           final_comments: string | null
           id: string
           inspection_date: string
           insurance_company: string | null
+          ofStories: string | null
           organization_id: string | null
           phone_cell: string | null
           phone_home: string | null
@@ -583,14 +587,15 @@ export type Database = {
           archived?: boolean
           client_name: string
           contact_id?: string | null
+          county?: string | null
           cover_image?: string | null
-          cover_page_id?: string | null
           created_at?: string
           email?: string | null
           final_comments?: string | null
           id?: string
           inspection_date: string
           insurance_company?: string | null
+          ofStories?: string | null
           organization_id?: string | null
           phone_cell?: string | null
           phone_home?: string | null
@@ -610,14 +615,15 @@ export type Database = {
           archived?: boolean
           client_name?: string
           contact_id?: string | null
+          county?: string | null
           cover_image?: string | null
-          cover_page_id?: string | null
           created_at?: string
           email?: string | null
           final_comments?: string | null
           id?: string
           inspection_date?: string
           insurance_company?: string | null
+          ofStories?: string | null
           organization_id?: string | null
           phone_cell?: string | null
           phone_home?: string | null
@@ -638,13 +644,6 @@ export type Database = {
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reports_cover_page_id_fkey"
-            columns: ["cover_page_id"]
-            isOneToOne: false
-            referencedRelation: "cover_pages"
             referencedColumns: ["id"]
           },
           {
