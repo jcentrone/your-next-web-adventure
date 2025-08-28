@@ -113,6 +113,7 @@ const ProfilePage: React.FC = () => {
     // Initialize form state when data loads
     React.useEffect(() => {
         if (profile) {
+            console.log("profile loaded:", profile);
             setFullName(profile.full_name || "");
             setPhone(profile.phone || "");
             setLicenseNumber(profile.license_number || "");
@@ -475,7 +476,7 @@ const ProfilePage: React.FC = () => {
                                         <Label htmlFor="phone">Phone</Label>
                                         <Input
                                             id="phone"
-                                            value={phone}
+                                            value={profile.phone || ""}
                                             onChange={(e) => setPhone(e.target.value)}
                                             placeholder="(555) 123-4567"
                                         />
@@ -484,7 +485,7 @@ const ProfilePage: React.FC = () => {
                                         <Label htmlFor="license">License Number</Label>
                                         <Input
                                             id="license"
-                                            value={licenseNumber}
+                                            value={licenseNumber || ""}
                                             onChange={(e) => setLicenseNumber(e.target.value)}
                                             placeholder="Your license number"
                                         />
