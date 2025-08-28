@@ -12,6 +12,7 @@ import {replaceCoverImages} from "@/utils/replaceCoverImages";
 import {getMyOrganization, getMyProfile} from "@/integrations/supabase/organizationsApi";
 import { isSupabaseUrl } from "@/integrations/supabase/storage";
 
+
 interface PDFDocumentProps {
     report: Report;
     mediaUrlMap: Record<string, string>;
