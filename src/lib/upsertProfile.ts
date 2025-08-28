@@ -24,9 +24,9 @@ export async function upsertProfile(session: Session | null) {
     license_number: meta.license_number || null,
   };
 
-  // Bypass strict Database typing since "profiles" isn't in the generated types yet.
-  const { error } = await (supabase as any)
-    .from("profiles" as any)
+  // Use proper supabase client with correct typing
+  const { error } = await supabase
+    .from("profiles")
     .upsert(payload, { onConflict: "user_id" });
 
   if (error) {
