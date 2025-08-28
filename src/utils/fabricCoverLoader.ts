@@ -244,6 +244,7 @@ export async function loadCoverDesignToCanvas(
                     await waitForImagesReady(imgs);
 
                     imgs.forEach((img: any) => {
+                        if (img?.data?.__fitDone) return;
                         // Frame from data first (authoritative), then legacy
                         const frame = img?.data?.__frame || {};
                         const frameW = Number.isFinite(frame.width) ? frame.width : (Number.isFinite(img._frameW) ? img._frameW : (img.width ?? 0));
@@ -288,6 +289,8 @@ export async function loadCoverDesignToCanvas(
                         } else {
                             fitImageDirect(img, frameLeft, frameTop, frameW, frameH, iw, ih, fit, debug);
                         }
+                        img.data = img.data || {};
+                        img.data.__fitDone = true;
                     });
 
                     canvas.requestRenderAll();
