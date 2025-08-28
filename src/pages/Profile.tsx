@@ -111,14 +111,15 @@ const ProfilePage: React.FC = () => {
     }, [organizationError]);
 
     // Initialize form state when data loads
+    const initialized = React.useRef(false);
     React.useEffect(() => {
-        if (profile) {
-            console.log("profile loaded:", profile);
-            setFullName(profile.full_name || "");
-            setPhone(profile.phone || "");
-            setLicenseNumber(profile.license_number || "");
+        if (profile && !initialized.current) {
+            setFullName(profile.full_name ?? "");
+            setPhone(profile.phone ?? "");
+            setLicenseNumber(profile.license_number ?? "");
+            initialized.current = true;
         }
-    }, [profile]);
+    }, [profile])
 
     React.useEffect(() => {
         setOrgName(organization?.name || "");
