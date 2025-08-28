@@ -206,24 +206,31 @@ export async function acceptInvitation(token: string) {
 }
 
 export async function getMyProfile() {
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('Not authenticated');
+  
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('user_id', (await supabase.auth.getUser()).data.user!.id)
-    .single();
+    .eq('user_id', user.user.id)
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data) throw new Error('Profile not found');
   return data as Profile;
 }
 
 export async function updateMyProfile(data: Partial<Profile>) {
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('Not authenticated');
+  
   const { data: updated, error } = await supabase
     .from('profiles')
     .update(data)
-    .eq('user_id', (await supabase.auth.getUser()).data.user!.id)
+    .eq('user_id', user.user.id)
     .select()
     .single();
-  console.log({ error, updated });
+    
   if (error) throw error;
   return updated;
 }
