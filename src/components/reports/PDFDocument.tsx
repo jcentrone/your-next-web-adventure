@@ -10,7 +10,6 @@ import {Canvas as FabricCanvas} from "fabric";
 import {replaceCoverMergeFields} from "@/utils/replaceCoverMergeFields";
 import {replaceCoverImages} from "@/utils/replaceCoverImages";
 import {getMyOrganization, getMyProfile} from "@/integrations/supabase/organizationsApi";
-import {isSupabaseUrl} from "@/integrations/supabase/storage";
 
 interface PDFDocumentProps {
     report: Report;
@@ -25,7 +24,8 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
         React.useEffect(() => {
             if (!user) return;
-            let cancelled = false;
+            const abortController = new AbortController();
+            const {signal} = abortController;
 
             const PAGE_W = 850;
             const PAGE_H = 1100;
@@ -54,12 +54,14 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
             }
 
             (async () => {
+                let canvas: FabricCanvas | null = null;
+                let canvasEl: HTMLCanvasElement | null = null;
                 try {
                     console.log("🎨 Loading cover page for report type:", report.reportType);
                     const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
                     if (!cp || !cp.design_json) {
                         console.log("❌ No cover page template found");
-                        if (!cancelled) setCoverPage(null);
+                        if (!signal.aborted) setCoverPage(null);
                         return;
                     }
 
@@ -67,7 +69,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
                     // Create an off-screen canvas, Hi-DPI aware
                     const ratio = window.devicePixelRatio || 1;
-                    const canvasEl = document.createElement("canvas");
+                    canvasEl = document.createElement("canvas");
                     canvasEl.style.position = "absolute";
                     canvasEl.style.left = "-10000px";
                     canvasEl.style.top = "0";
@@ -81,7 +83,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
                     document.body.appendChild(canvasEl);
 
-                    const canvas = new FabricCanvas(canvasEl, {
+                    canvas = new FabricCanvas(canvasEl, {
                         width: PAGE_W * ratio,
                         height: PAGE_H * ratio,
                         backgroundColor: "#ffffff",
@@ -100,6 +102,8 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                     // Important: resolve all image URLs *before* loading JSON
                     designJson = await replaceCoverImages(designJson, report, organization ?? null);
 
+                    if (signal.aborted) return;
+
                     // Load and wait for fabric to finish creating objects and images
                     await loadFabricFromJSON(canvas, designJson);
 
@@ -117,21 +121,20 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
                     console.log("🖼️ Generated cover page URL:", url ? "✅ Success" : "❌ Failed");
 
-                    if (!cancelled && url) setCoverPage(url);
-
-                    // cleanup
-                    requestAnimationFrame(() => {
-                        canvas.dispose();
-                        canvasEl.remove();
-                    });
+                    if (!signal.aborted && url) setCoverPage(url);
                 } catch (err) {
                     console.error("❌ Error loading cover page:", err);
-                    if (!cancelled) setCoverPage(null);
+                    if (!signal.aborted) setCoverPage(null);
+                } finally {
+                    requestAnimationFrame(() => {
+                        canvas?.dispose();
+                        canvasEl?.remove();
+                    });
                 }
             })();
 
             return () => {
-                cancelled = true;
+                abortController.abort();
             };
         }, [user, report.reportType]); // keep this dependency set
 
