@@ -238,19 +238,25 @@ async function processObject(obj: JsonAny, ctx: any, stats: Stats): Promise<void
 // Turn a Fabric text-like node into an image node, preserving transforms
 function convertTextNodeToImage(obj: any, url: string) {
     // capture the intended frame from the placeholder box
-    const frameLeft = obj.left;
-    const frameTop = obj.top;
-    const frameWidth = obj.width;
-    const frameHeight = obj.height;
+    const frameLeft = obj.left ?? 0;
+    const frameTop = obj.top ?? 0;
+    const frameWidth = obj.width ?? 0;
+    const frameHeight = obj.height ?? 0;
 
-    // keep common transforms
+    // pull any template hint for fit; default to contain
+    const fit =
+        obj?.data?.objectFit ||
+        (obj as any).objectFit ||
+        obj?.metadata?.objectFit ||
+        "contain";
+
+    // mutate into an image
     const angle = obj.angle;
     const flipX = obj.flipX;
     const flipY = obj.flipY;
     const opacity = obj.opacity;
     const clipPath = obj.clipPath;
 
-    // mutate into image
     obj.type = "image";
     obj.src = url;
     obj.crossOrigin = obj.crossOrigin ?? "anonymous";
@@ -269,31 +275,27 @@ function convertTextNodeToImage(obj: any, url: string) {
     delete obj.linethrough;
     delete obj.styles;
 
-    // strip design-time styles
+    // strip design-time styles (borders, shadows, backgrounds)
     obj.stroke = undefined;
     obj.strokeWidth = 0;
     obj.strokeDashArray = undefined;
     obj.shadow = undefined;
     obj.backgroundColor = undefined;
 
-    // IMPORTANT: drop placeholder width/height so Fabric uses the image’s real size
-    delete obj.width;
-    delete obj.height;
+    // ✅ persist frame + fit under `data` (Fabric preserves `data`)
+    obj.data = {
+        ...(obj.data || {}),
+        __frame: {left: frameLeft, top: frameTop, width: frameWidth, height: frameHeight},
+        objectFit: String(fit).toLowerCase(), // "contain" | "cover"
+    };
 
-    // reset scale so our fitter has a clean base
-    obj.scaleX = 1;
-    obj.scaleY = 1;
+    // legacy fallback (kept for older loaders; harmless otherwise)
+    (obj as any)._frameLeft = frameLeft;
+    (obj as any)._frameTop = frameTop;
+    (obj as any)._frameW = frameWidth;
+    (obj as any)._frameH = frameHeight;
 
-    // store the frame so we can fit after images load
-    obj._frameLeft = frameLeft;
-    obj._frameTop = frameTop;
-    obj._frameW = frameWidth;
-    obj._frameH = frameHeight;
-
-    // optional: allow templates to override
-    obj.objectFit = obj.objectFit || obj?.metadata?.objectFit || "contain";
-
-    // restore basic transforms & position to the frame
+    // restore transforms
     obj.left = frameLeft;
     obj.top = frameTop;
     obj.angle = angle;
