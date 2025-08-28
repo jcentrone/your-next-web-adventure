@@ -31,9 +31,9 @@ export async function upsertProfile(session: Session | null) {
 
   if (error) {
     // Keep non-blocking; just log for debugging
-    console.error("upsertProfile error:", error.message);
+    console.error("upsertProfile error:", error.message, error);
   } else {
-    console.log("Profile upserted for", user.id);
+    console.log("Profile upserted successfully for", user.id, payload);
 
     // Ensure the user has an organization membership
     const { data: member } = await supabase
