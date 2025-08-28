@@ -111,13 +111,15 @@ const ProfilePage: React.FC = () => {
     }, [organizationError]);
 
     // Initialize form state when data loads
+    const initialized = React.useRef(false);
     React.useEffect(() => {
-        if (profile) {
-            setFullName(profile.full_name || "");
-            setPhone(profile.phone || "");
-            setLicenseNumber(profile.license_number || "");
+        if (profile && !initialized.current) {
+            setFullName(profile.full_name ?? "");
+            setPhone(profile.phone ?? "");
+            setLicenseNumber(profile.license_number ?? "");
+            initialized.current = true;
         }
-    }, [profile]);
+    }, [profile])
 
     React.useEffect(() => {
         setOrgName(organization?.name || "");
@@ -475,7 +477,7 @@ const ProfilePage: React.FC = () => {
                                         <Label htmlFor="phone">Phone</Label>
                                         <Input
                                             id="phone"
-                                            value={phone}
+                                            value={profile.phone || ""}
                                             onChange={(e) => setPhone(e.target.value)}
                                             placeholder="(555) 123-4567"
                                         />
@@ -484,7 +486,7 @@ const ProfilePage: React.FC = () => {
                                         <Label htmlFor="license">License Number</Label>
                                         <Input
                                             id="license"
-                                            value={licenseNumber}
+                                            value={licenseNumber || ""}
                                             onChange={(e) => setLicenseNumber(e.target.value)}
                                             placeholder="Your license number"
                                         />
