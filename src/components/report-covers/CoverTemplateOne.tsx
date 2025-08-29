@@ -44,6 +44,7 @@ const CoverTemplateOne: React.FC<CoverTemplateProps> = ({
             </div>
         </div>
 
+
         {/* Bottom section */}
         <div className="mt-[120px] w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl text-left text-sm mx-auto">
