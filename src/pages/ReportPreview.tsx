@@ -18,7 +18,7 @@ import ReportDetailsSection from "@/components/reports/ReportDetailsSection";
 import SectionInfoDisplay from "@/components/reports/SectionInfoDisplay";
 import "../styles/pdf.css";
 import { fillWindMitigationPDF } from "@/utils/fillWindMitigationPDF";
-import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
+import { getMyOrganization, getMyProfile, Organization, Profile } from "@/integrations/supabase/organizationsApi";
 import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 
 function SeverityBadge({
@@ -102,7 +102,8 @@ const ReportPreview: React.FC = () => {
   const [report, setReport] = React.useState<Report | null>(null);
   const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
   const [coverUrl, setCoverUrl] = React.useState<string>("");
-  const [organizationName, setOrganizationName] = React.useState<string>("");
+  const [organization, setOrganization] = React.useState<Organization | null>(null);
+  const [inspector, setInspector] = React.useState<Profile | null>(null);
 
   const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
   const [savingTpl, setSavingTpl] = React.useState(false);
@@ -252,7 +253,11 @@ const ReportPreview: React.FC = () => {
         }
 
         const organization = await getMyOrganization();
-        if (!cancelled) setOrganizationName(organization?.name || "");
+        const profile = await getMyProfile();
+        if (!cancelled) {
+          setOrganization(organization);
+          setInspector(profile);
+        }
       } catch (err) {
         console.error("Error preparing report preview:", err);
       }
@@ -355,10 +360,24 @@ const ReportPreview: React.FC = () => {
       {/* Cover Page */}
       <section className="page-break">
         <CoverComponent
-          title={report.title}
-          subtitle={report.clientName}
-          image={coverUrl}
-          company={organizationName}
+          reportTitle={report.title}
+          clientName={report.clientName}
+          coverImage={coverUrl}
+          organizationName={organization?.name || ""}
+          organizationAddress={organization?.address || ""}
+          organizationPhone={organization?.phone || ""}
+          organizationEmail={organization?.email || ""}
+          organizationWebsite={organization?.website || ""}
+          organizationLogo={organization?.logo_url || ""}
+          inspectorName={inspector?.full_name || ""}
+          inspectorLicenseNumber={inspector?.license_number || ""}
+          inspectorPhone={inspector?.phone || ""}
+          inspectorEmail={inspector?.email || ""}
+          clientAddress={report.address}
+          clientEmail={report.clientEmail || ""}
+          clientPhone={report.clientPhone || ""}
+          inspectionDate={report.inspectionDate}
+          weatherConditions={report.weatherConditions || ""}
         />
       </section>
 
@@ -474,7 +493,12 @@ const ReportPreview: React.FC = () => {
 
       {/* Hidden/off-screen printable node for react-to-print */}
       <div ref={pdfContainerRef} style={{ position: "absolute", left: "-10000px", top: 0 }}>
-        <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} company={organizationName} />
+        <PDFDocument
+          report={report}
+          mediaUrlMap={mediaUrlMap}
+          coverUrl={coverUrl}
+          company={organization?.name || ""}
+        />
       </div>
     </>
   );
