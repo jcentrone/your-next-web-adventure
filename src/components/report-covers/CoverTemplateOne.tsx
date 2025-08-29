@@ -1,5 +1,6 @@
 import React from "react";
 import {CoverTemplateProps} from "./types";
+import { formatShortDate } from "../../utils/formatDate";
 
 const CoverTemplateOne: React.FC<CoverTemplateProps> = ({
                                                             reportTitle,
@@ -65,7 +66,7 @@ const CoverTemplateOne: React.FC<CoverTemplateProps> = ({
             </div>
 
             <div className="text-sm text-center mt-6">
-                {inspectionDate && <p>Inspection Date: {inspectionDate}</p>}
+                {inspectionDate && <p>Inspection Date: {formatShortDate(inspectionDate)}</p>}
                 {weatherConditions && <p>Weather: {weatherConditions}</p>}
             </div>
         </div>
