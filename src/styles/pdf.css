@@ -39,6 +39,12 @@
     margin: 0 auto;
   }
 
+  .preview-page {
+    margin: 0;
+    border: none;
+    box-shadow: none;
+  }
+
   /* Typography adjustments for print */
   h1, h2, h3, h4, h5, h6 {
     break-after: avoid;
@@ -205,8 +211,18 @@
   padding-bottom: 2rem;
 }
 
-.pdf-document .pdf-page-break:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+  .pdf-document .pdf-page-break:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+/* Preview page wrapper */
+.preview-page {
+  width: 8.5in;
+  min-height: 11in;
+  margin: 1rem auto;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 0 4px rgba(0,0,0,.1);
 }
