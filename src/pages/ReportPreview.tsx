@@ -311,139 +311,153 @@ const ReportPreview: React.FC = () => {
         </Button>
       </div>
 
-      {/* Cover Page */}
-      <section className="page-break">
-        <CoverComponent
-          reportTitle={report.title}
-          clientName={report.clientName}
-          coverImage={coverUrl}
-          organizationName={organization?.name || ""}
-          organizationAddress={organization?.address || ""}
-          organizationPhone={organization?.phone || ""}
-          organizationEmail={organization?.email || ""}
-          organizationWebsite={organization?.website || ""}
-          organizationLogo={organization?.logo_url || ""}
-          inspectorName={inspector?.full_name || ""}
-          inspectorLicenseNumber={inspector?.license_number || ""}
-          inspectorPhone={inspector?.phone || ""}
-          inspectorEmail={inspector?.email || ""}
-          clientAddress={report.address}
-          clientEmail={report.clientEmail || ""}
-          clientPhone={report.clientPhone || ""}
-          inspectionDate={report.inspectionDate}
-          weatherConditions={report.weatherConditions || ""}
-        />
-      </section>
+      <div className="flex flex-col items-center">
+        {/* Cover Page */}
+        <div className="preview-page page-break">
+          <div className={tpl.container}>
+            <CoverComponent
+              reportTitle={report.title}
+              clientName={report.clientName}
+              coverImage={coverUrl}
+              organizationName={organization?.name || ""}
+              organizationAddress={organization?.address || ""}
+              organizationPhone={organization?.phone || ""}
+              organizationEmail={organization?.email || ""}
+              organizationWebsite={organization?.website || ""}
+              organizationLogo={organization?.logo_url || ""}
+              inspectorName={inspector?.full_name || ""}
+              inspectorLicenseNumber={inspector?.license_number || ""}
+              inspectorPhone={inspector?.phone || ""}
+              inspectorEmail={inspector?.email || ""}
+              clientAddress={report.address}
+              clientEmail={report.clientEmail || ""}
+              clientPhone={report.clientPhone || ""}
+              inspectionDate={report.inspectionDate}
+              weatherConditions={report.weatherConditions || ""}
+            />
+          </div>
+        </div>
 
-      <article className={tpl.container}>
         {/* Report Details */}
-        <ReportDetailsSection
-          report={report}
-          sectionInfo={report.sections.find((s) => s.key === "report_details")?.info || {}}
-          className={tpl.reportDetails}
-        />
+        <div className="preview-page page-break">
+          <div className={tpl.container}>
+            <ReportDetailsSection
+              report={report}
+              sectionInfo={report.sections.find((s) => s.key === "report_details")?.info || {}}
+              className={tpl.reportDetails}
+            />
+          </div>
+        </div>
 
         {/* Summary */}
         {Object.keys(severityCounts).length > 0 && (
-          <section className="my-10 text-center page-break">
-            <h2 className={tpl.summaryTitle}>Summary of Deficiencies</h2>
+          <div className="preview-page page-break">
+            <div className={tpl.container}>
+              <section className="my-10 text-center">
+                <h2 className={tpl.summaryTitle}>Summary of Deficiencies</h2>
 
-            <div className="flex flex-wrap justify-center gap-8 mb-8">
-              {orderedSeverities.map((severity) => {
-                const Icon = SEVERITY_ICONS[severity];
-                return (
-                  <div key={severity} className="flex flex-col items-center">
-                    <div className={`flex items-center justify-center w-20 h-20 rounded-full ${tpl.severityBadge[severity] || ""}`}>
-                      <Icon size={45} className="text-white" />
-                    </div>
-                    <span className="mt-2 font-bold">{severityCounts[severity]}</span>
-                    <span className="text-sm">{severity}</span>
-                  </div>
-                );
-              })}
-            </div>
+                <div className="flex flex-wrap justify-center gap-8 mb-8">
+                  {orderedSeverities.map((severity) => {
+                    const Icon = SEVERITY_ICONS[severity];
+                    return (
+                      <div key={severity} className="flex flex-col items-center">
+                        <div className={`flex items-center justify-center w-20 h-20 rounded-full ${tpl.severityBadge[severity] || ""}`}>
+                          <Icon size={45} className="text-white" />
+                        </div>
+                        <span className="mt-2 font-bold">{severityCounts[severity]}</span>
+                        <span className="text-sm">{severity}</span>
+                      </div>
+                    );
+                  })}
+                </div>
 
-            {/* Breakdown by section */}
-            <div className="mt-6 text-left max-w-3xl mx-auto">
-              {sectionSeverityCounts.map(({ sectionTitle, counts }) => {
-                const breakdown = orderedSeverities
-                  .filter((sev) => counts[sev])
-                  .map((sev) => `${counts[sev]} ${sev}${counts[sev] > 1 ? "s" : ""}`)
-                  .join(", ");
-                return (
-                  <div key={sectionTitle} className="py-2 border-b border-gray-200">
-                    <h3 className="font-semibold">{sectionTitle}</h3>
-                    <p className="text-sm text-gray-700">{breakdown}</p>
-                  </div>
-                );
-              })}
+                {/* Breakdown by section */}
+                <div className="mt-6 text-left max-w-3xl mx-auto">
+                  {sectionSeverityCounts.map(({ sectionTitle, counts }) => {
+                    const breakdown = orderedSeverities
+                      .filter((sev) => counts[sev])
+                      .map((sev) => `${counts[sev]} ${sev}${counts[sev] > 1 ? "s" : ""}`)
+                      .join(", ");
+                    return (
+                      <div key={sectionTitle} className="py-2 border-b border-gray-200">
+                        <h3 className="font-semibold">{sectionTitle}</h3>
+                        <p className="text-sm text-gray-700">{breakdown}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
             </div>
-          </section>
+          </div>
         )}
 
         {/* Sections */}
         {report.sections
           .filter((sec) => sec.key !== "report_details")
           .map((sec) => (
-            <section key={sec.id} className={tpl.sectionWrapper}>
-              <h2 className={tpl.h2}>{sec.title}</h2>
+            <div key={sec.id} className="preview-page page-break">
+              <div className={tpl.container}>
+                <section className={tpl.sectionWrapper}>
+                  <h2 className={tpl.h2}>{sec.title}</h2>
 
-              <SectionInfoDisplay sectionKey={sec.key} sectionInfo={sec.info || {}} className={tpl.sectionInfo} />
+                  <SectionInfoDisplay sectionKey={sec.key} sectionInfo={sec.info || {}} className={tpl.sectionInfo} />
 
-              {sec.findings.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No material defects noted.</p>
-              ) : (
-                sec.findings.map((f) => {
-                  const Icon = SEVERITY_ICONS[f.severity];
-                  return (
-                    <article key={f.id} className={tpl.findingWrapper}>
-                      <h3 className={tpl.h3}>
-                        <span
-                          aria-label={`${f.severity} issue`}
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 mr-2 rounded ${tpl.severityBadge[f.severity] || ""}`}
-                        >
-                          <Icon size={14} />
-                          {f.severity}
-                        </span>
-                        {f.title}
-                      </h3>
-                      {f.narrative && <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
-                      {f.recommendation && <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>}
-                      {f.media.length > 0 && (
-                        <div className="mt-2 grid grid-cols-2 gap-3">
-                          {f.media.map((m) => {
-                            const hasSignedUrl = !isSupabaseUrl(m.url) || !!mediaUrlMap[m.id];
-                            if (!hasSignedUrl) {
-                              return (
-                                <figure key={m.id}>
-                                  <div className="w-full h-32 bg-muted rounded border" />
-                                  {m.caption && <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>}
-                                </figure>
-                              );
-                            }
-                            const resolvedUrl = mediaUrlMap[m.id] || m.url;
-                            return (
-                              <figure key={m.id}>
-                                {m.type === "image" ? (
-                                  <img src={resolvedUrl} alt={m.caption || f.title} loading="lazy" className="w-full rounded border" />
-                                ) : m.type === "video" ? (
-                                  <video src={resolvedUrl} controls className="w-full rounded border" />
-                                ) : (
-                                  <audio src={resolvedUrl} controls />
-                                )}
-                                {m.caption && <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>}
-                              </figure>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </article>
-                  );
-                })
-              )}
-            </section>
+                  {sec.findings.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No material defects noted.</p>
+                  ) : (
+                    sec.findings.map((f) => {
+                      const Icon = SEVERITY_ICONS[f.severity];
+                      return (
+                        <article key={f.id} className={tpl.findingWrapper}>
+                          <h3 className={tpl.h3}>
+                            <span
+                              aria-label={`${f.severity} issue`}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 mr-2 rounded ${tpl.severityBadge[f.severity] || ""}`}
+                            >
+                              <Icon size={14} />
+                              {f.severity}
+                            </span>
+                            {f.title}
+                          </h3>
+                          {f.narrative && <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
+                          {f.recommendation && <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>}
+                          {f.media.length > 0 && (
+                            <div className="mt-2 grid grid-cols-2 gap-3">
+                              {f.media.map((m) => {
+                                const hasSignedUrl = !isSupabaseUrl(m.url) || !!mediaUrlMap[m.id];
+                                if (!hasSignedUrl) {
+                                  return (
+                                    <figure key={m.id}>
+                                      <div className="w-full h-32 bg-muted rounded border" />
+                                      {m.caption && <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>}
+                                    </figure>
+                                  );
+                                }
+                                const resolvedUrl = mediaUrlMap[m.id] || m.url;
+                                return (
+                                  <figure key={m.id}>
+                                    {m.type === "image" ? (
+                                      <img src={resolvedUrl} alt={m.caption || f.title} loading="lazy" className="w-full rounded border" />
+                                    ) : m.type === "video" ? (
+                                      <video src={resolvedUrl} controls className="w-full rounded border" />
+                                    ) : (
+                                      <audio src={resolvedUrl} controls />
+                                    )}
+                                    {m.caption && <figcaption className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>}
+                                  </figure>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })
+                  )}
+                </section>
+              </div>
+            </div>
           ))}
-      </article>
+      </div>
 
       {/* Hidden/off-screen printable node for react-to-print */}
       <div ref={pdfContainerRef} style={{ position: "absolute", left: "-10000px", top: 0 }}>
