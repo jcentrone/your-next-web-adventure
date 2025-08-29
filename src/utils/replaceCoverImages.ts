@@ -237,9 +237,23 @@ async function processObject(obj: JsonAny, ctx: any, stats: Stats): Promise<void
 
 // Turn a Fabric text-like node into an image node, preserving transforms
 function convertTextNodeToImage(obj: any, url: string) {
-    // capture the intended frame from the placeholder box
-    const {left: frameLeft, top: frameTop, width: frameWidth, height: frameHeight} =
-        obj.getBoundingRect(true, true);
+    // capture the intended frame from the placeholder box using numeric props
+    const scaleX = obj.scaleX ?? 1;
+    const scaleY = obj.scaleY ?? 1;
+    const frameWidth = (obj.width ?? 0) * scaleX;
+    const frameHeight = (obj.height ?? 0) * scaleY;
+
+    let frameLeft = obj.left ?? 0;
+    let frameTop = obj.top ?? 0;
+
+    const originX = obj.originX || "left";
+    const originY = obj.originY || "top";
+
+    if (originX === "center") frameLeft -= frameWidth / 2;
+    else if (originX === "right") frameLeft -= frameWidth;
+
+    if (originY === "center") frameTop -= frameHeight / 2;
+    else if (originY === "bottom") frameTop -= frameHeight;
 
     // pull any template hint for fit; default to contain
     const fit =
