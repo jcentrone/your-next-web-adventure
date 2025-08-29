@@ -4,127 +4,19 @@ import {PREVIEW_TEMPLATES} from "@/constants/previewTemplates";
 import {AlertCircle, AlertOctagon, AlertTriangle, Info, MinusCircle, Wrench} from "lucide-react";
 import ReportDetailsSection from "./ReportDetailsSection";
 import SectionInfoDisplay from "./SectionInfoDisplay";
-import {useAuth} from "@/contexts/AuthContext";
-import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
-import {Canvas as FabricCanvas} from "fabric";
-import {replaceCoverMergeFields} from "@/utils/replaceCoverMergeFields";
-import {replaceCoverImages} from "@/utils/replaceCoverImages";
-import {getMyOrganization, getMyProfile} from "@/integrations/supabase/organizationsApi";
 import { isSupabaseUrl } from "@/integrations/supabase/storage";
-import {loadCoverDesignToCanvas} from "@/utils/fabricCoverLoader";
+import { COVER_TEMPLATES } from "@/constants/coverTemplates";
 
 
 interface PDFDocumentProps {
     report: Report;
     mediaUrlMap: Record<string, string>;
     coverUrl: string;
+    company?: string;
 }
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
-    ({report, mediaUrlMap, coverUrl}, ref) => {
-        const {user} = useAuth();
-        const [coverPage, setCoverPage] = React.useState<string | null>(null);
-
-        React.useEffect(() => {
-            if (!user) return;
-            const abortController = new AbortController();
-            const {signal} = abortController;
-
-            const PAGE_W = 850;
-            const PAGE_H = 1100;
-
-            // helper: wait for a couple of rAFs to ensure images are painted
-            const raf = () => new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
-
-            (async () => {
-                let canvas: FabricCanvas | null = null;
-                let canvasEl: HTMLCanvasElement | null = null;
-                try {
-                    console.log("🎨 Loading cover page for report type:", report.reportType);
-                    const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
-                    if (!cp || !cp.design_json) {
-                        console.log("❌ No cover page template found");
-                        if (!signal.aborted) setCoverPage(null);
-                        return;
-                    }
-
-                    console.log("📋 Found cover page template, creating canvas...");
-
-                    // Create an off-screen canvas, Hi-DPI aware
-                    const ratio = window.devicePixelRatio || 1;
-                    canvasEl = document.createElement("canvas");
-                    canvasEl.style.position = "absolute";
-                    canvasEl.style.left = "-10000px";
-                    canvasEl.style.top = "0";
-
-                    // Backing store
-                    canvasEl.width = PAGE_W * ratio;
-                    canvasEl.height = PAGE_H * ratio;
-                    // CSS size (logical)
-                    canvasEl.style.width = `${PAGE_W}px`;
-                    canvasEl.style.height = `${PAGE_H}px`;
-
-                    document.body.appendChild(canvasEl);
-
-                    canvas = new FabricCanvas(canvasEl, {
-                        width: PAGE_W * ratio,
-                        height: PAGE_H * ratio,
-                        backgroundColor: "#ffffff",
-                    });
-                    canvas.setZoom(ratio);
-
-                    console.log("📐 Loading design JSON...");
-                    const [organization, inspector] = await Promise.all([getMyOrganization(), getMyProfile()]);
-
-                    let designJson: any = await replaceCoverMergeFields(cp.design_json, {
-                        organization: organization ?? null,
-                        inspector,
-                        report,
-                    });
-
-                    // Important: resolve all image URLs *before* loading JSON
-                    designJson = await replaceCoverImages(designJson, report, organization ?? null);
-
-                    if (signal.aborted) return;
-
-                    // Load and wait for fabric to finish creating objects and images with proper sizing
-                    await loadCoverDesignToCanvas(canvas, designJson, {
-                        debug: false,
-                        defaultFit: "contain",
-                        wrapInFrameGroup: true
-                    });
-
-                    // A couple of extra frames so remote images definitely paint
-                    canvas.renderAll();
-                    await raf();
-                    canvas.renderAll();
-                    await raf();
-
-                    const url = canvas.toDataURL({
-                        format: "png",
-                        multiplier: 1, // already Hi-DPI via setZoom/backing store
-                        quality: 0.92,
-                    });
-
-                    console.log("🖼️ Generated cover page URL:", url ? "✅ Success" : "❌ Failed");
-
-                    if (!signal.aborted && url) setCoverPage(url);
-                } catch (err) {
-                    console.error("❌ Error loading cover page:", err);
-                    if (!signal.aborted) setCoverPage(null);
-                } finally {
-                    requestAnimationFrame(() => {
-                        canvas?.dispose();
-                        canvasEl?.remove();
-                    });
-                }
-            })();
-
-            return () => {
-                abortController.abort();
-            };
-        }, [user, report.reportType]); // keep this dependency set
-
+    ({report, mediaUrlMap, coverUrl, company}, ref) => {
         // Only render PDFs for home inspection reports for now
         if (report.reportType !== "home_inspection") {
             return (
@@ -135,6 +27,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
         }
 
         const tpl = PREVIEW_TEMPLATES[report.previewTemplate] || PREVIEW_TEMPLATES.classic;
+        const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
         const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
         const summary = report.sections.flatMap((s) =>
@@ -177,30 +70,9 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
         return (
             <div ref={ref} className="pdf-document">
-                {/* Custom Cover Page from Template */}
-                {coverPage && (
-                    <section className="pdf-page-break flex justify-center">
-                        <img src={coverPage} alt="Cover Page" className="max-w-full h-auto"/>
-                    </section>
-                )}
-
-                {/* Fallback Cover Page (only if no custom cover page) */}
-                {!coverPage && (
-                    <article className={tpl.container}>
-                        <section className={`${tpl.cover} pdf-page-break`}>
-                            <header className="mb-4 text-center">
-                                <h1 className={tpl.coverTitle}>{report.title}</h1>
-                                <p className={tpl.coverSubtitle}>
-                                    {report.clientName} • {new Date(report.inspectionDate).toLocaleDateString()} • {report.address}
-                                </p>
-                            </header>
-                            {coverUrl && (
-                                <img src={coverUrl} alt="Report cover"
-                                     className="cover max-w-full h-auto rounded border"/>
-                            )}
-                        </section>
-                    </article>
-                )}
+                <section className="pdf-page-break">
+                    <CoverComponent title={report.title} subtitle={report.clientName} image={coverUrl} company={company} />
+                </section>
 
                 <article className={tpl.container}>
 

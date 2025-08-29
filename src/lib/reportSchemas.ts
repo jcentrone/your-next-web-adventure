@@ -52,6 +52,9 @@ export const BaseReportSchema = z.object({
     status: z.enum(["Draft", "Final"]).default("Draft"),
     finalComments: z.string().optional().default(""),
     coverImage: z.string().optional().default(""),
+    coverTemplate: z
+        .enum(["templateOne", "templateTwo", "templateThree", "templateFour", "templateFive"])
+        .default("templateOne"),
     previewTemplate: z.enum(["classic", "modern", "minimal"]).default("classic"),
     reportType: z.enum(["home_inspection", "wind_mitigation"]),
 });

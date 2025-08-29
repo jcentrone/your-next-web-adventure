@@ -1,17 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {PDFDocument, StandardFonts, rgb} from "pdf-lib";
+import {PDFDocument} from "pdf-lib";
 import {WIND_MITIGATION_FIELD_MAP} from "@/lib/windMitigationFieldMap";
 import {dbGetReport} from "@/integrations/supabase/reportsApi";
 import {loadReport} from "@/hooks/useLocalDraft";
 import {supabase} from "@/integrations/supabase/client";
 import {toast} from "@/components/ui/use-toast";
 import {getSignedUrlFromSupabaseUrl, isSupabaseUrl} from "@/integrations/supabase/storage";
-import {coverPagesApi} from "@/integrations/supabase/coverPagesApi";
 import {getMyOrganization, getMyProfile} from "@/integrations/supabase/organizationsApi";
-import {replaceMergeFields} from "@/utils/replaceMergeFields";
-import { replaceCoverImages } from "@/utils/replaceCoverImages";
-import { Canvas as FabricCanvas } from "fabric";
-import { loadCoverDesignToCanvas } from "@/utils/fabricCoverLoader";
 
 // Keys that are handled manually elsewhere in the code (e.g. custom logic
 // for building code options) and should be ignored when reporting unmapped
@@ -50,17 +45,6 @@ function flattenObject(obj: any, prefix = ""): Record<string, any> {
         }
         return acc;
     }, {} as Record<string, any>);
-}
-
-function hexToRgb(hex: string) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) {
-        return {r: 0, g: 0, b: 0};
-    }
-    const r = parseInt(result[1], 16) / 255;
-    const g = parseInt(result[2], 16) / 255;
-    const b = parseInt(result[3], 16) / 255;
-    return {r, g, b};
 }
 
 export function debugFieldMapping(reportData: Record<string, any>, pdfForm: any) {
@@ -481,95 +465,6 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
         }
     }
 
-    // fetch assigned cover page
-    let assignedCoverPage: any | null = null;
-    try {
-        const {data: {user}} = await supabase.auth.getUser();
-        if (user) {
-            const cp = await coverPagesApi.getAssignedCoverPage(user.id, report.reportType);
-            if (cp) {
-                if (cp.image_url && isSupabaseUrl(cp.image_url)) {
-                    cp.image_url = await getSignedUrlFromSupabaseUrl(cp.image_url);
-                }
-                assignedCoverPage = cp;
-            }
-        }
-    } catch (err) {
-        console.error("Error fetching cover page", err);
-    }
-
-    if (assignedCoverPage) {
-        const pages = pdfDoc.getPages();
-        const {width, height} = pages[0].getSize();
-
-        if (assignedCoverPage.design_json) {
-            const canvasEl = document.createElement("canvas");
-            const fabricCanvas = new FabricCanvas(canvasEl, {width, height});
-            const replaced = await replaceCoverImages(assignedCoverPage.design_json, report, organization);
-            await loadCoverDesignToCanvas(fabricCanvas, replaced, {
-                debug: false,
-                wrapInFrameGroup: true,
-                defaultFit: "contain",
-            });
-            fabricCanvas.renderAll();
-            const dataUrl = fabricCanvas.toDataURL({format: "png", multiplier: 1});
-            fabricCanvas.dispose();
-            const imgBytes = await fetch(dataUrl).then(res => res.arrayBuffer());
-            const image = await pdfDoc.embedPng(imgBytes);
-            const coverPage = pdfDoc.insertPage(0, [width, height]);
-            coverPage.drawImage(image, {x: 0, y: 0, width, height});
-        } else {
-            const coverPage = pdfDoc.insertPage(0, [width, height]);
-            const {r, g, b} = hexToRgb(assignedCoverPage.color_palette_key || "#FFFFFF");
-            coverPage.drawRectangle({x: 0, y: height / 2, width, height: height / 2, color: rgb(r, g, b)});
-
-            if (assignedCoverPage.image_url) {
-                try {
-                    const imgBytes = await fetch(assignedCoverPage.image_url).then((res) => res.arrayBuffer());
-                    const image = assignedCoverPage.image_url.toLowerCase().endsWith(".png")
-                        ? await pdfDoc.embedPng(imgBytes)
-                        : await pdfDoc.embedJpg(imgBytes);
-                    const imgWidth = Math.min(image.width, width - 100);
-                    const imgHeight = (imgWidth / image.width) * image.height;
-                    coverPage.drawImage(image, {
-                        x: (width - imgWidth) / 2,
-                        y: height / 2 + (height / 2 - imgHeight) / 2,
-                        width: imgWidth,
-                        height: imgHeight,
-                    });
-                } catch (err) {
-                    console.error("Error embedding cover image", err);
-                }
-            }
-
-            const titleFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-            const bodyFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-            const replacedTitle = replaceMergeFields(assignedCoverPage.name, {
-                organization,
-                inspector,
-                report,
-            });
-            coverPage.drawText(replacedTitle, {
-                x: 50,
-                y: height / 2 - 80,
-                size: 24,
-                font: titleFont,
-            });
-            if (assignedCoverPage.text_content) {
-                const replacedText = replaceMergeFields(assignedCoverPage.text_content as string, {
-                    organization,
-                    inspector,
-                    report,
-                });
-                coverPage.drawText(replacedText, {
-                    x: 50,
-                    y: height / 2 - 110,
-                    size: 12,
-                    font: bodyFont,
-                });
-            }
-        }
-    }
 
     const pdfBytes = await pdfDoc.save();
     return new Blob([pdfBytes], {type: "application/pdf"});

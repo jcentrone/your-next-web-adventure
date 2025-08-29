@@ -26,8 +26,6 @@ const lazyLoad = (
   );
 };
 
-const CoverPageEditorPage = lazyLoad(() => import("./pages/CoverPageEditorPage"));
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -55,9 +53,6 @@ const App = () => (
               <Route path="/tasks" element={lazyLoad(() => import("./pages/Tasks"))} />
               <Route path="/defects-admin" element={lazyLoad(() => import("./pages/DefectsAdmin"))} />
               <Route path="/section-manager" element={lazyLoad(() => import("./pages/SectionManager"))} />
-              <Route path="/cover-page-manager" element={lazyLoad(() => import("./pages/CoverPageManager"))} />
-              <Route path="/cover-page-manager/new" element={CoverPageEditorPage} />
-              <Route path="/cover-page-manager/:id" element={CoverPageEditorPage} />
               <Route path="/profile" element={lazyLoad(() => import("./pages/Profile"))} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

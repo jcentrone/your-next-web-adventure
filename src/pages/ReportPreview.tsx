@@ -18,12 +18,8 @@ import ReportDetailsSection from "@/components/reports/ReportDetailsSection";
 import SectionInfoDisplay from "@/components/reports/SectionInfoDisplay";
 import "../styles/pdf.css";
 import { fillWindMitigationPDF } from "@/utils/fillWindMitigationPDF";
-import { coverPagesApi } from "@/integrations/supabase/coverPagesApi";
-import * as fabric from "fabric";
-import { replaceCoverImages } from "@/utils/replaceCoverImages";
-import { replaceCoverMergeFields } from "@/utils/replaceCoverMergeFields";
-import { getMyOrganization, getMyProfile } from "@/integrations/supabase/organizationsApi";
-import { loadCoverDesignToCanvas } from "@/utils/fabricCoverLoader";
+import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
+import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 
 function SeverityBadge({
   severity,
@@ -75,20 +71,42 @@ function TemplateSelector({
   );
 }
 
+function CoverTemplateSelector({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: CoverTemplateId;
+  onChange: (v: CoverTemplateId) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as CoverTemplateId)} disabled={disabled}>
+      <SelectTrigger className="w-[200px]" aria-label="Choose cover template">
+        <SelectValue placeholder="Choose cover" />
+      </SelectTrigger>
+      <SelectContent>
+        {Object.entries(COVER_TEMPLATES).map(([key, tpl]) => (
+          <SelectItem key={key} value={key}>
+            {tpl.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 const ReportPreview: React.FC = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const [report, setReport] = React.useState<Report | null>(null);
   const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
   const [coverUrl, setCoverUrl] = React.useState<string>("");
-  const [hasCoverPage, setHasCoverPage] = React.useState(false);
-
-  // Fabric canvas refs
-  const coverCanvasRef = React.useRef<HTMLCanvasElement>(null);
-  const fabricRef = React.useRef<fabric.Canvas | null>(null);
+  const [organizationName, setOrganizationName] = React.useState<string>("");
 
   const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
   const [savingTpl, setSavingTpl] = React.useState(false);
+  const [savingCoverTpl, setSavingCoverTpl] = React.useState(false);
   const nav = useNavigate();
 
   // react-to-print
@@ -158,6 +176,27 @@ const ReportPreview: React.FC = () => {
     }
   };
 
+  const handleCoverTemplateChange = async (tplId: CoverTemplateId) => {
+    if (!report) return;
+    setSavingCoverTpl(true);
+    try {
+      const next = { ...report, coverTemplate: tplId } as Report;
+      if (user) {
+        const updated = await dbUpdateReport(next);
+        setReport(updated);
+      } else {
+        saveLocalReport(next);
+        setReport(next);
+      }
+      toast({ title: "Cover template updated", description: `Applied ${tplId}` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Failed to update cover template", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setSavingCoverTpl(false);
+    }
+  };
+
   React.useEffect(() => {
     if (!id) return;
     (async () => {
@@ -176,14 +215,13 @@ const ReportPreview: React.FC = () => {
     })();
   }, [id, user]);
 
-  // Resolve media URLs + build cover page
+  // Resolve media URLs and sign cover image
   React.useEffect(() => {
     if (!user || !report) return;
     let cancelled = false;
 
     (async () => {
       try {
-        // sign media if needed
         if (report.reportType === "home_inspection") {
           const allMedia = report.sections.flatMap((s) => s.findings.flatMap((f) => f.media));
           const needsSigned = allMedia.filter((m) => isSupabaseUrl(m.url));
@@ -204,7 +242,6 @@ const ReportPreview: React.FC = () => {
           }
         }
 
-        // cover image
         if (report.coverImage) {
           if (isSupabaseUrl(report.coverImage)) {
             const signed = await getSignedUrlFromSupabaseUrl(report.coverImage);
@@ -214,57 +251,10 @@ const ReportPreview: React.FC = () => {
           }
         }
 
-        // Assigned cover page + identities
-        const [cp, organization, inspector] = await Promise.all([
-          coverPagesApi.getAssignedCoverPage(user.id, report.reportType),
-          getMyOrganization(),
-          getMyProfile(),
-        ]);
-
-        if (cp && cp.design_json && coverCanvasRef.current) {
-          if (!cancelled) setHasCoverPage(true);
-
-          // Init / reset Fabric
-          const W = 850;
-          const H = 1100;
-
-          if (!fabricRef.current) {
-            fabricRef.current = new fabric.Canvas(coverCanvasRef.current, { width: W, height: H });
-          } else {
-            fabricRef.current.clear();
-            fabricRef.current.setDimensions({ width: W, height: H });
-          }
-
-          // Retina scale
-          const ratio = window.devicePixelRatio || 1;
-          coverCanvasRef.current.width = W * ratio;
-          coverCanvasRef.current.height = H * ratio;
-          coverCanvasRef.current.style.width = `${W}px`;
-          coverCanvasRef.current.style.height = `${H}px`;
-          fabricRef.current.setZoom(ratio);
-          fabricRef.current.setDimensions({ width: W * ratio, height: H * ratio });
-
-          // Replace tokens & images
-          const designJson = typeof cp.design_json === "string" ? JSON.parse(cp.design_json) : cp.design_json;
-          const mergeFieldsReplaced = await replaceCoverMergeFields(designJson, {
-            organization: organization ?? null,
-            inspector,
-            report,
-          });
-          const imagesReplaced = await replaceCoverImages(mergeFieldsReplaced, report, organization ?? null, inspector);
-
-          // Load & fit via util
-          await loadCoverDesignToCanvas(fabricRef.current, imagesReplaced, {
-            debug: true,
-            wrapInFrameGroup: true,
-            defaultFit: "contain",
-          });
-        } else if (!cancelled) {
-          setHasCoverPage(false);
-        }
+        const organization = await getMyOrganization();
+        if (!cancelled) setOrganizationName(organization?.name || "");
       } catch (err) {
-        console.error("Error generating cover page:", err);
-        if (!cancelled) setHasCoverPage(false);
+        console.error("Error preparing report preview:", err);
       }
     })();
 
@@ -273,16 +263,10 @@ const ReportPreview: React.FC = () => {
     };
   }, [user, report]);
 
-  React.useEffect(() => {
-    return () => {
-      fabricRef.current?.dispose();
-      fabricRef.current = null;
-    };
-  }, []);
-
   if (!report) return null;
 
   const tpl = PREVIEW_TEMPLATES[report.previewTemplate] || PREVIEW_TEMPLATES.classic;
+  const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
   if (report.reportType !== "home_inspection") {
@@ -357,35 +341,26 @@ const ReportPreview: React.FC = () => {
             Close Preview
           </Button>
           <TemplateSelector value={report.previewTemplate} onChange={handleTemplateChange} disabled={savingTpl} />
+          <CoverTemplateSelector
+            value={report.coverTemplate}
+            onChange={handleCoverTemplateChange}
+            disabled={savingCoverTpl}
+          />
         </div>
         <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
           {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
         </Button>
       </div>
 
-      {/* Custom Cover Page from Template */}
-      <section className={`page-break flex justify-center ${hasCoverPage ? "" : "hidden"}`}>
-        <canvas
-          ref={coverCanvasRef}
-          style={{ width: 850, height: 1100 }}
-          className="max-w-full h-auto border rounded"
+      {/* Cover Page */}
+      <section className="page-break">
+        <CoverComponent
+          title={report.title}
+          subtitle={report.clientName}
+          image={coverUrl}
+          company={organizationName}
         />
       </section>
-
-      {/*/!* Fallback Cover Page *!/*/}
-      {/*{!hasCoverPage && (*/}
-      {/*  <article className={tpl.container}>*/}
-      {/*    <section className={`${tpl.cover} page-break`}>*/}
-      {/*      <header className="mb-4 text-center">*/}
-      {/*        <h1 className={tpl.coverTitle}>{report.title}</h1>*/}
-      {/*        <p className={tpl.coverSubtitle}>*/}
-      {/*          {report.clientName} • {new Date(report.inspectionDate).toLocaleDateString()} • {report.address}*/}
-      {/*        </p>*/}
-      {/*      </header>*/}
-      {/*      {coverUrl && <img src={coverUrl} alt="Report cover" className="w-auto h-100 rounded border" />}*/}
-      {/*    </section>*/}
-      {/*  </article>*/}
-      {/*)}*/}
 
       <article className={tpl.container}>
         {/* Report Details */}
@@ -499,7 +474,7 @@ const ReportPreview: React.FC = () => {
 
       {/* Hidden/off-screen printable node for react-to-print */}
       <div ref={pdfContainerRef} style={{ position: "absolute", left: "-10000px", top: 0 }}>
-        <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} />
+        <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} company={organizationName} />
       </div>
     </>
   );
