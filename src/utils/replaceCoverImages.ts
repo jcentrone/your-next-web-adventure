@@ -278,8 +278,6 @@ function convertTextNodeToImage(obj: any, url: string) {
     obj.originY = "top";
     obj.left = frameLeft;
     obj.top = frameTop;
-    obj.width = frameWidth;
-    obj.height = frameHeight;
     obj.scaleX = 1;
     obj.scaleY = 1;
 
