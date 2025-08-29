@@ -138,8 +138,8 @@ const ReportPreview: React.FC = () => {
     try {
       const next = { ...report, coverTemplate: tplId } as Report;
       if (user) {
-        const updated = await dbUpdateReport(next);
-        setReport(updated);
+        await dbUpdateReport(next);
+        setReport(next);
       } else {
         saveLocalReport(next);
         setReport(next);
