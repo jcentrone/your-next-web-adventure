@@ -258,6 +258,7 @@ const ReportPreview: React.FC = () => {
             debug: true,
             wrapInFrameGroup: true,// set true if you want logs
             defaultFit: "contain", // or "cover"
+            forceSize: { width: 50, height: 50 },
           });
         } else if (!cancelled) {
           setHasCoverPage(false);

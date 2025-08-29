@@ -9,6 +9,8 @@ export type CoverLoadOptions = {
     defaultFit?: "contain" | "cover";
     /** Wrap each image in a frame group to force the box to match the placeholder */
     wrapInFrameGroup?: boolean;
+    forceSize?: { width: number; height: number };
+
 };
 
 /** Internal: unwrap { canvas: { objects: [...] } } payloads */
@@ -244,6 +246,22 @@ export async function loadCoverDesignToCanvas(
                     await waitForImagesReady(imgs);
 
                     imgs.forEach((img: any) => {
+
+                        if (opts.forceSize) {
+                            const {left, top, width, height} = img.data?.__frame || {};
+                            img.set({
+                                left: left ?? 0,
+                                top: top ?? 0,
+                                width: opts.forceSize.width,
+                                height: opts.forceSize.height,
+                                scaleX: 1,
+                                scaleY: 1,
+                            });
+                            img.data = img.data || {};
+                            img.data.__fitDone = true;
+                            return;
+                        }
+
                         if (img?.data?.__fitDone) return;
                         // Frame from data first (authoritative), then legacy
                         const frame = img?.data?.__frame || {};
