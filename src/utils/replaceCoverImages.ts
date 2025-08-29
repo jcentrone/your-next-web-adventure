@@ -238,10 +238,8 @@ async function processObject(obj: JsonAny, ctx: any, stats: Stats): Promise<void
 // Turn a Fabric text-like node into an image node, preserving transforms
 function convertTextNodeToImage(obj: any, url: string) {
     // capture the intended frame from the placeholder box
-    const frameLeft = obj.left ?? 0;
-    const frameTop = obj.top ?? 0;
-    const frameWidth = obj.width ?? 0;
-    const frameHeight = obj.height ?? 0;
+    const {left: frameLeft, top: frameTop, width: frameWidth, height: frameHeight} =
+        obj.getBoundingRect(true, true);
 
     // pull any template hint for fit; default to contain
     const fit =
@@ -260,6 +258,16 @@ function convertTextNodeToImage(obj: any, url: string) {
     obj.type = "image";
     obj.src = url;
     obj.crossOrigin = obj.crossOrigin ?? "anonymous";
+
+    // normalize to the captured frame
+    obj.originX = "left";
+    obj.originY = "top";
+    obj.left = frameLeft;
+    obj.top = frameTop;
+    obj.width = frameWidth;
+    obj.height = frameHeight;
+    obj.scaleX = 1;
+    obj.scaleY = 1;
 
     // remove text-only props
     delete obj.text;
@@ -281,13 +289,6 @@ function convertTextNodeToImage(obj: any, url: string) {
     obj.strokeDashArray = undefined;
     obj.shadow = undefined;
     obj.backgroundColor = undefined;
-
-    // ✅ CRITICAL FIX: Set image dimensions to match frame for proper loading
-    // This ensures the image object starts with the correct frame size
-    obj.width = frameWidth;
-    obj.height = frameHeight;
-    obj.scaleX = 1;
-    obj.scaleY = 1;
 
     // ✅ persist frame + fit under `data` (Fabric preserves `data`)
     obj.data = {
