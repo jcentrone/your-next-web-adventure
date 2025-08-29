@@ -19,7 +19,7 @@ function isDataUrl(s?: string) {
 }
 
 function isProbablyUrl(s?: string) {
-    return isHttpUrl(s) || isDataUrl(s);
+    return isHttpUrl(s) || isDataUrl(s) || isSupabaseUrl(s ?? "");
 }
 
 function nodeType(o: any): string {
@@ -34,8 +34,8 @@ function nodeType(o: any): string {
 // find the first url-ish substring anywhere in text
 function firstUrl(s?: string): string | null {
     if (typeof s !== "string") return null;
-    // http(s) or data:image
-    const m = s.match(/https?:\/\/\S+|data:image\/\S+/i);
+    // http(s), supabase:// or data:image
+    const m = s.match(/https?:\/\/\S+|supabase:\/\/\S+|data:image\/\S+/i);
     if (m) return m[0];
 
     // fallback: relative-ish path with common image extensions

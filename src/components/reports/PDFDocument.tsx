@@ -36,20 +36,6 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
             // helper: wait for a couple of rAFs to ensure images are painted
             const raf = () => new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
 
-            // helper: promisified loadFromJSON
-            function loadFabricFromJSON(canvas: FabricCanvas, json: any) {
-                return new Promise<void>((resolve, reject) => {
-                    try {
-                        canvas.loadFromJSON(
-                            json as any,
-                            () => resolve()
-                        );
-                    } catch (e) {
-                        reject(e);
-                    }
-                });
-            }
-
             (async () => {
                 let canvas: FabricCanvas | null = null;
                 let canvasEl: HTMLCanvasElement | null = null;
