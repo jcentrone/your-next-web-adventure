@@ -22,7 +22,7 @@ const CoverTemplateOne: React.FC<CoverTemplateProps> = ({
                                                             inspectionDate,
                                                             weatherConditions,
                                                         }) => (
-    <div className="min-h-screen flex flex-col p-10">
+    <div className="h-full flex flex-col p-10">
         {/* Top section */}
         <div className="flex flex-col items-center text-center space-y-6">
             {coverImage && (
