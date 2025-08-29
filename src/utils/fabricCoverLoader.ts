@@ -27,6 +27,10 @@ function unwrapDesignRoot(design: any) {
     return design;
 }
 
+function isProbablyUrl(s?: string) {
+    return typeof s === "string" && /^(https?:\/\/|data:image\/)/i.test(s.trim());
+}
+
 function getIntrinsicSize(o: any) {
     const el: any = o?.getElement?.() ?? o?._originalElement ?? o?._element ?? null;
     if (el) {
@@ -233,12 +237,50 @@ export async function loadCoverDesignToCanvas(
                 root as any,
                 async () => {
                     const objs = canvas.getObjects();
-                    const imgs = objs.filter((o: any) => (o?.type?.toLowerCase?.() ?? "") === "image");
+
+                    // Replace text nodes that contain a URL with image nodes
+                    const replacements: Promise<void>[] = [];
+                    for (const obj of [...objs]) {
+                        const type = obj?.type?.toLowerCase?.() ?? "";
+                        if (type === "text" || type === "textbox" || type === "i-text") {
+                            const text = (obj as any).text;
+                            const url = typeof text === "string" ? text.trim() : "";
+                            if (isProbablyUrl(url)) {
+                                const frame = obj.getBoundingRect(true, true);
+                                const idx = canvas.getObjects().indexOf(obj);
+                                const p = new Promise<void>((res) => {
+                                    fabric.Image.fromURL(url, (img) => {
+                                        img.set({
+                                            originX: "left",
+                                            originY: "top",
+                                            left: frame.left,
+                                            top: frame.top,
+                                        });
+                                        img.data = {
+                                            ...(img.data || {}),
+                                            __frame: {left: frame.left, top: frame.top, width: frame.width, height: frame.height},
+                                        };
+                                        canvas.remove(obj);
+                                        canvas.insertAt(img, idx);
+                                        res();
+                                    }, {crossOrigin: "anonymous"});
+                                });
+                                replacements.push(p);
+                            }
+                        }
+                    }
+
+                    if (replacements.length) {
+                        await Promise.all(replacements);
+                    }
+
+                    const objsAfter = canvas.getObjects();
+                    const imgs = objsAfter.filter((o: any) => (o?.type?.toLowerCase?.() ?? "") === "image");
                     if (debug) {
                         console.groupCollapsed(
-                            `[cover-fit] loadFromJSON callback: objs=${objs.length}, images=${imgs.length}, canvas {w=${canvas.getWidth()}, h=${canvas.getHeight()}, zoom=${canvas.getZoom()}}`
+                            `[cover-fit] loadFromJSON callback: objs=${objsAfter.length}, images=${imgs.length}, canvas {w=${canvas.getWidth()}, h=${canvas.getHeight()}, zoom=${canvas.getZoom()}}`
                         );
-                        console.log("  types:", objs.map((o: any) => o?.type));
+                        console.log("  types:", objsAfter.map((o: any) => o?.type));
                         console.groupEnd();
                     }
 
