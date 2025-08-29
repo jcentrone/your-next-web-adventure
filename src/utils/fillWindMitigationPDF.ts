@@ -11,6 +11,7 @@ import {getMyOrganization, getMyProfile} from "@/integrations/supabase/organizat
 import {replaceMergeFields} from "@/utils/replaceMergeFields";
 import { replaceCoverImages } from "@/utils/replaceCoverImages";
 import { Canvas as FabricCanvas } from "fabric";
+import { loadCoverDesignToCanvas } from "@/utils/fabricCoverLoader";
 
 // Keys that are handled manually elsewhere in the code (e.g. custom logic
 // for building code options) and should be ignored when reporting unmapped
@@ -505,12 +506,12 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
             const canvasEl = document.createElement("canvas");
             const fabricCanvas = new FabricCanvas(canvasEl, {width, height});
             const replaced = await replaceCoverImages(assignedCoverPage.design_json, report, organization);
-            await new Promise<void>((resolve) => {
-                fabricCanvas.loadFromJSON(replaced as any, () => {
-                    fabricCanvas.renderAll();
-                    resolve();
-                });
+            await loadCoverDesignToCanvas(fabricCanvas, replaced, {
+                debug: false,
+                wrapInFrameGroup: true,
+                defaultFit: "contain",
             });
+            fabricCanvas.renderAll();
             const dataUrl = fabricCanvas.toDataURL({format: "png", multiplier: 1});
             fabricCanvas.dispose();
             const imgBytes = await fetch(dataUrl).then(res => res.arrayBuffer());

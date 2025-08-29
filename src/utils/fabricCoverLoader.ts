@@ -28,7 +28,10 @@ function unwrapDesignRoot(design: any) {
 }
 
 function isProbablyUrl(s?: string) {
-    return typeof s === "string" && /^(https?:\/\/|data:image\/)/i.test(s.trim());
+    return (
+        typeof s === "string" &&
+        /^(https?:\/\/|supabase:\/\/|data:image\/)/i.test(s.trim())
+    );
 }
 
 function getIntrinsicSize(o: any) {
@@ -276,6 +279,19 @@ export async function loadCoverDesignToCanvas(
                     }
 
                     const objsAfter = canvas.getObjects();
+
+                    // Warn if any text nodes still contain a URL after replacements
+                    for (const obj of objsAfter) {
+                        const type = obj?.type?.toLowerCase?.() ?? "";
+                        if (type === "text" || type === "textbox" || type === "i-text") {
+                            const text = (obj as any).text;
+                            const url = typeof text === "string" ? text.trim() : "";
+                            if (isProbablyUrl(url)) {
+                                console.warn("[cover-fit] text object still contains URL after replacement", obj);
+                            }
+                        }
+                    }
+
                     const imgs = objsAfter.filter((o: any) => (o?.type?.toLowerCase?.() ?? "") === "image");
                     if (debug) {
                         console.groupCollapsed(
