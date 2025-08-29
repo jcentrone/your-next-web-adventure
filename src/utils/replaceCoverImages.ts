@@ -152,11 +152,10 @@ type Stats = {
 async function processObject(obj: JsonAny, ctx: any, stats: Stats): Promise<void> {
     if (!obj || typeof obj !== "object") return;
 
-    // --- TEXT → IMAGE ---
+    // --- TEXT nodes: resolve tokens/urls but do not convert to images ---
     const t = nodeType(obj);
     if (t === "text" || t === "textbox" || t === "i-text") {
         stats.textSeen = (stats.textSeen ?? 0) + 1;
-        let didConvert = false;
 
         // Case A: token-only (e.g., "{{organization.logo}}")
         const tokenPath = extractTokenPathIfOnly(obj.text);
@@ -168,30 +167,24 @@ async function processObject(obj: JsonAny, ctx: any, stats: Stats): Promise<void
                 if (candidate && candidate.indexOf("{{") === -1) {
                     const resolvedUrl = await resolveSrc(candidate);
                     if (resolvedUrl) {
-                        convertTextNodeToImage(obj, resolvedUrl);
-                        stats.converted++;
-                        stats.total++;
+                        (obj as any).text = resolvedUrl;
                         stats.resolved++;
-                        didConvert = true;
-                        if (stats.examples.length < 5) stats.examples.push(`text->image: {{${tokenPath}}} -> ${resolvedUrl}`);
+                        if (stats.examples.length < 5)
+                            stats.examples.push(`text->url: {{${tokenPath}}} -> ${resolvedUrl}`);
                     }
                 }
             }
-        }
-
-        // Case B: the text contains ANY url-ish substring (not necessarily equal)
-        if (!didConvert && typeof obj.text === "string") {
+        } else if (typeof obj.text === "string") {
+            // Case B: the text contains ANY url-ish substring
             const found = firstUrl(obj.text);
             if (found) {
                 stats.urlInTextSeen = (stats.urlInTextSeen ?? 0) + 1;
                 const resolvedUrl = await resolveSrc(found);
                 if (resolvedUrl) {
-                    convertTextNodeToImage(obj, resolvedUrl);
-                    stats.converted++;
-                    stats.total++;
+                    (obj as any).text = resolvedUrl;
                     stats.resolved++;
-                    didConvert = true;
-                    if (stats.examples.length < 5) stats.examples.push(`text->image (url-in-text): ${resolvedUrl}`);
+                    if (stats.examples.length < 5)
+                        stats.examples.push(`text url resolved: ${resolvedUrl}`);
                 }
             }
         }
