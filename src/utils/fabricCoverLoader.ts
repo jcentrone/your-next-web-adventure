@@ -247,20 +247,7 @@ export async function loadCoverDesignToCanvas(
 
                     imgs.forEach((img: any) => {
 
-                        if (opts.forceSize) {
-                            const {left, top, width, height} = img.data?.__frame || {};
-                            img.set({
-                                left: left ?? 0,
-                                top: top ?? 0,
-                                width: opts.forceSize.width,
-                                height: opts.forceSize.height,
-                                scaleX: 1,
-                                scaleY: 1,
-                            });
-                            img.data = img.data || {};
-                            img.data.__fitDone = true;
-                            return;
-                        }
+                        // Skip forceSize - let natural sizing work with frame data
 
                         if (img?.data?.__fitDone) return;
                         // Frame from data first (authoritative), then legacy
@@ -275,7 +262,7 @@ export async function loadCoverDesignToCanvas(
                             img?.data?.objectFit || (img as any).objectFit || img?.metadata?.objectFit || defaultFit
                         ).toLowerCase() as any;
 
-                        console.log("fit", fit);
+                        if (debug) console.log("fit", fit);
 
                         if (debug) {
                             console.log("[cover-fit] BEFORE →", {

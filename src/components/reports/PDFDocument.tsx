@@ -103,7 +103,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
                     // Load and wait for fabric to finish creating objects and images with proper sizing
                     await loadCoverDesignToCanvas(canvas, designJson, {
-                        debug: true,
+                        debug: false,
                         defaultFit: "contain",
                         wrapInFrameGroup: true
                     });

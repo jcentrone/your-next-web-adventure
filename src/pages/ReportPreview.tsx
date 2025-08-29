@@ -255,10 +255,9 @@ const ReportPreview: React.FC = () => {
 
           // Load & fit via util
           await loadCoverDesignToCanvas(fabricRef.current, imagesReplaced, {
-            debug: true,
-            wrapInFrameGroup: true,// set true if you want logs
-            defaultFit: "contain", // or "cover"
-            forceSize: { width: 50, height: 50 },
+            debug: false,
+            wrapInFrameGroup: true,
+            defaultFit: "contain",
           });
         } else if (!cancelled) {
           setHasCoverPage(false);
