@@ -315,13 +315,6 @@ export async function loadCoverDesignToCanvas(
 
                     canvas.requestRenderAll();
                     resolve();
-                },
-                // reviver: ensure crossOrigin (prevents tainting)
-                (serialized: any, obj: fabric.Object) => {
-                    if ((obj as any)?.type === "image") {
-                        (obj as any).set("crossOrigin", (obj as any).crossOrigin ?? "anonymous");
-                        if (debug) console.log("[cover-fit] reviver(image): ensured crossOrigin=anonymous");
-                    }
                 }
             );
         } catch (err) {

@@ -11,6 +11,7 @@ import {replaceCoverMergeFields} from "@/utils/replaceCoverMergeFields";
 import {replaceCoverImages} from "@/utils/replaceCoverImages";
 import {getMyOrganization, getMyProfile} from "@/integrations/supabase/organizationsApi";
 import { isSupabaseUrl } from "@/integrations/supabase/storage";
+import {loadCoverDesignToCanvas} from "@/utils/fabricCoverLoader";
 
 
 interface PDFDocumentProps {
@@ -41,13 +42,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                     try {
                         canvas.loadFromJSON(
                             json as any,
-                            () => resolve(),
-                            // You don't *need* the reviver now, but keeping it is harmless:
-                            (serialized: any, obj: any) => {
-                                if (obj?.type === "image" && typeof obj.set === "function" && !obj.crossOrigin) {
-                                    obj.set("crossOrigin", "anonymous");
-                                }
-                            }
+                            () => resolve()
                         );
                     } catch (e) {
                         reject(e);
@@ -106,8 +101,12 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
                     if (signal.aborted) return;
 
-                    // Load and wait for fabric to finish creating objects and images
-                    await loadFabricFromJSON(canvas, designJson);
+                    // Load and wait for fabric to finish creating objects and images with proper sizing
+                    await loadCoverDesignToCanvas(canvas, designJson, {
+                        debug: true,
+                        defaultFit: "contain",
+                        wrapInFrameGroup: true
+                    });
 
                     // A couple of extra frames so remote images definitely paint
                     canvas.renderAll();

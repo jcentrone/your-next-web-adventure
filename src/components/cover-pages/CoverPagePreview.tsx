@@ -1,5 +1,6 @@
 import React from "react";
 import { Canvas as FabricCanvas } from "fabric";
+import { loadCoverDesignToCanvas } from "@/utils/fabricCoverLoader";
 
 interface CoverPagePreviewProps {
   designJson: any;
@@ -18,7 +19,12 @@ export function CoverPagePreview({ designJson, width = 800, height = 1000 }: Cov
     const canvasEl = document.createElement("canvas");
     const canvas = new FabricCanvas(canvasEl, { width, height });
     let disposed = false;
-    canvas.loadFromJSON(designJson, () => {
+    
+    loadCoverDesignToCanvas(canvas, designJson, {
+      debug: false,
+      defaultFit: "contain", 
+      wrapInFrameGroup: true
+    }).then(() => {
       canvas.renderAll();
       const url = canvas.toDataURL({ format: "png", multiplier: 1 });
       if (!disposed) {
@@ -26,6 +32,12 @@ export function CoverPagePreview({ designJson, width = 800, height = 1000 }: Cov
       }
       canvas.dispose();
       disposed = true;
+    }).catch((err) => {
+      console.error("Error loading cover design:", err);
+      if (!disposed) {
+        canvas.dispose();
+        disposed = true;
+      }
     });
     return () => {
       if (!disposed) {
