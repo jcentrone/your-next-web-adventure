@@ -9,6 +9,8 @@ export type CoverLoadOptions = {
     defaultFit?: "contain" | "cover";
     /** Wrap each image in a frame group to force the box to match the placeholder */
     wrapInFrameGroup?: boolean;
+    forceSize?: { width: number; height: number };
+
 };
 
 /** Internal: unwrap { canvas: { objects: [...] } } payloads */
@@ -135,7 +137,7 @@ function wrapImageInFrameGroup(
     const all = canvas.getObjects();
     const idx = all.indexOf(img);
     canvas.remove(img);
-    canvas.insertAt(group, Math.max(idx, 0), false);
+    canvas.insertAt(Math.max(idx, 0), group);
     group.setCoords();
 
     if (debug) {
@@ -244,6 +246,22 @@ export async function loadCoverDesignToCanvas(
                     await waitForImagesReady(imgs);
 
                     imgs.forEach((img: any) => {
+
+                        if (opts.forceSize) {
+                            const {left, top, width, height} = img.data?.__frame || {};
+                            img.set({
+                                left: left ?? 0,
+                                top: top ?? 0,
+                                width: opts.forceSize.width,
+                                height: opts.forceSize.height,
+                                scaleX: 1,
+                                scaleY: 1,
+                            });
+                            img.data = img.data || {};
+                            img.data.__fitDone = true;
+                            return;
+                        }
+
                         if (img?.data?.__fitDone) return;
                         // Frame from data first (authoritative), then legacy
                         const frame = img?.data?.__frame || {};
@@ -256,6 +274,8 @@ export async function loadCoverDesignToCanvas(
                         const fit: "cover" | "contain" = String(
                             img?.data?.objectFit || (img as any).objectFit || img?.metadata?.objectFit || defaultFit
                         ).toLowerCase() as any;
+
+                        console.log("fit", fit);
 
                         if (debug) {
                             console.log("[cover-fit] BEFORE →", {
