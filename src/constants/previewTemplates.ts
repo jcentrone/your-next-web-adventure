@@ -68,3 +68,5 @@ export const PREVIEW_TEMPLATES = {
     h3: "text-sm text-gray-500"
   }
 } as const;
+
+export type PreviewTemplateId = keyof typeof PREVIEW_TEMPLATES;
