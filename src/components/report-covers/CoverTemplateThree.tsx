@@ -22,7 +22,7 @@ const CoverTemplateThree: React.FC<CoverTemplateProps> = ({
                                                                      inspectionDate,
                                                                      weatherConditions,
                                                                  }) => (
-    <div className="grid md:grid-cols-2 min-h-screen">
+    <div className=" h-full grid md:grid-cols-2 min-h-screen">
         <div className="h-64 md:h-auto">
             {coverImage ? (
                 <img src={coverImage} alt="" className="w-full h-full object-cover"/>

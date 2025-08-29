@@ -22,7 +22,7 @@ const CoverTemplateFive: React.FC<CoverTemplateProps> = ({
                                                              inspectionDate,
                                                              weatherConditions,
                                                          }) => (
-    <div className="min-h-screen grid lg:grid-cols-[320px_1fr]">
+    <div className="h-full grid lg:grid-cols-[320px_1fr]">
         <aside className="bg-emerald-700 text-white p-8 flex flex-col items-center justify-center">
             {organizationLogo && <img src={organizationLogo} alt="" className="h-24 mb-4 object-contain"/>}
             <h2 className="text-xl font-semibold text-center">{organizationName}</h2>

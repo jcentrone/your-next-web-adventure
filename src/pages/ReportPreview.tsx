@@ -366,7 +366,7 @@ const ReportPreview: React.FC = () => {
       <div className="flex flex-col items-center">
         {/* Cover Page */}
         <div className="preview-page page-break">
-          <div className={tpl.container}>
+          <div className={`${tpl.container} h-[1056px]`}>
             <CoverComponent
               reportTitle={report.title}
               clientName={report.clientName}
@@ -386,6 +386,7 @@ const ReportPreview: React.FC = () => {
               clientPhone={report.clientPhone || ""}
               inspectionDate={report.inspectionDate}
               weatherConditions={report.weatherConditions || ""}
+              className={tpl.cover}
             />
           </div>
         </div>

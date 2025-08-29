@@ -22,7 +22,7 @@ const CoverTemplateFour: React.FC<CoverTemplateProps> = ({
                                                              inspectionDate,
                                                              weatherConditions,
                                                          }) => (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+    <div className="h-full bg-gray-50 flex items-center justify-center p-6">
         <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg overflow-hidden">
             {coverImage && (
                 <img src={coverImage} alt="" className="w-full h-60 object-cover"/>
