@@ -48,29 +48,6 @@ function SeverityBadge({
   return <Badge variant={variant}>{severity}</Badge>;
 }
 
-function TemplateSelector({
-  value,
-  onChange,
-  disabled,
-}: {
-  value: "classic" | "modern" | "minimal";
-  onChange: (v: "classic" | "modern" | "minimal") => void;
-  disabled?: boolean;
-}) {
-  return (
-    <Select value={value} onValueChange={(v) => onChange(v as "classic" | "modern" | "minimal")} disabled={disabled}>
-      <SelectTrigger className="w-[200px]" aria-label="Choose preview template">
-        <SelectValue placeholder="Choose template" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="classic">Classic</SelectItem>
-        <SelectItem value="modern">Modern</SelectItem>
-        <SelectItem value="minimal">Minimal</SelectItem>
-      </SelectContent>
-    </Select>
-  );
-}
-
 function CoverTemplateSelector({
   value,
   onChange,
@@ -106,7 +83,6 @@ const ReportPreview: React.FC = () => {
   const [inspector, setInspector] = React.useState<Profile | null>(null);
 
   const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
-  const [savingTpl, setSavingTpl] = React.useState(false);
   const [savingCoverTpl, setSavingCoverTpl] = React.useState(false);
   const nav = useNavigate();
 
@@ -153,27 +129,6 @@ const ReportPreview: React.FC = () => {
         description: "Failed to generate PDF. Please try again.",
         variant: "destructive",
       });
-    }
-  };
-
-  const handleTemplateChange = async (tplKey: "classic" | "modern" | "minimal") => {
-    if (!report) return;
-    setSavingTpl(true);
-    try {
-      const next = { ...report, previewTemplate: tplKey } as Report;
-      if (user) {
-        const updated = await dbUpdateReport(next);
-        setReport(updated);
-      } else {
-        saveLocalReport(next);
-        setReport(next);
-      }
-      toast({ title: "Template updated", description: `Applied ${tplKey} template.` });
-    } catch (e) {
-      console.error(e);
-      toast({ title: "Failed to update template", description: "Please try again.", variant: "destructive" });
-    } finally {
-      setSavingTpl(false);
     }
   };
 
@@ -345,7 +300,6 @@ const ReportPreview: React.FC = () => {
           <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)} aria-label="Close preview and return to editor">
             Close Preview
           </Button>
-          <TemplateSelector value={report.previewTemplate} onChange={handleTemplateChange} disabled={savingTpl} />
           <CoverTemplateSelector
             value={report.coverTemplate}
             onChange={handleCoverTemplateChange}
