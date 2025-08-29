@@ -255,7 +255,7 @@ const ReportPreview: React.FC = () => {
 
           // Load & fit via util
           await loadCoverDesignToCanvas(fabricRef.current, imagesReplaced, {
-            debug: false,
+            debug: true,
             wrapInFrameGroup: true,
             defaultFit: "contain",
           });

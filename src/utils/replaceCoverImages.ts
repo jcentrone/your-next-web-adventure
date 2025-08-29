@@ -282,6 +282,13 @@ function convertTextNodeToImage(obj: any, url: string) {
     obj.shadow = undefined;
     obj.backgroundColor = undefined;
 
+    // ✅ CRITICAL FIX: Set image dimensions to match frame for proper loading
+    // This ensures the image object starts with the correct frame size
+    obj.width = frameWidth;
+    obj.height = frameHeight;
+    obj.scaleX = 1;
+    obj.scaleY = 1;
+
     // ✅ persist frame + fit under `data` (Fabric preserves `data`)
     obj.data = {
         ...(obj.data || {}),

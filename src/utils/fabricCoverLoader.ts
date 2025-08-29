@@ -280,8 +280,8 @@ export async function loadCoverDesignToCanvas(
                             });
                         }
 
-                        if (!(frameW > 0 && frameH > 0 && iw > 0 && ih > 0)) {
-                            if (debug) console.warn("[cover-fit] ⚠️ invalid sizes, skipping", {
+                        if (!(frameW > 0 && frameH > 0)) {
+                            if (debug) console.warn("[cover-fit] ⚠️ invalid frame sizes, skipping", {
                                 frameW,
                                 frameH,
                                 iw,
@@ -291,10 +291,14 @@ export async function loadCoverDesignToCanvas(
                             return;
                         }
 
+                        // If image dimensions aren't available yet, use frame as fallback
+                        const useIw = iw > 0 ? iw : frameW;
+                        const useIh = ih > 0 ? ih : frameH;
+
                         if (wrapInFrameGroup) {
-                            wrapImageInFrameGroup(canvas, img, frameLeft, frameTop, frameW, frameH, iw, ih, fit, debug);
+                            wrapImageInFrameGroup(canvas, img, frameLeft, frameTop, frameW, frameH, useIw, useIh, fit, debug);
                         } else {
-                            fitImageDirect(img, frameLeft, frameTop, frameW, frameH, iw, ih, fit, debug);
+                            fitImageDirect(img, frameLeft, frameTop, frameW, frameH, useIw, useIh, fit, debug);
                         }
                         img.data = img.data || {};
                         img.data.__fitDone = true;
