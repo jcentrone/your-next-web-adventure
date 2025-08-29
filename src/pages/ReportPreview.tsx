@@ -8,7 +8,7 @@ import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi"
 import { Report } from "@/lib/reportSchemas";
 import { getSignedUrlFromSupabaseUrl, isSupabaseUrl } from "@/integrations/supabase/storage";
 import { Badge } from "@/components/ui/badge";
-import { PREVIEW_TEMPLATES } from "@/constants/previewTemplates";
+import { PREVIEW_TEMPLATES, PreviewTemplateId } from "@/constants/previewTemplates";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import { AlertCircle, AlertOctagon, AlertTriangle, Info, MinusCircle, Wrench } from "lucide-react";
@@ -73,6 +73,31 @@ function CoverTemplateSelector({
   );
 }
 
+function StyleSelector({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: PreviewTemplateId;
+  onChange: (v: PreviewTemplateId) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Select value={value} onValueChange={(v) => onChange(v as PreviewTemplateId)} disabled={disabled}>
+      <SelectTrigger className="w-[200px]" aria-label="Choose style template">
+        <SelectValue placeholder="Choose style" />
+      </SelectTrigger>
+      <SelectContent>
+        {Object.keys(PREVIEW_TEMPLATES).map((key) => (
+          <SelectItem key={key} value={key} className="capitalize">
+            {key}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 const ReportPreview: React.FC = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -84,6 +109,7 @@ const ReportPreview: React.FC = () => {
 
   const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
   const [savingCoverTpl, setSavingCoverTpl] = React.useState(false);
+  const [savingStyleTpl, setSavingStyleTpl] = React.useState(false);
   const nav = useNavigate();
 
   // react-to-print
@@ -150,6 +176,27 @@ const ReportPreview: React.FC = () => {
       toast({ title: "Failed to update cover template", description: "Please try again.", variant: "destructive" });
     } finally {
       setSavingCoverTpl(false);
+    }
+  };
+
+  const handleStyleTemplateChange = async (tplId: PreviewTemplateId) => {
+    if (!report) return;
+    setSavingStyleTpl(true);
+    try {
+      const next = { ...report, previewTemplate: tplId } as Report;
+      if (user) {
+        await dbUpdateReport(next);
+        setReport(next);
+      } else {
+        saveLocalReport(next);
+        setReport(next);
+      }
+      toast({ title: "Style updated", description: `Applied ${tplId}` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Failed to update style", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setSavingStyleTpl(false);
     }
   };
 
@@ -304,6 +351,11 @@ const ReportPreview: React.FC = () => {
             value={report.coverTemplate}
             onChange={handleCoverTemplateChange}
             disabled={savingCoverTpl}
+          />
+          <StyleSelector
+            value={report.previewTemplate}
+            onChange={handleStyleTemplateChange}
+            disabled={savingStyleTpl}
           />
         </div>
         <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
