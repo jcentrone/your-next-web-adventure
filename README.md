@@ -60,36 +60,22 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## Managing Cover Pages
+## Cover Templates
 
-The app supports fully customizable cover pages for reports.
+Reports now support five predefined cover templates. Each template is a React component
+in `src/components/report-covers/` and accepts props for the report title, subtitle,
+optional image, and company name.
 
-### Creating a cover page
+### Adding or modifying templates
 
-1. From the header, open **Cover Page Manager** or visit `/cover-page-manager`.
-2. Click **New Cover Page**.
-3. Enter a name and choose a **Template** (Default or Modern).
-4. Pick a color, add optional text and an image URL.
-5. Select the report types this cover page should apply to.
-6. Save to create the cover page.
+1. Create a new component in `src/components/report-covers/` that implements the
+   `CoverTemplateProps` interface.
+2. Register the template by adding it to `COVER_TEMPLATES` in
+   `src/constants/coverTemplates.ts`.
+3. Use the cover template selector in the report preview to choose which template
+   is applied to a report.
 
-### Editing and assigning
-
-* On the Cover Page Manager page, click **Edit** next to any cover page to change its
-  template, color palette, text, image, or assigned report types.
-* Use the **Report Type Assignments** section to set the default cover page for
-  **Home Inspection** or **Wind Mitigation** reports.
-* When creating a new report, you can also choose a cover page from the **Cover Page**
-  dropdown.
-
-### Generating PDFs with a cover page
-
-After a cover page is assigned, generate a report PDF from the report preview. The
-selected cover page will appear at the beginning of the PDF.
-
-### Cover image merge field
-
-Reports now support a dedicated cover image. Upload an image in the report editor and it will be stored on the report as `coverImage`. In the cover page editor, drag the **Cover Image** field into the canvas to place a resizable placeholder. During preview and PDF generation this placeholder is replaced with the report's cover image.
+Reports support a dedicated cover image. Upload an image in the report editor and it will be stored on the report as `coverImage`. During preview and PDF generation this image is provided to the selected cover template.
 
 ## Image Proxy
 
