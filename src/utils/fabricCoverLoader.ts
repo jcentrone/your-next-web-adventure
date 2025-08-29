@@ -262,6 +262,7 @@ export async function loadCoverDesignToCanvas(
                                         };
                                         canvas.remove(obj);
                                         canvas.insertAt(img, idx);
+                                        img.setCoords();
                                         res();
                                     }, {crossOrigin: "anonymous"});
                                 });
