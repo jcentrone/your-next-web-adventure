@@ -72,17 +72,23 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
         return (
             <div ref={ref} className="pdf-document">
                 <section className="pdf-page-break">
-                    <CoverComponent 
+                    <CoverComponent
                         reportTitle={report.title}
                         clientName={report.clientName}
                         coverImage={coverUrl}
                         organizationName={company}
                         inspectionDate={report.inspectionDate}
-                        colorScheme={report.colorScheme ? {
-                            primary: COLOR_SCHEMES[report.colorScheme].primary,
-                            secondary: COLOR_SCHEMES[report.colorScheme].secondary,
-                            accent: COLOR_SCHEMES[report.colorScheme].accent
-                        } : undefined}
+                        colorScheme={
+                            report.colorScheme === "custom"
+                                ? report.customColors || undefined
+                                : report.colorScheme
+                                ? {
+                                      primary: COLOR_SCHEMES[report.colorScheme].primary,
+                                      secondary: COLOR_SCHEMES[report.colorScheme].secondary,
+                                      accent: COLOR_SCHEMES[report.colorScheme].accent,
+                                  }
+                                : undefined
+                        }
                     />
                 </section>
 

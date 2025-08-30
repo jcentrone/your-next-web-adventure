@@ -21,7 +21,7 @@ import { fillWindMitigationPDF } from "@/utils/fillWindMitigationPDF";
 import { getMyOrganization, getMyProfile, Organization, Profile } from "@/integrations/supabase/organizationsApi";
 import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 import { CoverTemplateSelector } from "@/components/ui/cover-template-selector";
-import { ColorSchemePicker, ColorScheme, COLOR_SCHEMES } from "@/components/ui/color-scheme-picker";
+import { ColorSchemePicker, ColorScheme, COLOR_SCHEMES, CustomColors } from "@/components/ui/color-scheme-picker";
 
 function SeverityBadge({
   severity,
@@ -179,11 +179,15 @@ const ReportPreview: React.FC = () => {
     }
   };
 
-  const handleColorSchemeChange = async (scheme: ColorScheme) => {
+  const handleColorSchemeChange = async (scheme: ColorScheme, colors?: CustomColors) => {
     if (!report) return;
     setSavingColorScheme(true);
     try {
-      const next = { ...report, colorScheme: scheme } as Report;
+      const next = {
+        ...report,
+        colorScheme: scheme,
+        customColors: scheme === "custom" ? colors : undefined,
+      } as Report;
       if (user) {
         await dbUpdateReport(next);
         setReport(next);
@@ -191,7 +195,10 @@ const ReportPreview: React.FC = () => {
         saveLocalReport(next);
         setReport(next);
       }
-      toast({ title: "Color scheme updated", description: `Applied ${scheme}` });
+      toast({
+        title: "Color scheme updated",
+        description: scheme === "custom" ? "Applied custom scheme" : `Applied ${scheme}`,
+      });
     } catch (e) {
       console.error(e);
       toast({ title: "Failed to update color scheme", description: "Please try again.", variant: "destructive" });
@@ -359,6 +366,7 @@ const ReportPreview: React.FC = () => {
           />
           <ColorSchemePicker
             value={report.colorScheme || "blue"}
+            customColors={report.customColors}
             onChange={handleColorSchemeChange}
             disabled={savingColorScheme}
           />
@@ -391,11 +399,17 @@ const ReportPreview: React.FC = () => {
               clientPhone={report.clientPhone || ""}
               inspectionDate={report.inspectionDate}
               weatherConditions={report.weatherConditions || ""}
-              colorScheme={report.colorScheme ? {
-                primary: COLOR_SCHEMES[report.colorScheme].primary,
-                secondary: COLOR_SCHEMES[report.colorScheme].secondary,
-                accent: COLOR_SCHEMES[report.colorScheme].accent
-              } : undefined}
+              colorScheme={
+                report.colorScheme === "custom"
+                  ? report.customColors || undefined
+                  : report.colorScheme
+                  ? {
+                      primary: COLOR_SCHEMES[report.colorScheme].primary,
+                      secondary: COLOR_SCHEMES[report.colorScheme].secondary,
+                      accent: COLOR_SCHEMES[report.colorScheme].accent,
+                    }
+                  : undefined
+              }
               className={tpl.cover}
             />
           </div>
