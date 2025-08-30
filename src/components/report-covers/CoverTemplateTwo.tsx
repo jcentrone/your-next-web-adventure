@@ -22,8 +22,20 @@ const CoverTemplateTwo: React.FC<CoverTemplateProps> = ({
                                                             clientPhone,
                                                             inspectionDate,
                                                             weatherConditions,
-                                                        }) => (
-    <div className="h-full bg-slate-900 text-white flex flex-col">
+                                                            colorScheme,
+                                                         }) => {
+    const primaryColor = colorScheme ? `hsl(${colorScheme.primary})` : 'hsl(210 100% 50%)';
+    const secondaryColor = colorScheme ? `hsl(${colorScheme.secondary})` : 'hsl(210 100% 40%)';
+    const accentColor = colorScheme ? `hsl(${colorScheme.accent})` : 'hsl(210 100% 60%)';
+
+    return (
+        <div
+            className="h-full flex flex-col"
+            style={{
+                background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+                color: 'white',
+            }}
+        >
         {/* Header: logo + title */}
         <header className="px-6 pt-10 flex flex-col items-center text-center">
             {organizationLogo && (
@@ -38,10 +50,13 @@ const CoverTemplateTwo: React.FC<CoverTemplateProps> = ({
                 {coverImage ? (
                     <img src={coverImage} alt="" className="w-full h-full object-cover"/>
                 ) : (
-                    <div className="w-full h-full bg-slate-700"/>
+                    <div className="w-full h-full bg-black/20"/>
                 )}
                 {/* Subtle overlay to normalize poor images */}
-                <div className="absolute inset-0 bg-black/35"/>
+                <div
+                    className="absolute inset-0"
+                    style={{ backgroundColor: `hsl(${colorScheme?.secondary || '210 100% 40%'} / 0.35)` }}
+                />
             </div>
         </section>
 
@@ -49,14 +64,14 @@ const CoverTemplateTwo: React.FC<CoverTemplateProps> = ({
         <main className="flex-1 px-6 py-8 flex flex-col items-center">
             <div className="grid gap-6 md:grid-cols-2 w-full max-w-5xl">
                 <div className="bg-white/10 rounded-lg p-5">
-                    <h2 className="font-semibold mb-2 uppercase tracking-wide">Inspector</h2>
+                    <h2 className="font-semibold mb-2 uppercase tracking-wide" style={{ color: accentColor }}>Inspector</h2>
                     {inspectorName && <p>Name: {inspectorName}</p>}
                     {inspectorLicenseNumber && <p>License: {inspectorLicenseNumber}</p>}
                     {inspectorPhone && <p>Phone: {inspectorPhone}</p>}
                     {inspectorEmail && <p>Email: {inspectorEmail}</p>}
                 </div>
                 <div className="bg-white/10 rounded-lg p-5">
-                    <h2 className="font-semibold mb-2 uppercase tracking-wide">Client</h2>
+                    <h2 className="font-semibold mb-2 uppercase tracking-wide" style={{ color: accentColor }}>Client</h2>
                     {clientName && <p>Name: {clientName}</p>}
                     {clientAddress && <p>Address: {clientAddress}</p>}
                     {clientPhone && <p>Phone: {clientPhone}</p>}
@@ -84,7 +99,8 @@ const CoverTemplateTwo: React.FC<CoverTemplateProps> = ({
                 </p>
             )}
         </footer>
-    </div>
-);
+        </div>
+    );
+};
 
 export default CoverTemplateTwo;

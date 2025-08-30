@@ -22,9 +22,16 @@ const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> 
                                                                                        clientPhone,
                                                                                        inspectionDate,
                                                                                        weatherConditions,
+                                                                                       colorScheme,
                                                                                        className,
                                                                                    }) => {
     const year = inspectionDate ? new Date(inspectionDate).getFullYear() : undefined;
+    const primaryColor = colorScheme ? `hsl(${colorScheme.primary})` : 'hsl(210 100% 50%)';
+    const secondaryColor = colorScheme ? `hsl(${colorScheme.secondary})` : 'hsl(210 100% 40%)';
+    const accentColor = colorScheme ? `hsl(${colorScheme.accent})` : 'hsl(210 100% 60%)';
+    const primarySoft = colorScheme ? `hsl(${colorScheme.primary} / 0.1)` : 'hsl(210 100% 50% / 0.1)';
+    const primaryTrans = colorScheme ? `hsl(${colorScheme.primary} / 0.2)` : 'hsl(210 100% 50% / 0.2)';
+    const accentTrans = colorScheme ? `hsl(${colorScheme.accent} / 0.2)` : 'hsl(210 100% 60% / 0.2)';
 
     return (
         <div
@@ -36,9 +43,13 @@ const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> 
         >
             {/* decor */}
             <div
-                className="pointer-events-none absolute -right-1/3 -top-1/3 w-[900px] h-[900px] rounded-full bg-gradient-to-tr from-sky-200 via-cyan-200 to-white"/>
+                className="pointer-events-none absolute -right-1/3 -top-1/3 w-[900px] h-[900px] rounded-full"
+                style={{ background: `radial-gradient(circle at center, ${primaryTrans}, ${accentTrans}, transparent 70%)` }}
+            />
             <div
-                className="pointer-events-none absolute -right-10 top-10 w-[280px] h-[280px] rounded-full border-[24px] border-sky-400/20"/>
+                className="pointer-events-none absolute -right-10 top-10 w-[280px] h-[280px] rounded-full border-[24px]"
+                style={{ borderColor: primaryTrans }}
+            />
 
             {/* page container */}
             <div className="relative z-10 mx-auto max-w-6xl p-6 md:p-10 flex flex-col min-h-full">
@@ -47,16 +58,22 @@ const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> 
                     <div className="flex items-center gap-3">
                         {organizationLogo && <img src={organizationLogo} alt="" className="h-10 w-10 object-contain"/>}
                         {organizationName && (
-                            <span className="text-sm font-semibold tracking-wide uppercase text-slate-600">
-                {organizationName}
-              </span>
+                            <span
+                                className="text-sm font-semibold tracking-wide uppercase"
+                                style={{ color: secondaryColor }}
+                            >
+                                {organizationName}
+                            </span>
                         )}
                     </div>
                     <div className="ml-auto flex items-center gap-2">
                         {year && (
-                            <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-sm font-semibold">
-                {year}
-              </span>
+                            <span
+                                className="px-3 py-1 rounded-full text-sm font-semibold"
+                                style={{ backgroundColor: primarySoft, color: primaryColor }}
+                            >
+                                {year}
+                            </span>
                         )}
                     </div>
                 </div>
@@ -64,18 +81,22 @@ const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> 
                 {/* Title + hero image */}
                 <div className="mt-6 grid gap-8 md:grid-cols-[1.25fr_1fr] items-center">
                     <div>
-                        <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">{reportTitle}</h1>
-                        <div className="mt-4 flex flex-wrap gap-2 text-sm text-slate-600">
+                        <h1 className="text-4xl md:text-5xl font-extrabold leading-tight" style={{ color: primaryColor }}>{reportTitle}</h1>
+                        <div className="mt-4 flex flex-wrap gap-2 text-sm" style={{ color: secondaryColor }}>
                             {inspectionDate && (
-                                <span className="px-2 py-1 rounded bg-slate-100">
-                  Date: {formatShortDate(inspectionDate)}
-                </span>
+                                <span className="px-2 py-1 rounded" style={{ backgroundColor: primarySoft }}>
+                                    Date: {formatShortDate(inspectionDate)}
+                                </span>
                             )}
                             {weatherConditions && (
-                                <span className="px-2 py-1 rounded bg-slate-100">Weather: {weatherConditions}</span>
+                                <span className="px-2 py-1 rounded" style={{ backgroundColor: primarySoft }}>
+                                    Weather: {weatherConditions}
+                                </span>
                             )}
                             {clientAddress && (
-                                <span className="px-2 py-1 rounded bg-slate-100">Property: {clientAddress}</span>
+                                <span className="px-2 py-1 rounded" style={{ backgroundColor: primarySoft }}>
+                                    Property: {clientAddress}
+                                </span>
                             )}
                         </div>
                     </div>
@@ -92,8 +113,8 @@ const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> 
                 {/* Cards (Client & Inspector only) */}
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Client */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="text-xs font-semibold tracking-wide text-sky-700 uppercase">Client</div>
+                    <div className="rounded-xl border bg-white p-5 shadow-sm" style={{ borderColor: primarySoft }}>
+                        <div className="text-xs font-semibold tracking-wide uppercase" style={{ color: primaryColor }}>Client</div>
                         <dl className="mt-2 grid grid-cols-[88px_1fr] gap-y-1.5 text-sm">
                             {clientName && (
                                 <>
@@ -117,8 +138,8 @@ const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> 
                     </div>
 
                     {/* Inspector */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="text-xs font-semibold tracking-wide text-emerald-700 uppercase">Inspector</div>
+                    <div className="rounded-xl border bg-white p-5 shadow-sm" style={{ borderColor: primarySoft }}>
+                        <div className="text-xs font-semibold tracking-wide uppercase" style={{ color: accentColor }}>Inspector</div>
                         <dl className="mt-2 grid grid-cols-[88px_1fr] gap-y-1.5 text-sm">
                             {inspectorName && (
                                 <>
@@ -153,19 +174,27 @@ const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> 
 
                 {/* Footer: Organization details */}
                 {(organizationAddress || organizationPhone || organizationEmail || organizationWebsite) && (
-                    <footer className="mt-10 border-t border-slate-200 pt-4">
-                        <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+                    <footer className="mt-10 pt-4" style={{ borderTop: `1px solid ${primarySoft}` }}>
+                        <div className="flex flex-wrap items-center justify-center gap-2 text-sm" style={{ color: secondaryColor }}>
                             {organizationAddress && (
-                                <span className="px-3 py-1 rounded-full bg-slate-100">{organizationAddress}</span>
+                                <span className="px-3 py-1 rounded-full" style={{ backgroundColor: primarySoft }}>
+                                    {organizationAddress}
+                                </span>
                             )}
                             {organizationPhone && (
-                                <span className="px-3 py-1 rounded-full bg-slate-100">{organizationPhone}</span>
+                                <span className="px-3 py-1 rounded-full" style={{ backgroundColor: primarySoft }}>
+                                    {organizationPhone}
+                                </span>
                             )}
                             {organizationEmail && (
-                                <span className="px-3 py-1 rounded-full bg-slate-100">{organizationEmail}</span>
+                                <span className="px-3 py-1 rounded-full" style={{ backgroundColor: primarySoft }}>
+                                    {organizationEmail}
+                                </span>
                             )}
                             {organizationWebsite && (
-                                <span className="px-3 py-1 rounded-full bg-slate-100">{organizationWebsite}</span>
+                                <span className="px-3 py-1 rounded-full" style={{ backgroundColor: primarySoft }}>
+                                    {organizationWebsite}
+                                </span>
                             )}
                         </div>
                     </footer>
