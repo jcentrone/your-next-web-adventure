@@ -21,11 +21,21 @@ const CoverTemplateFive: React.FC<CoverTemplateProps> = ({
                                                              clientPhone,
                                                              inspectionDate,
                                                              weatherConditions,
-                                                         }) => (
+                                                             colorScheme,
+                                                         }) => {
+    const primaryColor = colorScheme ? `hsl(${colorScheme.primary})` : 'hsl(210 100% 50%)';
+    const secondaryColor = colorScheme ? `hsl(${colorScheme.secondary})` : 'hsl(210 100% 40%)';
+    const accentColor = colorScheme ? `hsl(${colorScheme.accent})` : 'hsl(210 100% 60%)';
+    const primarySoft = colorScheme ? `hsl(${colorScheme.primary} / 0.05)` : 'hsl(210 100% 50% / 0.05)';
+
+    return (
     <div className="h-full grid lg:grid-cols-[320px_1fr]">
-        <aside className="bg-emerald-700 text-white p-8 flex flex-col items-center justify-center">
+        <aside
+            className="text-white p-8 flex flex-col items-center justify-center"
+            style={{ background: `linear-gradient(180deg, ${primaryColor}, ${secondaryColor})` }}
+        >
             {organizationLogo && <img src={organizationLogo} alt="" className="h-24 mb-4 object-contain"/>}
-            <h2 className="text-xl font-semibold text-center">{organizationName}</h2>
+            <h2 className="text-xl font-semibold text-center" style={{ color: 'white' }}>{organizationName}</h2>
             <div className="mt-4 text-sm text-center opacity-90 space-y-1">
                 {organizationAddress && <p>{organizationAddress}</p>}
                 {organizationPhone && <p>{organizationPhone}</p>}
@@ -44,17 +54,17 @@ const CoverTemplateFive: React.FC<CoverTemplateProps> = ({
             </div>
 
             <div className="p-8 grid gap-6">
-                <h1 className="text-3xl font-bold">{reportTitle}</h1>
+                <h1 className="text-3xl font-bold" style={{ color: primaryColor }}>{reportTitle}</h1>
                 <div className="grid md:grid-cols-2 gap-6">
-                    <div className="bg-gray-50 border rounded p-4">
-                        <h3 className="font-semibold mb-2">Inspector</h3>
+                    <div className="border rounded p-4" style={{ backgroundColor: primarySoft, borderColor: primaryColor }}>
+                        <h3 className="font-semibold mb-2" style={{ color: accentColor }}>Inspector</h3>
                         {inspectorName && <p>Name: {inspectorName}</p>}
                         {inspectorLicenseNumber && <p>License: {inspectorLicenseNumber}</p>}
                         {inspectorPhone && <p>Phone: {inspectorPhone}</p>}
                         {inspectorEmail && <p>Email: {inspectorEmail}</p>}
                     </div>
-                    <div className="bg-gray-50 border rounded p-4">
-                        <h3 className="font-semibold mb-2">Client</h3>
+                    <div className="border rounded p-4" style={{ backgroundColor: primarySoft, borderColor: primaryColor }}>
+                        <h3 className="font-semibold mb-2" style={{ color: accentColor }}>Client</h3>
                         {clientName && <p>Name: {clientName}</p>}
                         {clientAddress && <p>Address: {clientAddress}</p>}
                         {clientPhone && <p>Phone: {clientPhone}</p>}
@@ -62,13 +72,14 @@ const CoverTemplateFive: React.FC<CoverTemplateProps> = ({
                     </div>
                 </div>
 
-                <div className="text-sm text-gray-700">
+                <div className="text-sm" style={{ color: secondaryColor }}>
                     {inspectionDate && <p>Inspection Date: {formatShortDate(inspectionDate)}</p>}
                     {weatherConditions && <p>Weather: {weatherConditions}</p>}
                 </div>
             </div>
         </main>
     </div>
-);
+    );
+};
 
 export default CoverTemplateFive;
