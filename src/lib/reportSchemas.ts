@@ -65,6 +65,8 @@ export const BaseReportSchema = z.object({
             primary: z.string(),
             secondary: z.string(),
             accent: z.string(),
+            headingText: z.string(),
+            bodyText: z.string(),
         })
         .optional(),
     reportType: z.enum(["home_inspection", "wind_mitigation"]),

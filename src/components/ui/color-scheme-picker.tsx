@@ -53,6 +53,8 @@ export interface CustomColors {
   primary: string;
   secondary: string;
   accent: string;
+  headingText: string;
+  bodyText: string;
 }
 
 export type ColorScheme = keyof typeof COLOR_SCHEMES | "custom";
@@ -68,7 +70,13 @@ export function ColorSchemePicker({ value, onChange, disabled, customColors }: C
   const [open, setOpen] = React.useState(false);
   const [showCustom, setShowCustom] = React.useState(false);
   const [custom, setCustom] = React.useState<CustomColors>(
-    customColors || { primary: "210 100% 50%", secondary: "210 100% 40%", accent: "210 100% 60%" }
+    customColors || {
+      primary: "210 100% 50%",
+      secondary: "210 100% 40%",
+      accent: "210 100% 60%",
+      headingText: "222 47% 11%",
+      bodyText: "222 47% 11%",
+    }
   );
 
   React.useEffect(() => {
@@ -187,9 +195,11 @@ export function ColorSchemePicker({ value, onChange, disabled, customColors }: C
           </div>
           {showCustom && (
             <div className="mt-4 space-y-3">
-              {(["primary", "secondary", "accent"] as const).map((key) => (
+              {(["primary", "secondary", "accent", "headingText", "bodyText"] as const).map((key) => (
                 <div key={key} className="flex items-center justify-between gap-2">
-                  <label className="text-xs capitalize w-16">{key}</label>
+                  <label className="text-xs capitalize w-20">
+                    {key === "headingText" ? "Headings" : key === "bodyText" ? "Body" : key}
+                  </label>
                   <input
                     type="color"
                     value={hslToHex(custom[key])}

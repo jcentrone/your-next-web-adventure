@@ -31,6 +31,14 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
         const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
         const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
+        const colorVars =
+            report.colorScheme === "custom" && report.customColors
+                ? {
+                      "--heading-text-color": `hsl(${report.customColors.headingText})`,
+                      "--body-text-color": `hsl(${report.customColors.bodyText})`,
+                  }
+                : undefined;
+
         const summary = report.sections.flatMap((s) =>
             s.findings.filter((f) => f.includeInSummary || f.severity === "Safety" || f.severity === "Major" || f.severity === "Moderate" || f.severity === "Minor" || f.severity === "Maintenance" || f.severity === "Info")
         );
@@ -70,7 +78,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
         }, [] as { sectionTitle: string; counts: Record<string, number> }[]);
 
         return (
-            <div ref={ref} className="pdf-document">
+            <div ref={ref} className="pdf-document" style={colorVars}>
                 <section className="pdf-page-break">
                     <CoverComponent
                         reportTitle={report.title}

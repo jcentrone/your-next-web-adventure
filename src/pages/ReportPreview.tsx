@@ -283,10 +283,20 @@ const ReportPreview: React.FC = () => {
   const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
+  const colorVars =
+    report.colorScheme === "custom" && report.customColors
+      ? {
+          "--heading-text-color": `hsl(${report.customColors.headingText})`,
+          "--body-text-color": `hsl(${report.customColors.bodyText})`,
+        }
+      : undefined;
+
   if (report.reportType !== "home_inspection") {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-10 text-center">
-        <h1 className="text-2xl font-bold mb-4">Wind Mitigation Report</h1>
+      <div className="max-w-4xl mx-auto px-4 py-10 text-center" style={{ ...colorVars, color: "var(--body-text-color)" }}>
+        <h1 className="text-2xl font-bold mb-4" style={{ color: "var(--heading-text-color)" }}>
+          Wind Mitigation Report
+        </h1>
         <p className="text-muted-foreground mb-6">Generate your completed Wind Mitigation Report as a PDF.</p>
         <div className="flex justify-center gap-4">
           <Button onClick={handleWindMitigationDownload}>Download Wind Mitigation PDF</Button>
@@ -376,7 +386,7 @@ const ReportPreview: React.FC = () => {
         </Button>
       </div>
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center" style={colorVars}>
         {/* Cover Page */}
         <div className="preview-page page-break">
           <div className={`${tpl.container} h-[1056px]`}>
