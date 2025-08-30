@@ -21,7 +21,7 @@ import { fillWindMitigationPDF } from "@/utils/fillWindMitigationPDF";
 import { getMyOrganization, getMyProfile, Organization, Profile } from "@/integrations/supabase/organizationsApi";
 import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 import { CoverTemplateSelector } from "@/components/ui/cover-template-selector";
-import { ColorSchemePicker, ColorScheme } from "@/components/ui/color-scheme-picker";
+import { ColorSchemePicker, ColorScheme, COLOR_SCHEMES } from "@/components/ui/color-scheme-picker";
 
 function SeverityBadge({
   severity,
@@ -391,6 +391,11 @@ const ReportPreview: React.FC = () => {
               clientPhone={report.clientPhone || ""}
               inspectionDate={report.inspectionDate}
               weatherConditions={report.weatherConditions || ""}
+              colorScheme={report.colorScheme ? {
+                primary: COLOR_SCHEMES[report.colorScheme].primary,
+                secondary: COLOR_SCHEMES[report.colorScheme].secondary,
+                accent: COLOR_SCHEMES[report.colorScheme].accent
+              } : undefined}
               className={tpl.cover}
             />
           </div>

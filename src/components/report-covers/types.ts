@@ -17,4 +17,9 @@ export interface CoverTemplateProps {
   weatherConditions?: string;
   coverImage?: string;
   reportTitle: string;
+  colorScheme?: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
 }

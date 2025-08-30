@@ -3,41 +3,47 @@ import {CoverTemplateProps} from "./types";
 import { formatShortDate } from "../../utils/formatDate";
 
 const CoverTemplateOne: React.FC<CoverTemplateProps> = ({
-                                                            reportTitle,
-                                                            coverImage,
-                                                            organizationName,
-                                                            organizationAddress,
-                                                            organizationPhone,
-                                                            organizationEmail,
-                                                            organizationWebsite,
-                                                            organizationLogo,
-                                                            inspectorName,
-                                                            inspectorLicenseNumber,
-                                                            inspectorPhone,
-                                                            inspectorEmail,
-                                                            clientName,
-                                                            clientAddress,
-                                                            clientEmail,
-                                                            clientPhone,
-                                                            inspectionDate,
-                                                            weatherConditions,
-                                                        }) => (
-    <div className="h-full flex flex-col p-10">
+                                                             reportTitle,
+                                                             coverImage,
+                                                             organizationName,
+                                                             organizationAddress,
+                                                             organizationPhone,
+                                                             organizationEmail,
+                                                             organizationWebsite,
+                                                             organizationLogo,
+                                                             inspectorName,
+                                                             inspectorLicenseNumber,
+                                                             inspectorPhone,
+                                                             inspectorEmail,
+                                                             clientName,
+                                                             clientAddress,
+                                                             clientEmail,
+                                                             clientPhone,
+                                                             inspectionDate,
+                                                             weatherConditions,
+                                                             colorScheme,
+                                                         }) => {
+    const primaryColor = colorScheme ? `hsl(${colorScheme.primary})` : 'hsl(210 100% 50%)';
+    const secondaryColor = colorScheme ? `hsl(${colorScheme.secondary})` : 'hsl(210 100% 40%)';
+    const accentColor = colorScheme ? `hsl(${colorScheme.accent})` : 'hsl(210 100% 60%)';
+
+    return (
+    <div className="h-full flex flex-col p-10" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`, color: 'white' }}>
         {/* Top section */}
         <div className="flex flex-col items-center text-center space-y-6">
             {coverImage && (
                 <img
                     src={coverImage}
                     alt=""
-                    className="w-full max-h-64 object-cover rounded"
+                    className="w-full max-h-64 object-cover rounded border-4 border-white/20"
                 />
             )}
-            <h1 className="text-4xl font-bold">{reportTitle}</h1>
+            <h1 className="text-4xl font-bold text-white drop-shadow-lg">{reportTitle}</h1>
             {organizationLogo && (
-                <img src={organizationLogo} alt="" className="h-20 object-contain"/>
+                <img src={organizationLogo} alt="" className="h-20 object-contain bg-white/10 p-2 rounded"/>
             )}
-            <div className="text-sm">
-                {organizationName && <p className="font-semibold">{organizationName}</p>}
+            <div className="text-sm text-white/90">
+                {organizationName && <p className="font-semibold text-white">{organizationName}</p>}
                 {organizationAddress && <p>{organizationAddress}</p>}
                 {organizationPhone && <p>{organizationPhone}</p>}
                 {organizationEmail && <p>{organizationEmail}</p>}
@@ -49,28 +55,29 @@ const CoverTemplateOne: React.FC<CoverTemplateProps> = ({
         {/* Bottom section */}
         <div className="mt-[120px] w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl text-left text-sm mx-auto">
-                <div>
-                    <h2 className="font-semibold mb-2">Inspector</h2>
-                    {inspectorName && <p>Name: {inspectorName}</p>}
-                    {inspectorLicenseNumber && <p>License: {inspectorLicenseNumber}</p>}
-                    {inspectorPhone && <p>Phone: {inspectorPhone}</p>}
-                    {inspectorEmail && <p>Email: {inspectorEmail}</p>}
+                <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                    <h2 className="font-semibold mb-2 text-white">Inspector</h2>
+                    {inspectorName && <p className="text-white/90">Name: {inspectorName}</p>}
+                    {inspectorLicenseNumber && <p className="text-white/90">License: {inspectorLicenseNumber}</p>}
+                    {inspectorPhone && <p className="text-white/90">Phone: {inspectorPhone}</p>}
+                    {inspectorEmail && <p className="text-white/90">Email: {inspectorEmail}</p>}
                 </div>
-                <div>
-                    <h2 className="font-semibold mb-2">Client</h2>
-                    {clientName && <p>Name: {clientName}</p>}
-                    {clientAddress && <p>Address: {clientAddress}</p>}
-                    {clientPhone && <p>Phone: {clientPhone}</p>}
-                    {clientEmail && <p>Email: {clientEmail}</p>}
+                <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                    <h2 className="font-semibold mb-2 text-white">Client</h2>
+                    {clientName && <p className="text-white/90">Name: {clientName}</p>}
+                    {clientAddress && <p className="text-white/90">Address: {clientAddress}</p>}
+                    {clientPhone && <p className="text-white/90">Phone: {clientPhone}</p>}
+                    {clientEmail && <p className="text-white/90">Email: {clientEmail}</p>}
                 </div>
             </div>
 
-            <div className="text-sm text-center mt-6">
-                {inspectionDate && <p>Inspection Date: {formatShortDate(inspectionDate)}</p>}
-                {weatherConditions && <p>Weather: {weatherConditions}</p>}
+            <div className="text-sm text-center mt-6 bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                {inspectionDate && <p className="text-white/90">Inspection Date: {formatShortDate(inspectionDate)}</p>}
+                {weatherConditions && <p className="text-white/90">Weather: {weatherConditions}</p>}
             </div>
         </div>
     </div>
 );
+};
 
 export default CoverTemplateOne;

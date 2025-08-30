@@ -63,12 +63,7 @@ export function ColorSchemePicker({ value, onChange, disabled }: ColorSchemePick
   const currentScheme = COLOR_SCHEMES[value];
 
   React.useEffect(() => {
-    const scheme = COLOR_SCHEMES[value];
-    const root = document.documentElement;
-    
-    root.style.setProperty('--primary', scheme.primary);
-    root.style.setProperty('--secondary', scheme.secondary);
-    root.style.setProperty('--accent', scheme.accent);
+    // Remove global CSS variable setting - we'll pass colors as props instead
   }, [value]);
 
   return (

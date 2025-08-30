@@ -73,6 +73,11 @@ export function CoverTemplateSelector({ value, onChange, disabled }: CoverTempla
                       inspectionDate="2024-01-15"
                       weatherConditions="Clear, 72°F"
                       coverImage=""
+                      colorScheme={{
+                        primary: "210 100% 50%",
+                        secondary: "210 100% 40%", 
+                        accent: "210 100% 60%"
+                      }}
                     />
                   </div>
                 </div>

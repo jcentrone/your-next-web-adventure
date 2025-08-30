@@ -1,6 +1,7 @@
 import React from "react";
 import {Report} from "@/lib/reportSchemas";
 import {PREVIEW_TEMPLATES} from "@/constants/previewTemplates";
+import { COLOR_SCHEMES } from "@/components/ui/color-scheme-picker";
 import {AlertCircle, AlertOctagon, AlertTriangle, Info, MinusCircle, Wrench} from "lucide-react";
 import ReportDetailsSection from "./ReportDetailsSection";
 import SectionInfoDisplay from "./SectionInfoDisplay";
@@ -77,6 +78,11 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                         coverImage={coverUrl}
                         organizationName={company}
                         inspectionDate={report.inspectionDate}
+                        colorScheme={report.colorScheme ? {
+                            primary: COLOR_SCHEMES[report.colorScheme].primary,
+                            secondary: COLOR_SCHEMES[report.colorScheme].secondary,
+                            accent: COLOR_SCHEMES[report.colorScheme].accent
+                        } : undefined}
                     />
                 </section>
 
