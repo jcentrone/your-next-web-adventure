@@ -21,7 +21,7 @@ import { fillWindMitigationPDF } from "@/utils/fillWindMitigationPDF";
 import { getMyOrganization, getMyProfile, Organization, Profile } from "@/integrations/supabase/organizationsApi";
 import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 import { CoverTemplateSelector } from "@/components/ui/cover-template-selector";
-import { ColorSchemePicker, ColorScheme, COLOR_SCHEMES } from "@/components/ui/color-scheme-picker";
+import { ColorSchemePicker, ColorScheme, COLOR_SCHEMES, CustomColors } from "@/components/ui/color-scheme-picker";
 
 function SeverityBadge({
   severity,
@@ -179,11 +179,15 @@ const ReportPreview: React.FC = () => {
     }
   };
 
-  const handleColorSchemeChange = async (scheme: ColorScheme) => {
+  const handleColorSchemeChange = async (scheme: ColorScheme, colors?: CustomColors) => {
     if (!report) return;
     setSavingColorScheme(true);
     try {
-      const next = { ...report, colorScheme: scheme } as Report;
+      const next = {
+        ...report,
+        colorScheme: scheme,
+        customColors: scheme === "custom" ? colors : undefined,
+      } as Report;
       if (user) {
         await dbUpdateReport(next);
         setReport(next);
@@ -191,7 +195,10 @@ const ReportPreview: React.FC = () => {
         saveLocalReport(next);
         setReport(next);
       }
-      toast({ title: "Color scheme updated", description: `Applied ${scheme}` });
+      toast({
+        title: "Color scheme updated",
+        description: scheme === "custom" ? "Applied custom scheme" : `Applied ${scheme}`,
+      });
     } catch (e) {
       console.error(e);
       toast({ title: "Failed to update color scheme", description: "Please try again.", variant: "destructive" });
@@ -276,10 +283,20 @@ const ReportPreview: React.FC = () => {
   const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
+  const colorVars =
+    report.colorScheme === "custom" && report.customColors
+      ? {
+          "--heading-text-color": `hsl(${report.customColors.headingText})`,
+          "--body-text-color": `hsl(${report.customColors.bodyText})`,
+        }
+      : undefined;
+
   if (report.reportType !== "home_inspection") {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-10 text-center">
-        <h1 className="text-2xl font-bold mb-4">Wind Mitigation Report</h1>
+      <div className="max-w-4xl mx-auto px-4 py-10 text-center" style={{ ...colorVars, color: "var(--body-text-color)" }}>
+        <h1 className="text-2xl font-bold mb-4" style={{ color: "var(--heading-text-color)" }}>
+          Wind Mitigation Report
+        </h1>
         <p className="text-muted-foreground mb-6">Generate your completed Wind Mitigation Report as a PDF.</p>
         <div className="flex justify-center gap-4">
           <Button onClick={handleWindMitigationDownload}>Download Wind Mitigation PDF</Button>
@@ -359,6 +376,7 @@ const ReportPreview: React.FC = () => {
           />
           <ColorSchemePicker
             value={report.colorScheme || "blue"}
+            customColors={report.customColors}
             onChange={handleColorSchemeChange}
             disabled={savingColorScheme}
           />
@@ -368,7 +386,7 @@ const ReportPreview: React.FC = () => {
         </Button>
       </div>
 
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center" style={colorVars}>
         {/* Cover Page */}
         <div className="preview-page page-break">
           <div className={`${tpl.container} h-[1056px]`}>
@@ -391,11 +409,17 @@ const ReportPreview: React.FC = () => {
               clientPhone={report.clientPhone || ""}
               inspectionDate={report.inspectionDate}
               weatherConditions={report.weatherConditions || ""}
-              colorScheme={report.colorScheme ? {
-                primary: COLOR_SCHEMES[report.colorScheme].primary,
-                secondary: COLOR_SCHEMES[report.colorScheme].secondary,
-                accent: COLOR_SCHEMES[report.colorScheme].accent
-              } : undefined}
+              colorScheme={
+                report.colorScheme === "custom"
+                  ? report.customColors || undefined
+                  : report.colorScheme
+                  ? {
+                      primary: COLOR_SCHEMES[report.colorScheme].primary,
+                      secondary: COLOR_SCHEMES[report.colorScheme].secondary,
+                      accent: COLOR_SCHEMES[report.colorScheme].accent,
+                    }
+                  : undefined
+              }
               className={tpl.cover}
             />
           </div>
