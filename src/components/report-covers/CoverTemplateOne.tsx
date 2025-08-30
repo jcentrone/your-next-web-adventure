@@ -23,9 +23,9 @@ const CoverTemplateOne: React.FC<CoverTemplateProps> = ({
                                                              weatherConditions,
                                                              colorScheme,
                                                          }) => {
-    const primaryColor = colorScheme ? `hsl(${colorScheme.primary})` : 'hsl(210 100% 50%)';
-    const secondaryColor = colorScheme ? `hsl(${colorScheme.secondary})` : 'hsl(210 100% 40%)';
-    const accentColor = colorScheme ? `hsl(${colorScheme.accent})` : 'hsl(210 100% 60%)';
+    const primaryColor = colorScheme ? `hsl(${colorScheme.primary})` : 'hsl(150 100% 40%)';
+    const secondaryColor = colorScheme ? `hsl(${colorScheme.secondary})` : 'hsl(150 100% 30%)';
+    const accentColor = colorScheme ? `hsl(${colorScheme.accent})` : 'hsl(150 100% 50%)';
 
     return (
     <div className="h-full flex flex-col p-10" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`, color: 'white' }}>
