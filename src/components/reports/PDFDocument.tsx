@@ -71,7 +71,13 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
         return (
             <div ref={ref} className="pdf-document">
                 <section className="pdf-page-break">
-                    <CoverComponent title={report.title} subtitle={report.clientName} image={coverUrl} company={company} />
+                    <CoverComponent 
+                        reportTitle={report.title}
+                        clientName={report.clientName}
+                        coverImage={coverUrl}
+                        organizationName={company}
+                        inspectionDate={report.inspectionDate}
+                    />
                 </section>
 
                 <article className={tpl.container}>

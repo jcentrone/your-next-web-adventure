@@ -20,6 +20,8 @@ import "../styles/pdf.css";
 import { fillWindMitigationPDF } from "@/utils/fillWindMitigationPDF";
 import { getMyOrganization, getMyProfile, Organization, Profile } from "@/integrations/supabase/organizationsApi";
 import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
+import { CoverTemplateSelector } from "@/components/ui/cover-template-selector";
+import { ColorSchemePicker, ColorScheme } from "@/components/ui/color-scheme-picker";
 
 function SeverityBadge({
   severity,
@@ -48,30 +50,6 @@ function SeverityBadge({
   return <Badge variant={variant}>{severity}</Badge>;
 }
 
-function CoverTemplateSelector({
-  value,
-  onChange,
-  disabled,
-}: {
-  value: CoverTemplateId;
-  onChange: (v: CoverTemplateId) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <Select value={value} onValueChange={(v) => onChange(v as CoverTemplateId)} disabled={disabled}>
-      <SelectTrigger className="w-[200px]" aria-label="Choose cover template">
-        <SelectValue placeholder="Choose cover" />
-      </SelectTrigger>
-      <SelectContent>
-        {Object.entries(COVER_TEMPLATES).map(([key, tpl]) => (
-          <SelectItem key={key} value={key}>
-            {tpl.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
 
 function StyleSelector({
   value,
@@ -110,6 +88,7 @@ const ReportPreview: React.FC = () => {
   const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
   const [savingCoverTpl, setSavingCoverTpl] = React.useState(false);
   const [savingStyleTpl, setSavingStyleTpl] = React.useState(false);
+  const [savingColorScheme, setSavingColorScheme] = React.useState(false);
   const nav = useNavigate();
 
   // react-to-print
@@ -197,6 +176,27 @@ const ReportPreview: React.FC = () => {
       toast({ title: "Failed to update style", description: "Please try again.", variant: "destructive" });
     } finally {
       setSavingStyleTpl(false);
+    }
+  };
+
+  const handleColorSchemeChange = async (scheme: ColorScheme) => {
+    if (!report) return;
+    setSavingColorScheme(true);
+    try {
+      const next = { ...report, colorScheme: scheme } as Report;
+      if (user) {
+        await dbUpdateReport(next);
+        setReport(next);
+      } else {
+        saveLocalReport(next);
+        setReport(next);
+      }
+      toast({ title: "Color scheme updated", description: `Applied ${scheme}` });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Failed to update color scheme", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setSavingColorScheme(false);
     }
   };
 
@@ -356,6 +356,11 @@ const ReportPreview: React.FC = () => {
             value={report.previewTemplate}
             onChange={handleStyleTemplateChange}
             disabled={savingStyleTpl}
+          />
+          <ColorSchemePicker
+            value={report.colorScheme || "blue"}
+            onChange={handleColorSchemeChange}
+            disabled={savingColorScheme}
           />
         </div>
         <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
