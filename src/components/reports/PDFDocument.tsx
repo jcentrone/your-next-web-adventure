@@ -89,7 +89,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                         colorScheme={
                             report.colorScheme === "custom"
                                 ? report.customColors || undefined
-                                : report.colorScheme
+                                : report.colorScheme && report.colorScheme !== "default"
                                 ? {
                                       primary: COLOR_SCHEMES[report.colorScheme].primary,
                                       secondary: COLOR_SCHEMES[report.colorScheme].secondary,

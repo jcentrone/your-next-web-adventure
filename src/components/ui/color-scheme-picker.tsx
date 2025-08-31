@@ -57,7 +57,7 @@ export interface CustomColors {
   bodyText: string;
 }
 
-export type ColorScheme = keyof typeof COLOR_SCHEMES | "custom";
+export type ColorScheme = keyof typeof COLOR_SCHEMES | "custom" | "default";
 
 interface ColorSchemePickerProps {
   value: ColorScheme;
@@ -83,7 +83,12 @@ export function ColorSchemePicker({ value, onChange, disabled, customColors }: C
     if (customColors) setCustom(customColors);
   }, [customColors]);
 
-  const currentScheme = value === "custom" ? { name: "Custom", preview: "" } : COLOR_SCHEMES[value];
+  const currentScheme =
+    value === "custom"
+      ? { name: "Custom", preview: "" }
+      : value === "default"
+      ? { name: "Default", preview: "bg-background border" }
+      : COLOR_SCHEMES[value];
 
   const hslToHex = (hsl: string) => {
     const [h, s, l] = hsl.split(" ").map((v) => parseFloat(v));
@@ -168,6 +173,19 @@ export function ColorSchemePicker({ value, onChange, disabled, customColors }: C
         <div className="space-y-2">
           <h4 className="font-medium text-sm">Color Scheme</h4>
           <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant={value === "default" ? "default" : "outline"}
+              size="sm"
+              className="justify-start gap-2 h-9"
+              onClick={() => {
+                onChange("default");
+                setOpen(false);
+                setShowCustom(false);
+              }}
+            >
+              <div className="w-4 h-4 rounded-full border bg-background" />
+              Default
+            </Button>
             {Object.entries(COLOR_SCHEMES).map(([key, scheme]) => (
               <Button
                 key={key}
@@ -177,6 +195,7 @@ export function ColorSchemePicker({ value, onChange, disabled, customColors }: C
                 onClick={() => {
                   onChange(key as ColorScheme);
                   setOpen(false);
+                  setShowCustom(false);
                 }}
               >
                 <div className={cn("w-4 h-4 rounded-full", scheme.preview)} />
@@ -216,4 +235,4 @@ export function ColorSchemePicker({ value, onChange, disabled, customColors }: C
       </PopoverContent>
     </Popover>
   );
-}
+  }
