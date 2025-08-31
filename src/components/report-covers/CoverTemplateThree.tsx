@@ -44,10 +44,10 @@ const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> 
     return (
         <div
             className={[
+                className || "",
                 // Default to white; pass className="bg-slate-50" for a very light silver canvas.
                 "relative isolate bg-white text-slate-900",
                 "h-full min-h-full overflow-hidden",
-                className || "",
             ].join(" ")}
         >
             {/* ultra-soft decor kept away from text areas */}
