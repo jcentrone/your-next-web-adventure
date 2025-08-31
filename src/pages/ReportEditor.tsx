@@ -18,7 +18,7 @@ import { useEnhancedSectionGuidance } from "@/hooks/useEnhancedSectionGuidance";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { contactsApi } from "@/integrations/supabase/crmApi";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
@@ -517,8 +517,48 @@ const ReportEditor: React.FC = () => {
     toast({ title: "Annotation saved successfully" });
   };
 
-  const finalize = () => {
+  const generateShareLink = async () => {
+    if (!report) return;
+    try {
+      const { data, error } = await (supabase as any).rpc("create_report_share", { report_id: report.id });
+      if (error) throw error;
+      const token = (data as any)?.token || (data as any)?.shareToken || (data as any);
+      setReport((prev) => (prev ? { ...prev, shareToken: token } : prev));
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Failed to generate share link", variant: "destructive" });
+    }
+  };
+
+  const revokeShareLink = async () => {
+    if (!report) return;
+    try {
+      const { error } = await supabase.from("report_shares").delete().eq("report_id", report.id);
+      if (error) throw error;
+      setReport((prev) => (prev ? { ...prev, shareToken: undefined } : prev));
+      toast({ title: "Share link revoked" });
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Failed to revoke share link", variant: "destructive" });
+    }
+  };
+
+  const regenerateShareLink = async () => {
+    await revokeShareLink();
+    await generateShareLink();
+  };
+
+  const copyShareLink = () => {
+    if (!report?.shareToken) return;
+    const url = `${SUPABASE_URL}/functions/v1/share-report?token=${report.shareToken}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: "Link copied" });
+  };
+
+  const finalize = async () => {
+    if (!report) return;
     setReport((prev) => (prev ? { ...prev, status: "Final" } : prev));
+    if (user) await generateShareLink();
     toast({ title: "Report finalized. Use Preview to print/PDF." });
   };
 
@@ -1098,6 +1138,32 @@ const ReportEditor: React.FC = () => {
               <Button onClick={finalize} disabled={report.status === "Final"}>
                 {report.status === "Final" ? "Finalized" : "Finalize"}
               </Button>
+              {report.status === "Final" && (
+                <div className="space-y-2">
+                  <Label>Share link</Label>
+                  {report.shareToken ? (
+                    <div className="flex gap-2">
+                      <Input
+                        readOnly
+                        value={`${SUPABASE_URL}/functions/v1/share-report?token=${report.shareToken}`}
+                      />
+                      <Button type="button" variant="secondary" onClick={copyShareLink}>
+                        Copy
+                      </Button>
+                      <Button type="button" variant="outline" onClick={regenerateShareLink}>
+                        Regenerate
+                      </Button>
+                      <Button type="button" variant="destructive" onClick={revokeShareLink}>
+                        Revoke
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button type="button" variant="outline" onClick={generateShareLink}>
+                      Generate Share Link
+                    </Button>
+                  )}
+                </div>
+              )}
             </section>
           )}
 
