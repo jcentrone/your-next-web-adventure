@@ -2,14 +2,14 @@ import React from "react";
 import {CoverTemplateProps} from "./types";
 import {formatShortDate} from "../../utils/formatDate";
 
-/** ========= Dots / Halftone variant ========= */
+/** ========= Sidebar Year variant ========= */
 const DEFAULT_SCHEME = {
     primary: "190 90% 32%",
     secondary: "195 85% 28%",
     accent: "38 95% 55%",
 };
 
-const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
+const CoverTemplateFifteen: React.FC<CoverTemplateProps> = ({
                                                                     reportTitle,
                                                                     coverImage,
                                                                     organizationLogo,
@@ -35,10 +35,11 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
         secondary: colorScheme?.secondary ?? DEFAULT_SCHEME.secondary,
         accent: colorScheme?.accent ?? DEFAULT_SCHEME.accent,
     };
+    const year = inspectionDate ? new Date(inspectionDate).getFullYear() : undefined;
 
     return (
         <div
-            className="h-full flex flex-col relative overflow-hidden"
+            className="h-full flex flex-col relative"
             style={
                 {
                     ["--primary" as any]: scheme.primary,
@@ -49,19 +50,17 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
                 } as React.CSSProperties
             }
         >
-            {/* halftone cloud on the left */}
-            <div
-                className="pointer-events-none absolute -left-24 top-0 bottom-0 w-[55%] opacity-30"
-                style={{
-                    background:
-                        "radial-gradient(6px 6px at 20% 20%, rgba(255,255,255,.6) 40%, transparent 41%) 0 0/22px 22px," +
-                        "radial-gradient(8px 8px at 60% 40%, rgba(255,255,255,.45) 40%, transparent 41%) 0 0/30px 30px," +
-                        "radial-gradient(4px 4px at 40% 70%, rgba(255,255,255,.35) 40%, transparent 41%) 0 0/18px 18px",
-                }}
-            />
+            {/* vertical year rail */}
+            {year && (
+                <div
+                    className="absolute left-0 top-0 bottom-0 w-16 md:w-20 flex items-center justify-center bg-white/10">
+                    <div
+                        className="rotate-90 text-3xl md:text-4xl font-extrabold tracking-tight opacity-90">{year}</div>
+                </div>
+            )}
 
             {/* Header */}
-            <header className="px-6 pt-10 flex items-center gap-3">
+            <header className="pl-20 md:pl-24 pr-6 pt-10 flex items-center gap-3">
                 <div className="flex items-center gap-3">
                     {organizationLogo && <img src={organizationLogo} alt="" className="h-10 w-10 object-contain"/>}
                     {organizationName && <span
@@ -71,7 +70,7 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
             </header>
 
             {/* Title + banner */}
-            <section className="px-6 mt-6">
+            <section className="pl-20 md:pl-24 pr-6 mt-6">
                 <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-sm">{reportTitle}</h1>
                 <div className="relative w-full h-40 md:h-56 rounded-xl overflow-hidden shadow-lg mt-4">
                     {coverImage ? <img src={coverImage} alt="" className="w-full h-full object-cover"/> :
@@ -81,7 +80,7 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
             </section>
 
             {/* Cards */}
-            <main className="flex-1 px-6 py-8 flex flex-col items-center">
+            <main className="flex-1 pl-20 md:pl-24 pr-6 py-8 flex flex-col items-center">
                 <div className="grid gap-6 md:grid-cols-2 w-full max-w-5xl">
                     <div className="bg-white/10 rounded-lg p-5">
                         <h2 className="font-semibold mb-2 uppercase tracking-wide"
@@ -107,7 +106,7 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
             </main>
 
             {/* Footer */}
-            <footer className="px-6 pb-10 text-center text-sm">
+            <footer className="pl-20 md:pl-24 pr-6 pb-10 text-center text-sm">
                 {organizationName && <p className="font-semibold">{organizationName}</p>}
                 {organizationAddress && <p>{organizationAddress}</p>}
                 {(organizationPhone || organizationEmail || organizationWebsite) && (
@@ -124,4 +123,4 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
     );
 };
 
-export default CoverTemplateThirteen;
+export default CoverTemplateFifteen;

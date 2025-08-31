@@ -2,34 +2,34 @@ import React from "react";
 import {CoverTemplateProps} from "./types";
 import {formatShortDate} from "../../utils/formatDate";
 
-/** ========= Dots / Halftone variant ========= */
+/** ========= Geometric shards ========= */
 const DEFAULT_SCHEME = {
     primary: "190 90% 32%",
     secondary: "195 85% 28%",
     accent: "38 95% 55%",
 };
 
-const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
-                                                                    reportTitle,
-                                                                    coverImage,
-                                                                    organizationLogo,
-                                                                    organizationName,
-                                                                    organizationAddress,
-                                                                    organizationPhone,
-                                                                    organizationEmail,
-                                                                    organizationWebsite,
-                                                                    inspectorName,
-                                                                    inspectorLicenseNumber,
-                                                                    inspectorPhone,
-                                                                    inspectorEmail,
-                                                                    clientName,
-                                                                    clientAddress,
-                                                                    clientEmail,
-                                                                    clientPhone,
-                                                                    inspectionDate,
-                                                                    weatherConditions,
-                                                                    colorScheme,
-                                                                }) => {
+const CoverTemplateFourteen: React.FC<CoverTemplateProps> = ({
+                                                                   reportTitle,
+                                                                   coverImage,
+                                                                   organizationLogo,
+                                                                   organizationName,
+                                                                   organizationAddress,
+                                                                   organizationPhone,
+                                                                   organizationEmail,
+                                                                   organizationWebsite,
+                                                                   inspectorName,
+                                                                   inspectorLicenseNumber,
+                                                                   inspectorPhone,
+                                                                   inspectorEmail,
+                                                                   clientName,
+                                                                   clientAddress,
+                                                                   clientEmail,
+                                                                   clientPhone,
+                                                                   inspectionDate,
+                                                                   weatherConditions,
+                                                                   colorScheme,
+                                                               }) => {
     const scheme = {
         primary: colorScheme?.primary ?? DEFAULT_SCHEME.primary,
         secondary: colorScheme?.secondary ?? DEFAULT_SCHEME.secondary,
@@ -49,34 +49,35 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
                 } as React.CSSProperties
             }
         >
-            {/* halftone cloud on the left */}
-            <div
-                className="pointer-events-none absolute -left-24 top-0 bottom-0 w-[55%] opacity-30"
-                style={{
-                    background:
-                        "radial-gradient(6px 6px at 20% 20%, rgba(255,255,255,.6) 40%, transparent 41%) 0 0/22px 22px," +
-                        "radial-gradient(8px 8px at 60% 40%, rgba(255,255,255,.45) 40%, transparent 41%) 0 0/30px 30px," +
-                        "radial-gradient(4px 4px at 40% 70%, rgba(255,255,255,.35) 40%, transparent 41%) 0 0/18px 18px",
-                }}
-            />
+            {/* angular accents */}
+            <div className="pointer-events-none absolute -right-24 -top-10 w-80 h-80 rotate-6"
+                 style={{
+                     background: `hsl(var(--accent) / 0.35)`,
+                     clipPath: "polygon(0 0, 100% 10%, 80% 100%, 0% 80%)"
+                 }}/>
+            <div className="pointer-events-none absolute right-20 -top-8 w-56 h-56 rotate-12"
+                 style={{
+                     background: `hsl(var(--primary) / 0.35)`,
+                     clipPath: "polygon(10% 0, 100% 0, 70% 100%, 0 70%)"
+                 }}/>
 
             {/* Header */}
-            <header className="px-6 pt-10 flex items-center gap-3">
-                <div className="flex items-center gap-3">
-                    {organizationLogo && <img src={organizationLogo} alt="" className="h-10 w-10 object-contain"/>}
-                    {organizationName && <span
-                        className="text-sm font-semibold tracking-wide uppercase text-white/90">{organizationName}</span>}
-                </div>
-                <div className="ml-auto"/>
+            <header className="px-6 pt-10 flex flex-col items-center text-center">
+                {organizationLogo && <img src={organizationLogo} alt="" className="h-16 md:h-20 mb-4 object-contain"/>}
+                <h1 className="text-3xl md:text-5xl font-bold">{reportTitle}</h1>
             </header>
 
-            {/* Title + banner */}
+            {/* Banner with simple wire triangles */}
             <section className="px-6 mt-6">
-                <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-sm">{reportTitle}</h1>
-                <div className="relative w-full h-40 md:h-56 rounded-xl overflow-hidden shadow-lg mt-4">
+                <div className="relative w-full h-40 md:h-56 rounded-xl overflow-hidden shadow-lg">
                     {coverImage ? <img src={coverImage} alt="" className="w-full h-full object-cover"/> :
                         <div className="w-full h-full bg-black/20"/>}
                     <div className="absolute inset-0" style={{backgroundColor: `hsl(var(--secondary) / 0.35)`}}/>
+                    {/* wire lines */}
+                    <svg className="absolute inset-0 opacity-40" xmlns="http://www.w3.org/2000/svg">
+                        <polyline points="20,180 120,40 240,160 360,30 480,140 620,40" fill="none" stroke="white"
+                                  strokeWidth="1.5"/>
+                    </svg>
                 </div>
             </section>
 
@@ -124,4 +125,4 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
     );
 };
 
-export default CoverTemplateThirteen;
+export default CoverTemplateFourteen;
