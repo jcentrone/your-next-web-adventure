@@ -1,37 +1,37 @@
 import React from "react";
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 import {CoverTemplateProps} from "./types";
 import {formatShortDate} from "../../utils/formatDate";
 
 /** ========= Dots / Halftone variant ========= */
 const DEFAULT_SCHEME = {
-    primary: "190 90% 32%",
-    secondary: "195 85% 28%",
-    accent: "38 95% 55%",
+    primary: "220 85% 45%",
+    secondary: "195 85% 42%",
+    accent: "187 92% 50%",
 };
 
 const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
-                                                                    reportTitle,
-                                                                    coverImage,
-                                                                    organizationLogo,
-                                                                    organizationName,
-                                                                    organizationAddress,
-                                                                    organizationPhone,
-                                                                    organizationEmail,
-                                                                    organizationWebsite,
-                                                                    inspectorName,
-                                                                    inspectorLicenseNumber,
-                                                                    inspectorPhone,
-                                                                    inspectorEmail,
-                                                                    clientName,
-                                                                    clientAddress,
-                                                                    clientEmail,
-                                                                    clientPhone,
-                                                                    inspectionDate,
-                                                                    weatherConditions,
-                                                                    colorScheme,
-                                                                    className,
-                                                                }) => {
+                                                                 reportTitle,
+                                                                 coverImage,
+                                                                 organizationLogo,
+                                                                 organizationName,
+                                                                 organizationAddress,
+                                                                 organizationPhone,
+                                                                 organizationEmail,
+                                                                 organizationWebsite,
+                                                                 inspectorName,
+                                                                 inspectorLicenseNumber,
+                                                                 inspectorPhone,
+                                                                 inspectorEmail,
+                                                                 clientName,
+                                                                 clientAddress,
+                                                                 clientEmail,
+                                                                 clientPhone,
+                                                                 inspectionDate,
+                                                                 weatherConditions,
+                                                                 colorScheme,
+                                                                 className,
+                                                             }) => {
     const scheme = {
         primary: colorScheme?.primary ?? DEFAULT_SCHEME.primary,
         secondary: colorScheme?.secondary ?? DEFAULT_SCHEME.secondary,

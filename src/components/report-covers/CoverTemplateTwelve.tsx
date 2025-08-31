@@ -1,37 +1,37 @@
 import React from "react";
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 import {CoverTemplateProps} from "./types";
 import {formatShortDate} from "../../utils/formatDate";
 
 /** ========= Hexagon motif ========= */
 const DEFAULT_SCHEME = {
-    primary: "190 90% 32%",
-    secondary: "195 85% 28%",
-    accent: "38 95% 55%",
+    primary: "238 75% 45%",
+    secondary: "270 70% 42%",
+    accent: "286 85% 60%",
 };
 
 const CoverTemplateTwelve: React.FC<CoverTemplateProps> = ({
-                                                                   reportTitle,
-                                                                   coverImage,
-                                                                   organizationLogo,
-                                                                   organizationName,
-                                                                   organizationAddress,
-                                                                   organizationPhone,
-                                                                   organizationEmail,
-                                                                   organizationWebsite,
-                                                                   inspectorName,
-                                                                   inspectorLicenseNumber,
-                                                                   inspectorPhone,
-                                                                   inspectorEmail,
-                                                                   clientName,
-                                                                   clientAddress,
-                                                                   clientEmail,
-                                                                   clientPhone,
-                                                                   inspectionDate,
-                                                                   weatherConditions,
-                                                                   colorScheme,
-                                                                   className,
-                                                               }) => {
+                                                               reportTitle,
+                                                               coverImage,
+                                                               organizationLogo,
+                                                               organizationName,
+                                                               organizationAddress,
+                                                               organizationPhone,
+                                                               organizationEmail,
+                                                               organizationWebsite,
+                                                               inspectorName,
+                                                               inspectorLicenseNumber,
+                                                               inspectorPhone,
+                                                               inspectorEmail,
+                                                               clientName,
+                                                               clientAddress,
+                                                               clientEmail,
+                                                               clientPhone,
+                                                               inspectionDate,
+                                                               weatherConditions,
+                                                               colorScheme,
+                                                               className,
+                                                           }) => {
     const scheme = {
         primary: colorScheme?.primary ?? DEFAULT_SCHEME.primary,
         secondary: colorScheme?.secondary ?? DEFAULT_SCHEME.secondary,
