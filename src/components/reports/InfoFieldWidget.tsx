@@ -9,23 +9,56 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { contactsApi } from "@/integrations/supabase/crmApi";
 import { useAuth } from "@/contexts/AuthContext";
 import type { InfoField } from "@/hooks/useSectionGuidance";
+import type { Contact } from "@/lib/crmSchemas";
 
 interface InfoFieldWidgetProps {
   field: InfoField | string;
   value: string;
   onChange: (value: string) => void;
-  onContactChange?: (contact: any) => void;
+  onContactChange?: (contact: Contact) => void;
 }
 
 export function InfoFieldWidget({ field, value, onChange, onContactChange }: InfoFieldWidgetProps) {
   const { user } = useAuth();
-  // Handle legacy string fields
-  if (typeof field === "string") {
+
+  const isStringField = typeof field === "string";
+  const structuredField = !isStringField ? field : undefined;
+  const widget = structuredField?.widget;
+  const label = structuredField?.label ?? (isStringField ? String(field) : "");
+  const sop_ref = structuredField?.sop_ref;
+  const required = structuredField?.required ?? false;
+  const options = useMemo(() => structuredField?.options ?? [], [structuredField]);
+
+  // Fetch contacts for contact lookup widget. Hook must run on every render
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts", user?.id],
+    queryFn: () => contactsApi.list(user!.id),
+    enabled: !!user && widget === "contact_lookup",
+  });
+
+  // Track selected option for select widgets. This hook must run unconditionally
+  // to maintain consistent hook order across renders when the widget type changes.
+  const [selectedOption, setSelectedOption] = useState("");
+
+  // Whenever the field or value changes, initialize the selected option appropriately
+  useEffect(() => {
+    if (widget === "select" && options.length > 0) {
+      const isPredefinedOption = options.includes(value);
+      const isCustomValue = value && !isPredefinedOption;
+
+      if (isPredefinedOption) setSelectedOption(value);
+      else if (isCustomValue) setSelectedOption("Other");
+      else setSelectedOption("");
+    }
+  }, [widget, value, options]);
+
+  // Handle legacy string fields after hooks to keep hook order consistent
+  if (isStringField) {
     return (
       <div>
         <Label className="block text-sm font-medium">{field}</Label>
@@ -37,15 +70,7 @@ export function InfoFieldWidget({ field, value, onChange, onContactChange }: Inf
     );
   }
 
-  // Handle structured fields
-  const { name, label, sop_ref, widget, required = false, options = [] } = field;
-
-  // Fetch contacts for contact lookup widget
-  const { data: contacts = [] } = useQuery({
-    queryKey: ["contacts", user?.id],
-    queryFn: () => contactsApi.list(user!.id),
-    enabled: !!user && widget === "contact_lookup",
-  });
+  // From here on, structuredField is defined
 
   if (widget === "contact_lookup") {
     return (
@@ -158,16 +183,10 @@ export function InfoFieldWidget({ field, value, onChange, onContactChange }: Inf
     // Determine what should be selected in the dropdown
     const isPredefinedOption = options.includes(value);
     const isCustomValue = value && !isPredefinedOption;
-    
-    // Track what's selected in the dropdown - separate from the stored value
-    const [selectedOption, setSelectedOption] = useState(() => {
-      if (isPredefinedOption) return value;
-      if (isCustomValue) return "Other";
-      return "";
-    });
-    
+
     // Show custom input when "Other" or "Multiple" is selected, or when there's a custom value
-    const showCustomInput = selectedOption === "Other" || selectedOption === "Multiple" || isCustomValue;
+    const showCustomInput =
+      selectedOption === "Other" || selectedOption === "Multiple" || isCustomValue;
 
     return (
       <div className="space-y-2">
