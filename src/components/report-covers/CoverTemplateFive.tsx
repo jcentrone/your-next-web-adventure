@@ -55,7 +55,7 @@ const CoverTemplateFive: React.FC<CoverTemplateProps> = ({
 
             <div className="p-8 grid gap-6">
                 <h1 className="text-3xl font-bold" style={{ color: primaryColor }}>{reportTitle}</h1>
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid md:grid-cols-1 gap-6">
                     <div className="border rounded p-4" style={{ backgroundColor: primarySoft, borderColor: primaryColor }}>
                         <h3 className="font-semibold mb-2" style={{ color: accentColor }}>Inspector</h3>
                         {inspectorName && <p>Name: {inspectorName}</p>}
