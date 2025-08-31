@@ -66,11 +66,11 @@ export const BaseReportSchema = z.object({
         .default("default"),
     customColors: z
         .object({
-            primary: z.string(),
-            secondary: z.string(),
-            accent: z.string(),
-            headingText: z.string(),
-            bodyText: z.string(),
+            primary: z.string().optional(),
+            secondary: z.string().optional(),
+            accent: z.string().optional(),
+            headingText: z.string().optional(),
+            bodyText: z.string().optional(),
         })
         .optional(),
     reportType: z.enum(["home_inspection", "wind_mitigation"]),

@@ -386,7 +386,7 @@ const ReportPreview: React.FC = () => {
         </Button>
       </div>
 
-      <div className="flex flex-col items-center" style={colorVars}>
+      <div className="flex flex-col items-center" style={colorVars as any}>
         {/* Cover Page */}
         <div className="preview-page page-break">
           <div className={`${tpl.container} h-[1056px]`}>
@@ -410,8 +410,12 @@ const ReportPreview: React.FC = () => {
               inspectionDate={report.inspectionDate}
               weatherConditions={report.weatherConditions || ""}
               colorScheme={
-                report.colorScheme === "custom"
-                  ? report.customColors || undefined
+                report.colorScheme === "custom" && report.customColors
+                  ? {
+                      primary: report.customColors.primary || "220 87% 56%",
+                      secondary: report.customColors.secondary || "220 70% 40%",
+                      accent: report.customColors.accent || "220 90% 70%"
+                    }
                   : report.colorScheme && report.colorScheme !== "default"
                   ? {
                       primary: COLOR_SCHEMES[report.colorScheme].primary,

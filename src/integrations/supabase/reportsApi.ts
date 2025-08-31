@@ -25,6 +25,8 @@ function toDbPayload(report: Report) {
     cover_image: report.coverImage || null,
     cover_template: report.coverTemplate || 'templateOne',
     preview_template: report.previewTemplate || 'classic',
+    color_scheme: report.colorScheme || 'default',
+    custom_colors: report.customColors || null,
     report_type: report.reportType,
     report_data: report.reportType === "wind_mitigation" ? report.reportData : null,
     county: (report as any).county || null,
@@ -41,6 +43,19 @@ function toDbPayload(report: Report) {
 function fromDbRow(row: any): Report {
   const reportType = row.report_type || "home_inspection";
 
+  // Transform old cover template names to new format
+  const transformCoverTemplate = (template: string): string => {
+    if (!template) return "templateOne";
+    
+    // Convert "CoverTemplateXxx" to "templateXxx"
+    if (template.startsWith("CoverTemplate")) {
+      const suffix = template.replace("CoverTemplate", "");
+      return `template${suffix}`;
+    }
+    
+    return template;
+  };
+
   let base: any = {
     id: row.id,
     title: row.title,
@@ -52,8 +67,10 @@ function fromDbRow(row: any): Report {
     status: row.status,
     finalComments: row.final_comments || "",
     coverImage: row.cover_image || "",
-    coverTemplate: row.cover_template || "templateOne",
+    coverTemplate: transformCoverTemplate(row.cover_template || "templateOne"),
     previewTemplate: row.preview_template || "classic",
+    colorScheme: row.color_scheme || "default",
+    customColors: row.custom_colors || undefined,
     reportData: row.report_data ?? {},
     reportType,
     phoneHome: row.phone_home || "",

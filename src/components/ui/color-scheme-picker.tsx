@@ -50,11 +50,11 @@ export const COLOR_SCHEMES = {
 } as const;
 
 export interface CustomColors {
-  primary: string;
-  secondary: string;
-  accent: string;
-  headingText: string;
-  bodyText: string;
+  primary?: string;
+  secondary?: string;
+  accent?: string;
+  headingText?: string;
+  bodyText?: string;
 }
 
 export type ColorScheme = keyof typeof COLOR_SCHEMES | "custom" | "default";

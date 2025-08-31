@@ -78,7 +78,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
         }, [] as { sectionTitle: string; counts: Record<string, number> }[]);
 
         return (
-            <div ref={ref} className="pdf-document" style={colorVars}>
+            <div ref={ref} className="pdf-document" style={colorVars as any}>
                 <section className="pdf-page-break">
                     <CoverComponent
                         reportTitle={report.title}
@@ -87,8 +87,12 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                         organizationName={company}
                         inspectionDate={report.inspectionDate}
                         colorScheme={
-                            report.colorScheme === "custom"
-                                ? report.customColors || undefined
+                            report.colorScheme === "custom" && report.customColors
+                                ? {
+                                      primary: report.customColors.primary || "220 87% 56%",
+                                      secondary: report.customColors.secondary || "220 70% 40%", 
+                                      accent: report.customColors.accent || "220 90% 70%"
+                                  }
                                 : report.colorScheme && report.colorScheme !== "default"
                                 ? {
                                       primary: COLOR_SCHEMES[report.colorScheme].primary,
