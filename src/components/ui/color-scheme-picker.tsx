@@ -229,7 +229,7 @@ export function ColorSchemePicker({value, onChange, disabled, customColors}: Col
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button variant="outline" className="w-[200px] justify-start gap-2" disabled={disabled}>
-                    <Palette className="h-6 w-6"/>
+                    <Palette className="h-4 w-4"/>
                     {value === "custom" ? (
                         <Swatch primary={custom.primary} secondary={custom.secondary}/>
                     ) : value === "default" ? (

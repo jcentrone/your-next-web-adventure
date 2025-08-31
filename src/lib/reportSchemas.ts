@@ -62,7 +62,7 @@ export const BaseReportSchema = z.object({
         .default("templateOne"),
     previewTemplate: z.enum(["classic", "modern", "minimal"]).default("classic"),
     colorScheme: z
-        .enum(["default", "blue", "green", "purple", "orange", "red", "slate", "custom"])
+        .enum(["default", "coralAmber", "indigoOrchid", "forestMint", "slateSky", "royalAqua", "burgundyGold", "emeraldLime", "navyOrange", "charcoalNeon", "cocoaPeach", "custom"])
         .default("default"),
     customColors: z
         .object({
