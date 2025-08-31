@@ -19,8 +19,9 @@ serve(async (req) => {
 
   try {
     const { recipients, reportId, shareLink } = await req.json();
-    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
-      return new Response("No recipients", { status: 400, headers: corsHeaders });
+
+    if (!reportId || !shareLink || !Array.isArray(recipients) || recipients.length === 0) {
+      return new Response("Invalid payload", { status: 400, headers: corsHeaders });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -45,7 +46,7 @@ serve(async (req) => {
     }
 
     for (const r of recipients as Recipient[]) {
-      await fetch("https://api.sendgrid.com/v3/mail/send", {
+      const resp = await fetch("https://api.sendgrid.com/v3/mail/send", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${sendgridKey}`,
@@ -64,13 +65,22 @@ serve(async (req) => {
         }),
       });
 
-      await supabase.from("activities").insert({
+      if (!resp.ok) {
+        console.error(await resp.text());
+        return new Response("Failed to send email", { status: 502, headers: corsHeaders });
+      }
+
+      const { error: activityError } = await supabase.from("activities").insert({
         user_id: report.user_id,
         activity_type: "report_delivered",
         title: `Report emailed to ${r.name || r.email}`,
         report_id: reportId,
         contact_id: r.id,
       });
+
+      if (activityError) {
+        throw activityError;
+      }
     }
 
     return new Response(JSON.stringify({ success: true }), {
@@ -78,6 +88,7 @@ serve(async (req) => {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    console.error(message);
     return new Response(message, { status: 500, headers: corsHeaders });
   }
 });
