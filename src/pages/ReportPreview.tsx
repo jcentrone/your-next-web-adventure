@@ -380,7 +380,6 @@ const ReportPreview: React.FC = () => {
     clientPhone: report.clientPhone || "",
     inspectionDate: report.inspectionDate,
     weatherConditions: report.weatherConditions || "",
-    colorScheme: previewColorScheme,
   };
 
   return (
@@ -449,21 +448,7 @@ const ReportPreview: React.FC = () => {
               clientPhone={report.clientPhone || ""}
               inspectionDate={report.inspectionDate}
               weatherConditions={report.weatherConditions || ""}
-              colorScheme={
-                report.colorScheme === "custom" && report.customColors
-                  ? {
-                      primary: report.customColors.primary || "220 87% 56%",
-                      secondary: report.customColors.secondary || "220 70% 40%",
-                      accent: report.customColors.accent || "220 90% 70%"
-                    }
-                  : report.colorScheme && report.colorScheme !== "default"
-                  ? {
-                      primary: COLOR_SCHEMES[report.colorScheme].primary,
-                      secondary: COLOR_SCHEMES[report.colorScheme].secondary,
-                      accent: COLOR_SCHEMES[report.colorScheme].accent,
-                    }
-                  : undefined
-              }
+              colorScheme={previewColorScheme}
               className={tpl.cover}
             />
           </div>
