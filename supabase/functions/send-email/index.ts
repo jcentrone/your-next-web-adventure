@@ -1,65 +1,69 @@
-import React from "react";
-import {NextResponse} from "next/server";
-import {Webhook} from "standardwebhooks";
-import {Resend} from "resend";
-import {renderAsync} from "@react-email/render";
-import {MagicLinkEmail} from "../../../_templates/magic-link.tsx";
+import React from "npm:react@18.3.1";
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
+import { Resend } from "npm:resend@4.0.0";
+import { renderAsync } from "npm:@react-email/components@0.0.22";
+import MagicLinkEmail from "./_templates/magic-link.tsx";
 
-const resend = new Resend(process.env.RESEND_API_KEY as string);
-const hookSecret = process.env.SEND_EMAIL_HOOK_SECRET as string;
+const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
+const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
 
-export async function POST(request: Request) {
-    try {
-        const payload = await request.text();
-        const headers = Object.fromEntries(request.headers as any);
-        const wh = new Webhook(hookSecret);
+Deno.serve(async (req) => {
+  try {
+    const payload = await req.text();
+    const headers = Object.fromEntries(req.headers.entries());
+    const wh = new Webhook(hookSecret);
 
-        const {
-            user,
-            email_data: {token, token_hash, redirect_to, email_action_type},
-        } = wh.verify(payload, headers) as {
-            user: { email: string };
-            email_data: {
-                token: string;
-                token_hash: string;
-                redirect_to: string;
-                email_action_type: string;
-                site_url?: string;
-                token_new?: string;
-                token_hash_new?: string;
-            };
-        };
+    const {
+      user,
+      email_data: { token, token_hash, redirect_to, email_action_type },
+    } = wh.verify(payload, headers) as {
+      user: { email: string };
+      email_data: {
+        token: string;
+        token_hash: string;
+        redirect_to: string;
+        email_action_type: string;
+        site_url?: string;
+        token_new?: string;
+        token_hash_new?: string;
+      };
+    };
 
-        const html = await renderAsync(
-            React.createElement(MagicLinkEmail, {
-                supabase_url: process.env.SUPABASE_URL ?? "",
-                token,
-                token_hash,
-                redirect_to,
-                email_action_type,
-            })
-        );
+    const html = await renderAsync(
+      React.createElement(MagicLinkEmail, {
+        supabase_url: Deno.env.get("SUPABASE_URL") ?? "",
+        token,
+        token_hash,
+        redirect_to,
+        email_action_type,
+      })
+    );
 
-        const {error} = await resend.emails.send({
-            from: "welcome <onboarding@resend.dev>",
-            to: [user.email],
-            subject: "Supa Custom MagicLink!",
-            html,
-        });
+    const { error } = await resend.emails.send({
+      from: "welcome <onboarding@resend.dev>",
+      to: [user.email],
+      subject: "Supa Custom MagicLink!",
+      html,
+    });
 
-        if (error) throw error;
+    if (error) throw error;
 
-        return NextResponse.json({}, {status: 200});
-    } catch (error: any) {
-        console.error(error);
-        return NextResponse.json(
-            {
-                error: {
-                    http_code: error.code ?? 401,
-                    message: error.message ?? "Unauthorized",
-                },
-            },
-            {status: 401}
-        );
-    }
-}
+    return new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error(err);
+    const error = err as { code?: number; message?: string };
+    const body = {
+      error: {
+        http_code: error.code ?? 401,
+        message: error.message ?? "Unauthorized",
+      },
+    };
+    return new Response(JSON.stringify(body), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+});
