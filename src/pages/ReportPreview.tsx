@@ -375,7 +375,7 @@ const ReportPreview: React.FC = () => {
             disabled={savingStyleTpl}
           />
           <ColorSchemePicker
-            value={report.colorScheme || "blue"}
+            value={report.colorScheme || "default"}
             customColors={report.customColors}
             onChange={handleColorSchemeChange}
             disabled={savingColorScheme}
@@ -412,7 +412,7 @@ const ReportPreview: React.FC = () => {
               colorScheme={
                 report.colorScheme === "custom"
                   ? report.customColors || undefined
-                  : report.colorScheme
+                  : report.colorScheme && report.colorScheme !== "default"
                   ? {
                       primary: COLOR_SCHEMES[report.colorScheme].primary,
                       secondary: COLOR_SCHEMES[report.colorScheme].secondary,
