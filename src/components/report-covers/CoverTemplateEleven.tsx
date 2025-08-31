@@ -1,38 +1,39 @@
 import React from "react";
-import { cn } from "@/lib/utils";
+import {cn} from "@/lib/utils";
 import {CoverTemplateProps} from "./types";
 import {formatShortDate} from "../../utils/formatDate";
 import {BadgeCheck, Calendar, Mail, MapPin, Phone, ThermometerSun, User} from "lucide-react";
 
 /** ========= Icon-forward variant ========= */
 const DEFAULT_SCHEME = {
-    primary: "0 75% 60%",
-    secondary: "17 100% 76%",
+    // Coral → Raspberry, Amber accent
+    primary: "12 82% 56%",
+    secondary: "350 72% 46%",
     accent: "38 95% 55%",
 };
 
 const CoverTemplateEleven: React.FC<CoverTemplateProps> = ({
-                                                                      reportTitle,
-                                                                      coverImage,
-                                                                      organizationLogo,
-                                                                      organizationName,
-                                                                      organizationAddress,
-                                                                      organizationPhone,
-                                                                      organizationEmail,
-                                                                      organizationWebsite,
-                                                                      inspectorName,
-                                                                      inspectorLicenseNumber,
-                                                                      inspectorPhone,
-                                                                      inspectorEmail,
-                                                                      clientName,
-                                                                      clientAddress,
-                                                                      clientEmail,
-                                                                      clientPhone,
-                                                                      inspectionDate,
-                                                                      weatherConditions,
-                                                                      colorScheme,
-                                                                      className,
-                                                                  }) => {
+                                                               reportTitle,
+                                                               coverImage,
+                                                               organizationLogo,
+                                                               organizationName,
+                                                               organizationAddress,
+                                                               organizationPhone,
+                                                               organizationEmail,
+                                                               organizationWebsite,
+                                                               inspectorName,
+                                                               inspectorLicenseNumber,
+                                                               inspectorPhone,
+                                                               inspectorEmail,
+                                                               clientName,
+                                                               clientAddress,
+                                                               clientEmail,
+                                                               clientPhone,
+                                                               inspectionDate,
+                                                               weatherConditions,
+                                                               colorScheme,
+                                                               className,
+                                                           }) => {
     const scheme = {
         primary: colorScheme?.primary ?? DEFAULT_SCHEME.primary,
         secondary: colorScheme?.secondary ?? DEFAULT_SCHEME.secondary,
