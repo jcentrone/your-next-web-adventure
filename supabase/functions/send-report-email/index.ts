@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import React from "npm:react@18.3.1";
+import { Resend } from "npm:resend@4.0.0";
+import { renderAsync } from "npm:@react-email/components@0.0.22";
+import ReportShareEmail from "../../../_templates/report-share.tsx";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,14 +30,15 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const sendgridKey = Deno.env.get("SENDGRID_API_KEY");
+    const resendKey = Deno.env.get("RESEND_API_KEY");
     const fromEmail = Deno.env.get("EMAIL_FROM") || "noreply@example.com";
 
-    if (!supabaseUrl || !serviceKey || !sendgridKey) {
+    if (!supabaseUrl || !serviceKey || !resendKey) {
       return new Response("Missing configuration", { status: 500, headers: corsHeaders });
     }
 
     const supabase = createClient(supabaseUrl, serviceKey);
+    const resend = new Resend(resendKey);
 
     const { data: report, error: reportError } = await supabase
       .from("reports")
@@ -46,27 +51,22 @@ serve(async (req) => {
     }
 
     for (const r of recipients as Recipient[]) {
-      const resp = await fetch("https://api.sendgrid.com/v3/mail/send", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${sendgridKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          personalizations: [{ to: [{ email: r.email, name: r.name }] }],
-          from: { email: fromEmail },
-          subject: "Inspection Report",
-          content: [
-            {
-              type: "text/html",
-              value: `<p>Your report is ready. View it here: <a href="${shareLink}">${shareLink}</a></p>`,
-            },
-          ],
+      const html = await renderAsync(
+        React.createElement(ReportShareEmail, {
+          shareLink,
+          name: r.name,
         }),
+      );
+
+      const { error: sendError } = await resend.emails.send({
+        from: fromEmail,
+        to: [r.email],
+        subject: "Inspection Report",
+        html,
       });
 
-      if (!resp.ok) {
-        console.error(await resp.text());
+      if (sendError) {
+        console.error(sendError);
         return new Response("Failed to send email", { status: 502, headers: corsHeaders });
       }
 
