@@ -8,6 +8,8 @@ import CoverTemplateSeven from "@/components/report-covers/CoverTemplateSeven";
 import CoverTemplateEight from "@/components/report-covers/CoverTemplateEight";
 import CoverTemplateNine from "@/components/report-covers/CoverTemplateNine";
 import CoverTemplateTen from "@/components/report-covers/CoverTemplateTen";
+import CoverTemplateEleven from "@/components/report-covers/CoverTemplateEleven";
+import CoverTemplateTwelve from "@/components/report-covers/CoverTemplateTwelve";
 
 export const COVER_TEMPLATES = {
   templateOne: { label: "Template One", component: CoverTemplateOne },
@@ -20,6 +22,8 @@ export const COVER_TEMPLATES = {
   templateEight: { label: "Template Eight", component: CoverTemplateEight },
   templateNine: { label: "Template Nine", component: CoverTemplateNine },
   templateTen: { label: "Template Ten", component: CoverTemplateTen },
+  templateEleven: { label: "Template Eleven", component: CoverTemplateEleven },
+  templateTwelve: { label: "Template Twelve", component: CoverTemplateTwelve },
 } as const;
 
 export type CoverTemplateId = keyof typeof COVER_TEMPLATES;
