@@ -415,8 +415,8 @@ export const contactRelationshipsApi = {
       .from('contact_relationships')
       .select(`
         *,
-        from_contact:contacts!contact_relationships_from_contact_id_fkey(id, first_name, last_name, contact_type),
-        to_contact:contacts!contact_relationships_to_contact_id_fkey(id, first_name, last_name, contact_type)
+        from_contact:contacts!contact_relationships_from_contact_id_fkey(id, first_name, last_name, email, contact_type),
+        to_contact:contacts!contact_relationships_to_contact_id_fkey(id, first_name, last_name, email, contact_type)
       `)
       .or(`from_contact_id.eq.${contactId},to_contact_id.eq.${contactId}`)
       .eq('is_active', true);

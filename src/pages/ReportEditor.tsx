@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ZoomIn, Trash2, Upload, ChevronDown, ChevronRight, Wand2, Calendar as CalendarIcon, ImagePlus, Camera, Edit3 } from "lucide-react";
 import { loadReport as loadLocalReport, saveReport as saveLocalReport } from "@/hooks/useLocalDraft";
 import { useAutosave } from "@/hooks/useAutosave";
@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
-import { contactsApi } from "@/integrations/supabase/crmApi";
+import { contactsApi, contactRelationshipsApi } from "@/integrations/supabase/crmApi";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
 
@@ -30,6 +30,8 @@ import { useCustomSections } from "@/hooks/useCustomSections";
 import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { Contact } from "@/lib/crmSchemas";
 
 // Lazy load wind mitigation editor at module level
 const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
@@ -78,6 +80,10 @@ const ReportEditor: React.FC = () => {
   const [currentFindingId, setCurrentFindingId] = React.useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = React.useState<string>("");
   const [customSectionDialogOpen, setCustomSectionDialogOpen] = React.useState(false);
+  const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
+  const [recipientOptions, setRecipientOptions] = React.useState<Contact[]>([]);
+  const [selectedRecipients, setSelectedRecipients] = React.useState<string[]>([]);
+  const [sendingReport, setSendingReport] = React.useState(false);
 
   // Custom sections hook
   const { customSections, loadCustomSections } = useCustomSections();
@@ -230,6 +236,33 @@ const ReportEditor: React.FC = () => {
       cancelled = true;
     };
   }, [user, report?.coverImage]);
+
+  React.useEffect(() => {
+    const loadRecipients = async () => {
+      if (!report?.contact_id) return;
+      try {
+        const [primary, relationships] = await Promise.all([
+          contactsApi.get(report.contact_id!),
+          contactRelationshipsApi.getByContactId(report.contact_id!),
+        ]);
+        const contacts: Contact[] = [];
+        if (primary) contacts.push(primary as Contact);
+        const seen = new Set(contacts.map((c) => c.id));
+        relationships.forEach((rel: any) => {
+          const related = rel.from_contact_id === report.contact_id ? rel.to_contact : rel.from_contact;
+          if (related && !seen.has(related.id)) {
+            seen.add(related.id);
+            contacts.push(related);
+          }
+        });
+        setRecipientOptions(contacts);
+        setSelectedRecipients(primary ? [primary.id] : []);
+      } catch (e) {
+        console.error("Failed to load recipients", e);
+      }
+    };
+    loadRecipients();
+  }, [report?.contact_id]);
 
   if (!report) return null;
 
@@ -553,6 +586,32 @@ const ReportEditor: React.FC = () => {
     const url = `${SUPABASE_URL}/functions/v1/share-report?token=${report.shareToken}`;
     navigator.clipboard.writeText(url);
     toast({ title: "Link copied" });
+  };
+
+  const sendReportEmail = async () => {
+    if (!report?.shareToken) {
+      toast({ title: "No share link", variant: "destructive" });
+      return;
+    }
+    const link = `${SUPABASE_URL}/functions/v1/share-report?token=${report.shareToken}`;
+    const recipients = recipientOptions
+      .filter((c) => selectedRecipients.includes(c.id) && c.email)
+      .map((c) => ({ id: c.id, email: c.email as string, name: `${c.first_name} ${c.last_name}` }));
+    if (recipients.length === 0) return;
+    setSendingReport(true);
+    try {
+      const { error } = await (supabase as any).functions.invoke("send-report-email", {
+        body: { reportId: report.id, shareLink: link, recipients },
+      });
+      if (error) throw error;
+      toast({ title: "Report emailed" });
+      setEmailDialogOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Failed to send email", variant: "destructive" });
+    } finally {
+      setSendingReport(false);
+    }
   };
 
   const finalize = async () => {
@@ -1139,33 +1198,77 @@ const ReportEditor: React.FC = () => {
                 {report.status === "Final" ? "Finalized" : "Finalize"}
               </Button>
               {report.status === "Final" && (
-                <div className="space-y-2">
-                  <Label>Share link</Label>
-                  {report.shareToken ? (
-                    <div className="flex gap-2">
-                      <Input
-                        readOnly
-                        value={`${SUPABASE_URL}/functions/v1/share-report?token=${report.shareToken}`}
-                      />
-                      <Button type="button" variant="secondary" onClick={copyShareLink}>
-                        Copy
+                <>
+                  <div className="space-y-2">
+                    <Label>Share link</Label>
+                    {report.shareToken ? (
+                      <div className="flex gap-2">
+                        <Input
+                          readOnly
+                          value={`${SUPABASE_URL}/functions/v1/share-report?token=${report.shareToken}`}
+                        />
+                        <Button type="button" variant="secondary" onClick={copyShareLink}>
+                          Copy
+                        </Button>
+                        <Button type="button" variant="outline" onClick={regenerateShareLink}>
+                          Regenerate
+                        </Button>
+                        <Button type="button" variant="destructive" onClick={revokeShareLink}>
+                          Revoke
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button type="button" variant="outline" onClick={generateShareLink}>
+                        Generate Share Link
                       </Button>
-                      <Button type="button" variant="outline" onClick={regenerateShareLink}>
-                        Regenerate
-                      </Button>
-                      <Button type="button" variant="destructive" onClick={revokeShareLink}>
-                        Revoke
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button type="button" variant="outline" onClick={generateShareLink}>
-                      Generate Share Link
+                    )}
+                  </div>
+                  {report.shareToken && (
+                    <Button type="button" variant="secondary" onClick={() => setEmailDialogOpen(true)}>
+                      Email Report
                     </Button>
                   )}
-                </div>
+                </>
               )}
             </section>
           )}
+
+          <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Select recipients</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-2 py-2">
+                {recipientOptions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No contacts available</p>
+                ) : (
+                  recipientOptions.map((c) => (
+                    <div key={c.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`recipient-${c.id}`}
+                        checked={selectedRecipients.includes(c.id)}
+                        onCheckedChange={(checked) => {
+                          setSelectedRecipients((prev) =>
+                            checked === true ? [...prev, c.id] : prev.filter((id) => id !== c.id)
+                          );
+                        }}
+                        disabled={!c.email}
+                      />
+                      <label htmlFor={`recipient-${c.id}`} className="text-sm">
+                        {c.first_name} {c.last_name}
+                        {c.email ? ` (${c.email})` : " (no email)"}
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
+              <DialogFooter>
+                <Button onClick={sendReportEmail} disabled={sendingReport || selectedRecipients.length === 0}>
+                  {sendingReport ? "Sending..." : "Send"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <DefectPicker
             open={pickerOpen}
