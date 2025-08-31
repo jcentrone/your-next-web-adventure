@@ -671,6 +671,7 @@ export type Database = {
           token: string
           created_at: string
           expires_at: string | null
+          last_accessed_at: string | null
         }
         Insert: {
           id?: string
@@ -678,6 +679,7 @@ export type Database = {
           token: string
           created_at?: string
           expires_at?: string | null
+          last_accessed_at?: string | null
         }
         Update: {
           id?: string
@@ -685,6 +687,7 @@ export type Database = {
           token?: string
           created_at?: string
           expires_at?: string | null
+          last_accessed_at?: string | null
         }
         Relationships: [
           {

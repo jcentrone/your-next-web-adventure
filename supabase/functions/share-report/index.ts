@@ -41,6 +41,12 @@ serve(async (req) => {
       return new Response("Token expired", { status: 403, headers: corsHeaders });
     }
 
+    // Log that this token was accessed
+    await supabase
+      .from("report_shares")
+      .update({ last_accessed_at: new Date().toISOString() })
+      .eq("token", token);
+
     const { data: report, error: reportError } = await supabase
       .from("reports")
       .select("id, title, report_data")

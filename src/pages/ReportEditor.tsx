@@ -550,12 +550,16 @@ const ReportEditor: React.FC = () => {
     toast({ title: "Annotation saved successfully" });
   };
 
-  const generateShareLink = async () => {
+  const generateShareLink = async (expiresAt?: Date) => {
     if (!report) return;
     try {
-      const { data, error } = await (supabase as any).rpc("create_report_share", { report_id: report.id });
+      const token = crypto.randomUUID();
+      const { error } = await supabase.from("report_shares").insert({
+        report_id: report.id,
+        token,
+        expires_at: expiresAt ? expiresAt.toISOString() : null,
+      });
       if (error) throw error;
-      const token = (data as any)?.token || (data as any)?.shareToken || (data as any);
       setReport((prev) => (prev ? { ...prev, shareToken: token } : prev));
     } catch (err) {
       console.error(err);
@@ -576,9 +580,9 @@ const ReportEditor: React.FC = () => {
     }
   };
 
-  const regenerateShareLink = async () => {
+  const regenerateShareLink = async (expiresAt?: Date) => {
     await revokeShareLink();
-    await generateShareLink();
+    await generateShareLink(expiresAt);
   };
 
   const copyShareLink = () => {
@@ -1210,7 +1214,7 @@ const ReportEditor: React.FC = () => {
                         <Button type="button" variant="secondary" onClick={copyShareLink}>
                           Copy
                         </Button>
-                        <Button type="button" variant="outline" onClick={regenerateShareLink}>
+                        <Button type="button" variant="outline" onClick={() => regenerateShareLink()}>
                           Regenerate
                         </Button>
                         <Button type="button" variant="destructive" onClick={revokeShareLink}>
@@ -1218,7 +1222,7 @@ const ReportEditor: React.FC = () => {
                         </Button>
                       </div>
                     ) : (
-                      <Button type="button" variant="outline" onClick={generateShareLink}>
+                      <Button type="button" variant="outline" onClick={() => generateShareLink()}>
                         Generate Share Link
                       </Button>
                     )}
