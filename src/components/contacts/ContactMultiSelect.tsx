@@ -13,9 +13,15 @@ interface ContactMultiSelectProps {
   contacts?: Contact[];
   value: string[];
   onChange: (ids: string[]) => void;
+  onSelectedContactsChange?: (contacts: Contact[]) => void;
 }
 
-export const ContactMultiSelect: React.FC<ContactMultiSelectProps> = ({ contacts: contactsProp, value, onChange }) => {
+export const ContactMultiSelect: React.FC<ContactMultiSelectProps> = ({
+  contacts: contactsProp,
+  value,
+  onChange,
+  onSelectedContactsChange,
+}) => {
   const { user } = useAuth();
   const { data: fetchedContacts = [] } = useQuery({
     queryKey: ["contacts", user?.id],
@@ -33,7 +39,14 @@ export const ContactMultiSelect: React.FC<ContactMultiSelectProps> = ({ contacts
     }
   };
 
-  const selectedContacts = contacts.filter((c) => value.includes(c.id));
+  const selectedContacts = React.useMemo(
+    () => contacts.filter((c) => value.includes(c.id)),
+    [contacts, value]
+  );
+
+  React.useEffect(() => {
+    onSelectedContactsChange?.(selectedContacts);
+  }, [onSelectedContactsChange, selectedContacts]);
 
   return (
     <Command className="h-auto max-h-60 overflow-visible">

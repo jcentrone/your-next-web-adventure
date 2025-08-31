@@ -23,6 +23,7 @@ import { contactsApi } from "@/integrations/supabase/crmApi";
 import { useQuery } from "@tanstack/react-query";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
+import type { Contact } from "@/lib/crmSchemas";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -82,6 +83,7 @@ const ReportEditor: React.FC = () => {
   const [customSectionDialogOpen, setCustomSectionDialogOpen] = React.useState(false);
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
   const [selectedRecipients, setSelectedRecipients] = React.useState<string[]>([]);
+  const [selectedContacts, setSelectedContacts] = React.useState<Contact[]>([]);
   const [sendingReport, setSendingReport] = React.useState(false);
 
   const { data: recipientOptions = [] } = useQuery({
@@ -582,8 +584,8 @@ const ReportEditor: React.FC = () => {
       return;
     }
     const link = `${SUPABASE_URL}/functions/v1/share-report?token=${report.shareToken}`;
-    const recipients = recipientOptions
-      .filter((c) => selectedRecipients.includes(c.id) && c.email)
+    const recipients = selectedContacts
+      .filter((c) => c.email)
       .map((c) => ({ id: c.id, email: c.email as string, name: `${c.first_name} ${c.last_name}` }));
     if (recipients.length === 0) return;
     setSendingReport(true);
@@ -1231,10 +1233,11 @@ const ReportEditor: React.FC = () => {
                   contacts={recipientOptions}
                   value={selectedRecipients}
                   onChange={setSelectedRecipients}
+                  onSelectedContactsChange={setSelectedContacts}
                 />
               </div>
               <DialogFooter>
-                <Button onClick={sendReportEmail} disabled={sendingReport || selectedRecipients.length === 0}>
+                <Button onClick={sendReportEmail} disabled={sendingReport || selectedContacts.length === 0}>
                   {sendingReport ? "Sending..." : "Send"}
                 </Button>
               </DialogFooter>
