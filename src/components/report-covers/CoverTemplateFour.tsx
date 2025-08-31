@@ -29,8 +29,8 @@ const CoverTemplateFour: React.FC<CoverTemplateProps> = ({
     const primarySoft = colorScheme ? `hsl(${colorScheme.primary} / 0.1)` : 'hsl(210 100% 50% / 0.1)';
 
     return (
-    <div className="h-full flex items-center justify-center p-6" style={{ backgroundColor: primarySoft }}>
-        <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg overflow-hidden">
+    // <div className="h-full flex items-center justify-center p-6" style={{ backgroundColor: primarySoft }}>
+        <div className="w-full max-w-4xl h-full bg-white  overflow-hidden">
             {coverImage && (
                 <img src={coverImage} alt="" className="w-full h-60 object-cover"/>
             )}
@@ -80,7 +80,7 @@ const CoverTemplateFour: React.FC<CoverTemplateProps> = ({
                 </div>
             </div>
         </div>
-    </div>
+    // </div>
     );
 };
 

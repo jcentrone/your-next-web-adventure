@@ -62,8 +62,8 @@ function StyleSelector({
   disabled?: boolean;
 }) {
   return (
-    <Select value={value} onValueChange={(v) => onChange(v as PreviewTemplateId)} disabled={disabled}>
-      <SelectTrigger className="w-[200px]" aria-label="Choose style template">
+    <Select value={value} onValueChange={(v) => onChange(v as PreviewTemplateId)} disabled={disabled} >
+      <SelectTrigger className="w-[200px] capitalize font-medium" aria-label="Choose style template">
         <SelectValue placeholder="Choose style" />
       </SelectTrigger>
       <SelectContent>

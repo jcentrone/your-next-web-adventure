@@ -80,12 +80,12 @@ const CoverTemplateEleven: React.FC<CoverTemplateProps> = ({
             </header>
 
             {/* Title + banner */}
-            <section className="px-6 mt-6">
+            <section className="z-10 px-6 mt-6">
                 <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-sm">{reportTitle}</h1>
                 <div className="relative w-full h-40 md:h-56 rounded-xl overflow-hidden shadow-lg mt-4">
-                    {coverImage ? <img src={coverImage} alt="" className="w-full h-full object-cover"/> :
+                    {coverImage ? <img src={coverImage} alt="" className="z-20 w-full h-full object-cover"/> :
                         <div className="w-full h-full bg-black/20"/>}
-                    <div className="absolute inset-0" style={{backgroundColor: `hsl(var(--secondary) / 0.35)`}}/>
+                    <div className="absolute inset-0" />
                 </div>
             </section>
 

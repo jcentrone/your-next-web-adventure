@@ -2,7 +2,7 @@ import React from "react";
 import {CoverTemplateProps} from "./types";
 import {formatShortDate} from "../../utils/formatDate";
 
-/** ========= Panel Card variant ========= */
+/** ========= Panel Card variant (with bottom decorative band) ========= */
 const DEFAULT_SCHEME = {
     primary: "24 30% 32%",
     secondary: "16 35% 26%",
@@ -51,31 +51,48 @@ const CoverTemplateSixteen: React.FC<CoverTemplateProps> = ({
         >
             {/* Floating white panel */}
             <div
-                className="mx-auto max-w-5xl w-full bg-white text-slate-900 rounded-2xl shadow-2xl mt-10 mb-8 overflow-hidden">
+                className="mx-auto max-w-5xl w-full bg-white text-slate-900 mt-10 mb-8 overflow-hidden ">
                 {/* header strip */}
-                <div className="h-2"
-                     style={{background: `linear-gradient(90deg, hsl(var(--accent)), hsl(var(--primary)))`}}/>
+                <div
+                    className="h-2"
+                    style={{background: `linear-gradient(90deg, hsl(var(--accent)), hsl(var(--primary)))`}}
+                />
 
                 {/* content */}
                 <div className="p-6 md:p-8">
                     <div className="flex items-center gap-3">
                         {organizationLogo && <img src={organizationLogo} alt="" className="h-10 w-10 object-contain"/>}
-                        {organizationName && <span className="text-sm font-semibold tracking-wide uppercase"
-                                                   style={{color: `hsl(var(--secondary))`}}>{organizationName}</span>}
+                        {organizationName && (
+                            <span
+                                className="text-sm font-semibold tracking-wide uppercase"
+                                style={{color: `hsl(var(--secondary))`}}
+                            >
+                {organizationName}
+              </span>
+                        )}
                     </div>
 
                     {/* title + banner */}
                     <div className="mt-6 grid gap-6 md:grid-cols-[1.25fr_1fr] items-center">
                         <div>
-                            <h1 className="text-3xl md:text-5xl font-extrabold"
-                                style={{color: `hsl(var(--primary))`}}>{reportTitle}</h1>
+                            <h1
+                                className="text-3xl md:text-5xl font-extrabold"
+                                style={{color: `hsl(var(--primary))`}}
+                            >
+                                {reportTitle}
+                            </h1>
                             <div className="mt-3 flex flex-wrap gap-2 text-sm" style={{color: `hsl(var(--secondary))`}}>
-                                {inspectionDate && <span
-                                    className="px-2 py-1 rounded bg-slate-100">Date: {formatShortDate(inspectionDate)}</span>}
-                                {weatherConditions && <span
-                                    className="px-2 py-1 rounded bg-slate-100">Weather: {weatherConditions}</span>}
-                                {clientAddress &&
-                                    <span className="px-2 py-1 rounded bg-slate-100">Property: {clientAddress}</span>}
+                                {inspectionDate && (
+                                    <span className="px-2 py-1 rounded bg-slate-100">
+                    Date: {formatShortDate(inspectionDate)}
+                  </span>
+                                )}
+                                {weatherConditions && (
+                                    <span className="px-2 py-1 rounded bg-slate-100">Weather: {weatherConditions}</span>
+                                )}
+                                {clientAddress && (
+                                    <span className="px-2 py-1 rounded bg-slate-100">Property: {clientAddress}</span>
+                                )}
                             </div>
                         </div>
                         <div className="justify-self-end">
@@ -90,15 +107,23 @@ const CoverTemplateSixteen: React.FC<CoverTemplateProps> = ({
                     {/* cards */}
                     <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="rounded-xl border border-slate-200 bg-white p-5">
-                            <h2 className="font-semibold mb-2 uppercase tracking-wide"
-                                style={{color: `hsl(var(--accent))`}}>Client</h2>
+                            <h2
+                                className="font-semibold mb-2 uppercase tracking-wide"
+                                style={{color: `hsl(var(--accent))`}}
+                            >
+                                Client
+                            </h2>
                             {clientName && <p>Name: {clientName}</p>}
                             {clientPhone && <p>Phone: {clientPhone}</p>}
                             {clientEmail && <p>Email: {clientEmail}</p>}
                         </div>
                         <div className="rounded-xl border border-slate-200 bg-white p-5">
-                            <h2 className="font-semibold mb-2 uppercase tracking-wide"
-                                style={{color: `hsl(var(--accent))`}}>Inspector</h2>
+                            <h2
+                                className="font-semibold mb-2 uppercase tracking-wide"
+                                style={{color: `hsl(var(--accent))`}}
+                            >
+                                Inspector
+                            </h2>
                             {inspectorName && <p>Name: {inspectorName}</p>}
                             {inspectorLicenseNumber && <p>License: {inspectorLicenseNumber}</p>}
                             {inspectorPhone && <p>Phone: {inspectorPhone}</p>}
@@ -123,8 +148,34 @@ const CoverTemplateSixteen: React.FC<CoverTemplateProps> = ({
                 </div>
             </div>
 
-            {/* small bottom padding so the gradient peeks through */}
-            <div className="px-6 pb-6 text-sm text-center text-white/80"></div>
+            {/* Bottom decorative band (fills empty space; no overlaying content) */}
+            <div className="mt-auto w-full" aria-hidden="true">
+                <div className="relative h-24">
+                    {/* angled color bands */}
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: `
+                linear-gradient(-8deg, transparent 0 55%, hsl(var(--primary) / 0.18) 55% 75%, transparent 75%),
+                linear-gradient(-8deg, transparent 0 70%, hsl(var(--accent) / 0.22) 70% 100%)
+              `,
+                        }}
+                    />
+                    {/* subtle dot grid on the right */}
+                    <div
+                        className="absolute right-6 bottom-3 w-56 h-12 opacity-35"
+                        style={{
+                            background:
+                                "radial-gradient(3px 3px at 4px 4px, rgba(255,255,255,.9) 50%, transparent 51%) 0 0/14px 14px",
+                        }}
+                    />
+                    {/* small gradient pill */}
+                    <div
+                        className="absolute right-6 bottom-6 w-40 h-3 rounded-full shadow-sm"
+                        style={{background: `linear-gradient(90deg, hsl(var(--accent)), hsl(var(--primary)))`}}
+                    />
+                </div>
+            </div>
         </div>
     );
 };
