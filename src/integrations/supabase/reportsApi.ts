@@ -81,6 +81,13 @@ function fromDbRow(row: any): Report {
     email: row.email || "",
   };
 
+  const shareTokenRow = row.report_shares?.find(
+    (s: any) => !s.expires_at || new Date(s.expires_at) > new Date()
+  );
+  if (shareTokenRow) {
+    base.shareToken = shareTokenRow.token;
+  }
+
   if (reportType === "home_inspection") {
     // Clean up sections data to ensure media objects have required fields
     const cleanSections = (row.sections || []).map((section: any) => ({
@@ -322,7 +329,7 @@ export async function dbListReports(userId: string, includeArchived: boolean = f
 export async function dbGetReport(id: string): Promise<Report | null> {
   const { data, error } = await (supabase as any)
     .from("reports")
-    .select("*")
+    .select("*, report_shares(token, expires_at)")
     .eq("id", id)
     .single();
 
@@ -341,7 +348,7 @@ export async function dbUpdateReport(report: Report): Promise<Report> {
     .from("reports")
     .update(payload)
     .eq("id", report.id)
-    .select("*")
+    .select("*, report_shares(token, expires_at)")
     .single();
 
   if (error) {
