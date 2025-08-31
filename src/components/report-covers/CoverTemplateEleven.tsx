@@ -6,8 +6,8 @@ import {BadgeCheck, Calendar, Mail, MapPin, Phone, ThermometerSun, User} from "l
 
 /** ========= Icon-forward variant ========= */
 const DEFAULT_SCHEME = {
-    primary: "190 90% 32%",
-    secondary: "195 85% 28%",
+    primary: "0 75% 60%",
+    secondary: "17 100% 76%",
     accent: "38 95% 55%",
 };
 
