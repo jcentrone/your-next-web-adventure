@@ -31,8 +31,7 @@ import { useCustomSections } from "@/hooks/useCustomSections";
 import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { Contact } from "@/lib/crmSchemas";
+import ContactMultiSelect from "@/components/contacts/ContactMultiSelect";
 
 // Lazy load wind mitigation editor at module level
 const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
@@ -1227,29 +1226,12 @@ const ReportEditor: React.FC = () => {
               <DialogHeader>
                 <DialogTitle>Select recipients</DialogTitle>
               </DialogHeader>
-              <div className="space-y-2 py-2">
-                {recipientOptions.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No contacts available</p>
-                ) : (
-                  recipientOptions.map((c) => (
-                    <div key={c.id} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`recipient-${c.id}`}
-                        checked={selectedRecipients.includes(c.id)}
-                        onCheckedChange={(checked) => {
-                          setSelectedRecipients((prev) =>
-                            checked === true ? [...prev, c.id] : prev.filter((id) => id !== c.id)
-                          );
-                        }}
-                        disabled={!c.email}
-                      />
-                      <label htmlFor={`recipient-${c.id}`} className="text-sm">
-                        {c.first_name} {c.last_name}
-                        {c.email ? ` (${c.email})` : " (no email)"}
-                      </label>
-                    </div>
-                  ))
-                )}
+              <div className="py-2">
+                <ContactMultiSelect
+                  contacts={recipientOptions}
+                  value={selectedRecipients}
+                  onChange={setSelectedRecipients}
+                />
               </div>
               <DialogFooter>
                 <Button onClick={sendReportEmail} disabled={sendingReport || selectedRecipients.length === 0}>
