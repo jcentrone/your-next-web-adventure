@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 import {CoverTemplateProps} from "./types";
 import {formatShortDate} from "../../utils/formatDate";
 import {BadgeCheck, Calendar, Mail, MapPin, Phone, ThermometerSun, User} from "lucide-react";
@@ -30,6 +31,7 @@ const CoverTemplateEleven: React.FC<CoverTemplateProps> = ({
                                                                       inspectionDate,
                                                                       weatherConditions,
                                                                       colorScheme,
+                                                                      className,
                                                                   }) => {
     const scheme = {
         primary: colorScheme?.primary ?? DEFAULT_SCHEME.primary,
@@ -39,7 +41,7 @@ const CoverTemplateEleven: React.FC<CoverTemplateProps> = ({
 
     return (
         <div
-            className="h-full flex flex-col"
+            className={cn('h-full flex flex-col', className)}
             style={
                 {
                     ["--primary" as any]: scheme.primary,

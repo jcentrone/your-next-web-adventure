@@ -1,4 +1,5 @@
 import React from "react";
+import { cn } from "@/lib/utils";
 import {CoverTemplateProps} from "./types";
 import {formatShortDate} from "../../utils/formatDate";
 
@@ -29,6 +30,7 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
                                                                     inspectionDate,
                                                                     weatherConditions,
                                                                     colorScheme,
+                                                                    className,
                                                                 }) => {
     const scheme = {
         primary: colorScheme?.primary ?? DEFAULT_SCHEME.primary,
@@ -38,7 +40,7 @@ const CoverTemplateThirteen: React.FC<CoverTemplateProps> = ({
 
     return (
         <div
-            className="h-full flex flex-col relative overflow-hidden"
+            className={cn('h-full flex flex-col relative overflow-hidden', className)}
             style={
                 {
                     ["--primary" as any]: scheme.primary,

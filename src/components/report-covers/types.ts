@@ -1,4 +1,5 @@
 export interface CoverTemplateProps {
+  className?: string;
   organizationName?: string;
   organizationAddress?: string;
   organizationPhone?: string;
