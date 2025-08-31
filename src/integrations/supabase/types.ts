@@ -664,6 +664,38 @@ export type Database = {
           },
         ]
       }
+      report_shares: {
+        Row: {
+          id: string
+          report_id: string
+          token: string
+          created_at: string
+          expires_at: string | null
+        }
+        Insert: {
+          id?: string
+          report_id: string
+          token: string
+          created_at?: string
+          expires_at?: string | null
+        }
+        Update: {
+          id?: string
+          report_id?: string
+          token?: string
+          created_at?: string
+          expires_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_shares_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       section_guidance: {
         Row: {
           created_at: string
