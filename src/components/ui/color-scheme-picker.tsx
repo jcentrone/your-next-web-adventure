@@ -135,20 +135,25 @@ const Swatch: React.FC<{
 
 
 export function ColorSchemePicker({value, onChange, disabled, customColors}: ColorSchemePickerProps) {
+    const DEFAULT_CUSTOM_COLORS: Required<CustomColors> = {
+        primary: "210 100% 50%",
+        secondary: "210 100% 40%",
+        accent: "210 100% 60%",
+        headingText: "222 47% 11%",
+        bodyText: "222 47% 11%",
+    };
+
     const [open, setOpen] = React.useState(false);
     const [showCustom, setShowCustom] = React.useState(false);
-    const [custom, setCustom] = React.useState<CustomColors>(
-        customColors || {
-            primary: "210 100% 50%",
-            secondary: "210 100% 40%",
-            accent: "210 100% 60%",
-            headingText: "222 47% 11%",
-            bodyText: "222 47% 11%",
-        }
-    );
+    const [custom, setCustom] = React.useState<CustomColors>({
+        ...DEFAULT_CUSTOM_COLORS,
+        ...(customColors || {}),
+    });
 
     React.useEffect(() => {
-        if (customColors) setCustom(customColors);
+        if (customColors) {
+            setCustom({...DEFAULT_CUSTOM_COLORS, ...customColors});
+        }
     }, [customColors]);
 
     const currentScheme =
@@ -296,7 +301,7 @@ export function ColorSchemePicker({value, onChange, disabled, customColors}: Col
                                     </label>
                                     <input
                                         type="color"
-                                        value={hslToHex(custom[key])}
+                                        value={hslToHex(custom[key] || DEFAULT_CUSTOM_COLORS[key])}
                                         onChange={(e) => setCustom((prev) => ({
                                             ...prev,
                                             [key]: hexToHsl(e.target.value)

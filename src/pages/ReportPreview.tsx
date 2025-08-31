@@ -284,11 +284,12 @@ const ReportPreview: React.FC = () => {
   const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
+  const DEFAULT_TEXT_COLOR = "222 47% 11%";
   const colorVars =
     report.colorScheme === "custom" && report.customColors
       ? {
-          "--heading-text-color": `hsl(${report.customColors.headingText})`,
-          "--body-text-color": `hsl(${report.customColors.bodyText})`,
+          "--heading-text-color": `hsl(${report.customColors.headingText || DEFAULT_TEXT_COLOR})`,
+          "--body-text-color": `hsl(${report.customColors.bodyText || DEFAULT_TEXT_COLOR})`,
         }
       : undefined;
 
