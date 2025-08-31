@@ -28,7 +28,7 @@ export const COVER_TEMPLATES = {
   templateTen: { label: "Template Ten", component: CoverTemplateTen },
   templateEleven: { label: "Template Eleven", component: CoverTemplateEleven },
   templateTwelve: { label: "Template Twelve", component: CoverTemplateTwelve },
-  templateThirteen: { label: "Template Twelve", component: CoverTemplateThirteen },
+  templateThirteen: { label: "Template Thirteen", component: CoverTemplateThirteen },
   templateFourteen: { label: "Template Fourteen", component: CoverTemplateFourteen },
   templateFifteen: { label: "Template Fifteen", component: CoverTemplateFifteen },
   templateSixteen: { label: "Template Sixteen", component: CoverTemplateSixteen },
