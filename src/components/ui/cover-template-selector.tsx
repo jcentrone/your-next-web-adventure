@@ -38,8 +38,8 @@ export function CoverTemplateSelector({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[600px] p-4" align="start">
-        <div className="grid grid-cols-2 gap-4">
+      <PopoverContent className="w-[600px] p-5 max-h-[375px] overflow-auto" align="start">
+        <div className="grid grid-cols-3  gap-4">
           {Object.entries(COVER_TEMPLATES).map(([key, template]) => {
             const TemplateComponent = template.component;
             const isSelected = value === key;
