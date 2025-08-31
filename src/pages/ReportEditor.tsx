@@ -19,7 +19,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
-import { contactsApi, contactRelationshipsApi } from "@/integrations/supabase/crmApi";
+import { contactsApi } from "@/integrations/supabase/crmApi";
+import { useQuery } from "@tanstack/react-query";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
 
@@ -81,9 +82,20 @@ const ReportEditor: React.FC = () => {
   const [selectedContactId, setSelectedContactId] = React.useState<string>("");
   const [customSectionDialogOpen, setCustomSectionDialogOpen] = React.useState(false);
   const [emailDialogOpen, setEmailDialogOpen] = React.useState(false);
-  const [recipientOptions, setRecipientOptions] = React.useState<Contact[]>([]);
   const [selectedRecipients, setSelectedRecipients] = React.useState<string[]>([]);
   const [sendingReport, setSendingReport] = React.useState(false);
+
+  const { data: recipientOptions = [] } = useQuery({
+    queryKey: ["contacts", user?.id],
+    queryFn: () => contactsApi.list(user!.id),
+    enabled: emailDialogOpen && !!user,
+  });
+
+  React.useEffect(() => {
+    if (emailDialogOpen) {
+      setSelectedRecipients(report?.contact_id ? [report.contact_id] : []);
+    }
+  }, [emailDialogOpen, report?.contact_id]);
 
   // Custom sections hook
   const { customSections, loadCustomSections } = useCustomSections();
@@ -236,33 +248,6 @@ const ReportEditor: React.FC = () => {
       cancelled = true;
     };
   }, [user, report?.coverImage]);
-
-  React.useEffect(() => {
-    const loadRecipients = async () => {
-      if (!report?.contact_id) return;
-      try {
-        const [primary, relationships] = await Promise.all([
-          contactsApi.get(report.contact_id!),
-          contactRelationshipsApi.getByContactId(report.contact_id!),
-        ]);
-        const contacts: Contact[] = [];
-        if (primary) contacts.push(primary as Contact);
-        const seen = new Set(contacts.map((c) => c.id));
-        relationships.forEach((rel: any) => {
-          const related = rel.from_contact_id === report.contact_id ? rel.to_contact : rel.from_contact;
-          if (related && !seen.has(related.id)) {
-            seen.add(related.id);
-            contacts.push(related);
-          }
-        });
-        setRecipientOptions(contacts);
-        setSelectedRecipients(primary ? [primary.id] : []);
-      } catch (e) {
-        console.error("Failed to load recipients", e);
-      }
-    };
-    loadRecipients();
-  }, [report?.contact_id]);
 
   if (!report) return null;
 
