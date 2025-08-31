@@ -56,7 +56,9 @@ export const BaseReportSchema = z.object({
     finalComments: z.string().optional().default(""),
     coverImage: z.string().optional().default(""),
     coverTemplate: z
-        .enum(["templateOne", "templateTwo", "templateThree", "templateFour", "templateFive"])
+        .enum(["templateOne", "templateTwo", "templateThree", "templateFour", "templateFive", "templateSix",
+            "templateSeven", "templateEight", "templateNine", "templateTen", "templateEleven", "templateTwelve",
+            "templateThirteen", "templateFourteen", "templateFifteen", "templateSixteen"])
         .default("templateOne"),
     previewTemplate: z.enum(["classic", "modern", "minimal"]).default("classic"),
     colorScheme: z

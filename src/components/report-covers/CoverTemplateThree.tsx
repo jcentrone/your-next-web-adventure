@@ -2,7 +2,14 @@ import React from "react";
 import {CoverTemplateProps} from "./types";
 import {formatShortDate} from "../../utils/formatDate";
 
-/** Light background (white by default), soft decorations, footer org details */
+/** ========= Template 3 (aligned to Template 2 color-structure) ========= */
+// Default palette (HSL *without* the `hsl()` wrapper)
+const DEFAULT_SCHEME = {
+    primary: "199 89% 48%",   // teal/cyan
+    secondary: "215 19% 35%", // deeper cyan
+    accent: "23 92% 54%",     // warm amber
+};
+
 const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> = ({
                                                                                        reportTitle,
                                                                                        coverImage,
@@ -27,187 +34,143 @@ const CoverTemplateThree: React.FC<CoverTemplateProps & { className?: string }> 
                                                                                    }) => {
     const year = inspectionDate ? new Date(inspectionDate).getFullYear() : undefined;
 
-    // Light, friendly defaults (you can still override via colorScheme)
-    const primary = colorScheme?.primary ?? "199 89% 48%";   // sky-ish blue
-    const secondary = colorScheme?.secondary ?? "215 19% 35%"; // slate-ish neutral
-    const accent = colorScheme?.accent ?? "23 92% 54%";      // warm orange
-
-    const primaryColor = `hsl(${primary})`;
-    const secondaryColor = `hsl(${secondary})`;
-    const accentColor = `hsl(${accent})`;
-
-    // very subtle tints for chips/borders/decor
-    const primarySoft = `hsl(${primary} / 0.10)`;
-    const primaryTrans = `hsl(${primary} / 0.10)`; // even softer than before
-    const accentTrans = `hsl(${accent}  / 0.10)`;
+    // Merge provided colors with defaults (same as Template Two)
+    const scheme = {
+        primary: colorScheme?.primary ?? DEFAULT_SCHEME.primary,
+        secondary: colorScheme?.secondary ?? DEFAULT_SCHEME.secondary,
+        accent: colorScheme?.accent ?? DEFAULT_SCHEME.accent,
+    };
 
     return (
         <div
-            className={[
-                className || "",
-                // Default to white; pass className="bg-slate-50" for a very light silver canvas.
-                "relative isolate bg-white text-slate-900",
-                "h-full min-h-full overflow-hidden",
-            ].join(" ")}
+            className={["h-full flex flex-col", className || ""].join(" ")}
+            style={
+                {
+                    ["--primary" as any]: scheme.primary,
+                    ["--secondary" as any]: scheme.secondary,
+                    ["--accent" as any]: scheme.accent,
+                    background: `linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))`,
+                    color: "white",
+                } as React.CSSProperties
+            }
         >
-            {/* ultra-soft decor kept away from text areas */}
-            <div
-                className="pointer-events-none absolute -right-1/3 -top-1/3 w-[900px] h-[900px] rounded-full"
-                style={{background: `radial-gradient(circle at center, ${primaryTrans}, ${accentTrans}, transparent 70%)`}}
-            />
-            <div
-                className="pointer-events-none absolute -right-10 top-10 w-[280px] h-[280px] rounded-full border-[24px]"
-                style={{borderColor: primaryTrans}}
-            />
-
-            {/* page container */}
-            <div className="relative z-10 mx-auto max-w-6xl p-6 md:p-10 flex flex-col min-h-full">
-                {/* Header */}
+            {/* Header: logo + title/brand */}
+            <header className="px-6 pt-10 flex items-center gap-3">
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-3">
-                        {organizationLogo && <img src={organizationLogo} alt="" className="h-10 w-10 object-contain"/>}
-                        {organizationName && (
-                            <span
-                                className="text-sm font-semibold tracking-wide uppercase"
-                                style={{color: secondaryColor}}
-                            >
-                {organizationName}
+                    {organizationLogo && (
+                        <img src={organizationLogo} alt="" className="h-10 w-10 object-contain"/>
+                    )}
+                    {organizationName && (
+                        <span className="text-sm font-semibold tracking-wide uppercase text-white/90">
+              {organizationName}
+            </span>
+                    )}
+                </div>
+                <div className="ml-auto">
+                    {year && (
+                        <span className="px-3 py-1 rounded-full text-sm font-semibold bg-white/15">
+              {year}
+            </span>
+                    )}
+                </div>
+            </header>
+
+            {/* Title + hero image (same content layout as your previous T3, but styled like T2) */}
+            <section className="px-6 mt-6 grid gap-8 md:grid-cols-[1.25fr_1fr] items-center">
+                <div>
+                    <h1 className="text-3xl md:text-5xl font-bold text-white drop-shadow-sm">
+                        {reportTitle}
+                    </h1>
+                    <div className="mt-4 flex flex-wrap gap-2 text-sm">
+                        {inspectionDate && (
+                            <span className="px-2 py-1 rounded bg-white/15">
+                Date: {formatShortDate(inspectionDate)}
               </span>
                         )}
-                    </div>
-                    <div className="ml-auto flex items-center gap-2">
-                        {year && (
-                            <span
-                                className="px-3 py-1 rounded-full text-sm font-semibold"
-                                style={{backgroundColor: primarySoft, color: primaryColor}}
-                            >
-                {year}
+                        {weatherConditions && (
+                            <span className="px-2 py-1 rounded bg-white/15">
+                Weather: {weatherConditions}
+              </span>
+                        )}
+                        {clientAddress && (
+                            <span className="px-2 py-1 rounded bg-white/15">
+                Property: {clientAddress}
               </span>
                         )}
                     </div>
                 </div>
 
-                {/* Title + hero image */}
-                <div className="mt-6 grid gap-8 md:grid-cols-[1.25fr_1fr] items-center">
-                    <div>
-                        <h1
-                            className="text-4xl md:text-5xl font-extrabold leading-tight"
-                            style={{color: primaryColor}}
-                        >
-                            {reportTitle}
-                        </h1>
-                        <div className="mt-4 flex flex-wrap gap-2 text-sm" style={{color: secondaryColor}}>
-                            {inspectionDate && (
-                                <span className="px-2 py-1 rounded" style={{backgroundColor: primarySoft}}>
-                  Date: {formatShortDate(inspectionDate)}
-                </span>
-                            )}
-                            {weatherConditions && (
-                                <span className="px-2 py-1 rounded" style={{backgroundColor: primarySoft}}>
-                  Weather: {weatherConditions}
-                </span>
-                            )}
-                            {clientAddress && (
-                                <span className="px-2 py-1 rounded" style={{backgroundColor: primarySoft}}>
-                  Property: {clientAddress}
-                </span>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="justify-self-end">
+                {/* Compact image card with a subtle tint overlay pulled from --secondary */}
+                <div className="justify-self-end">
+                    <div
+                        className="relative rounded-2xl overflow-hidden shadow-xl w-[320px] h-[220px] md:w-[360px] md:h-[240px] bg-black/20">
+                        {coverImage ? (
+                            <img src={coverImage} alt="" className="w-full h-full object-cover"/>
+                        ) : (
+                            <div className="w-full h-full"/>
+                        )}
                         <div
-                            className="relative rounded-2xl overflow-hidden shadow-xl w-[320px] h-[220px] md:w-[360px] md:h-[240px] bg-slate-100">
-                            {coverImage && <img src={coverImage} alt="" className="w-full h-full object-cover"/>}
-                            {/* lighter ring on light background */}
-                            <div className="absolute inset-0 ring-8 ring-white/90"/>
-                        </div>
+                            className="absolute inset-0"
+                            style={{backgroundColor: `hsl(var(--secondary) / 0.35)`}}
+                        />
+                        <div className="absolute inset-0 ring-8 ring-white/20"/>
                     </div>
                 </div>
+            </section>
 
-                {/* Cards (Client & Inspector only) */}
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Details cards */}
+            <main className="flex-1 px-6 py-8 flex flex-col items-center">
+                <div className="grid gap-6 md:grid-cols-2 w-full max-w-5xl">
                     {/* Client */}
-                    <div className="rounded-xl border bg-white p-5 shadow-sm" style={{borderColor: primarySoft}}>
-                        <div className="text-xs font-semibold tracking-wide uppercase"
-                             style={{color: primaryColor}}>Client
-                        </div>
-                        <dl className="mt-2 grid grid-cols-[88px_1fr] gap-y-1.5 text-sm">
-                            {clientName && (<>
-                                <dt className="text-slate-500">Name</dt>
-                                <dd>{clientName}</dd>
-                            </>)}
-                            {clientPhone && (<>
-                                <dt className="text-slate-500">Phone</dt>
-                                <dd>{clientPhone}</dd>
-                            </>)}
-                            {clientEmail && (<>
-                                <dt className="text-slate-500">Email</dt>
-                                <dd>{clientEmail}</dd>
-                            </>)}
-                        </dl>
+                    <div className="bg-white/10 rounded-lg p-5">
+                        <h2
+                            className="font-semibold mb-2 uppercase tracking-wide"
+                            style={{color: `hsl(var(--accent))`}}
+                        >
+                            Client
+                        </h2>
+                        {clientName && <p className="text-white/90">Name: {clientName}</p>}
+                        {clientPhone && <p className="text-white/90">Phone: {clientPhone}</p>}
+                        {clientEmail && <p className="text-white/90">Email: {clientEmail}</p>}
                     </div>
 
                     {/* Inspector */}
-                    <div className="rounded-xl border bg-white p-5 shadow-sm" style={{borderColor: primarySoft}}>
-                        <div className="text-xs font-semibold tracking-wide uppercase"
-                             style={{color: accentColor}}>Inspector
-                        </div>
-                        <dl className="mt-2 grid grid-cols-[88px_1fr] gap-y-1.5 text-sm">
-                            {inspectorName && (<>
-                                <dt className="text-slate-500">Name</dt>
-                                <dd>{inspectorName}</dd>
-                            </>)}
-                            {inspectorLicenseNumber && (<>
-                                <dt className="text-slate-500">License</dt>
-                                <dd>{inspectorLicenseNumber}</dd>
-                            </>)}
-                            {inspectorPhone && (<>
-                                <dt className="text-slate-500">Phone</dt>
-                                <dd>{inspectorPhone}</dd>
-                            </>)}
-                            {inspectorEmail && (<>
-                                <dt className="text-slate-500">Email</dt>
-                                <dd>{inspectorEmail}</dd>
-                            </>)}
-                        </dl>
+                    <div className="bg-white/10 rounded-lg p-5">
+                        <h2
+                            className="font-semibold mb-2 uppercase tracking-wide"
+                            style={{color: `hsl(var(--accent))`}}
+                        >
+                            Inspector
+                        </h2>
+                        {inspectorName && <p className="text-white/90">Name: {inspectorName}</p>}
+                        {inspectorLicenseNumber && (
+                            <p className="text-white/90">License: {inspectorLicenseNumber}</p>
+                        )}
+                        {inspectorPhone && <p className="text-white/90">Phone: {inspectorPhone}</p>}
+                        {inspectorEmail && <p className="text-white/90">Email: {inspectorEmail}</p>}
                     </div>
                 </div>
 
-                {/* spacer pushes footer down */}
-                <div className="flex-1"/>
+                <div className="mt-6 text-sm text-center">
+                    {inspectionDate && <p>Inspection Date: {formatShortDate(inspectionDate)}</p>}
+                    {weatherConditions && <p>Weather: {weatherConditions}</p>}
+                </div>
+            </main>
 
-                {/* Footer: Organization details */}
-                {(organizationAddress || organizationPhone || organizationEmail || organizationWebsite) && (
-                    <footer className="mt-10 pt-4" style={{borderTop: `1px solid ${primarySoft}`}}>
-                        <div
-                            className="flex flex-wrap items-center justify-center gap-2 text-sm"
-                            style={{color: secondaryColor}}
-                        >
-                            {organizationAddress && (
-                                <span className="px-3 py-1 rounded-full" style={{backgroundColor: primarySoft}}>
-                  {organizationAddress}
-                </span>
-                            )}
-                            {organizationPhone && (
-                                <span className="px-3 py-1 rounded-full" style={{backgroundColor: primarySoft}}>
-                  {organizationPhone}
-                </span>
-                            )}
-                            {organizationEmail && (
-                                <span className="px-3 py-1 rounded-full" style={{backgroundColor: primarySoft}}>
-                  {organizationEmail}
-                </span>
-                            )}
-                            {organizationWebsite && (
-                                <span className="px-3 py-1 rounded-full" style={{backgroundColor: primarySoft}}>
-                  {organizationWebsite}
-                </span>
-                            )}
-                        </div>
-                    </footer>
+            {/* Footer: org details pinned near bottom (same pattern as Template Two) */}
+            <footer className="px-6 pb-10 text-center text-sm">
+                {organizationName && <p className="font-semibold">{organizationName}</p>}
+                {organizationAddress && <p>{organizationAddress}</p>}
+                {(organizationPhone || organizationEmail || organizationWebsite) && (
+                    <p className="mt-1">
+                        {organizationPhone && <span>{organizationPhone}</span>}
+                        {organizationPhone && (organizationEmail || organizationWebsite) && <span> • </span>}
+                        {organizationEmail && <span>{organizationEmail}</span>}
+                        {organizationEmail && organizationWebsite && <span> • </span>}
+                        {organizationWebsite && <span>{organizationWebsite}</span>}
+                    </p>
                 )}
-            </div>
+            </footer>
         </div>
     );
 };
