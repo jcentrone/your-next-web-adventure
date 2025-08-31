@@ -12,8 +12,8 @@ import CoverTemplateEleven from "@/components/report-covers/CoverTemplateEleven"
 import CoverTemplateTwelve from "@/components/report-covers/CoverTemplateTwelve";
 import CoverTemplateThirteen from "@/components/report-covers/CoverTemplateThirteen";
 import CoverTemplateFourteen from "@/components/report-covers/CoverTemplateFourteen";
-import CoverTemplateFifteen from "@/components/report-covers/CoverTemplateFifteen.tsx";
-import CoverTemplateSixteen from "@/components/report-covers/CoverTemplateSixteen.tsx";
+import CoverTemplateFifteen from "@/components/report-covers/CoverTemplateFifteen";
+import CoverTemplateSixteen from "@/components/report-covers/CoverTemplateSixteen";
 
 export const COVER_TEMPLATES = {
   templateOne: { label: "Template One", component: CoverTemplateOne },
