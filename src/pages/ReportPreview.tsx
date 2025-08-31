@@ -22,6 +22,7 @@ import { getMyOrganization, getMyProfile, Organization, Profile } from "@/integr
 import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 import { CoverTemplateSelector } from "@/components/ui/cover-template-selector";
 import { ColorSchemePicker, ColorScheme, COLOR_SCHEMES, CustomColors } from "@/components/ui/color-scheme-picker";
+import { CoverTemplateProps } from "@/components/report-covers/types";
 
 function SeverityBadge({
   severity,
@@ -344,6 +345,43 @@ const ReportPreview: React.FC = () => {
     return acc;
   }, [] as { sectionTitle: string; counts: Record<string, number> }[]);
 
+  const previewColorScheme =
+    report.colorScheme === "custom" && report.customColors
+      ? {
+          primary: report.customColors.primary || "220 87% 56%",
+          secondary: report.customColors.secondary || "220 70% 40%",
+          accent: report.customColors.accent || "220 90% 70%",
+        }
+      : report.colorScheme && report.colorScheme !== "default"
+      ? {
+          primary: COLOR_SCHEMES[report.colorScheme].primary,
+          secondary: COLOR_SCHEMES[report.colorScheme].secondary,
+          accent: COLOR_SCHEMES[report.colorScheme].accent,
+        }
+      : undefined;
+
+  const coverPreviewData: CoverTemplateProps = {
+    reportTitle: report.title,
+    clientName: report.clientName,
+    coverImage: coverUrl,
+    organizationName: organization?.name || "",
+    organizationAddress: organization?.address || "",
+    organizationPhone: organization?.phone || "",
+    organizationEmail: organization?.email || "",
+    organizationWebsite: organization?.website || "",
+    organizationLogo: organization?.logo_url || "",
+    inspectorName: inspector?.full_name || "",
+    inspectorLicenseNumber: inspector?.license_number || "",
+    inspectorPhone: inspector?.phone || "",
+    inspectorEmail: inspector?.email || "",
+    clientAddress: report.address,
+    clientEmail: report.clientEmail || "",
+    clientPhone: report.clientPhone || "",
+    inspectionDate: report.inspectionDate,
+    weatherConditions: report.weatherConditions || "",
+    colorScheme: previewColorScheme,
+  };
+
   return (
     <>
       <Seo
@@ -368,6 +406,7 @@ const ReportPreview: React.FC = () => {
             value={report.coverTemplate}
             onChange={handleCoverTemplateChange}
             disabled={savingCoverTpl}
+            data={coverPreviewData}
           />
           <StyleSelector
             value={report.previewTemplate}

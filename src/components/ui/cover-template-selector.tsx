@@ -8,17 +8,20 @@ import {
 import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CoverTemplateProps } from "@/components/report-covers/types";
 
 interface CoverTemplateSelectorProps {
   value: CoverTemplateId;
   onChange: (value: CoverTemplateId) => void;
   disabled?: boolean;
+  data: CoverTemplateProps;
 }
 
 export function CoverTemplateSelector({
   value,
   onChange,
   disabled,
+  data,
 }: CoverTemplateSelectorProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -68,20 +71,7 @@ export function CoverTemplateSelector({
 
                 <div className="h-48 w-full overflow-hidden rounded border bg-white">
                   <div className="scale-[0.25] origin-top-left w-[400%] h-[400%]">
-                    <TemplateComponent
-                      reportTitle="Sample Report"
-                      clientName="John Doe"
-                      organizationName="Sample Inspection Co."
-                      organizationAddress="123 Main St, City, ST 12345"
-                      organizationPhone="(555) 123-4567"
-                      organizationEmail="info@sample.com"
-                      inspectorName="Jane Smith"
-                      inspectorLicenseNumber="LIC123456"
-                      clientAddress="456 Property Ave, City, ST 12345"
-                      inspectionDate="2024-01-15"
-                      weatherConditions="Clear, 72°F"
-                      coverImage=""
-                    />
+                    <TemplateComponent {...data} />
                   </div>
                 </div>
               </div>
