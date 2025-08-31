@@ -558,10 +558,13 @@ export type Database = {
           address: string
           archived: boolean
           client_name: string
+          color_scheme: string | null
           contact_id: string | null
           county: string | null
           cover_image: string | null
+          cover_template: string | null
           created_at: string
+          custom_colors: Json | null
           email: string | null
           final_comments: string | null
           id: string
@@ -586,10 +589,13 @@ export type Database = {
           address: string
           archived?: boolean
           client_name: string
+          color_scheme?: string | null
           contact_id?: string | null
           county?: string | null
           cover_image?: string | null
+          cover_template?: string | null
           created_at?: string
+          custom_colors?: Json | null
           email?: string | null
           final_comments?: string | null
           id?: string
@@ -614,10 +620,13 @@ export type Database = {
           address?: string
           archived?: boolean
           client_name?: string
+          color_scheme?: string | null
           contact_id?: string | null
           county?: string | null
           cover_image?: string | null
+          cover_template?: string | null
           created_at?: string
+          custom_colors?: Json | null
           email?: string | null
           final_comments?: string | null
           id?: string
