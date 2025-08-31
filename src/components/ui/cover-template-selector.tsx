@@ -1,6 +1,10 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,7 +15,11 @@ interface CoverTemplateSelectorProps {
   disabled?: boolean;
 }
 
-export function CoverTemplateSelector({ value, onChange, disabled }: CoverTemplateSelectorProps) {
+export function CoverTemplateSelector({
+  value,
+  onChange,
+  disabled,
+}: CoverTemplateSelectorProps) {
   const [open, setOpen] = React.useState(false);
 
   const selectedTemplate = COVER_TEMPLATES[value];
@@ -35,13 +43,13 @@ export function CoverTemplateSelector({ value, onChange, disabled }: CoverTempla
           {Object.entries(COVER_TEMPLATES).map(([key, template]) => {
             const TemplateComponent = template.component;
             const isSelected = value === key;
-            
+
             return (
               <div
                 key={key}
                 className={cn(
                   "relative cursor-pointer rounded-lg border-2 p-2 transition-all hover:border-primary/50",
-                  isSelected ? "border-primary bg-primary/5" : "border-border"
+                  isSelected ? "border-primary bg-primary/5" : "border-border",
                 )}
                 onClick={() => {
                   onChange(key as CoverTemplateId);
@@ -53,11 +61,11 @@ export function CoverTemplateSelector({ value, onChange, disabled }: CoverTempla
                     <Check className="h-3 w-3 text-primary-foreground" />
                   </div>
                 )}
-                
+
                 <div className="mb-2 text-xs font-medium text-center">
                   {template.label}
                 </div>
-                
+
                 <div className="h-48 w-full overflow-hidden rounded border bg-white">
                   <div className="scale-[0.25] origin-top-left w-[400%] h-[400%]">
                     <TemplateComponent
@@ -73,11 +81,6 @@ export function CoverTemplateSelector({ value, onChange, disabled }: CoverTempla
                       inspectionDate="2024-01-15"
                       weatherConditions="Clear, 72°F"
                       coverImage=""
-                      colorScheme={{
-                        primary: "210 100% 50%",
-                        secondary: "210 100% 40%", 
-                        accent: "210 100% 60%"
-                      }}
                     />
                   </div>
                 </div>
