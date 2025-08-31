@@ -590,10 +590,13 @@ const ReportEditor: React.FC = () => {
     if (recipients.length === 0) return;
     setSendingReport(true);
     try {
-      const { error } = await (supabase as any).functions.invoke("send-report-email", {
-        body: { reportId: report.id, shareLink: link, recipients },
-      });
-      if (error) throw error;
+      const { data, error } = await (supabase as any).functions.invoke(
+        "send-report-email",
+        {
+          body: { reportId: report.id, shareLink: link, recipients },
+        }
+      );
+      if (error || data?.error) throw error ?? new Error(data.error);
       toast({ title: "Report emailed" });
       setEmailDialogOpen(false);
     } catch (err) {
