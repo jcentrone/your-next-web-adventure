@@ -10,6 +10,7 @@ import RootLayout from "./layouts/RootLayout";
 import React from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import GoogleCallback from "./pages/oauth/GoogleCallback";
 
 const queryClient = new QueryClient();
 
@@ -34,10 +35,7 @@ const App = () => (
       <AuthProvider>
           <BrowserRouter>
             <Routes>
-              <Route
-                path="/oauth/google"
-                element={lazyLoad(() => import("./pages/oauth/GoogleCallback"))}
-              />
+              <Route path="/oauth/google" element={<GoogleCallback />} />
               <Route element={<RootLayout />}>
                 <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={lazyLoad(() => import("./pages/Dashboard"))} />
