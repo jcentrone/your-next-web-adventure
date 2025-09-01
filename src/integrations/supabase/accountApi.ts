@@ -10,3 +10,9 @@ export async function exportReportData() {
   return data as Blob;
 }
 
+export async function deleteAccount() {
+  const client = supabase as SupabaseClient;
+  const { error } = await client.functions.invoke("delete-account");
+  if (error) throw error;
+}
+
