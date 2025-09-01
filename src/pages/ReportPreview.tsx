@@ -285,7 +285,7 @@ const ReportPreview: React.FC = () => {
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
   const DEFAULT_TEXT_COLOR = "222 47% 11%";
-  const colorVars =
+  const colorVars: React.CSSProperties | undefined =
     report.colorScheme === "custom" && report.customColors
       ? {
           "--heading-text-color": `hsl(${report.customColors.headingText || DEFAULT_TEXT_COLOR})`,
@@ -295,7 +295,10 @@ const ReportPreview: React.FC = () => {
 
   if (report.reportType !== "home_inspection") {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-10 text-center" style={{ ...colorVars, color: "var(--body-text-color)" }}>
+        <div
+          className="max-w-4xl mx-auto px-4 py-10 text-center"
+          style={{ ...(colorVars ?? {}), color: "var(--body-text-color)" }}
+        >
         <h1 className="text-2xl font-bold mb-4" style={{ color: "var(--heading-text-color)" }}>
           Wind Mitigation Report
         </h1>
@@ -425,7 +428,7 @@ const ReportPreview: React.FC = () => {
         </Button>
       </div>
 
-      <div className="flex flex-col items-center" style={colorVars as any}>
+        <div className="flex flex-col items-center" style={colorVars}>
         {/* Cover Page */}
         <div className="preview-page page-break">
           <div className={`${tpl.container} h-[1056px]`}>
@@ -575,8 +578,11 @@ const ReportPreview: React.FC = () => {
           ))}
       </div>
 
-      {/* Hidden/off-screen printable node for react-to-print */}
-      <div ref={pdfContainerRef} style={{ position: "absolute", left: "-10000px", top: 0 }}>
+      {/* Hidden printable node for react-to-print */}
+      <div
+        ref={pdfContainerRef}
+        style={{ position: "absolute", left: 0, top: 0, visibility: "hidden" }}
+      >
         <PDFDocument
           report={report}
           mediaUrlMap={mediaUrlMap}
