@@ -105,16 +105,17 @@ All colors MUST be HSL.
 }
 
 /* Google Places Autocomplete dropdown styling */
-.pac-container { 
+.pac-container {
   z-index: 999999 !important;
   border-radius: 6px !important;
   border: 1px solid hsl(var(--border)) !important;
-  background: hsl(var(--background)) !important;
+  background: #fff !important;
+  color: #000 !important;
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
 }
 
 .pac-item {
-  color: hsl(var(--foreground)) !important;
+  color: #000 !important;
   padding: 8px 12px !important;
   cursor: pointer !important;
   border-bottom: 1px solid hsl(var(--border)) !important;
