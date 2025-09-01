@@ -56,6 +56,12 @@ export type Profile = {
   updated_at: string;
 };
 
+export type EmailTemplate = {
+  organization_id: string;
+  report_email_subject: string;
+  report_email_body: string;
+};
+
 export async function createOrganization(data: {
   name: string;
   slug?: string;
@@ -256,4 +262,27 @@ export async function updateMemberRole(organizationId: string, userId: string, r
 
   if (error) throw error;
   return data;
+}
+export async function getReportEmailTemplate(organizationId: string): Promise<EmailTemplate> {
+  const { data, error } = await supabase
+    .from('email_templates')
+    .select('organization_id, report_email_subject, report_email_body')
+    .eq('organization_id', organizationId)
+    .single();
+  if (error) throw error;
+  return data as EmailTemplate;
+}
+
+export async function saveReportEmailTemplate(organizationId: string, subject: string, body: string): Promise<EmailTemplate> {
+  const { data, error } = await supabase
+    .from('email_templates')
+    .upsert({
+      organization_id: organizationId,
+      report_email_subject: subject,
+      report_email_body: body,
+    })
+    .select('organization_id, report_email_subject, report_email_body')
+    .single();
+  if (error) throw error;
+  return data as EmailTemplate;
 }
