@@ -32,10 +32,14 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<RootLayout />}>
-              <Route path="/" element={<Index />} />
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="/oauth/google"
+                element={lazyLoad(() => import("./pages/oauth/GoogleCallback"))}
+              />
+              <Route element={<RootLayout />}>
+                <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={lazyLoad(() => import("./pages/Dashboard"))} />
               <Route path="/auth" element={lazyLoad(() => import("./pages/Auth"))} />
               <Route path="/reports" element={lazyLoad(() => import("./pages/ReportsList"))} />
