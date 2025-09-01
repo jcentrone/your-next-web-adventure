@@ -49,7 +49,7 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
             throw new Error('Failed to get Google Maps API key');
           }
 
-          if (!window.google?.maps) {
+          if (!window.google?.maps?.importLibrary) {
             await new Promise<void>((resolve, reject) => {
               const script = document.createElement('script');
               script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKeyData.apiKey}&v=weekly&libraries=places`;
@@ -60,7 +60,20 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
             });
           }
 
-          await google.maps.importLibrary('places');
+          if (!window.google?.maps?.importLibrary) {
+            await new Promise<void>((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKeyData.apiKey}&v=weekly&libraries=places`;
+              script.async = true;
+              script.onload = () => resolve();
+              script.onerror = () => reject(new Error('Failed to load Google Maps script'));
+              document.head.appendChild(script);
+            });
+          }
+
+          if (window.google?.maps?.importLibrary) {
+            await window.google.maps.importLibrary('places');
+          }
 
           if (!isMounted || !elementRef.current) return;
 
@@ -117,13 +130,14 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
     }, [onInputChange, toast, elementRef]);
 
     return (
-      <div className="relative">
+      <div className="relative bg-white">
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
         {/* eslint-disable-next-line react/no-unknown-property */}
         <gmp-place-autocomplete
           ref={elementRef}
           placeholder={placeholder}
-          class={`pl-10 ${className || ''}`}
+          class={`pl-10 bg-white text-black ${className || ''}`}
+          style={{ '--gmpx-color-background': '#fff' } as React.CSSProperties}
         ></gmp-place-autocomplete>
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
