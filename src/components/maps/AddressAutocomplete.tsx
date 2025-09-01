@@ -1,7 +1,8 @@
-import React, { useState, forwardRef, useCallback, useRef } from 'react';
+import React, { useState, forwardRef, useCallback, useRef, useEffect } from 'react';
 import { MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { Loader } from '@googlemaps/js-api-loader';
 
 interface AddressAutocompleteProps {
   value?: string;
@@ -25,10 +26,54 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
     const [isGeocoding, setIsGeocoding] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
+    const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false);
     const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+    const autocompleteServiceRef = useRef<any>();
+    const placesServiceRef = useRef<any>();
+
+    // Initialize Google Maps API
+    useEffect(() => {
+      const initGoogleMaps = async () => {
+        try {
+          // Get Google Maps API key from edge function
+          const response = await fetch('/functions/v1/google-maps-proxy', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to get API key');
+          }
+
+          const { apiKey } = await response.json();
+
+          const loader = new Loader({
+            apiKey,
+            version: 'weekly',
+            libraries: ['places']
+          });
+
+          await loader.load();
+          
+          autocompleteServiceRef.current = new (window as any).google.maps.places.AutocompleteService();
+          
+          // Create a dummy div for PlacesService
+          const dummyDiv = document.createElement('div');
+          placesServiceRef.current = new (window as any).google.maps.places.PlacesService(dummyDiv);
+          
+          setGoogleMapsLoaded(true);
+        } catch (error) {
+          console.error('Failed to load Google Maps:', error);
+        }
+      };
+
+      initGoogleMaps();
+    }, []);
 
     const handleGeocode = useCallback(async (address: string) => {
-      if (!address.trim()) {
+      if (!address.trim() || !googleMapsLoaded || !autocompleteServiceRef.current) {
         setSuggestions([]);
         setShowDropdown(false);
         return;
@@ -36,41 +81,58 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
 
       setIsGeocoding(true);
       try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=5&countrycodes=us&addressdetails=1&extratags=1`
+        autocompleteServiceRef.current.getPlacePredictions(
+          {
+            input: address,
+            componentRestrictions: { country: 'us' },
+            types: ['address']
+          },
+          (predictions: any[], status: any) => {
+            setIsGeocoding(false);
+            if (status === (window as any).google.maps.places.PlacesServiceStatus.OK && predictions) {
+              setSuggestions(predictions);
+              setShowDropdown(predictions.length > 0);
+            } else {
+              setSuggestions([]);
+              setShowDropdown(false);
+            }
+          }
         );
-        
-        if (!response.ok) {
-          throw new Error('Geocoding failed');
-        }
-
-        const data = await response.json();
-        setSuggestions(data);
-        setShowDropdown(data.length > 0);
       } catch (error) {
         console.error('Geocoding error:', error);
         setSuggestions([]);
         setShowDropdown(false);
-      } finally {
         setIsGeocoding(false);
       }
-    }, []);
+    }, [googleMapsLoaded]);
 
     const handleSuggestionSelect = (suggestion: any) => {
-      const formattedAddress = suggestion.display_name;
+      if (!placesServiceRef.current) return;
+
+      const formattedAddress = suggestion.description;
       
       if (onInputChange) {
         onInputChange(formattedAddress);
       }
-      
-      if (onAddressChange) {
-        onAddressChange({
-          formatted_address: formattedAddress,
-          place_id: suggestion.place_id?.toString(),
-          latitude: parseFloat(suggestion.lat),
-          longitude: parseFloat(suggestion.lon),
-        });
-      }
+
+      // Get detailed place information
+      placesServiceRef.current.getDetails(
+        {
+          placeId: suggestion.place_id,
+          fields: ['formatted_address', 'geometry', 'place_id', 'address_components']
+        },
+        (place: any, status: any) => {
+          if (status === (window as any).google.maps.places.PlacesServiceStatus.OK && place && onAddressChange) {
+            onAddressChange({
+              formatted_address: place.formatted_address || formattedAddress,
+              place_id: place.place_id,
+              latitude: place.geometry?.location?.lat(),
+              longitude: place.geometry?.location?.lng(),
+              address_components: place.address_components
+            });
+          }
+        }
+      );
       
       setShowDropdown(false);
       setSuggestions([]);
@@ -126,7 +188,7 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
                 className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transition-colors border-b border-border last:border-b-0"
               >
                 <div className="font-medium text-sm">
-                  {suggestion.display_name}
+                  {suggestion.description}
                 </div>
               </button>
             ))}
