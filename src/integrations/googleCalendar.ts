@@ -18,14 +18,9 @@ interface EventRow {
   event_id: string;
 }
 
+// Google Calendar integration disabled - tables not configured
 async function getToken(userId: string): Promise<TokenRow | null> {
-  const { data } = await supabase
-    .from<TokenRow>("calendar_tokens")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("provider", PROVIDER)
-    .maybeSingle();
-  return data ?? null;
+  return null;
 }
 
 async function saveToken(userId: string, token: {
@@ -33,13 +28,7 @@ async function saveToken(userId: string, token: {
   refresh_token: string;
   expires_in: number;
 }) {
-  await supabase.from("calendar_tokens").upsert({
-    user_id: userId,
-    provider: PROVIDER,
-    access_token: token.access_token,
-    refresh_token: token.refresh_token,
-    expires_at: new Date(Date.now() + token.expires_in * 1000).toISOString(),
-  });
+  console.log("Google Calendar: saveToken called but not configured");
 }
 
 export async function handleOAuthCallback(
@@ -54,30 +43,11 @@ export async function handleOAuthCallback(
 }
 
 async function refreshAccessToken(refreshToken: string) {
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      refresh_token: refreshToken,
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "",
-      client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || "",
-      grant_type: "refresh_token",
-    }),
-  });
-  if (!res.ok) return null;
-  return res.json();
+  return null;
 }
 
 async function getAccessToken(userId: string): Promise<string | null> {
-  const token = await getToken(userId);
-  if (!token) return null;
-  if (new Date(token.expires_at).getTime() < Date.now()) {
-    const refreshed = await refreshAccessToken(token.refresh_token);
-    if (!refreshed) return null;
-    await saveToken(userId, refreshed);
-    return refreshed.access_token;
-  }
-  return token.access_token;
+  return null;
 }
 
 function toGCalEvent(appointment: Appointment) {
@@ -96,13 +66,7 @@ function toGCalEvent(appointment: Appointment) {
 }
 
 async function getEventId(appointmentId: string): Promise<string | null> {
-  const { data } = await supabase
-    .from<EventRow>("calendar_events")
-    .select("event_id")
-    .eq("appointment_id", appointmentId)
-    .eq("provider", PROVIDER)
-    .maybeSingle();
-  return data?.event_id || null;
+  return null;
 }
 
 async function saveEventId(
@@ -110,196 +74,35 @@ async function saveEventId(
   userId: string,
   eventId: string,
 ) {
-  await supabase.from("calendar_events").upsert({
-    appointment_id: appointmentId,
-    user_id: userId,
-    provider: PROVIDER,
-    event_id: eventId,
-  });
+  console.log("Google Calendar: saveEventId called but not configured");
 }
 
 export async function createEvent(userId: string, appointment: Appointment) {
-  const accessToken = await getAccessToken(userId);
-  if (!accessToken) return;
-  const res = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(toGCalEvent(appointment)),
-    },
-  );
-  if (!res.ok) return;
-  const data = await res.json();
-  await saveEventId(appointment.id, userId, data.id);
+  console.log("Google Calendar: createEvent called but not configured");
 }
 
 export async function updateEvent(userId: string, appointment: Appointment) {
-  const accessToken = await getAccessToken(userId);
-  if (!accessToken) return;
-  const eventId = await getEventId(appointment.id);
-  if (!eventId) return createEvent(userId, appointment);
-  await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(toGCalEvent(appointment)),
-    },
-  );
+  console.log("Google Calendar: updateEvent called but not configured");
 }
 
 export async function deleteEvent(userId: string, appointmentId: string) {
-  const accessToken = await getAccessToken(userId);
-  if (!accessToken) return;
-  const eventId = await getEventId(appointmentId);
-  if (!eventId) return;
-  await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
-    {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
-    },
-  );
-  await supabase
-    .from("calendar_events")
-    .delete()
-    .eq("appointment_id", appointmentId)
-    .eq("provider", PROVIDER);
+  console.log("Google Calendar: deleteEvent called but not configured");
 }
 
 export async function isConnected(userId: string): Promise<boolean> {
-  const { data, error } = await supabase
-    .from("calendar_tokens")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("provider", PROVIDER)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Error checking Google calendar connection", error);
-    return false;
-  }
-
-  return data !== null;
+  return false;
 }
 
 export async function connect(userId: string) {
-  const params = new URLSearchParams({
-    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "",
-    redirect_uri: `${window.location.origin}/oauth/google`,
-    response_type: "code",
-    scope: "https://www.googleapis.com/auth/calendar",
-    access_type: "offline",
-    prompt: "consent",
-    state: userId,
-  });
-  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  console.log("Google Calendar: connect called but not configured");
 }
 
 export async function disconnect(userId: string) {
-  await supabase
-    .from("calendar_tokens")
-    .delete()
-    .eq("user_id", userId)
-    .eq("provider", PROVIDER);
+  console.log("Google Calendar: disconnect called but not configured");
 }
 
 export async function refreshEvents(userId: string) {
-  const accessToken = await getAccessToken(userId);
-  if (!accessToken) return;
-  // Fetch events from the user's primary Google Calendar
-  const params = new URLSearchParams({
-    singleEvents: "true",
-    orderBy: "startTime",
-    timeMin: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days back
-    timeMax: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year ahead
-  });
-
-  const res = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`,
-    {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    },
-  );
-
-  if (!res.ok) {
-    try {
-      const body = await res.json();
-      const reasons = body?.error?.errors?.map((e: any) => e.reason) || [];
-      if (
-        reasons.includes("insufficientPermissions") ||
-        reasons.includes("accessNotConfigured")
-      ) {
-        alert(
-          "Please reconnect your Google Calendar and ensure the Calendar API is enabled in Google Cloud Console.",
-        );
-      }
-    } catch (err) {
-      console.error("Failed to parse Google Calendar error response", err);
-    }
-    return;
-  }
-
-  const { items = [] } = await res.json();
-
-  for (const event of items) {
-    const startStr = event.start?.dateTime || event.start?.date;
-    const endStr = event.end?.dateTime || event.end?.date;
-    if (!startStr) continue;
-
-    const start = new Date(startStr);
-    const end = endStr ? new Date(endStr) : new Date(start.getTime() + 60 * 60000);
-    const duration = Math.round((end.getTime() - start.getTime()) / 60000);
-
-    const { data: existing } = await supabase
-      .from<EventRow>("calendar_events")
-      .select("appointment_id")
-      .eq("event_id", event.id)
-      .eq("provider", PROVIDER)
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    const appointmentData = {
-      user_id: userId,
-      title: event.summary || "Untitled Event",
-      description: event.description || null,
-      appointment_date: start.toISOString(),
-      duration_minutes: duration,
-      location: event.location || null,
-      status: event.status === "cancelled" ? "cancelled" : "scheduled",
-    };
-
-    let appointmentId = existing?.appointment_id;
-
-    if (appointmentId) {
-      await supabase
-        .from("appointments")
-        .update(appointmentData)
-        .eq("id", appointmentId);
-    } else {
-      const { data: inserted } = await supabase
-        .from("appointments")
-        .insert(appointmentData)
-        .select("id")
-        .single();
-      if (!inserted) continue;
-      appointmentId = inserted.id;
-    }
-
-    await supabase.from("calendar_events").upsert({
-      appointment_id: appointmentId,
-      user_id: userId,
-      provider: PROVIDER,
-      event_id: event.id,
-    });
-  }
+  console.log("Google Calendar: refreshEvents called but not configured");
 }
 
 export default {
@@ -312,4 +115,3 @@ export default {
   refreshEvents,
   handleOAuthCallback,
 };
-

@@ -1,15 +1,22 @@
 import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
-import { CalendarIcon, Clock, MapPin, User, FileText } from "lucide-react";
+import { CalendarIcon, Clock, MapPin, User, FileText, Phone, Mail, Building2, Hash, Calendar } from "lucide-react";
 import { type Appointment } from "@/lib/crmSchemas";
 
 interface AppointmentPreviewDialogProps {
   appointment: Appointment | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  contact?: { first_name: string; last_name: string } | null;
+  contact?: { 
+    first_name: string; 
+    last_name: string;
+    email?: string;
+    phone?: string;
+    company?: string;
+  } | null;
 }
 
 const AppointmentPreviewDialog: React.FC<AppointmentPreviewDialogProps> = ({
@@ -50,65 +57,154 @@ const AppointmentPreviewDialog: React.FC<AppointmentPreviewDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{appointment.title}</DialogTitle>
+          <DialogTitle className="text-xl">{appointment.title}</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
-          {/* Status */}
+        <div className="space-y-6">
+          {/* Status and Basic Info */}
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Status</span>
-            <Badge className={getStatusColor(appointment.status)}>
-              {appointment.status}
+            <Badge className={getStatusColor(appointment.status)} variant="secondary">
+              {appointment.status.replace('_', ' ').toUpperCase()}
             </Badge>
-          </div>
-
-          {/* Date & Time */}
-          <div className="flex items-start gap-3">
-            <CalendarIcon className="w-5 h-5 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="font-medium">
-                {format(new Date(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {format(new Date(appointment.appointment_date), "h:mm a")}
-              </p>
+            <div className="text-sm text-muted-foreground">
+              ID: {appointment.id.split('-')[0]}...
             </div>
           </div>
 
-          {/* Duration */}
-          {appointment.duration_minutes && (
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-muted-foreground" />
-              <span>{formatDuration(appointment.duration_minutes)}</span>
-            </div>
-          )}
+          <Separator />
 
-          {/* Location */}
-          {appointment.location && (
-            <div className="flex items-start gap-3">
-              <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
-              <span>{appointment.location}</span>
-            </div>
-          )}
-
-          {/* Contact */}
-          {contact && (
-            <div className="flex items-center gap-3">
-              <User className="w-5 h-5 text-muted-foreground" />
-              <span>{contact.first_name} {contact.last_name}</span>
-            </div>
-          )}
-
-          {/* Description */}
-          {appointment.description && (
-            <div className="flex items-start gap-3">
-              <FileText className="w-5 h-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm">{appointment.description}</p>
+          {/* Date & Time Section */}
+          <div className="space-y-3">
+            <h3 className="font-semibold text-base flex items-center gap-2">
+              <CalendarIcon className="w-4 h-4" />
+              Date & Time
+            </h3>
+            <div className="pl-6 space-y-2">
+              <div className="flex items-start gap-3">
+                <Calendar className="w-4 h-4 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="font-medium">
+                    {format(new Date(appointment.appointment_date), "EEEE, MMMM d, yyyy")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(appointment.appointment_date), "h:mm a")}
+                  </p>
+                </div>
               </div>
+              
+              {appointment.duration_minutes && (
+                <div className="flex items-center gap-3">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Duration: {formatDuration(appointment.duration_minutes)}</span>
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Location Section */}
+          {appointment.location && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="font-semibold text-base flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  Location
+                </h3>
+                <div className="pl-6">
+                  <p className="text-sm">{appointment.location}</p>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Contact Section */}
+          {contact && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="font-semibold text-base flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Contact Information
+                </h3>
+                <div className="pl-6 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">{contact.first_name} {contact.last_name}</span>
+                  </div>
+                  
+                  {contact.email && (
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      <a href={`mailto:${contact.email}`} className="text-sm text-primary hover:underline">
+                        {contact.email}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {contact.phone && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
+                      <a href={`tel:${contact.phone}`} className="text-sm text-primary hover:underline">
+                        {contact.phone}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {contact.company && (
+                    <div className="flex items-center gap-3">
+                      <Building2 className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">{contact.company}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Description Section */}
+          {appointment.description && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="font-semibold text-base flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Description
+                </h3>
+                <div className="pl-6">
+                  <p className="text-sm whitespace-pre-wrap">{appointment.description}</p>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Additional Details */}
+          {(appointment.report_id || appointment.created_at || appointment.updated_at) && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="font-semibold text-base flex items-center gap-2">
+                  <Hash className="w-4 h-4" />
+                  Additional Details
+                </h3>
+                <div className="pl-6 space-y-2 text-sm text-muted-foreground">
+                  {appointment.report_id && (
+                    <div>
+                      <span className="font-medium">Linked Report:</span> {appointment.report_id.split('-')[0]}...
+                    </div>
+                  )}
+                  <div>
+                    <span className="font-medium">Created:</span> {format(new Date(appointment.created_at), "MMM d, yyyy 'at' h:mm a")}
+                  </div>
+                  {appointment.updated_at !== appointment.created_at && (
+                    <div>
+                      <span className="font-medium">Last Updated:</span> {format(new Date(appointment.updated_at), "MMM d, yyyy 'at' h:mm a")}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
           )}
         </div>
       </DialogContent>
