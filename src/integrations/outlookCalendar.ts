@@ -42,6 +42,17 @@ async function saveToken(userId: string, token: {
   });
 }
 
+export async function handleOAuthCallback(
+  userId: string,
+  token: {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+  },
+) {
+  await saveToken(userId, token);
+}
+
 async function refreshAccessToken(refreshToken: string) {
   const res = await fetch(
     "https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -205,5 +216,6 @@ export default {
   disconnect,
   isConnected,
   refreshEvents,
+  handleOAuthCallback,
 };
 

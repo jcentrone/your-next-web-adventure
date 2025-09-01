@@ -11,6 +11,8 @@ import React from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import GoogleCallback from "./pages/oauth/GoogleCallback";
+import OutlookCallback from "./pages/oauth/OutlookCallback";
+import AppleCallback from "./pages/oauth/AppleCallback";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/oauth/google" element={<GoogleCallback />} />
+              <Route path="/oauth/outlook" element={<OutlookCallback />} />
+              <Route path="/oauth/apple" element={<AppleCallback />} />
               <Route element={<RootLayout />}>
                 <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={lazyLoad(() => import("./pages/Dashboard"))} />

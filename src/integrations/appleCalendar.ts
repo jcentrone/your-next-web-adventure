@@ -42,6 +42,17 @@ async function saveToken(userId: string, token: {
   });
 }
 
+export async function handleOAuthCallback(
+  userId: string,
+  token: {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+  },
+) {
+  await saveToken(userId, token);
+}
+
 async function refreshAccessToken(refreshToken: string) {
   const res = await fetch("https://appleid.apple.com/auth/token", {
     method: "POST",
@@ -198,5 +209,6 @@ export default {
   disconnect,
   isConnected,
   refreshEvents,
+  handleOAuthCallback,
 };
 
