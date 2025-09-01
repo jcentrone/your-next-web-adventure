@@ -120,8 +120,12 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
         <gmp-place-autocomplete
           ref={elementRef}
           placeholder={placeholder}
-          class={`pl-10 bg-white text-black ${className || ''}`}
-          style={{ '--gmpx-color-background': '#fff' } as React.CSSProperties}
+          class={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pl-10 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-foreground ${className || ''}`}
+          style={{ 
+            '--gmpx-color-background': 'hsl(var(--background))',
+            '--gmpx-color-on-background': 'hsl(var(--foreground))',
+            '--gmpx-color-primary': 'hsl(var(--primary))'
+          } as React.CSSProperties}
         ></gmp-place-autocomplete>
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
