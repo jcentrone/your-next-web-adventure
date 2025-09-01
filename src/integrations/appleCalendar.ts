@@ -19,17 +19,39 @@ interface EventRow {
 }
 
 async function getToken(userId: string): Promise<TokenRow | null> {
-  // Apple Calendar integration disabled - tables not configured
-  return null;
+  const { data, error } = await supabase
+    .from("calendar_tokens")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("provider", PROVIDER)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Apple Calendar: getToken error", error);
+    return null;
+  }
+  return data as TokenRow;
 }
 
-async function saveToken(userId: string, token: {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-}) {
-  // Apple Calendar integration disabled - tables not configured
-  console.log("Apple Calendar: saveToken called but not configured");
+async function saveToken(
+  userId: string,
+  token: { access_token: string; refresh_token: string; expires_in: number },
+) {
+  const expiresAt = new Date(Date.now() + token.expires_in * 1000).toISOString();
+  const { error } = await supabase.from("calendar_tokens").upsert(
+    {
+      user_id: userId,
+      provider: PROVIDER,
+      access_token: token.access_token,
+      refresh_token: token.refresh_token,
+      expires_at: expiresAt,
+    },
+    { onConflict: "user_id,provider" },
+  );
+
+  if (error) {
+    console.error("Apple Calendar: saveToken error", error);
+  }
 }
 
 export async function handleOAuthCallback(
@@ -86,8 +108,18 @@ function toAppleEvent(appointment: Appointment) {
 }
 
 async function getEventId(appointmentId: string): Promise<string | null> {
-  // Apple Calendar integration disabled - tables not configured
-  return null;
+  const { data, error } = await supabase
+    .from("calendar_events")
+    .select("event_id")
+    .eq("appointment_id", appointmentId)
+    .eq("provider", PROVIDER)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Apple Calendar: getEventId error", error);
+    return null;
+  }
+  return data?.event_id ?? null;
 }
 
 async function saveEventId(
@@ -95,43 +127,120 @@ async function saveEventId(
   userId: string,
   eventId: string,
 ) {
-  // Apple Calendar integration disabled - tables not configured
-  console.log("Apple Calendar: saveEventId called but not configured");
+  const { error } = await supabase.from("calendar_events").upsert(
+    {
+      appointment_id: appointmentId,
+      user_id: userId,
+      provider: PROVIDER,
+      event_id: eventId,
+    },
+    { onConflict: "appointment_id,provider" },
+  );
+
+  if (error) {
+    console.error("Apple Calendar: saveEventId error", error);
+  }
 }
 
 export async function createEvent(userId: string, appointment: Appointment) {
-  // Apple Calendar integration disabled - tables not configured
-  console.log("Apple Calendar: createEvent called but not configured");
+  const accessToken = await getAccessToken(userId);
+  if (!accessToken) return;
+  const res = await fetch(
+    "https://calendars.icloud.com/calendar/api/v1/events",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(toAppleEvent(appointment)),
+    },
+  );
+  if (!res.ok) {
+    console.error("Apple Calendar: createEvent failed", await res.text());
+    return;
+  }
+  const data = await res.json();
+  await saveEventId(appointment.id, userId, data.id);
 }
 
 export async function updateEvent(userId: string, appointment: Appointment) {
-  // Apple Calendar integration disabled - tables not configured
-  console.log("Apple Calendar: updateEvent called but not configured");
+  const accessToken = await getAccessToken(userId);
+  const eventId = await getEventId(appointment.id);
+  if (!accessToken || !eventId) return;
+  const res = await fetch(
+    `https://calendars.icloud.com/calendar/api/v1/events/${eventId}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(toAppleEvent(appointment)),
+    },
+  );
+  if (!res.ok) {
+    console.error("Apple Calendar: updateEvent failed", await res.text());
+  }
 }
 
 export async function deleteEvent(userId: string, appointmentId: string) {
-  // Apple Calendar integration disabled - tables not configured
-  console.log("Apple Calendar: deleteEvent called but not configured");
+  const accessToken = await getAccessToken(userId);
+  const eventId = await getEventId(appointmentId);
+  if (!accessToken || !eventId) return;
+  const res = await fetch(
+    `https://calendars.icloud.com/calendar/api/v1/events/${eventId}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  );
+  if (!res.ok) {
+    console.error("Apple Calendar: deleteEvent failed", await res.text());
+  }
+  await supabase
+    .from("calendar_events")
+    .delete()
+    .eq("appointment_id", appointmentId)
+    .eq("provider", PROVIDER);
 }
 
 export async function isConnected(userId: string): Promise<boolean> {
-  // Apple Calendar integration disabled - tables not configured
-  return false;
+  const token = await getToken(userId);
+  return !!token && new Date(token.expires_at).getTime() > Date.now();
 }
 
 export async function connect(userId: string) {
-  // Apple Calendar integration disabled - tables not configured
-  console.log("Apple Calendar: connect called but not configured");
+  const clientId = import.meta.env.VITE_APPLE_CLIENT_ID || "";
+  const redirectUri =
+    import.meta.env.VITE_APPLE_REDIRECT_URL || window.location.origin;
+  const scope = encodeURIComponent("calendar");
+  const authUrl =
+    `https://appleid.apple.com/auth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${userId}`;
+  window.location.href = authUrl;
 }
 
 export async function disconnect(userId: string) {
-  // Apple Calendar integration disabled - tables not configured
-  console.log("Apple Calendar: disconnect called but not configured");
+  await supabase
+    .from("calendar_tokens")
+    .delete()
+    .eq("user_id", userId)
+    .eq("provider", PROVIDER);
+  await supabase
+    .from("calendar_events")
+    .delete()
+    .eq("user_id", userId)
+    .eq("provider", PROVIDER);
 }
 
 export async function refreshEvents(userId: string) {
-  // Apple Calendar integration disabled - tables not configured
-  console.log("Apple Calendar: refreshEvents called but not configured");
+  const accessToken = await getAccessToken(userId);
+  if (!accessToken) return;
+  await fetch("https://calendars.icloud.com/calendar/api/v1/events?limit=1", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  }).catch((err) =>
+    console.error("Apple Calendar: refreshEvents error", err),
+  );
 }
 
 export default {
