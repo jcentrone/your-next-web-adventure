@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, forwardRef } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { reportIfMapsJsBlocked } from './loadGoogleMapsApi';
 
 interface GooglePlacesAutocompleteProps {
   value?: string;
@@ -97,10 +98,12 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
         } catch (error) {
           console.error('Error loading Google Maps:', error);
           toast({
-            title: 'Error',
-            description: 'Failed to load Google Maps. Please enter address manually.',
+            title: 'Google Maps blocked',
+            description:
+              'Disable blocking extensions or whitelist maps.googleapis.com to enable address autocomplete.',
             variant: 'destructive',
           });
+          reportIfMapsJsBlocked();
         } finally {
           if (isMounted) setIsLoading(false);
         }
