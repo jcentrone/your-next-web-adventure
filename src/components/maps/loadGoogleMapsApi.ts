@@ -2,7 +2,7 @@ import { Loader } from '@googlemaps/js-api-loader';
 import { toast } from '@/hooks/use-toast';
 
 let loader: Loader | null = null;
-let loadPromise: Promise<typeof google> | null = null;
+let loadPromise: Promise<any> | null = null;
 
 export function reportMapsJsBlocked() {
   try {
@@ -29,7 +29,7 @@ export async function reportIfMapsJsBlocked() {
   }
 }
 
-export async function loadGoogleMapsApi(): Promise<typeof google> {
+export async function loadGoogleMapsApi(): Promise<any> {
   if (loadPromise) {
     return loadPromise;
   }

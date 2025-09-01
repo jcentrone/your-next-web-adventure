@@ -581,7 +581,7 @@ const ReportPreview: React.FC = () => {
       {/* Hidden printable node for react-to-print */}
       <div
         ref={pdfContainerRef}
-        style={{ position: "absolute", left: 0, top: 0, visibility: "hidden" }}
+        style={{ position: "absolute", left: "-9999px", top: "0" }}
       >
         <PDFDocument
           report={report}
