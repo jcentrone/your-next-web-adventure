@@ -1,4 +1,7 @@
 import { supabase } from "./client";
+import sanitizeHtml from "sanitize-html";
+
+const MAX_TEMPLATE_BODY_LENGTH = 20000;
 
 export type Organization = {
   id: string;
@@ -60,6 +63,8 @@ export type EmailTemplate = {
   organization_id: string;
   report_email_subject: string;
   report_email_body: string;
+  updated_at: string | null;
+  updated_by: string | null;
 };
 
 export async function createOrganization(data: {
@@ -266,23 +271,44 @@ export async function updateMemberRole(organizationId: string, userId: string, r
 export async function getReportEmailTemplate(organizationId: string): Promise<EmailTemplate> {
   const { data, error } = await supabase
     .from('email_templates')
-    .select('organization_id, report_email_subject, report_email_body')
+    .select('organization_id, report_email_subject, report_email_body, updated_at, updated_by')
     .eq('organization_id', organizationId)
     .single();
   if (error) throw error;
   return data as EmailTemplate;
 }
 
-export async function saveReportEmailTemplate(organizationId: string, subject: string, body: string): Promise<EmailTemplate> {
+export async function saveReportEmailTemplate(
+  organizationId: string,
+  subject: string,
+  body: string,
+  userId: string
+): Promise<EmailTemplate> {
+  if (body.length > MAX_TEMPLATE_BODY_LENGTH) {
+    throw new Error(`Body exceeds ${MAX_TEMPLATE_BODY_LENGTH} characters`);
+  }
+  const sanitizedBody = sanitizeHtml(body);
   const { data, error } = await supabase
     .from('email_templates')
     .upsert({
       organization_id: organizationId,
       report_email_subject: subject,
-      report_email_body: body,
+      report_email_body: sanitizedBody,
+      updated_at: new Date().toISOString(),
+      updated_by: userId,
     })
-    .select('organization_id, report_email_subject, report_email_body')
+    .select('organization_id, report_email_subject, report_email_body, updated_at, updated_by')
     .single();
   if (error) throw error;
   return data as EmailTemplate;
+}
+
+export async function getProfileByUserId(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data as Profile | null;
 }
