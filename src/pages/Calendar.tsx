@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { appointmentsApi, contactsApi } from "@/integrations/supabase/crmApi";
@@ -23,6 +23,7 @@ import AppointmentPreviewDialog from "@/components/calendar/AppointmentPreviewDi
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as outlookCalendar from "@/integrations/outlookCalendar";
 import * as appleCalendar from "@/integrations/appleCalendar";
+import { syncExternalEvents } from "@/integrations/syncExternalEvents";
 
 const Calendar: React.FC = () => {
   const { user } = useAuth();
@@ -33,6 +34,16 @@ const Calendar: React.FC = () => {
   const [deleteAppointment, setDeleteAppointment] = useState<Appointment | null>(null);
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [previewAppointment, setPreviewAppointment] = useState<Appointment | null>(null);
+
+  const handleSync = async () => {
+    if (!user) return;
+    await syncExternalEvents(user.id);
+    queryClient.invalidateQueries({ queryKey: ["appointments", user.id] });
+  };
+
+  useEffect(() => {
+    handleSync();
+  }, [user]);
 
   const { data: appointments = [] } = useQuery({
     queryKey: ["appointments", user?.id],
@@ -232,24 +243,30 @@ const Calendar: React.FC = () => {
               Manage your appointments and schedule
             </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => {
-                setEditingAppointment(null);
-                form.reset();
-              }}>
-                <Plus className="w-4 h-4 mr-2" />
-                New Appointment
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[700px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingAppointment ? "Edit Appointment" : "Create Appointment"}
-                </DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleSync}>
+              Refresh
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => {
+                    setEditingAppointment(null);
+                    form.reset();
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Appointment
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[700px]">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingAppointment ? "Edit Appointment" : "Create Appointment"}
+                  </DialogTitle>
+                </DialogHeader>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Left Column */}
                     <div className="space-y-4">

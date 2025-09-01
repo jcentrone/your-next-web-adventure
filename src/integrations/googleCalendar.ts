@@ -208,8 +208,76 @@ export async function disconnect(userId: string) {
 export async function refreshEvents(userId: string) {
   const accessToken = await getAccessToken(userId);
   if (!accessToken) return;
-  // This function can be invoked by a scheduled job or webhook
-  // to keep events in sync between systems.
+  // Fetch events from the user's primary Google Calendar
+  const params = new URLSearchParams({
+    singleEvents: "true",
+    orderBy: "startTime",
+    timeMin: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days back
+    timeMax: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year ahead
+  });
+
+  const res = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`,
+    {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  );
+
+  if (!res.ok) return;
+
+  const { items = [] } = await res.json();
+
+  for (const event of items) {
+    const startStr = event.start?.dateTime || event.start?.date;
+    const endStr = event.end?.dateTime || event.end?.date;
+    if (!startStr) continue;
+
+    const start = new Date(startStr);
+    const end = endStr ? new Date(endStr) : new Date(start.getTime() + 60 * 60000);
+    const duration = Math.round((end.getTime() - start.getTime()) / 60000);
+
+    const { data: existing } = await supabase
+      .from<EventRow>("calendar_events")
+      .select("appointment_id")
+      .eq("event_id", event.id)
+      .eq("provider", PROVIDER)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const appointmentData = {
+      user_id: userId,
+      title: event.summary || "Untitled Event",
+      description: event.description || null,
+      appointment_date: start.toISOString(),
+      duration_minutes: duration,
+      location: event.location || null,
+      status: event.status === "cancelled" ? "cancelled" : "scheduled",
+    };
+
+    let appointmentId = existing?.appointment_id;
+
+    if (appointmentId) {
+      await supabase
+        .from("appointments")
+        .update(appointmentData)
+        .eq("id", appointmentId);
+    } else {
+      const { data: inserted } = await supabase
+        .from("appointments")
+        .insert(appointmentData)
+        .select("id")
+        .single();
+      if (!inserted) continue;
+      appointmentId = inserted.id;
+    }
+
+    await supabase.from("calendar_events").upsert({
+      appointment_id: appointmentId,
+      user_id: userId,
+      provider: PROVIDER,
+      event_id: event.id,
+    });
+  }
 }
 
 export default {
