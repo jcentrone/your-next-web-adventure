@@ -16,7 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { contactsApi, appointmentsApi, tasksApi, activitiesApi } from "@/integrations/supabase/crmApi";
 import { reportsApi } from "@/integrations/supabase/reportsApi";
 import { CreateContactSchema } from "@/lib/crmSchemas";
-import { GooglePlacesAutocomplete } from "@/components/maps/GooglePlacesAutocomplete";
+import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Mail, Phone, MapPin, Building2, Calendar, FileText, CheckSquare, Activity, Edit2, Save, X } from "lucide-react";
@@ -407,24 +407,24 @@ export default function ContactDetail() {
                       <FormItem>
                         <FormLabel>Address</FormLabel>
                         <FormControl>
-                          <GooglePlacesAutocomplete
+                          <AddressAutocomplete
                             value={field.value}
-                            onPlaceChange={(addressData) => {
-                              // Update the display field and all related fields when Google selection is made
+                            onAddressChange={(addressData) => {
+                              // Update the display field and all related fields when address selection is made
                               field.onChange(addressData.formatted_address);
                               form.setValue('place_id', addressData.place_id);
                               form.setValue('latitude', addressData.latitude);
                               form.setValue('longitude', addressData.longitude);
                               form.setValue('address_components', addressData.address_components);
                               
-                              // Extract city, state, zip from address components
+                              // Extract city, state, zip from address components if available
                               const components = addressData.address_components || [];
                               let city = '';
                               let state = '';
                               let zipCode = '';
 
                               components.forEach((component: any) => {
-                                const types = component.types;
+                                const types = component.types || [];
                                 if (types.includes('locality')) {
                                   city = component.long_name;
                                 } else if (types.includes('administrative_area_level_1')) {

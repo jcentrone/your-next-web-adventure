@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ContactSchema, CreateContactSchema, type Contact } from "@/lib/crmSchemas";
-import { GooglePlacesAutocomplete } from "@/components/maps/GooglePlacesAutocomplete";
+import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
 import { ContactsViewToggle } from "@/components/contacts/ContactsViewToggle";
@@ -393,46 +393,46 @@ const Contacts: React.FC = () => {
                          <FormItem>
                            <FormLabel className="text-xs">Address</FormLabel>
                            <FormControl>
-                             <GooglePlacesAutocomplete
-                               value={field.value}
-                               onPlaceChange={(addressData) => {
-                                 console.log('Address selected:', addressData);
-                                 // Update the display field and all related fields when Google selection is made
-                                 field.onChange(addressData.formatted_address);
-                                 form.setValue('place_id', addressData.place_id);
-                                 form.setValue('latitude', addressData.latitude);
-                                 form.setValue('longitude', addressData.longitude);
-                                 form.setValue('address_components', addressData.address_components);
-                                 
-                                 // Extract city, state, zip from address components
-                                 const components = addressData.address_components || [];
-                                 let city = '';
-                                 let state = '';
-                                 let zipCode = '';
+                              <AddressAutocomplete
+                                value={field.value}
+                                onAddressChange={(addressData) => {
+                                  console.log('Address selected:', addressData);
+                                  // Update the display field and all related fields when address selection is made
+                                  field.onChange(addressData.formatted_address);
+                                  form.setValue('place_id', addressData.place_id);
+                                  form.setValue('latitude', addressData.latitude);
+                                  form.setValue('longitude', addressData.longitude);
+                                  form.setValue('address_components', addressData.address_components);
+                                  
+                                  // Extract city, state, zip from address components if available
+                                  const components = addressData.address_components || [];
+                                  let city = '';
+                                  let state = '';
+                                  let zipCode = '';
 
-                                 components.forEach((component: any) => {
-                                   const types = component.types;
-                                   if (types.includes('locality')) {
-                                     city = component.long_name;
-                                   } else if (types.includes('administrative_area_level_1')) {
-                                     state = component.short_name;
-                                   } else if (types.includes('postal_code')) {
-                                     zipCode = component.long_name;
-                                   }
-                                 });
+                                  components.forEach((component: any) => {
+                                    const types = component.types || [];
+                                    if (types.includes('locality')) {
+                                      city = component.long_name;
+                                    } else if (types.includes('administrative_area_level_1')) {
+                                      state = component.short_name;
+                                    } else if (types.includes('postal_code')) {
+                                      zipCode = component.long_name;
+                                    }
+                                  });
 
-                                 if (city) form.setValue('city', city);
-                                 if (state) form.setValue('state', state);
-                                 if (zipCode) form.setValue('zip_code', zipCode);
+                                  if (city) form.setValue('city', city);
+                                  if (state) form.setValue('state', state);
+                                  if (zipCode) form.setValue('zip_code', zipCode);
+                                }}
+                                onInputChange={(value) => {
+                                 console.log('Input changed (typing):', value);
+                                 // Update form field only for typed input, preserving smooth typing
+                                 field.onChange(value);
                                }}
-                               onInputChange={(value) => {
-                                console.log('Input changed (typing):', value);
-                                // Update form field only for typed input, preserving smooth typing
-                                field.onChange(value);
-                              }}
-                               placeholder="Start typing address..."
-                               className="h-8"
-                             />
+                                placeholder="Start typing address..."
+                                className="h-8"
+                              />
                            </FormControl>
                            <FormMessage />
                          </FormItem>
