@@ -50,6 +50,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
     "fabric": "^6.7.1",
+    "git-filter-repo": "^0.0.30",
     "input-otp": "^1.4.2",
     "konva": "^9.3.22",
     "lodash.get": "^4.4.2",
