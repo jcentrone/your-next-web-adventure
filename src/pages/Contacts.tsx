@@ -395,7 +395,7 @@ const Contacts: React.FC = () => {
                            <FormControl>
                              <GooglePlacesAutocomplete
                                value={field.value}
-                               onChange={(addressData) => {
+                               onPlaceChange={(addressData) => {
                                  console.log('Address selected:', addressData);
                                  // Update the display field and all related fields when Google selection is made
                                  field.onChange(addressData.formatted_address);
@@ -426,10 +426,10 @@ const Contacts: React.FC = () => {
                                  if (zipCode) form.setValue('zip_code', zipCode);
                                }}
                                onInputChange={(value) => {
-                                 console.log('Input changed (typing):', value);
-                                 // Update form field only for typed input, preserving smooth typing
-                                 field.onChange(value);
-                               }}
+                                console.log('Input changed (typing):', value);
+                                // Update form field only for typed input, preserving smooth typing
+                                field.onChange(value);
+                              }}
                                placeholder="Start typing address..."
                                className="h-8"
                              />
