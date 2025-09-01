@@ -15,6 +15,8 @@ const corsHeaders = {
 };
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
+const FROM_EMAIL =
+  Deno.env.get("EMAIL_FROM") ?? "reports <onboarding@resend.dev>";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -68,7 +70,7 @@ Deno.serve(async (req) => {
       console.log("Email template rendered successfully");
 
       const emailResult = await resend.emails.send({
-        from: "reports <onboarding@resend.dev>",
+        from: FROM_EMAIL,
         to: [recipient.email],
         subject: "A report has been shared with you",
         html,
