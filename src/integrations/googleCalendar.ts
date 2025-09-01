@@ -42,21 +42,15 @@ async function saveToken(userId: string, token: {
   });
 }
 
-export async function handleOAuthCallback(code: string, userId: string) {
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      code,
-      client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "",
-      client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || "",
-      redirect_uri: `${window.location.origin}/oauth/google`,
-      grant_type: "authorization_code",
-    }),
-  });
-  if (!res.ok) throw new Error("Token exchange failed");
-  const data = await res.json();
-  await saveToken(userId, data);
+export async function handleOAuthCallback(
+  userId: string,
+  token: {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+  },
+) {
+  await saveToken(userId, token);
 }
 
 async function refreshAccessToken(refreshToken: string) {
@@ -226,5 +220,6 @@ export default {
   disconnect,
   isConnected,
   refreshEvents,
+  handleOAuthCallback,
 };
 
