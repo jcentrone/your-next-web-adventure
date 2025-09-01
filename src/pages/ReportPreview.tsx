@@ -428,7 +428,7 @@ const ReportPreview: React.FC = () => {
         </Button>
       </div>
 
-        <div className="flex flex-col items-center" style={colorVars}>
+        <div ref={pdfContainerRef} className="flex flex-col items-center" style={colorVars}>
         {/* Cover Page */}
         <div className="preview-page page-break">
           <div className={`${tpl.container} h-[1056px]`}>
@@ -578,18 +578,6 @@ const ReportPreview: React.FC = () => {
           ))}
       </div>
 
-      {/* Hidden printable node for react-to-print */}
-      <div
-        ref={pdfContainerRef}
-        style={{ position: "absolute", left: "-9999px", top: "0" }}
-      >
-        <PDFDocument
-          report={report}
-          mediaUrlMap={mediaUrlMap}
-          coverUrl={coverUrl}
-          company={organization?.name || ""}
-        />
-      </div>
     </>
   );
 };
