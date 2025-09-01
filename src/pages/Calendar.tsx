@@ -9,6 +9,7 @@ import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
+import { GooglePlacesAutocomplete } from "@/components/maps/GooglePlacesAutocomplete";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Calendar as CalendarIcon, Edit, Plus, Trash2} from "lucide-react";
 import {format} from "date-fns";
@@ -135,6 +136,13 @@ const Calendar: React.FC = () => {
             contactForm.reset();
             // Auto-select the newly created contact
             form.setValue("contact_id", newContact.id);
+            const parts = [
+                newContact.address,
+                newContact.city,
+                newContact.state,
+                newContact.zip_code
+            ].filter(Boolean);
+            form.setValue('location', parts.join(', '));
         },
         onError: () => {
             toast.error("Failed to create contact");
@@ -246,6 +254,7 @@ const Calendar: React.FC = () => {
         // Compute an optimized route using the Google Maps JS API
         const addresses = selectedDateAppointments
             .map(app => {
+                if (app.location) return app.location;
                 const contact = contacts.find(c => c.id === app.contact_id);
                 if (!contact) return null;
                 const parts = [contact.address, contact.city, contact.state, contact.zip_code].filter(Boolean);
@@ -416,6 +425,18 @@ const Calendar: React.FC = () => {
                                                                             setIsContactDialogOpen(true);
                                                                         } else {
                                                                             field.onChange(value);
+                                                                            const selectedContact = contacts.find(c => c.id === value);
+                                                                            if (selectedContact) {
+                                                                                const parts = [
+                                                                                    selectedContact.address,
+                                                                                    selectedContact.city,
+                                                                                    selectedContact.state,
+                                                                                    selectedContact.zip_code
+                                                                                ].filter(Boolean);
+                                                                                form.setValue('location', parts.join(', '));
+                                                                            } else {
+                                                                                form.setValue('location', '');
+                                                                            }
                                                                         }
                                                                     }}
                                                                     value={field.value}
@@ -455,8 +476,12 @@ const Calendar: React.FC = () => {
                                                             <FormItem>
                                                                 <FormLabel>Location</FormLabel>
                                                                 <FormControl>
-                                                                    <Input
-                                                                        placeholder="Appointment location" {...field} />
+                                                                    <GooglePlacesAutocomplete
+                                                                        value={field.value}
+                                                                        onChange={(address) => field.onChange(address.formatted_address)}
+                                                                        onInputChange={field.onChange}
+                                                                        placeholder="Appointment location"
+                                                                    />
                                                                 </FormControl>
                                                                 <FormMessage/>
                                                             </FormItem>
