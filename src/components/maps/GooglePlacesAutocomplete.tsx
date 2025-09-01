@@ -125,7 +125,12 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
             '--gmpx-color-background': 'hsl(var(--background))',
             '--gmpx-color-on-background': 'hsl(var(--foreground))',
             '--gmpx-color-primary': 'hsl(var(--primary))',
-            '--gmpx-icon-search': 'none'
+            '--gmpx-icon-search': 'none',
+            '--gmpx-color-text': 'hsl(var(--foreground))',
+            '--gmpx-color-placeholder': 'hsl(var(--muted-foreground))',
+            '--gmpx-border-color': 'transparent',
+            '--gmpx-focus-border-color': 'transparent',
+            '--gmpx-outline': 'none'
           } as React.CSSProperties}
         ></gmp-place-autocomplete>
         {isLoading && (
