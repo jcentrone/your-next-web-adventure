@@ -108,7 +108,7 @@ const Header: React.FC = () => {
                     <Link to="/reports">My Reports</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/profile">Profile Settings</Link>
+                    <Link to="/settings">Profile Settings</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/section-manager">Section Manager</Link>
