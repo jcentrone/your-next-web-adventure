@@ -12,6 +12,7 @@ import Account from "./Account";
 import Organization from "./Organization";
 import Members from "./Members";
 import Data from "./Data";
+import Advanced from "./Advanced";
 
 const Settings: React.FC = () => {
   const location = useLocation();
@@ -31,7 +32,7 @@ const Settings: React.FC = () => {
     enabled: !!organization,
   });
 
-  const canManageMembers = React.useMemo(() => {
+  const isAdminOrOwner = React.useMemo(() => {
     const membership = members.find((m) => m.user_id === user?.id);
     return membership?.role === "owner" || membership?.role === "admin";
   }, [members, user]);
@@ -42,18 +43,20 @@ const Settings: React.FC = () => {
         <TabsList>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="organization">Organization</TabsTrigger>
-          {canManageMembers && <TabsTrigger value="members">Members</TabsTrigger>}
+          {isAdminOrOwner && <TabsTrigger value="members">Members</TabsTrigger>}
           <TabsTrigger value="email-template">Email Template</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
+          {isAdminOrOwner && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
         </TabsList>
       </Tabs>
       <Routes>
         <Route index element={<Navigate to="account" replace />} />
         <Route path="account" element={<Account />} />
         <Route path="organization" element={<Organization />} />
-        {canManageMembers && <Route path="members" element={<Members />} />}
+        {isAdminOrOwner && <Route path="members" element={<Members />} />}
         <Route path="email-template" element={<EmailTemplate />} />
         <Route path="data" element={<Data />} />
+        {isAdminOrOwner && <Route path="advanced" element={<Advanced />} />}
       </Routes>
     </div>
   );
