@@ -54,12 +54,12 @@ const Header: React.FC = () => {
               <Link to="/tasks" className="transition-colors hover:text-primary">
                 Tasks
               </Link>
-              <Link to="/defects-admin" className="transition-colors hover:text-primary">
-                Defects
-              </Link>
-              <Link to="/section-manager" className="transition-colors hover:text-primary">
-                Section Manager
-              </Link>
+              {/*<Link to="/defects-admin" className="transition-colors hover:text-primary">*/}
+              {/*  Defects*/}
+              {/*</Link>*/}
+              {/*<Link to="/section-manager" className="transition-colors hover:text-primary">*/}
+              {/*  Section Manager*/}
+              {/*</Link>*/}
             </>
           ) : (
             <>
@@ -84,9 +84,9 @@ const Header: React.FC = () => {
             </>
           ) : (
             <>
-              <Button asChild variant="outline">
-                <Link to="/reports">Reports</Link>
-              </Button>
+              {/*<Button asChild variant="outline">*/}
+              {/*  <Link to="/reports">Reports</Link>*/}
+              {/*</Button>*/}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
