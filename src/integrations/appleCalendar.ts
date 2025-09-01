@@ -165,10 +165,10 @@ export async function deleteEvent(userId: string, appointmentId: string) {
     .eq("provider", PROVIDER);
 }
 
-export async function isConnected(userId: string) {
+export async function isConnected(userId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from("calendar_tokens")
-    .select("user_id")
+    .select("*")
     .eq("user_id", userId)
     .eq("provider", PROVIDER)
     .maybeSingle();
@@ -178,7 +178,7 @@ export async function isConnected(userId: string) {
     return false;
   }
 
-  return !!data;
+  return data !== null;
 }
 
 export async function connect(userId: string) {
