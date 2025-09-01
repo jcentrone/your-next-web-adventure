@@ -34,6 +34,7 @@ import * as outlookCalendar from "@/integrations/outlookCalendar";
 import * as appleCalendar from "@/integrations/appleCalendar";
 import {syncExternalEvents} from "@/integrations/syncExternalEvents";
 import { getOptimizedRoute } from "@/components/maps/routeOptimizer";
+import RouteChoiceDialog from "@/components/maps/RouteChoiceDialog";
 
 const Calendar: React.FC = () => {
     const {user} = useAuth();
@@ -45,6 +46,8 @@ const Calendar: React.FC = () => {
     const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
     const [previewAppointment, setPreviewAppointment] = useState<Appointment | null>(null);
     const [optimizeEnabled] = useState(() => localStorage.getItem("optimizeRoute") === "true");
+    const [isRouteDialogOpen, setIsRouteDialogOpen] = useState(false);
+    const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; wazeUrl: string } | null>(null);
 
     const handleSync = async () => {
         if (!user) return;
@@ -255,8 +258,8 @@ const Calendar: React.FC = () => {
         }
         try {
             const { googleMapsUrl, wazeUrl } = await getOptimizedRoute(addresses);
-            const useGoogle = window.confirm("Open route in Google Maps? Press Cancel for Waze.");
-            window.open(useGoogle ? googleMapsUrl : wazeUrl, "_blank");
+            setRouteUrls({ googleMapsUrl, wazeUrl });
+            setIsRouteDialogOpen(true);
         } catch (e) {
             toast.error("Failed to optimize route");
         }
@@ -268,6 +271,14 @@ const Calendar: React.FC = () => {
                 title="Calendar - InspectPro"
                 description="Manage your inspection appointments and schedule with an integrated calendar system."
             />
+            {routeUrls && (
+                <RouteChoiceDialog
+                    open={isRouteDialogOpen}
+                    onOpenChange={setIsRouteDialogOpen}
+                    googleMapsUrl={routeUrls.googleMapsUrl}
+                    wazeUrl={routeUrls.wazeUrl}
+                />
+            )}
 
             <div className="container mx-auto p-6 space-y-6">
                 <div className="flex flex-col w-full items-center justify-center">
