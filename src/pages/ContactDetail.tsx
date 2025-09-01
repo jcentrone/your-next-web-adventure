@@ -409,7 +409,7 @@ export default function ContactDetail() {
                         <FormControl>
                           <GooglePlacesAutocomplete
                             value={field.value}
-                            onChange={(addressData) => {
+                            onPlaceChange={(addressData) => {
                               // Update the display field and all related fields when Google selection is made
                               field.onChange(addressData.formatted_address);
                               form.setValue('place_id', addressData.place_id);

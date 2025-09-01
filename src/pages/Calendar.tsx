@@ -478,7 +478,7 @@ const Calendar: React.FC = () => {
                                                                 <FormControl>
                                                                     <GooglePlacesAutocomplete
                                                                         value={field.value}
-                                                                        onChange={(address) => field.onChange(address.formatted_address)}
+                                                                        onPlaceChange={(address) => field.onChange(address.formatted_address)}
                                                                         onInputChange={field.onChange}
                                                                         placeholder="Appointment location"
                                                                     />
