@@ -33,6 +33,7 @@ import * as googleCalendar from "@/integrations/googleCalendar";
 import * as outlookCalendar from "@/integrations/outlookCalendar";
 import * as appleCalendar from "@/integrations/appleCalendar";
 import {syncExternalEvents} from "@/integrations/syncExternalEvents";
+import { getOptimizedRoute } from "@/components/maps/routeOptimizer";
 
 const Calendar: React.FC = () => {
     const {user} = useAuth();
@@ -43,6 +44,7 @@ const Calendar: React.FC = () => {
     const [deleteAppointment, setDeleteAppointment] = useState<Appointment | null>(null);
     const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
     const [previewAppointment, setPreviewAppointment] = useState<Appointment | null>(null);
+    const [optimizeEnabled] = useState(() => localStorage.getItem("optimizeRoute") === "true");
 
     const handleSync = async () => {
         if (!user) return;
@@ -237,6 +239,28 @@ const Calendar: React.FC = () => {
         format(selectedDate, "yyyy-MM-dd")
     );
 
+    const handleOptimizeRoute = async () => {
+        const addresses = selectedDateAppointments
+            .map(app => {
+                const contact = contacts.find(c => c.id === app.contact_id);
+                if (!contact) return null;
+                const parts = [contact.address, contact.city, contact.state, contact.zip_code].filter(Boolean);
+                return parts.join(", ");
+            })
+            .filter((a): a is string => !!a);
+        if (addresses.length < 2) {
+            toast.error("Need at least two appointments with addresses");
+            return;
+        }
+        try {
+            const { googleMapsUrl, wazeUrl } = await getOptimizedRoute(addresses);
+            const useGoogle = window.confirm("Open route in Google Maps? Press Cancel for Waze.");
+            window.open(useGoogle ? googleMapsUrl : wazeUrl, "_blank");
+        } catch (e) {
+            toast.error("Failed to optimize route");
+        }
+    };
+
     return (
         <>
             <Seo
@@ -257,6 +281,11 @@ const Calendar: React.FC = () => {
                             <Button variant="outline" onClick={handleSync}>
                                 Refresh
                             </Button>
+                            {optimizeEnabled && (
+                                <Button variant="outline" onClick={handleOptimizeRoute}>
+                                    Optimize Route
+                                </Button>
+                            )}
                             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button

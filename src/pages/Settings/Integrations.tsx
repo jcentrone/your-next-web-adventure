@@ -1,13 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as outlookCalendar from "@/integrations/outlookCalendar";
 import * as appleCalendar from "@/integrations/appleCalendar";
 
 const Integrations: React.FC = () => {
   const { user } = useAuth();
+  const [optimizeRoute, setOptimizeRoute] = useState(
+    () => localStorage.getItem("optimizeRoute") === "true"
+  );
 
   const { data: googleConnected, refetch: refetchGoogle } = useQuery({
     queryKey: ["google-calendar-connected", user?.id],
@@ -35,6 +39,22 @@ const Integrations: React.FC = () => {
       </p>
 
       <div className="space-y-4">
+        <div className="flex items-center justify-between border p-4 rounded-md">
+          <div>
+            <p className="font-medium">Route Optimization</p>
+            <p className="text-sm text-muted-foreground">
+              Enable optimized navigation when viewing daily appointments.
+            </p>
+          </div>
+          <Switch
+            checked={optimizeRoute}
+            onCheckedChange={(checked) => {
+              setOptimizeRoute(checked);
+              localStorage.setItem("optimizeRoute", String(checked));
+            }}
+          />
+        </div>
+
         <div className="flex items-center justify-between border p-4 rounded-md">
           <div>
             <p className="font-medium">Google Calendar</p>
