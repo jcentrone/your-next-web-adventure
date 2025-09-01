@@ -9,7 +9,7 @@ import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogD
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
-import { GooglePlacesAutocomplete } from "@/components/maps/GooglePlacesAutocomplete";
+import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Calendar as CalendarIcon, Edit, Plus, Trash2} from "lucide-react";
 import {format} from "date-fns";
@@ -488,12 +488,12 @@ const Calendar: React.FC = () => {
                                                             <FormItem>
                                                                 <FormLabel>Location</FormLabel>
                                                                 <FormControl>
-                                                                    <GooglePlacesAutocomplete
-                                                                        value={form.watch('location')}
-                                                                        onPlaceChange={(address) => field.onChange(address.formatted_address)}
-                                                                        onInputChange={field.onChange}
-                                                                        placeholder="Appointment location"
-                                                                    />
+                                                                     <AddressAutocomplete
+                                                                         value={form.watch('location')}
+                                                                         onAddressChange={(address) => field.onChange(address.formatted_address)}
+                                                                         onInputChange={field.onChange}
+                                                                         placeholder="Appointment location"
+                                                                     />
                                                                 </FormControl>
                                                                 <FormMessage/>
                                                             </FormItem>
