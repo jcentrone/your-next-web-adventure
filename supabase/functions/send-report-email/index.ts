@@ -1,6 +1,6 @@
 import React from "npm:react@18.3.1";
 import { Resend } from "npm:resend@4.0.0";
-import { renderAsync } from "npm:@react-email/components@0.0.22";
+import { renderAsync } from "npm:@react-email/render@1.2.1";
 import ReportShareEmail from "./_templates/report-share.tsx";
 
 interface Recipient {
@@ -17,6 +17,12 @@ const corsHeaders = {
 const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
 const FROM_EMAIL =
   Deno.env.get("EMAIL_FROM") ?? "reports <reports@homereportpro.com>";
+const REPLY_TO = Deno.env.get("EMAIL_REPLY_TO") ?? FROM_EMAIL;
+const UNSUBSCRIBE_URL = Deno.env.get("UNSUBSCRIBE_URL") ?? "";
+const ORGANIZATION_NAME =
+  Deno.env.get("ORG_NAME") ?? "Home Report Pro";
+const ORGANIZATION_ADDRESS = Deno.env.get("ORG_ADDRESS") ?? "";
+const ORGANIZATION_URL = Deno.env.get("ORG_URL") ?? "";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -59,21 +65,40 @@ Deno.serve(async (req) => {
 
     for (const recipient of recipients) {
       console.log(`Sending email to: ${recipient.email}`);
-      
+
+      const templateProps = {
+        link: shareLink,
+        name: recipient.name,
+        organizationName: ORGANIZATION_NAME,
+        organizationAddress: ORGANIZATION_ADDRESS,
+        organizationUrl: ORGANIZATION_URL,
+        unsubscribeUrl: UNSUBSCRIBE_URL,
+      };
+
       const html = await renderAsync(
-        React.createElement(ReportShareEmail, {
-          link: shareLink,
-          name: recipient.name,
-        })
+        React.createElement(ReportShareEmail, templateProps)
+      );
+      const text = await renderAsync(
+        React.createElement(ReportShareEmail, templateProps),
+        { plainText: true }
       );
 
       console.log("Email template rendered successfully");
 
+      const headers: Record<string, string> = {};
+      if (UNSUBSCRIBE_URL) {
+        headers["List-Unsubscribe"] = `<${UNSUBSCRIBE_URL}>`;
+        headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+      }
+
       const emailResult = await resend.emails.send({
         from: FROM_EMAIL,
         to: [recipient.email],
-        subject: "A report has been shared with you",
+        subject: `Inspection report from ${ORGANIZATION_NAME}`,
         html,
+        text,
+        reply_to: REPLY_TO,
+        headers,
       });
 
       console.log("Email send result:", emailResult);
