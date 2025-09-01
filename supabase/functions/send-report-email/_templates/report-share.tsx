@@ -13,24 +13,52 @@ import {
 interface ReportShareEmailProps {
   link: string;
   name?: string;
+  organizationName?: string;
+  organizationAddress?: string;
+  organizationUrl?: string;
+  unsubscribeUrl?: string;
 }
 
-export const ReportShareEmail = ({ link, name }: ReportShareEmailProps) => (
+export const ReportShareEmail = ({
+  link,
+  name,
+  organizationName,
+  organizationAddress,
+  organizationUrl,
+  unsubscribeUrl,
+}: ReportShareEmailProps) => (
   <Html>
     <Head />
     <Preview>View your shared report</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Report shared with you</Heading>
-        {name && (
-          <Text style={text}>Hi {name},</Text>
+        {organizationName && (
+          <Heading style={h1}>{organizationName}</Heading>
         )}
+        {name && <Text style={text}>Hi {name},</Text>}
         <Text style={text}>
           A report has been shared with you. Click the link below to view it.
         </Text>
         <Link href={link} style={linkStyle} target="_blank">
           View Report
         </Link>
+        <Text style={footerText}>
+          © {new Date().getFullYear()} {organizationName}
+          {organizationAddress ? ` • ${organizationAddress}` : ""}
+          {organizationUrl ? " • " : ""}
+          {organizationUrl && (
+            <Link href={organizationUrl} style={footerLink} target="_blank">
+              {organizationUrl}
+            </Link>
+          )}
+        </Text>
+        {unsubscribeUrl && (
+          <Text style={footerText}>
+            <Link href={unsubscribeUrl} style={footerLink} target="_blank">
+              Unsubscribe
+            </Link>
+          </Text>
+        )}
       </Container>
     </Body>
   </Html>
@@ -69,5 +97,17 @@ const linkStyle = {
   ...text,
   color: "#2754C5",
   textDecoration: "underline",
+};
+
+const footerText = {
+  ...text,
+  color: "#666",
+  fontSize: "12px",
+  marginTop: "32px",
+};
+
+const footerLink = {
+  ...linkStyle,
+  color: "#666",
 };
 
