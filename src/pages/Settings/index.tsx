@@ -1,17 +1,41 @@
 import React from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getMyOrganization,
+  getOrganizationMembers,
+} from "@/integrations/supabase/organizationsApi";
 import ReportEmailTemplate from "./ReportEmailTemplate";
+import Account from "./Account";
+import Organization from "./Organization";
+import Members from "./Members";
 
-const Account = () => <div>Account settings</div>;
-const Organization = () => <div>Organization settings</div>;
-const Members = () => <div>Members settings</div>;
 const Data = () => <div>Data settings</div>;
 
 const Settings: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const currentTab = location.pathname.split("/").filter(Boolean).pop() || "account";
+
+  const { data: organization } = useQuery({
+    queryKey: ["my-organization"],
+    queryFn: getMyOrganization,
+    enabled: !!user,
+  });
+
+  const { data: members = [] } = useQuery({
+    queryKey: ["organization-members", organization?.id],
+    queryFn: () => (organization ? getOrganizationMembers(organization.id) : []),
+    enabled: !!organization,
+  });
+
+  const canManageMembers = React.useMemo(() => {
+    const membership = members.find((m: any) => m.user_id === user?.id);
+    return membership?.role === "owner" || membership?.role === "admin";
+  }, [members, user]);
 
   return (
     <div className="container mx-auto p-4 space-y-4">
@@ -19,7 +43,7 @@ const Settings: React.FC = () => {
         <TabsList>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="organization">Organization</TabsTrigger>
-          <TabsTrigger value="members">Members</TabsTrigger>
+          {canManageMembers && <TabsTrigger value="members">Members</TabsTrigger>}
           <TabsTrigger value="email-template">Email Template</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
         </TabsList>
@@ -28,7 +52,7 @@ const Settings: React.FC = () => {
         <Route index element={<Navigate to="account" replace />} />
         <Route path="account" element={<Account />} />
         <Route path="organization" element={<Organization />} />
-        <Route path="members" element={<Members />} />
+        {canManageMembers && <Route path="members" element={<Members />} />}
         <Route path="email-template" element={<ReportEmailTemplate />} />
         <Route path="data" element={<Data />} />
       </Routes>
@@ -37,3 +61,4 @@ const Settings: React.FC = () => {
 };
 
 export default Settings;
+
