@@ -175,12 +175,18 @@ export async function deleteEvent(userId: string, appointmentId: string) {
 }
 
 export async function isConnected(userId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("calendar_tokens")
-    .select("id")
+    .select("user_id")
     .eq("user_id", userId)
     .eq("provider", PROVIDER)
     .maybeSingle();
+
+  if (error) {
+    console.error("Error checking Google calendar connection", error);
+    return false;
+  }
+
   return !!data;
 }
 
