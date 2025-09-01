@@ -1,0 +1,12 @@
+import { supabase } from "./client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export async function exportReportData() {
+  const client = supabase as SupabaseClient;
+  const { data, error } = await client.functions.invoke("export-report-data", {
+    responseType: "blob",
+  });
+  if (error) throw error;
+  return data as Blob;
+}
+

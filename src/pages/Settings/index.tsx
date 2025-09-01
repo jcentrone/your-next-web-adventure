@@ -11,8 +11,7 @@ import EmailTemplate from "./EmailTemplate";
 import Account from "./Account";
 import Organization from "./Organization";
 import Members from "./Members";
-
-const Data = () => <div>Data settings</div>;
+import Data from "./Data";
 
 const Settings: React.FC = () => {
   const location = useLocation();
@@ -33,7 +32,7 @@ const Settings: React.FC = () => {
   });
 
   const canManageMembers = React.useMemo(() => {
-    const membership = members.find((m: any) => m.user_id === user?.id);
+    const membership = members.find((m) => m.user_id === user?.id);
     return membership?.role === "owner" || membership?.role === "admin";
   }, [members, user]);
 
