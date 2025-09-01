@@ -94,3 +94,12 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Troubleshooting
+
+### Google Maps features blocked
+
+Route optimization and address autocomplete rely on the Google Maps API. If these
+features aren't working, ad blockers or privacy extensions may be blocking
+requests to `maps.googleapis.com`. Whitelist this domain or disable the blocking
+extension to restore full functionality.
