@@ -94,9 +94,11 @@ const ReportEditor: React.FC = () => {
 
   React.useEffect(() => {
     if (emailDialogOpen) {
-      setSelectedRecipients(report?.contact_id ? [report.contact_id] : []);
+      // Cast report to any since contact_id exists in DB but not in schema
+      const reportWithContactId = report as any;
+      setSelectedRecipients(reportWithContactId?.contact_id ? [reportWithContactId.contact_id] : []);
     }
-  }, [emailDialogOpen, report?.contact_id]);
+  }, [emailDialogOpen, report]);
 
   // Custom sections hook
   const { customSections, loadCustomSections } = useCustomSections();

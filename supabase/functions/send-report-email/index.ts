@@ -22,12 +22,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { shareLink, recipients } = (await req.json()) as {
+    console.log("Edge function started");
+    const body = await req.json();
+    console.log("Received request body:", JSON.stringify(body, null, 2));
+    
+    const { shareLink, recipients } = body as {
       shareLink?: string;
       recipients?: Recipient[];
     };
 
+    console.log("Parsed shareLink:", shareLink);
+    console.log("Parsed recipients:", recipients);
+
     if (!shareLink || !recipients || recipients.length === 0) {
+      console.log("Missing required fields");
       return new Response(
         JSON.stringify({ error: "Missing shareLink or recipients" }),
         {
@@ -37,7 +45,19 @@ Deno.serve(async (req) => {
       );
     }
 
+    console.log(`Sending emails to ${recipients.length} recipients`);
+
+    // Check if Resend API key is available
+    const apiKey = Deno.env.get("RESEND_API_KEY");
+    console.log("Resend API key available:", !!apiKey);
+    
+    if (!apiKey) {
+      throw new Error("RESEND_API_KEY environment variable not set");
+    }
+
     for (const recipient of recipients) {
+      console.log(`Sending email to: ${recipient.email}`);
+      
       const html = await renderAsync(
         React.createElement(ReportShareEmail, {
           link: shareLink,
@@ -45,22 +65,30 @@ Deno.serve(async (req) => {
         })
       );
 
-      const { error } = await resend.emails.send({
+      console.log("Email template rendered successfully");
+
+      const emailResult = await resend.emails.send({
         from: "reports <onboarding@resend.dev>",
         to: [recipient.email],
         subject: "A report has been shared with you",
         html,
       });
 
-      if (error) throw error;
+      console.log("Email send result:", emailResult);
+
+      if (emailResult.error) {
+        console.error("Resend error:", emailResult.error);
+        throw emailResult.error;
+      }
     }
 
+    console.log("All emails sent successfully");
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error in send-report-email function:", err);
     const message = err instanceof Error ? err.message : String(err);
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
