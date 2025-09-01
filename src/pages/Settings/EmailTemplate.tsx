@@ -27,7 +27,7 @@ const sampleReport = {
   inspectionDate: new Date().toISOString(),
 };
 
-const ReportEmailTemplate: React.FC = () => {
+const EmailTemplate: React.FC = () => {
   const { user } = useAuth();
 
   const { data: organization } = useQuery({
@@ -152,4 +152,4 @@ const ReportEmailTemplate: React.FC = () => {
   );
 };
 
-export default ReportEmailTemplate;
+export default EmailTemplate;

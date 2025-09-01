@@ -7,7 +7,7 @@ import {
   getMyOrganization,
   getOrganizationMembers,
 } from "@/integrations/supabase/organizationsApi";
-import ReportEmailTemplate from "./ReportEmailTemplate";
+import EmailTemplate from "./EmailTemplate";
 import Account from "./Account";
 import Organization from "./Organization";
 import Members from "./Members";
@@ -53,7 +53,7 @@ const Settings: React.FC = () => {
         <Route path="account" element={<Account />} />
         <Route path="organization" element={<Organization />} />
         {canManageMembers && <Route path="members" element={<Members />} />}
-        <Route path="email-template" element={<ReportEmailTemplate />} />
+        <Route path="email-template" element={<EmailTemplate />} />
         <Route path="data" element={<Data />} />
       </Routes>
     </div>
