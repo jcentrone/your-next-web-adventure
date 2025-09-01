@@ -136,13 +136,15 @@ const Calendar: React.FC = () => {
             contactForm.reset();
             // Auto-select the newly created contact
             form.setValue("contact_id", newContact.id);
-            const parts = [
+            const fullAddress = [
                 newContact.address,
                 newContact.city,
                 newContact.state,
-                newContact.zip_code
-            ].filter(Boolean);
-            form.setValue('location', parts.join(', '));
+                newContact.zip_code,
+            ]
+                .filter(Boolean)
+                .join(", ");
+            form.setValue("location", fullAddress);
         },
         onError: () => {
             toast.error("Failed to create contact");
@@ -423,21 +425,25 @@ const Calendar: React.FC = () => {
                                                                     onValueChange={(value) => {
                                                                         if (value === "add_new_contact") {
                                                                             setIsContactDialogOpen(true);
-                                                                        } else {
-                                                                            field.onChange(value);
-                                                                            const selectedContact = contacts.find(c => c.id === value);
-                                                                            if (selectedContact) {
-                                                                                const parts = [
-                                                                                    selectedContact.address,
-                                                                                    selectedContact.city,
-                                                                                    selectedContact.state,
-                                                                                    selectedContact.zip_code
-                                                                                ].filter(Boolean);
-                                                                                form.setValue('location', parts.join(', '));
-                                                                            } else {
-                                                                                form.setValue('location', '');
-                                                                            }
+                                                                            return;
                                                                         }
+
+                                                                        const selectedContact = contacts.find(
+                                                                            (c) => c.id === value
+                                                                        );
+                                                                        const fullAddress = selectedContact
+                                                                            ? [
+                                                                                selectedContact.address,
+                                                                                selectedContact.city,
+                                                                                selectedContact.state,
+                                                                                selectedContact.zip_code,
+                                                                            ]
+                                                                                  .filter(Boolean)
+                                                                                  .join(", ")
+                                                                            : "";
+
+                                                                        field.onChange(value);
+                                                                        form.setValue("location", fullAddress);
                                                                     }}
                                                                     value={field.value}
                                                                 >
@@ -477,7 +483,7 @@ const Calendar: React.FC = () => {
                                                                 <FormLabel>Location</FormLabel>
                                                                 <FormControl>
                                                                     <GooglePlacesAutocomplete
-                                                                        value={field.value}
+                                                                        value={form.watch('location')}
                                                                         onPlaceChange={(address) => field.onChange(address.formatted_address)}
                                                                         onInputChange={field.onChange}
                                                                         placeholder="Appointment location"
