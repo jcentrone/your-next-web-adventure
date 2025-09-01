@@ -1,6 +1,6 @@
 import React from "react";
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -20,6 +20,12 @@ const Settings: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const currentTab = location.pathname.split("/").filter(Boolean).pop() || "account";
+
+  React.useEffect(() => {
+    if (currentTab === "settings") {
+      navigate("account", { replace: true });
+    }
+  }, [currentTab, navigate]);
 
   const { data: organization } = useQuery({
     queryKey: ["my-organization"],
@@ -50,17 +56,32 @@ const Settings: React.FC = () => {
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
           {isAdminOrOwner && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
         </TabsList>
+        <TabsContent value="account">
+          <Account />
+        </TabsContent>
+        <TabsContent value="organization">
+          <Organization />
+        </TabsContent>
+        {isAdminOrOwner && (
+          <TabsContent value="members">
+            <Members />
+          </TabsContent>
+        )}
+        <TabsContent value="email-template">
+          <EmailTemplate />
+        </TabsContent>
+        <TabsContent value="data">
+          <Data />
+        </TabsContent>
+        <TabsContent value="integrations">
+          <Integrations />
+        </TabsContent>
+        {isAdminOrOwner && (
+          <TabsContent value="advanced">
+            <Advanced />
+          </TabsContent>
+        )}
       </Tabs>
-      <Routes>
-        <Route index element={<Navigate to="account" replace />} />
-        <Route path="account" element={<Account />} />
-        <Route path="organization" element={<Organization />} />
-        {isAdminOrOwner && <Route path="members" element={<Members />} />}
-        <Route path="email-template" element={<EmailTemplate />} />
-        <Route path="data" element={<Data />} />
-        <Route path="integrations" element={<Integrations />} />
-        {isAdminOrOwner && <Route path="advanced" element={<Advanced />} />}
-      </Routes>
     </div>
   );
 };
