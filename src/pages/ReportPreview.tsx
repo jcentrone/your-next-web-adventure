@@ -285,12 +285,12 @@ const ReportPreview: React.FC = () => {
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
   const DEFAULT_TEXT_COLOR = "222 47% 11%";
-  const colorVars: React.CSSProperties | undefined =
+  const colorVars = 
     report.colorScheme === "custom" && report.customColors
-      ? {
+      ? ({
           "--heading-text-color": `hsl(${report.customColors.headingText || DEFAULT_TEXT_COLOR})`,
           "--body-text-color": `hsl(${report.customColors.bodyText || DEFAULT_TEXT_COLOR})`,
-        }
+        } as any)
       : undefined;
 
   if (report.reportType !== "home_inspection") {

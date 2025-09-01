@@ -270,12 +270,12 @@ export async function updateMemberRole(organizationId: string, userId: string, r
 }
 export async function getReportEmailTemplate(organizationId: string): Promise<EmailTemplate> {
   const { data, error } = await supabase
-    .from('email_templates')
+    .from('email_templates' as any)
     .select('organization_id, report_email_subject, report_email_body, updated_at, updated_by')
     .eq('organization_id', organizationId)
     .single();
   if (error) throw error;
-  return data as EmailTemplate;
+  return data as unknown as EmailTemplate;
 }
 
 export async function saveReportEmailTemplate(
@@ -289,7 +289,7 @@ export async function saveReportEmailTemplate(
   }
   const sanitizedBody = DOMPurify.sanitize(body);
   const { data, error } = await supabase
-    .from('email_templates')
+    .from('email_templates' as any)
     .upsert({
       organization_id: organizationId,
       report_email_subject: subject,
@@ -300,7 +300,7 @@ export async function saveReportEmailTemplate(
     .select('organization_id, report_email_subject, report_email_body, updated_at, updated_by')
     .single();
   if (error) throw error;
-  return data as EmailTemplate;
+  return data as unknown as EmailTemplate;
 }
 
 export async function getProfileByUserId(userId: string): Promise<Profile | null> {
