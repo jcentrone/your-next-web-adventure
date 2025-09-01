@@ -23,7 +23,7 @@
 
   /* Page setup */
   @page {
-    margin: 0.5in;
+    margin: 0;
     size: letter;
   }
 
@@ -31,6 +31,9 @@
   .pdf-page-break {
     page-break-after: always;
     break-after: page;
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
   }
 
   .pdf-page-break:last-child {
@@ -54,9 +57,11 @@
   }
 
   .preview-page {
-    margin: 0;
-    border: none;
-    box-shadow: none;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    min-height: auto !important;
   }
 
   /* Typography adjustments for print */
