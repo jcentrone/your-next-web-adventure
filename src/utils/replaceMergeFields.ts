@@ -12,6 +12,22 @@ interface SectionLike {
   info?: Record<string, unknown>;
 }
 
+export const MERGE_FIELDS = [
+  "{{organization.name}}",
+  "{{organization.address}}",
+  "{{organization.phone}}",
+  "{{organization.email}}",
+  "{{inspector.name}}",
+  "{{inspector.license_number}}",
+  "{{inspector.phone}}",
+  "{{contact.name}}",
+  "{{contact.address}}",
+  "{{contact.email}}",
+  "{{contact.phone}}",
+  "{{report.inspection_date}}",
+  "{{report.weather_conditions}}",
+] as const;
+
 export function replaceMergeFields(text: string, { organization, inspector, report }: MergeData) {
   if (!text) return "";
 
@@ -21,7 +37,7 @@ export function replaceMergeFields(text: string, { organization, inspector, repo
 
   const reportData = reportRecord?.reportData as Record<string, unknown> | undefined;
 
-  const rawReplacements: Record<string, string | null | undefined> = {
+  const rawReplacements: Record<(typeof MERGE_FIELDS)[number], string | null | undefined> = {
     "{{organization.name}}": organization?.name,
     "{{organization.address}}": organization?.address,
     "{{organization.phone}}": organization?.phone,
