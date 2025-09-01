@@ -20,6 +20,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import Seo from "@/components/Seo";
 import { CalendarGrid } from "@/components/calendar/CalendarGrid";
 import AppointmentPreviewDialog from "@/components/calendar/AppointmentPreviewDialog";
+import * as googleCalendar from "@/integrations/googleCalendar";
+import * as outlookCalendar from "@/integrations/outlookCalendar";
+import * as appleCalendar from "@/integrations/appleCalendar";
 
 const Calendar: React.FC = () => {
   const { user } = useAuth();
@@ -45,11 +48,16 @@ const Calendar: React.FC = () => {
 
   const createMutation = useMutation({
     mutationFn: appointmentsApi.create,
-    onSuccess: () => {
+    onSuccess: async (appointment) => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       toast.success("Appointment created successfully");
       setIsDialogOpen(false);
       form.reset();
+      await Promise.all([
+        googleCalendar.createEvent(user!.id, appointment),
+        outlookCalendar.createEvent(user!.id, appointment),
+        appleCalendar.createEvent(user!.id, appointment),
+      ]);
     },
     onError: () => {
       toast.error("Failed to create appointment");
@@ -57,14 +65,19 @@ const Calendar: React.FC = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => 
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
       appointmentsApi.update(id, data),
-    onSuccess: () => {
+    onSuccess: async (appointment) => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       toast.success("Appointment updated successfully");
       setIsDialogOpen(false);
       setEditingAppointment(null);
       form.reset();
+      await Promise.all([
+        googleCalendar.updateEvent(user!.id, appointment),
+        outlookCalendar.updateEvent(user!.id, appointment),
+        appleCalendar.updateEvent(user!.id, appointment),
+      ]);
     },
     onError: () => {
       toast.error("Failed to update appointment");
@@ -73,10 +86,15 @@ const Calendar: React.FC = () => {
 
   const deleteMutation = useMutation({
     mutationFn: appointmentsApi.delete,
-    onSuccess: () => {
+    onSuccess: async (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       toast.success("Appointment deleted successfully");
       setDeleteAppointment(null);
+      await Promise.all([
+        googleCalendar.deleteEvent(user!.id, id as string),
+        outlookCalendar.deleteEvent(user!.id, id as string),
+        appleCalendar.deleteEvent(user!.id, id as string),
+      ]);
     },
     onError: () => {
       toast.error("Failed to delete appointment");
