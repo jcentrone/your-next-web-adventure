@@ -229,7 +229,23 @@ export async function refreshEvents(userId: string) {
     },
   );
 
-  if (!res.ok) return;
+  if (!res.ok) {
+    try {
+      const body = await res.json();
+      const reasons = body?.error?.errors?.map((e: any) => e.reason) || [];
+      if (
+        reasons.includes("insufficientPermissions") ||
+        reasons.includes("accessNotConfigured")
+      ) {
+        alert(
+          "Please reconnect your Google Calendar and ensure the Calendar API is enabled in Google Cloud Console.",
+        );
+      }
+    } catch (err) {
+      console.error("Failed to parse Google Calendar error response", err);
+    }
+    return;
+  }
 
   const { items = [] } = await res.json();
 
