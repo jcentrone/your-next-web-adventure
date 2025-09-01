@@ -5,6 +5,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
 import {
   getMyOrganization,
@@ -13,7 +20,7 @@ import {
   getProfileByUserId,
   saveReportEmailTemplate,
 } from "@/integrations/supabase/organizationsApi";
-import { MERGE_FIELDS, replaceMergeFields } from "@/utils/replaceMergeFields";
+import { MERGE_FIELD_MAP, replaceMergeFields } from "@/utils/replaceMergeFields";
 import { Html, Head, Preview, Body } from "@react-email/components";
 import { Markdown } from "@react-email/markdown";
 import { renderAsync } from "@react-email/render";
@@ -59,6 +66,50 @@ const EmailTemplate: React.FC = () => {
   const [preview, setPreview] = React.useState("");
   const queryClient = useQueryClient();
 
+  const subjectRef = React.useRef<HTMLInputElement>(null);
+  const subjectSelection = React.useRef({ start: 0, end: 0 });
+  const quillRef = React.useRef<ReactQuill>(null);
+  const [subjectSelectValue, setSubjectSelectValue] = React.useState("");
+  const [bodySelectValue, setBodySelectValue] = React.useState("");
+
+  const mergeFields = Object.keys(MERGE_FIELD_MAP);
+
+  const updateSubjectSelection = () => {
+    const input = subjectRef.current;
+    if (input) {
+      subjectSelection.current = {
+        start: input.selectionStart ?? 0,
+        end: input.selectionEnd ?? 0,
+      };
+    }
+  };
+
+  const handleInsertSubject = (token: string) => {
+    const input = subjectRef.current;
+    if (!input) return;
+    const { start, end } = subjectSelection.current;
+    const newValue = subject.slice(0, start) + token + subject.slice(end);
+    setSubject(newValue);
+    requestAnimationFrame(() => {
+      const caret = start + token.length;
+      input.focus();
+      input.setSelectionRange(caret, caret);
+      subjectSelection.current = { start: caret, end: caret };
+    });
+    setSubjectSelectValue("");
+  };
+
+  const handleInsertBody = (token: string) => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+    const selection = quill.getSelection(true);
+    const index = selection ? selection.index : body.length;
+    quill.insertText(index, token);
+    quill.setSelection(index + token.length, 0);
+    quill.focus();
+    setBodySelectValue("");
+  };
+
   React.useEffect(() => {
     if (template) {
       setSubject(template.report_email_subject || "");
@@ -91,7 +142,10 @@ const EmailTemplate: React.FC = () => {
       toast({ title: "Template saved" });
       queryClient.invalidateQueries({ queryKey: ["report-email-template", organization!.id] });
     },
-    onError: (e: any) => toast({ title: "Failed to save template", description: e.message }),
+    onError: (e: unknown) => {
+      const message = e instanceof Error ? e.message : String(e);
+      toast({ title: "Failed to save template", description: message });
+    },
   });
 
   const handleReset = () => {
@@ -117,11 +171,55 @@ const EmailTemplate: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Label htmlFor="subject">Subject</Label>
-          <Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+          <div className="mt-1 flex gap-2">
+            <Input
+              id="subject"
+              ref={subjectRef}
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              onSelect={updateSubjectSelection}
+              onKeyUp={updateSubjectSelection}
+              onClick={updateSubjectSelection}
+            />
+            <Select
+              value={subjectSelectValue}
+              onValueChange={handleInsertSubject}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Insert merge field" />
+              </SelectTrigger>
+              <SelectContent>
+                {mergeFields.map((token) => (
+                  <SelectItem key={token} value={token}>
+                    {token}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div>
           <Label className="mb-2 block">Body</Label>
-          <ReactQuill theme="snow" value={body} onChange={setBody} />
+          <div className="flex flex-col gap-2">
+            <Select value={bodySelectValue} onValueChange={handleInsertBody}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Insert merge field" />
+              </SelectTrigger>
+              <SelectContent>
+                {mergeFields.map((token) => (
+                  <SelectItem key={token} value={token}>
+                    {token}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <ReactQuill
+              ref={quillRef}
+              theme="snow"
+              value={body}
+              onChange={setBody}
+            />
+          </div>
         </div>
         <div className="flex gap-2">
           <Button type="submit" disabled={saveMutation.isPending}>
@@ -141,7 +239,7 @@ const EmailTemplate: React.FC = () => {
       <div>
         <h2 className="text-xl font-semibold mb-2">Available Merge Fields</h2>
         <ul className="list-disc pl-4">
-          {MERGE_FIELDS.map((token) => (
+          {mergeFields.map((token) => (
             <li key={token}>
               <code>{token}</code>
             </li>

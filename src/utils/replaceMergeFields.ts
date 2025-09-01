@@ -12,21 +12,23 @@ interface SectionLike {
   info?: Record<string, unknown>;
 }
 
-export const MERGE_FIELDS = [
-  "{{organization.name}}",
-  "{{organization.address}}",
-  "{{organization.phone}}",
-  "{{organization.email}}",
-  "{{inspector.name}}",
-  "{{inspector.license_number}}",
-  "{{inspector.phone}}",
-  "{{contact.name}}",
-  "{{contact.address}}",
-  "{{contact.email}}",
-  "{{contact.phone}}",
-  "{{report.inspection_date}}",
-  "{{report.weather_conditions}}",
-] as const;
+export const MERGE_FIELD_MAP = {
+  "{{organization.name}}": "Organization name",
+  "{{organization.address}}": "Organization address",
+  "{{organization.phone}}": "Organization phone",
+  "{{organization.email}}": "Organization email",
+  "{{inspector.name}}": "Inspector name",
+  "{{inspector.license_number}}": "Inspector license number",
+  "{{inspector.phone}}": "Inspector phone",
+  "{{contact.name}}": "Contact name",
+  "{{contact.address}}": "Contact address",
+  "{{contact.email}}": "Contact email",
+  "{{contact.phone}}": "Contact phone",
+  "{{report.inspection_date}}": "Report inspection date",
+  "{{report.weather_conditions}}": "Report weather conditions",
+} as const;
+
+export const MERGE_FIELDS = Object.keys(MERGE_FIELD_MAP) as (keyof typeof MERGE_FIELD_MAP)[];
 
 export function replaceMergeFields(text: string, { organization, inspector, report }: MergeData) {
   if (!text) return "";
