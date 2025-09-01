@@ -10,8 +10,6 @@ import {
   Navigation, 
   Calendar, 
   CalendarDays,
-  Apple,
-  Clock,
   ExternalLink
 } from "lucide-react";
 import * as googleCalendar from "@/integrations/googleCalendar";
@@ -99,9 +97,11 @@ const Integrations: React.FC = () => {
           <div className="grid gap-3">
             <div className="flex items-center justify-between border p-4 rounded-md">
               <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-50 dark:bg-blue-950">
-                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400">G</span>
-                </div>
+                <img 
+                  src="/icons/google-calendar.png" 
+                  alt="Google Calendar" 
+                  className="h-8 w-8 rounded" 
+                />
                 <div>
                   <p className="font-medium">Google Calendar</p>
                   <p className="text-sm text-muted-foreground">
@@ -128,9 +128,11 @@ const Integrations: React.FC = () => {
 
             <div className="flex items-center justify-between border p-4 rounded-md">
               <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-50 dark:bg-blue-950">
-                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400">O</span>
-                </div>
+                <img 
+                  src="/icons/outlook.png" 
+                  alt="Outlook Calendar" 
+                  className="h-8 w-8 rounded" 
+                />
                 <div>
                   <p className="font-medium">Outlook Calendar</p>
                   <p className="text-sm text-muted-foreground">
@@ -157,7 +159,11 @@ const Integrations: React.FC = () => {
 
             <div className="flex items-center justify-between border p-4 rounded-md">
               <div className="flex items-center gap-3">
-                <Apple className="h-8 w-8 text-muted-foreground" />
+                <img 
+                  src="/icons/apple.png" 
+                  alt="Apple Calendar" 
+                  className="h-8 w-8 rounded" 
+                />
                 <div>
                   <p className="font-medium">Apple Calendar</p>
                   <p className="text-sm text-muted-foreground">
@@ -195,9 +201,11 @@ const Integrations: React.FC = () => {
           <div className="grid gap-3">
             <div className="flex items-start justify-between border p-4 rounded-md">
               <div className="flex items-start gap-3 flex-1 mr-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-50 dark:bg-blue-950 mt-0.5">
-                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400">C</span>
-                </div>
+                <img 
+                  src="/icons/calendly.png" 
+                  alt="Calendly" 
+                  className="h-8 w-8 rounded mt-0.5" 
+                />
                 <div className="space-y-2 flex-1">
                   <p className="font-medium">Calendly</p>
                   <p className="text-sm text-muted-foreground">
@@ -233,9 +241,11 @@ const Integrations: React.FC = () => {
 
             <div className="flex items-start justify-between border p-4 rounded-md">
               <div className="flex items-start gap-3 flex-1 mr-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-orange-50 dark:bg-orange-950 mt-0.5">
-                  <span className="text-xs font-bold text-orange-600 dark:text-orange-400">A</span>
-                </div>
+                <img 
+                  src="/icons/acuity-scheduling.png" 
+                  alt="Acuity Scheduling" 
+                  className="h-8 w-8 rounded mt-0.5" 
+                />
                 <div className="space-y-2 flex-1">
                   <p className="font-medium">Acuity Scheduling</p>
                   <p className="text-sm text-muted-foreground">
@@ -271,7 +281,11 @@ const Integrations: React.FC = () => {
 
             <div className="flex items-start justify-between border p-4 rounded-md">
               <div className="flex items-start gap-3 flex-1 mr-4">
-                <Clock className="h-8 w-8 text-muted-foreground mt-0.5" />
+                <img 
+                  src="/icons/setmore.png" 
+                  alt="Setmore" 
+                  className="h-8 w-8 rounded mt-0.5" 
+                />
                 <div className="space-y-2 flex-1">
                   <p className="font-medium">Setmore</p>
                   <p className="text-sm text-muted-foreground">
@@ -305,96 +319,6 @@ const Integrations: React.FC = () => {
               </Button>
             </div>
           </div>
-        </div>
-
-        <div className="flex items-start justify-between border p-4 rounded-md">
-          <div className="space-y-2 flex-1 mr-4">
-            <p className="font-medium">Calendly</p>
-            <p className="text-sm text-muted-foreground">
-              Paste your scheduling link for client bookings.
-            </p>
-            <Label htmlFor="calendly-link" className="sr-only">
-              Calendly Link
-            </Label>
-            <Input
-              id="calendly-link"
-              placeholder="https://calendly.com/your-name/meeting"
-              value={calendlyLink}
-              onChange={(e) => setCalendlyLink(e.target.value)}
-              onBlur={() => localStorage.setItem("calendlyLink", calendlyLink)}
-            />
-            {calendlyLink && (
-              <p className="text-xs text-muted-foreground">
-                Share this link with clients: {calendlyLink}
-              </p>
-            )}
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => localStorage.setItem("calendlyLink", calendlyLink)}
-          >
-            Save
-          </Button>
-        </div>
-
-        <div className="flex items-start justify-between border p-4 rounded-md">
-          <div className="space-y-2 flex-1 mr-4">
-            <p className="font-medium">Acuity Scheduling</p>
-            <p className="text-sm text-muted-foreground">
-              Enter your scheduling link or API key.
-            </p>
-            <Label htmlFor="acuity-link" className="sr-only">
-              Acuity Link
-            </Label>
-            <Input
-              id="acuity-link"
-              placeholder="https://app.acuityscheduling.com/schedule.php?owner=123456"
-              value={acuityLink}
-              onChange={(e) => setAcuityLink(e.target.value)}
-              onBlur={() => localStorage.setItem("acuityLink", acuityLink)}
-            />
-            {acuityLink && (
-              <p className="text-xs text-muted-foreground">
-                Share this link with clients: {acuityLink}
-              </p>
-            )}
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => localStorage.setItem("acuityLink", acuityLink)}
-          >
-            Save
-          </Button>
-        </div>
-
-        <div className="flex items-start justify-between border p-4 rounded-md">
-          <div className="space-y-2 flex-1 mr-4">
-            <p className="font-medium">Setmore</p>
-            <p className="text-sm text-muted-foreground">
-              Provide your booking page link for clients to schedule.
-            </p>
-            <Label htmlFor="setmore-link" className="sr-only">
-              Setmore Link
-            </Label>
-            <Input
-              id="setmore-link"
-              placeholder="https://booking.setmore.com/schedule/yourbusiness"
-              value={setmoreLink}
-              onChange={(e) => setSetmoreLink(e.target.value)}
-              onBlur={() => localStorage.setItem("setmoreLink", setmoreLink)}
-            />
-            {setmoreLink && (
-              <p className="text-xs text-muted-foreground">
-                Share this link with clients: {setmoreLink}
-              </p>
-            )}
-          </div>
-          <Button
-            variant="outline"
-            onClick={() => localStorage.setItem("setmoreLink", setmoreLink)}
-          >
-            Save
-          </Button>
         </div>
       </div>
     </div>
