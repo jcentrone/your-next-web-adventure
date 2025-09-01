@@ -5,7 +5,7 @@ import {appointmentsApi, contactsApi} from "@/integrations/supabase/crmApi";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription} from "@/components/ui/dialog";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
@@ -321,11 +321,17 @@ const Calendar: React.FC = () => {
                                         New Appointment
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-[700px]">
+                                <DialogContent
+                                    aria-describedby="appointment-dialog-desc"
+                                    className="sm:max-w-[700px]"
+                                >
                                     <DialogHeader>
                                         <DialogTitle>
                                             {editingAppointment ? "Edit Appointment" : "Create Appointment"}
                                         </DialogTitle>
+                                        <DialogDescription id="appointment-dialog-desc">
+                                            Provide details for the appointment.
+                                        </DialogDescription>
                                     </DialogHeader>
                                     <Form {...form}>
                                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, forwardRef } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
+import { Loader } from '@googlemaps/js-api-loader';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { reportIfMapsJsBlocked } from './loadGoogleMapsApi';
@@ -49,31 +50,14 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
             throw new Error('Failed to get Google Maps API key');
           }
 
-          if (!window.google?.maps?.importLibrary) {
-            await new Promise<void>((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKeyData.apiKey}&v=weekly&libraries=places`;
-              script.async = true;
-              script.onload = () => resolve();
-              script.onerror = () => reject(new Error('Failed to load Google Maps script'));
-              document.head.appendChild(script);
-            });
-          }
-
-          if (!window.google?.maps?.importLibrary) {
-            await new Promise<void>((resolve, reject) => {
-              const script = document.createElement('script');
-              script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKeyData.apiKey}&v=weekly&libraries=places`;
-              script.async = true;
-              script.onload = () => resolve();
-              script.onerror = () => reject(new Error('Failed to load Google Maps script'));
-              document.head.appendChild(script);
-            });
-          }
-
-          if (window.google?.maps?.importLibrary) {
-            await window.google.maps.importLibrary('places');
-          }
+          const loader = new Loader({
+            apiKey: apiKeyData.apiKey,
+            version: 'weekly',
+            libraries: ['places'],
+            url: 'https://maps.googleapis.com/maps/api/js?loading=async'
+          });
+          await loader.load();
+          await window.google.maps.importLibrary('places');
 
           if (!isMounted || !elementRef.current) return;
 
