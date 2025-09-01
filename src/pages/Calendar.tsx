@@ -240,6 +240,7 @@ const Calendar: React.FC = () => {
     );
 
     const handleOptimizeRoute = async () => {
+        // Compute an optimized route using the Google Maps JS API
         const addresses = selectedDateAppointments
             .map(app => {
                 const contact = contacts.find(c => c.id === app.contact_id);
