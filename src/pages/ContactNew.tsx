@@ -215,7 +215,7 @@ const ContactNew: React.FC = () => {
                       <FormControl>
                         <GooglePlacesAutocomplete
                           value={field.value}
-                          onChange={(addressData) => {
+                          onPlaceChange={(addressData) => {
                             field.onChange(addressData.formatted_address);
                             form.setValue('place_id', addressData.place_id);
                             form.setValue('latitude', addressData.latitude);
