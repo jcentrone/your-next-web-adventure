@@ -610,6 +610,7 @@ const Calendar: React.FC = () => {
                                     {format(selectedDate, "MMMM d, yyyy")}
                                 </CardTitle>
                             </CardHeader>
+
                             <CardContent>
                                 {selectedDateAppointments.length === 0 ? (
                                     <p className="text-muted-foreground text-center py-4">
