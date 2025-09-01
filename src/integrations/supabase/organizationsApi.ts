@@ -1,5 +1,5 @@
 import { supabase } from "./client";
-import sanitizeHtml from "sanitize-html";
+import DOMPurify from "dompurify";
 
 const MAX_TEMPLATE_BODY_LENGTH = 20000;
 
@@ -287,7 +287,7 @@ export async function saveReportEmailTemplate(
   if (body.length > MAX_TEMPLATE_BODY_LENGTH) {
     throw new Error(`Body exceeds ${MAX_TEMPLATE_BODY_LENGTH} characters`);
   }
-  const sanitizedBody = sanitizeHtml(body);
+  const sanitizedBody = DOMPurify.sanitize(body);
   const { data, error } = await supabase
     .from('email_templates')
     .upsert({
