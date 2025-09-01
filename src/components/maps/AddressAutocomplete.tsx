@@ -35,19 +35,24 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
     useEffect(() => {
       const initGoogleMaps = async () => {
         try {
-          // Get Google Maps API key from edge function
-          const response = await fetch('/functions/v1/google-maps-proxy', {
+          console.log('Initializing Google Maps API...');
+          // Get Google Maps API key from edge function using proper Supabase URL
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-maps-proxy`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
             }
           });
 
           if (!response.ok) {
-            throw new Error('Failed to get API key');
+            const errorText = await response.text();
+            console.error('Failed to get Google Maps API key:', response.status, errorText);
+            throw new Error(`Failed to get API key: ${response.status}`);
           }
 
           const { apiKey } = await response.json();
+          console.log('Google Maps API key received successfully');
 
           const loader = new Loader({
             apiKey,
@@ -56,6 +61,7 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
           });
 
           await loader.load();
+          console.log('Google Maps API loaded successfully');
           
           autocompleteServiceRef.current = new (window as any).google.maps.places.AutocompleteService();
           
@@ -64,8 +70,10 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
           placesServiceRef.current = new (window as any).google.maps.places.PlacesService(dummyDiv);
           
           setGoogleMapsLoaded(true);
+          console.log('Google Maps autocomplete services initialized');
         } catch (error) {
           console.error('Failed to load Google Maps:', error);
+          // Don't throw error to prevent component crash - just disable functionality
         }
       };
 
@@ -85,7 +93,7 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
           {
             input: address,
             componentRestrictions: { country: 'us' },
-            types: ['address']
+            types: ['address', 'establishment']
           },
           (predictions: any[], status: any) => {
             setIsGeocoding(false);
@@ -180,7 +188,7 @@ export const AddressAutocomplete = forwardRef<HTMLInputElement, AddressAutocompl
         )}
         
         {showDropdown && suggestions.length > 0 && (
-          <div className="absolute top-full left-0 right-0 z-50 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto mt-1">
+          <div className="absolute top-full left-0 right-0 z-50 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto mt-1">
             {suggestions.map((suggestion, index) => (
               <button
                 key={suggestion.place_id || index}
