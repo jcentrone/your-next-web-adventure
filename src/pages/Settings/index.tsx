@@ -12,6 +12,7 @@ import Account from "./Account";
 import Organization from "./Organization";
 import Members from "./Members";
 import Data from "./Data";
+import Integrations from "./Integrations";
 import Advanced from "./Advanced";
 
 const Settings: React.FC = () => {
@@ -46,6 +47,7 @@ const Settings: React.FC = () => {
           {isAdminOrOwner && <TabsTrigger value="members">Members</TabsTrigger>}
           <TabsTrigger value="email-template">Email Template</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
+          <TabsTrigger value="integrations">Integrations</TabsTrigger>
           {isAdminOrOwner && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
         </TabsList>
       </Tabs>
@@ -56,6 +58,7 @@ const Settings: React.FC = () => {
         {isAdminOrOwner && <Route path="members" element={<Members />} />}
         <Route path="email-template" element={<EmailTemplate />} />
         <Route path="data" element={<Data />} />
+        <Route path="integrations" element={<Integrations />} />
         {isAdminOrOwner && <Route path="advanced" element={<Advanced />} />}
       </Routes>
     </div>
