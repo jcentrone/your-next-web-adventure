@@ -124,7 +124,8 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
           style={{ 
             '--gmpx-color-background': 'hsl(var(--background))',
             '--gmpx-color-on-background': 'hsl(var(--foreground))',
-            '--gmpx-color-primary': 'hsl(var(--primary))'
+            '--gmpx-color-primary': 'hsl(var(--primary))',
+            '--gmpx-icon-search': 'none'
           } as React.CSSProperties}
         ></gmp-place-autocomplete>
         {isLoading && (
