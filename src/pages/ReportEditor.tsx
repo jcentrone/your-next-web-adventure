@@ -951,16 +951,26 @@ const ReportEditor: React.FC = () => {
                                             type="button"
                                             className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
                                             onClick={() => {
-                                              const currentFinding = activeSection?.findings.find(f =>
-                                                f.media.some(media => media.id === m.id)
-                                              );
-
-                                              if (!currentFinding) {
-                                                toast({ title: "Error", description: "Could not find the finding for this media item", variant: "destructive" });
+                                              console.log("ReportEditor - Navigating to annotation:", {
+                                                reportId: report.id,
+                                                findingId: f.id,
+                                                mediaId: m.id,
+                                                mediaUrl: m.url,
+                                                reportType: report.reportType
+                                              });
+                                              
+                                              // Validate data before navigation
+                                              if (!report.id || !f.id || !m.id) {
+                                                toast({
+                                                  title: "Navigation Error",
+                                                  description: "Missing required IDs for annotation",
+                                                  variant: "destructive",
+                                                });
                                                 return;
                                               }
-
-                                              nav(`/reports/${id}/annotate/${currentFinding.id}/${m.id}`);
+                                              
+                                              // Navigate to annotation page using the correct route pattern
+                                              nav(`/reports/${report.id}/findings/${f.id}/media/${m.id}/annotate`);
                                             }}
                                           >
                                             <Edit3 className="w-4 h-4 text-orange-500" />

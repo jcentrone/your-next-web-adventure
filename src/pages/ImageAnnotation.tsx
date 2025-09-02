@@ -68,16 +68,44 @@ export default function ImageAnnotation() {
 
   // Find the specific media item
   const mediaItem = React.useMemo(() => {
-    if (!report || !findingId || !mediaId || report.reportType !== "home_inspection") return null;
+    console.log("ImageAnnotation - Looking for media item:", { 
+      reportId, 
+      findingId, 
+      mediaId, 
+      reportType: report?.reportType,
+      sectionsCount: report?.reportType === "home_inspection" ? (report as any).sections?.length || 0 : 0
+    });
     
-    for (const section of report.sections) {
-      const finding = section.findings.find(f => f.id === findingId);
-      if (finding) {
-        return finding.media.find(m => m.id === mediaId);
-      }
+    if (!report || !findingId || !mediaId) {
+      console.log("ImageAnnotation - Missing required parameters:", { report: !!report, findingId, mediaId });
+      return null;
     }
+    
+    // Support both home_inspection and wind_mitigation reports
+    if (report.reportType === "home_inspection") {
+      const homeReport = report as any;
+      for (const section of homeReport.sections || []) {
+        console.log("ImageAnnotation - Checking section:", section.key, "with", section.findings?.length || 0, "findings");
+        const finding = section.findings.find(f => f.id === findingId);
+        if (finding) {
+          console.log("ImageAnnotation - Found finding:", finding.id, "with", finding.media?.length || 0, "media items");
+          const media = finding.media.find(m => m.id === mediaId);
+          if (media) {
+            console.log("ImageAnnotation - Found media item:", media.id, media.url);
+            return media;
+          }
+        }
+      }
+    } else if (report.reportType === "wind_mitigation") {
+      // Handle wind mitigation reports - they might have media in different structure
+      console.log("ImageAnnotation - Wind mitigation report detected, checking media structure");
+      // For now, return null but log that we need to handle this case
+      console.log("ImageAnnotation - Wind mitigation media annotation not yet supported");
+    }
+    
+    console.log("ImageAnnotation - Media item not found in any section");
     return null;
-  }, [report, findingId, mediaId]);
+  }, [report, findingId, mediaId, reportId]);
 
   // Get signed URL for the image
   const [imageUrl, setImageUrl] = useState<string>("");
@@ -436,7 +464,8 @@ export default function ImageAnnotation() {
       // Update the media item
       const updatedReport = { ...report };
       if (updatedReport.reportType === "home_inspection") {
-        for (const section of updatedReport.sections) {
+        const homeReport = updatedReport as any;
+        for (const section of homeReport.sections || []) {
           const finding = section.findings.find(f => f.id === findingId);
           if (finding) {
             const media = finding.media.find(m => m.id === mediaId);
@@ -485,10 +514,21 @@ export default function ImageAnnotation() {
 
   if (!mediaItem) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Alert>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Alert className="max-w-md">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>Media item not found</AlertDescription>
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-medium">Media item not found</p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>Report ID: {reportId}</p>
+                <p>Finding ID: {findingId}</p>
+                <p>Media ID: {mediaId}</p>
+                <p>Report Type: {report?.reportType || 'Unknown'}</p>
+                <p>Sections: {report?.reportType === "home_inspection" ? (report as any).sections?.length || 0 : 0}</p>
+              </div>
+            </div>
+          </AlertDescription>
         </Alert>
       </div>
     );
