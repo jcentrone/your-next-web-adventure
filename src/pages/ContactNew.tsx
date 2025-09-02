@@ -80,7 +80,7 @@ const ContactNew: React.FC = () => {
   return (
     <>
       <Seo 
-        title="New Contact - InspectPro"
+        title="New Contact - Home Report Pro"
         description="Add a new contact to your business network."
       />
       

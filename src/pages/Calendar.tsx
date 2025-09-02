@@ -341,7 +341,7 @@ const Calendar: React.FC = () => {
     return (
         <>
             <Seo
-                title="Calendar - InspectPro"
+                title="Calendar - Home Report Pro"
                 description="Manage your inspection appointments and schedule with an integrated calendar system."
             />
             {routeUrls && (

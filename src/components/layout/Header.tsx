@@ -33,8 +33,13 @@ const Header: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="max-w-7xl mx-auto flex h-14 items-center justify-between px-4">
-        <Link to="/" className="font-bold">
-          InspectPro
+        <Link to="/" className="flex items-center gap-2 font-bold">
+          <img 
+            src="/HomeReportPro_Logo-transparent.png" 
+            alt="Home Report Pro" 
+            className="h-8 w-auto"
+          />
+          <span className="hidden sm:inline">Home Report Pro</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           {user ? (

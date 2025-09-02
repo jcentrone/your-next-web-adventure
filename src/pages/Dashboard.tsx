@@ -76,7 +76,7 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <Seo 
-        title="Dashboard - InspectPro"
+        title="Dashboard - Home Report Pro"
         description="Your inspection business dashboard with upcoming appointments, tasks, and reports overview."
       />
       

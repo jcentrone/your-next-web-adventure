@@ -481,7 +481,7 @@ const Tasks: React.FC = () => {
   return (
     <>
       <Seo 
-        title="Tasks - InspectPro"
+        title="Tasks - Home Report Pro"
         description="Manage your inspection tasks, track progress, and stay organized with your business activities."
       />
       

@@ -257,7 +257,7 @@ const Contacts: React.FC = () => {
   return (
     <>
       <Seo 
-        title="Contacts - InspectPro"
+        title="Contacts - Home Report Pro"
         description="Manage your clients, realtors, and business contacts in one place."
       />
       

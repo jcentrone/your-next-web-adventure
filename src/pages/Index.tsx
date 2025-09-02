@@ -22,13 +22,13 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const { user } = useAuth();
-  const title = "InspectPro | Complete Home Inspection Business Management";
+  const title = "Home Report Pro | Complete Home Inspection Business Management";
   const description = "All-in-one platform for home inspectors: CRM, scheduling, reporting, task management, and client portal. InterNACHI compliant with offline sync.";
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "InspectPro - Home Inspection Business Management",
+    name: "Home Report Pro - Home Inspection Business Management",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     description,
@@ -56,7 +56,7 @@ const Index = () => {
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
             Grow Your Inspection Business with{" "}
-            <span className="text-primary">InspectPro</span>
+            <span className="text-primary">Home Report Pro</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
             From lead to report delivery - manage clients, schedule appointments, create InterNACHI-compliant reports, 
@@ -92,7 +92,7 @@ const Index = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Everything You Need to Run Your Business</h2>
           <p className="text-muted-foreground text-lg">
-            Stop juggling multiple tools. InspectPro brings all your business operations into one place.
+            Stop juggling multiple tools. Home Report Pro brings all your business operations into one place.
           </p>
         </div>
         
@@ -351,7 +351,7 @@ const Index = () => {
         <div className="bg-primary/5 rounded-2xl p-8 md:p-12 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Inspection Business?</h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-            Join thousands of inspectors who've streamlined their workflow with InspectPro. 
+            Join thousands of inspectors who've streamlined their workflow with Home Report Pro. 
             Start your free trial today and see the difference.
           </p>
           {user ? (
