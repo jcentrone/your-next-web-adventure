@@ -39,7 +39,6 @@ const Header: React.FC = () => {
             alt="Home Report Pro" 
             className="h-8 w-auto"
           />
-          <span className="hidden sm:inline">Home Report Pro</span>
         </Link>
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           {user ? (
