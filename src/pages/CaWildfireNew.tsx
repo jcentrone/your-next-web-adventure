@@ -1,0 +1,195 @@
+import React, { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
+import Seo from "@/components/Seo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { dbCreateReport } from "@/integrations/supabase/reportsApi";
+import { contactsApi } from "@/integrations/supabase/crmApi";
+import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
+
+const schema = z.object({
+  title: z.string().min(1, "Required"),
+  clientName: z.string().min(1, "Required"),
+  address: z.string().min(1, "Address is required"),
+  inspectionDate: z.string().min(1, "Required"),
+  contactId: z.string().optional(),
+});
+
+type Values = z.infer<typeof schema>;
+
+const CaWildfireNew: React.FC = () => {
+  const nav = useNavigate();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const contactId = searchParams.get("contactId");
+
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts", user?.id],
+    queryFn: () => contactsApi.list(user!.id),
+    enabled: !!user,
+  });
+
+  const { data: contact } = useQuery({
+    queryKey: ["contact", contactId],
+    queryFn: () => contactsApi.get(contactId!),
+    enabled: !!contactId && !!user,
+  });
+
+  const form = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      title: "",
+      clientName: "",
+      address: "",
+      inspectionDate: new Date().toISOString().slice(0, 10),
+      contactId: contactId || "",
+    },
+  });
+
+  useEffect(() => {
+    if (contact) {
+      form.setValue("clientName", `${contact.first_name} ${contact.last_name}`);
+      const contactAddress = contact.formatted_address || contact.address || "";
+      if (contactAddress) {
+        form.setValue("address", contactAddress);
+      }
+    }
+  }, [contact, form]);
+
+  const onSubmit = async (values: Values) => {
+    try {
+      if (user) {
+        const organization = await getMyOrganization();
+        const report = await dbCreateReport(
+          {
+            title: values.title,
+            clientName: values.clientName,
+            address: values.address,
+            inspectionDate: values.inspectionDate,
+            contact_id: values.contactId,
+            reportType: "ca_wildfire_defensible_space",
+          },
+          user.id,
+          organization?.id
+        );
+        toast({ title: "CA wildfire report created" });
+        nav(`/reports/${report.id}`);
+      } else {
+        toast({ title: "Authentication required", description: "Please log in to create reports." });
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Failed to create report", description: e?.message || "Please try again." });
+    }
+  };
+
+  return (
+    <>
+      <Seo
+        title="New CA Wildfire Report"
+        description="Create a new California wildfire defensible space report."
+        canonical={window.location.origin + "/reports/new/ca-wildfire"}
+      />
+      <section className="max-w-2xl mx-auto px-4 py-10">
+        <h1 className="text-2xl font-semibold mb-6">New CA Wildfire Report</h1>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Report Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 123 Main St Wildfire" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="contactId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client Contact</FormLabel>
+                  <FormControl>
+                    <Select
+                      value={field.value}
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        const selected = contacts.find((c) => c.id === val);
+                        if (selected) {
+                          form.setValue("clientName", `${selected.first_name} ${selected.last_name}`);
+                          const addr = selected.formatted_address || selected.address || "";
+                          if (addr) form.setValue("address", addr);
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a contact..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {contacts.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.first_name} {c.last_name}
+                            {c.email && <span className="text-muted-foreground ml-2">({c.email})</span>}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property Address</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="123 Main St, Springfield" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="inspectionDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Inspection Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => nav('/reports/select-type')}>
+                Back
+              </Button>
+              <Button type="submit">Create Report</Button>
+            </div>
+          </form>
+        </Form>
+      </section>
+    </>
+  );
+};
+
+export default CaWildfireNew;
+
