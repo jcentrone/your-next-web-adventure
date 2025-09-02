@@ -9,6 +9,7 @@ import { loadReport as loadLocalReport, saveReport as saveLocalReport } from "@/
 import { useAutosave } from "@/hooks/useAutosave";
 import { SectionKey, SOP_SECTIONS } from "@/constants/sop";
 import { Finding, Report, Media } from "@/lib/reportSchemas";
+import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { InfoFieldWidget } from "@/components/reports/InfoFieldWidget";
@@ -129,9 +130,9 @@ const ReportEditor: React.FC = () => {
       if (!r) return nav("/reports");
 
       // Handle different report types
-      if (r.reportType === "wind_mitigation") {
+      if (r.reportType !== "home_inspection") {
         setReport(r);
-        return; // Skip sections processing for wind mitigation
+        return; // Skip sections processing for non-home-inspection types
       }
 
       // For home inspection reports, add missing sections
@@ -154,7 +155,6 @@ const ReportEditor: React.FC = () => {
         setReport(rr);
         setActive(rr.sections[0]?.id ?? null);
       } else {
-        // For wind mitigation reports, just set as is
         setReport(r);
       }
     };
@@ -666,6 +666,17 @@ const ReportEditor: React.FC = () => {
               onUpdate={setReport} 
             />
           </React.Suspense>
+        </div>
+      </>
+    );
+  }
+
+  if (report && report.reportType !== "home_inspection") {
+    return (
+      <>
+        <Seo title={`${report.title} | Report Editor`} />
+        <div className="max-w-4xl mx-auto px-4 py-6 text-center">
+          <p className="text-muted-foreground">Editor for {REPORT_TYPE_LABELS[report.reportType]} coming soon.</p>
         </div>
       </>
     );

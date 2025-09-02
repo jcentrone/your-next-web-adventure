@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { activitiesApi } from "@/integrations/supabase/crmApi";
 import { SOP_SECTIONS } from "@/constants/sop";
 import { Report, ReportSchema, Section } from "@/lib/reportSchemas";
+import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 
 type ReportListItem = {
   id: string;
@@ -10,7 +11,7 @@ type ReportListItem = {
   clientName: string;
   inspectionDate: string;
   status: "Draft" | "Final";
-  reportType: "home_inspection" | "wind_mitigation";
+  reportType: Report["reportType"];
   archived?: boolean;
 };
 
@@ -28,7 +29,7 @@ function toDbPayload(report: Report) {
     color_scheme: report.colorScheme || 'default',
     custom_colors: report.customColors || null,
     report_type: report.reportType,
-    report_data: report.reportType === "wind_mitigation" ? report.reportData : null,
+    report_data: report.reportType === "home_inspection" ? null : (report as any).reportData || null,
     county: (report as any).county || null,
     ofStories: (report as any).ofStories || null,
     phone_home: (report as any).phoneHome || null,
@@ -183,7 +184,7 @@ export async function dbCreateReport(meta: {
   address: string;
   inspectionDate: string; // 'YYYY-MM-DD' or ISO
   contact_id?: string;
-  reportType: "home_inspection" | "wind_mitigation";
+  reportType: Report["reportType"];
   county?: string;
   ofStories?: string;
   phoneHome?: string;
@@ -221,7 +222,7 @@ export async function dbCreateReport(meta: {
       reportType: "home_inspection",
       sections,
     };
-  } else {
+  } else if (meta.reportType === "wind_mitigation") {
     // Wind mitigation report
     report = {
       id,
@@ -253,6 +254,30 @@ export async function dbCreateReport(meta: {
         "7_opening_protection": {},
       },
     };
+  } else {
+    // Generic report type with free-form data
+    report = {
+      id,
+      title: meta.title,
+      clientName: meta.clientName,
+      address: meta.address,
+      county: meta.county || "",
+      ofStories: meta.ofStories || "",
+      inspectionDate: new Date(meta.inspectionDate).toISOString(),
+      status: "Draft",
+      finalComments: "",
+      coverImage: "",
+      coverTemplate: "templateOne",
+      previewTemplate: "classic",
+      reportType: meta.reportType,
+      phoneHome: meta.phoneHome || "",
+      phoneWork: meta.phoneWork || "",
+      phoneCell: meta.phoneCell || "",
+      insuranceCompany: meta.insuranceCompany || "",
+      policyNumber: meta.policyNumber || "",
+      email: meta.email || "",
+      reportData: {},
+    };
   }
 
   const payload = {
@@ -261,7 +286,7 @@ export async function dbCreateReport(meta: {
     contact_id: meta.contact_id || null,
     ...toDbPayload(report),
     report_type: meta.reportType,
-    report_data: report.reportType === "wind_mitigation" ? report.reportData : null,
+    report_data: report.reportType === "home_inspection" ? null : report.reportData,
     sections: report.reportType === "home_inspection" ? report.sections : null,
     id, // preserve generated id so local and remote stay aligned
   };
@@ -282,7 +307,7 @@ export async function dbCreateReport(meta: {
     await activitiesApi.trackActivity({
       userId,
       activity_type: 'report_created',
-      title: `Created ${meta.reportType === 'wind_mitigation' ? 'Uniform Mitigation' : 'Home Inspection'} report: ${meta.title}`,
+      title: `Created ${REPORT_TYPE_LABELS[meta.reportType] || meta.reportType} report: ${meta.title}`,
       description: `Report for ${meta.clientName} at ${meta.address}`,
       report_id: data.id,
       contact_id: meta.contact_id,

@@ -1,15 +1,17 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Archive, ArchiveRestore, FileText, Wind } from "lucide-react";
+import { Archive, FileText, Wind } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { Report } from "@/lib/reportSchemas";
+import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 
 interface ReportsFilterToggleProps {
   showArchived: boolean;
   onToggle: (showArchived: boolean) => void;
   archivedCount?: number;
-  reportType?: "all" | "home_inspection" | "wind_mitigation";
-  onReportTypeChange?: (reportType: "all" | "home_inspection" | "wind_mitigation") => void;
+  reportType?: Report["reportType"] | "all";
+  onReportTypeChange?: (reportType: Report["reportType"] | "all") => void;
 }
 
 export const ReportsFilterToggle: React.FC<ReportsFilterToggleProps> = ({ 
@@ -29,18 +31,17 @@ export const ReportsFilterToggle: React.FC<ReportsFilterToggleProps> = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Report Types</SelectItem>
-            <SelectItem value="home_inspection">
-              <div className="flex items-center">
-                <FileText className="h-4 w-4 mr-2" />
-                Home Inspection
-              </div>
-            </SelectItem>
-            <SelectItem value="wind_mitigation">
-              <div className="flex items-center">
-                <Wind className="h-4 w-4 mr-2" />
-                Uniform Mitigation
-              </div>
-            </SelectItem>
+            {Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => {
+              const Icon = value.includes("wind") ? Wind : FileText;
+              return (
+                <SelectItem key={value} value={value}>
+                  <div className="flex items-center">
+                    <Icon className="h-4 w-4 mr-2" />
+                    {label}
+                  </div>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       )}

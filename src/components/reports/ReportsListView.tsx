@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Eye, Trash2, Archive, ArchiveRestore } from "lucide-react";
-import {downloadWindMitigationReport} from "@/utils/fillWindMitigationPDF";
+import { downloadWindMitigationReport } from "@/utils/fillWindMitigationPDF";
+import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
+import type { Report } from "@/lib/reportSchemas";
 
 interface ReportsListViewProps {
   reports: any[];
@@ -35,7 +37,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
                   variant="outline" 
                   className="text-xs"
                 >
-                  {report.reportType === "wind_mitigation" ? "Uniform Mitigation" : "Home Inspection"}
+                  {REPORT_TYPE_LABELS[report.reportType as Report["reportType"]]}
                 </Badge>
                 {report.status && (
                   <Badge variant={report.status === "Final" ? "default" : "secondary"} className="text-xs">
