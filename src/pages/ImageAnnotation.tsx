@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Canvas as FabricCanvas, FabricImage, Line, FabricText, Rect, Circle as FabricCircle, Group } from "fabric";
+import { Canvas as FabricCanvas, FabricImage, Line, IText, Rect, Circle as FabricCircle, Group, PencilBrush } from "fabric";
 import { Button } from "@/components/ui/button";
 import { 
   MousePointer, 
@@ -20,6 +20,7 @@ import {
   X
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,16 +69,44 @@ export default function ImageAnnotation() {
 
   // Find the specific media item
   const mediaItem = React.useMemo(() => {
-    if (!report || !findingId || !mediaId || report.reportType !== "home_inspection") return null;
+    console.log("ImageAnnotation - Looking for media item:", { 
+      reportId, 
+      findingId, 
+      mediaId, 
+      reportType: report?.reportType,
+      sectionsCount: report?.reportType === "home_inspection" ? (report as any).sections?.length || 0 : 0
+    });
     
-    for (const section of report.sections) {
-      const finding = section.findings.find(f => f.id === findingId);
-      if (finding) {
-        return finding.media.find(m => m.id === mediaId);
-      }
+    if (!report || !findingId || !mediaId) {
+      console.log("ImageAnnotation - Missing required parameters:", { report: !!report, findingId, mediaId });
+      return null;
     }
+    
+    // Support both home_inspection and wind_mitigation reports
+    if (report.reportType === "home_inspection") {
+      const homeReport = report as any;
+      for (const section of homeReport.sections || []) {
+        console.log("ImageAnnotation - Checking section:", section.key, "with", section.findings?.length || 0, "findings");
+        const finding = section.findings.find(f => f.id === findingId);
+        if (finding) {
+          console.log("ImageAnnotation - Found finding:", finding.id, "with", finding.media?.length || 0, "media items");
+          const media = finding.media.find(m => m.id === mediaId);
+          if (media) {
+            console.log("ImageAnnotation - Found media item:", media.id, media.url);
+            return media;
+          }
+        }
+      }
+    } else if (report.reportType === "wind_mitigation") {
+      // Handle wind mitigation reports - they might have media in different structure
+      console.log("ImageAnnotation - Wind mitigation report detected, checking media structure");
+      // For now, return null but log that we need to handle this case
+      console.log("ImageAnnotation - Wind mitigation media annotation not yet supported");
+    }
+    
+    console.log("ImageAnnotation - Media item not found in any section");
     return null;
-  }, [report, findingId, mediaId]);
+  }, [report, findingId, mediaId, reportId]);
 
   // Get signed URL for the image
   const [imageUrl, setImageUrl] = useState<string>("");
@@ -121,11 +150,10 @@ export default function ImageAnnotation() {
       selection: true,
     });
 
-    // Set up drawing brush - check if it exists first
-    if (canvas.freeDrawingBrush) {
-      canvas.freeDrawingBrush.color = activeColor;
-      canvas.freeDrawingBrush.width = 3;
-    }
+    // Set up drawing brush properly for Fabric.js v6
+    canvas.freeDrawingBrush = new PencilBrush(canvas);
+    canvas.freeDrawingBrush.color = activeColor;
+    canvas.freeDrawingBrush.width = 3;
 
     const loadImage = async () => {
       try {
@@ -233,9 +261,24 @@ export default function ImageAnnotation() {
 
     fabricCanvas.isDrawingMode = activeTool === "draw";
     
-    if (activeTool === "draw" && fabricCanvas.freeDrawingBrush) {
+    if (fabricCanvas.freeDrawingBrush) {
       fabricCanvas.freeDrawingBrush.color = activeColor;
+      fabricCanvas.freeDrawingBrush.width = 3;
     }
+
+    // Enable text editing on double click
+    fabricCanvas.on('mouse:dblclick', (e) => {
+      const target = e.target;
+      if (target && target.type === 'i-text') {
+        const textObject = target as IText;
+        textObject.enterEditing();
+        textObject.selectAll();
+      }
+    });
+
+    return () => {
+      fabricCanvas.off('mouse:dblclick');
+    };
   }, [activeTool, activeColor, fabricCanvas]);
 
   // Handle color changes for selected objects
@@ -244,8 +287,8 @@ export default function ImageAnnotation() {
 
     const selectedObjects = fabricCanvas.getActiveObjects();
     if (selectedObjects.length > 0) {
-      selectedObjects.forEach(obj => {
-        if (obj.type === 'textbox' || obj.type === 'i-text') {
+    selectedObjects.forEach(obj => {
+        if (obj.type === 'i-text') {
           obj.set('fill', activeColor);
         } else if (obj.type === 'rect' || obj.type === 'circle' || obj.type === 'line' || obj.type === 'group') {
           obj.set('stroke', activeColor);
@@ -324,7 +367,7 @@ export default function ImageAnnotation() {
     } else if (tool === "text") {
       const handler = (e: any) => {
         const pointer = fabricCanvas.getPointer(e.e);
-        const text = new FabricText("Click to edit", {
+        const text = new IText("Double click to edit", {
           left: pointer.x,
           top: pointer.y,
           fill: activeColor,
@@ -333,11 +376,18 @@ export default function ImageAnnotation() {
         });
         fabricCanvas.add(text);
         fabricCanvas.setActiveObject(text);
+        
+        // Enter editing mode immediately
+        setTimeout(() => {
+          text.enterEditing();
+          text.selectAll();
+        }, 100);
+        
         fabricCanvas.renderAll();
         fabricCanvas.off("mouse:down", handler);
         setActiveTool("select");
         saveToHistory();
-        toast.success("Text added - double click to edit");
+        toast.success("Text added - currently editing");
       };
       fabricCanvas.on("mouse:down", handler);
     } else if (tool === "rectangle") {
@@ -436,7 +486,8 @@ export default function ImageAnnotation() {
       // Update the media item
       const updatedReport = { ...report };
       if (updatedReport.reportType === "home_inspection") {
-        for (const section of updatedReport.sections) {
+        const homeReport = updatedReport as any;
+        for (const section of homeReport.sections || []) {
           const finding = section.findings.find(f => f.id === findingId);
           if (finding) {
             const media = finding.media.find(m => m.id === mediaId);
@@ -485,10 +536,21 @@ export default function ImageAnnotation() {
 
   if (!mediaItem) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Alert>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Alert className="max-w-md">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>Media item not found</AlertDescription>
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-medium">Media item not found</p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>Report ID: {reportId}</p>
+                <p>Finding ID: {findingId}</p>
+                <p>Media ID: {mediaId}</p>
+                <p>Report Type: {report?.reportType || 'Unknown'}</p>
+                <p>Sections: {report?.reportType === "home_inspection" ? (report as any).sections?.length || 0 : 0}</p>
+              </div>
+            </div>
+          </AlertDescription>
         </Alert>
       </div>
     );
@@ -536,117 +598,189 @@ export default function ImageAnnotation() {
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="border-b bg-card p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Tool buttons */}
-          <div className="flex items-center gap-1 border rounded-lg p-1">
-            <Button
-              variant={activeTool === "select" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTool("select")}
-              disabled={!canvasReady}
-            >
-              <MousePointer className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "draw" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTool("draw")}
-              disabled={!canvasReady}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "arrow" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("arrow")}
-              disabled={!canvasReady}
-            >
-              <ArrowUpRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "text" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("text")}
-              disabled={!canvasReady}
-            >
-              <Type className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "rectangle" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("rectangle")}
-              disabled={!canvasReady}
-            >
-              <Square className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "circle" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("circle")}
-              disabled={!canvasReady}
-            >
-              <Circle className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "line" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("line")}
-              disabled={!canvasReady}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-          </div>
+        {/* Toolbar */}
+        <div className="flex items-center gap-2 p-4 border-b bg-muted/50">
+          <TooltipProvider>
+            {/* Tool selection */}
+            <div className="flex items-center gap-1 mr-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "select" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("select")}
+                  >
+                    <MousePointer className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select and move objects</p>
+                </TooltipContent>
+              </Tooltip>
 
-          {/* Color picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2" disabled={!canvasReady}>
-                <Palette className="h-4 w-4" />
-                <div 
-                  className="w-4 h-4 rounded border"
-                  style={{ backgroundColor: activeColor }}
-                />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2">
-              <div className="grid grid-cols-3 gap-1">
-                {COLORS.map((color) => (
-                  <button
-                    key={color}
-                    className={`w-8 h-8 rounded border-2 ${
-                      activeColor === color ? "border-primary" : "border-border"
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => setActiveColor(color)}
-                  />
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "draw" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("draw")}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Free drawing tool</p>
+                </TooltipContent>
+              </Tooltip>
 
-          {/* Undo/Redo */}
-          <div className="flex items-center gap-1 border rounded-lg p-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={undo}
-              disabled={!canvasReady || historyIndex <= 0}
-            >
-              <Undo className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={redo}
-              disabled={!canvasReady || historyIndex >= history.length - 1}
-            >
-              <Redo className="h-4 w-4" />
-            </Button>
-          </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "arrow" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("arrow")}
+                  >
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add arrow</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "text" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("text")}
+                  >
+                    <Type className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add text (double-click to edit)</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "rectangle" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("rectangle")}
+                  >
+                    <Square className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add rectangle</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "circle" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("circle")}
+                  >
+                    <Circle className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add circle</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "line" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("line")}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add line</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            {/* Color picker */}
+            <Popover>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-12 h-8 p-1">
+                      <div className="flex items-center gap-1">
+                        <div 
+                          className="w-4 h-4 rounded border"
+                          style={{ backgroundColor: activeColor }}
+                        />
+                        <Palette className="h-3 w-3" />
+                      </div>
+                    </Button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Choose color</p>
+                </TooltipContent>
+              </Tooltip>
+              <PopoverContent className="w-48 p-2">
+                <div className="grid grid-cols-3 gap-1">
+                  {COLORS.map((color) => (
+                    <button
+                      key={color}
+                      className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 ${
+                        activeColor === color ? "border-primary" : "border-gray-300"
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setActiveColor(color)}
+                    />
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Undo/Redo */}
+            <div className="flex items-center gap-1 ml-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={undo}
+                    disabled={historyIndex <= 0}
+                  >
+                    <Undo className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Undo</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={redo}
+                    disabled={historyIndex >= history.length - 1}
+                  >
+                    <Redo className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Redo</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         </div>
-      </div>
 
       {/* Canvas */}
       <div className="p-4">

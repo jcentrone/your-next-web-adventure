@@ -31,7 +31,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const Index = () => {
   const { user } = useAuth();
   const title = "Home Report Pro | Professional PWA for Home Inspectors";
-  const description = "Modern PWA platform for home inspectors specializing in wind mitigation and home inspections. Works offline, InterNACHI SOP compliant with advanced image annotation.";
+  const description = "Modern PWA platform for home inspectors specializing in uniform mitigation and home inspections. Works offline, InterNACHI SOP compliant with advanced image annotation.";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -43,7 +43,7 @@ const Index = () => {
     url: "/",
     features: [
       "Progressive Web App (PWA)",
-      "Wind Mitigation Inspections", 
+      "Uniform Mitigation Inspections",
       "Advanced Image Annotation",
       "Offline Functionality",
       "InterNACHI SOP Compliant Reports",
@@ -187,6 +187,7 @@ const Index = () => {
             <p className="text-muted-foreground mb-4">
               Professional canvas tools for image markup. Draw, highlight, and annotate photos directly in your reports.
             </p>
+
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>• Drawing and markup tools</li>
               <li>• Shape and text annotations</li>
@@ -201,6 +202,12 @@ const Index = () => {
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
               <h3 className="font-semibold text-lg">Enhanced CRM</h3>
+
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div>Home & uniform mitigation</div>
+              <div>Custom branding</div>
+              <div>PDF generation</div>
+
             </div>
             <p className="text-muted-foreground mb-4">
               Manage complex relationships between clients, realtors, vendors, and contractors with advanced tracking.
@@ -321,6 +328,16 @@ const Index = () => {
             <p className="text-muted-foreground mb-6 text-lg">
               Specialized wind mitigation inspections following Florida's OIR-B1-1802 form requirements. 
               Professional documentation that insurance companies trust.
+
+          {/* Uniform Mitigation */}
+          <div className="group">
+            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-8 group-hover:bg-primary/10 transition-colors">
+              <Wind className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-2xl font-medium mb-4">Uniform Mitigation</h3>
+            <p className="text-muted-foreground leading-relaxed mb-6">
+              Specialized uniform mitigation forms with OIR-B1-1802 compliance. Automated calculations for insurance discounts.
+
             </p>
             <div className="space-y-4 mb-6">
               <div className="flex items-center gap-3">

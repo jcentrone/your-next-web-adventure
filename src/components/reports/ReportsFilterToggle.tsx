@@ -38,7 +38,7 @@ export const ReportsFilterToggle: React.FC<ReportsFilterToggleProps> = ({
             <SelectItem value="wind_mitigation">
               <div className="flex items-center">
                 <Wind className="h-4 w-4 mr-2" />
-                Wind Mitigation
+                Uniform Mitigation
               </div>
             </SelectItem>
           </SelectContent>

@@ -5,7 +5,7 @@ export const TEMPLATES: Record<string, string> = {
 
 export const REPORT_TYPES = [
   { value: "home_inspection", label: "Home Inspection" },
-  { value: "wind_mitigation", label: "Wind Mitigation" },
+  { value: "wind_mitigation", label: "Uniform Mitigation" },
 ];
 
 export const FONTS = ["Arial", "Times New Roman", "Courier New", "Georgia", "Verdana"];

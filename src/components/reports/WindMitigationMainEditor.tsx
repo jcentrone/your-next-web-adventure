@@ -15,7 +15,7 @@ const WindMitigationMainEditor: React.FC<WindMitigationMainEditorProps> = ({ rep
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Wind Mitigation Inspection</h1>
+        <h1 className="text-2xl font-bold">Uniform Mitigation Verification Inspection</h1>
         <Button onClick={() => nav(`/reports/${report.id}/preview`)}>Preview Report</Button>
       </div>
       
@@ -28,7 +28,7 @@ const WindMitigationMainEditor: React.FC<WindMitigationMainEditorProps> = ({ rep
             Form OIR-B1-1802 (Rev. 01/12)
           </p>
           <p className="text-muted-foreground">
-            This wind mitigation inspection form will be fully implemented in the next update.
+            This uniform mitigation inspection form will be fully implemented in the next update.
             It will include all 7 questions from the Florida Uniform Mitigation Verification Inspection:
           </p>
           <ul className="mt-4 space-y-2 text-sm">

@@ -12,7 +12,7 @@ const ReportTypeSelector: React.FC = () => {
     <>
       <Seo
         title="Select Report Type | Home Inspection"
-        description="Choose between home inspection and wind mitigation report types"
+        description="Choose between home inspection and uniform mitigation report types"
         canonical={window.location.origin + "/reports/select-type"}
       />
       <section className="max-w-4xl mx-auto px-4 py-10">
@@ -55,9 +55,9 @@ const ReportTypeSelector: React.FC = () => {
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Wind className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>Wind Mitigation</CardTitle>
+              <CardTitle>Uniform Mitigation Verification Inspection</CardTitle>
               <CardDescription>
-                Florida wind mitigation inspection for insurance discounts
+                Florida uniform mitigation verification inspection for insurance discounts
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -67,11 +67,11 @@ const ReportTypeSelector: React.FC = () => {
                 <li>• Opening protection evaluation</li>
                 <li>• Secondary water resistance check</li>
               </ul>
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 onClick={() => navigate("/reports/new/wind-mitigation")}
               >
-                Create Wind Mitigation Report
+                Create Uniform Mitigation Report
               </Button>
             </CardContent>
           </Card>
