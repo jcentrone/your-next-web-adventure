@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { toast } from "@/components/ui/use-toast";
 import type { FlFourPointCitizensReport } from "@/lib/reportSchemas";
+import type { InfoField } from "@/hooks/useSectionGuidance";
 import { z } from "zod";
 
 interface EditorProps {
@@ -127,7 +128,7 @@ const FlFourPointEditor: React.FC<EditorProps> = ({ report, onUpdate }) => {
                   name={`${section.name}.${field.name}`}
                   render={({ field: f }) => (
                     <InfoFieldWidget
-                      field={{ ...field, widget: field.widget === "radio" ? "select" : field.widget }}
+                      field={{ ...field, widget: field.widget === "radio" ? "select" : field.widget } as InfoField}
                       value={f.value || ""}
                       onChange={(val) => f.onChange(val)}
                     />
