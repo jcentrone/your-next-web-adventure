@@ -11,7 +11,7 @@ import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Calendar as CalendarIcon, Edit, Plus, Trash2} from "lucide-react";
+import {Calendar as CalendarIcon, Edit, Plus, Trash2, Settings} from "lucide-react";
 import {format} from "date-fns";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -30,6 +30,8 @@ import {
 import Seo from "@/components/Seo";
 import {DraggableCalendarGrid} from "@/components/calendar/DraggableCalendarGrid";
 import {TimeChangeConfirmDialog} from "@/components/calendar/TimeChangeConfirmDialog";
+import {CalendarSettingsDialog} from "@/components/calendar/CalendarSettingsDialog";
+import {useCalendarSettings} from "@/hooks/useCalendarSettings";
 import AppointmentPreviewDialog from "@/components/calendar/AppointmentPreviewDialog";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as outlookCalendar from "@/integrations/outlookCalendar";
@@ -52,6 +54,8 @@ const Calendar: React.FC = () => {
     const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; wazeUrl: string } | null>(null);
     const [pendingDrop, setPendingDrop] = useState<{appointment: Appointment, newDate: Date} | null>(null);
     const [isTimeChangeDialogOpen, setIsTimeChangeDialogOpen] = useState(false);
+    const [isCalendarSettingsOpen, setIsCalendarSettingsOpen] = useState(false);
+    const { settings: calendarSettings, updateSettings: updateCalendarSettings } = useCalendarSettings();
 
     const handleSync = async () => {
         if (!user) return;
@@ -361,6 +365,13 @@ const Calendar: React.FC = () => {
                         <div className="flex items-center gap-2">
                             <Button variant="outline" onClick={handleSync}>
                                 Refresh
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                size="icon"
+                                onClick={() => setIsCalendarSettingsOpen(true)}
+                            >
+                                <Settings className="w-4 h-4" />
                             </Button>
                             {optimizeEnabled && (
                                 <Button variant="outline" onClick={handleOptimizeRoute}>
@@ -731,12 +742,14 @@ const Calendar: React.FC = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <DraggableCalendarGrid
-                                    appointments={appointments}
-                                    selectedDate={selectedDate}
-                                    onDateSelect={setSelectedDate}
-                                    onAppointmentDrop={handleAppointmentDrop}
-                                />
+                <DraggableCalendarGrid
+                    appointments={appointments}
+                    selectedDate={selectedDate}
+                    onDateSelect={setSelectedDate}
+                    onAppointmentDrop={handleAppointmentDrop}
+                    calendarSettings={calendarSettings}
+                    contacts={contacts}
+                />
                             </CardContent>
                         </Card>
 
@@ -875,13 +888,20 @@ const Calendar: React.FC = () => {
                     </Card>
 
                     {/* Time Change Confirmation Dialog */}
-                    <TimeChangeConfirmDialog
-                        open={isTimeChangeDialogOpen}
-                        onOpenChange={setIsTimeChangeDialogOpen}
-                        appointment={pendingDrop?.appointment || null}
-                        newDate={pendingDrop?.newDate || null}
-                        onConfirm={handleTimeChangeConfirm}
-                    />
+            <TimeChangeConfirmDialog
+                open={isTimeChangeDialogOpen}
+                onOpenChange={setIsTimeChangeDialogOpen}
+                appointment={pendingDrop?.appointment || null}
+                newDate={pendingDrop?.newDate || null}
+                onConfirm={handleTimeChangeConfirm}
+            />
+
+            <CalendarSettingsDialog
+                open={isCalendarSettingsOpen}
+                onOpenChange={setIsCalendarSettingsOpen}
+                settings={calendarSettings}
+                onSettingsChange={updateCalendarSettings}
+            />
 
                     {/* Appointment Preview Dialog */}
                     <AppointmentPreviewDialog

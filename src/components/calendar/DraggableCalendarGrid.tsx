@@ -4,7 +4,8 @@ import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautif
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar, CalendarDays, Clock } from "lucide-react";
-import type { Appointment } from "@/lib/crmSchemas";
+import type { Appointment, Contact } from "@/lib/crmSchemas";
+import type { CalendarSettings } from "./CalendarSettingsDialog";
 
 type ViewMode = "day" | "week" | "month";
 
@@ -13,6 +14,8 @@ interface DraggableCalendarGridProps {
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
   onAppointmentDrop: (appointmentId: string, newDate: Date) => void;
+  calendarSettings: CalendarSettings;
+  contacts: Contact[];
 }
 
 export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
@@ -20,6 +23,8 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
   selectedDate,
   onDateSelect,
   onAppointmentDrop,
+  calendarSettings,
+  contacts,
 }) => {
   const [currentMonth, setCurrentMonth] = React.useState(selectedDate);
   const [viewMode, setViewMode] = React.useState<ViewMode>("month");
@@ -40,6 +45,34 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
       const appointmentDate = new Date(appointment.appointment_date);
       return isSameDay(appointmentDate, date) && appointmentDate.getHours() === hour;
     });
+  };
+
+  const getAppointmentBadgeContent = (appointment: Appointment) => {
+    const parts = [];
+    const contact = contacts.find(c => c.id === appointment.contact_id);
+    
+    if (calendarSettings.badgeContent.showTitle) {
+      parts.push(appointment.title);
+    }
+    
+    if (calendarSettings.badgeContent.showLocation && appointment.location) {
+      parts.push(appointment.location);
+    }
+    
+    if (calendarSettings.badgeContent.showTime) {
+      parts.push(format(new Date(appointment.appointment_date), "h:mm a"));
+    }
+    
+    if (calendarSettings.badgeContent.showContact && contact) {
+      parts.push(`${contact.first_name} ${contact.last_name}`);
+    }
+    
+    return parts.join(" • ");
+  };
+
+  const getAppointmentBadgeClass = (appointment: Appointment) => {
+    return calendarSettings.statusColors[appointment.status as keyof typeof calendarSettings.statusColors] || 
+           calendarSettings.statusColors.scheduled;
   };
 
   const handleDragEnd = (result: DropResult) => {
@@ -96,13 +129,15 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                                 className={cn(
-                                  "bg-primary/20 text-primary p-2 rounded mb-1 cursor-pointer hover:bg-primary/30 transition-colors",
-                                  snapshot.isDragging && "rotate-3 shadow-lg bg-primary/40"
+                                  "p-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-all text-xs border",
+                                  getAppointmentBadgeClass(appointment),
+                                  snapshot.isDragging && "rotate-3 shadow-lg scale-105"
                                 )}
                                 onClick={() => onDateSelect(new Date(appointment.appointment_date))}
                               >
-                                <div className="font-medium">{appointment.title}</div>
-                                <div className="text-xs">{format(new Date(appointment.appointment_date), "h:mm a")}</div>
+                                <div className="font-medium truncate">
+                                  {getAppointmentBadgeContent(appointment)}
+                                </div>
                               </div>
                             )}
                           </Draggable>
@@ -182,13 +217,14 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
                                   className={cn(
-                                    "bg-primary/20 text-primary p-1 rounded text-xs cursor-pointer hover:bg-primary/30 truncate transition-colors",
-                                    snapshot.isDragging && "rotate-3 shadow-lg bg-primary/40"
+                                    "p-1 rounded text-xs cursor-pointer hover:opacity-80 truncate transition-all border",
+                                    getAppointmentBadgeClass(appointment),
+                                    snapshot.isDragging && "rotate-3 shadow-lg scale-105"
                                   )}
                                   onClick={() => onDateSelect(new Date(appointment.appointment_date))}
-                                  title={appointment.title}
+                                  title={getAppointmentBadgeContent(appointment)}
                                 >
-                                  {appointment.title}
+                                  {getAppointmentBadgeContent(appointment)}
                                 </div>
                               )}
                             </Draggable>
@@ -258,12 +294,13 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                             className={cn(
-                              "text-xs bg-primary/20 text-primary px-1 py-0.5 rounded truncate transition-transform cursor-grab active:cursor-grabbing",
-                              snapshot.isDragging && "rotate-3 shadow-lg bg-primary/40 scale-105"
+                              "text-xs px-1 py-0.5 rounded truncate transition-transform cursor-grab active:cursor-grabbing border",
+                              getAppointmentBadgeClass(appointment),
+                              snapshot.isDragging && "rotate-3 shadow-lg scale-105"
                             )}
-                            title={appointment.title}
+                            title={getAppointmentBadgeContent(appointment)}
                           >
-                            {appointment.title}
+                            {getAppointmentBadgeContent(appointment)}
                           </div>
                         )}
                       </Draggable>
