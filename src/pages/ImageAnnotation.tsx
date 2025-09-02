@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Canvas as FabricCanvas, FabricImage, Line, FabricText, Rect, Circle as FabricCircle, Group } from "fabric";
+import { Canvas as FabricCanvas, FabricImage, Line, IText, Rect, Circle as FabricCircle, Group, PencilBrush } from "fabric";
 import { Button } from "@/components/ui/button";
 import { 
   MousePointer, 
@@ -150,11 +150,10 @@ export default function ImageAnnotation() {
       selection: true,
     });
 
-    // Set up drawing brush - check if it exists first
-    if (canvas.freeDrawingBrush) {
-      canvas.freeDrawingBrush.color = activeColor;
-      canvas.freeDrawingBrush.width = 3;
-    }
+    // Set up drawing brush properly for Fabric.js v6
+    canvas.freeDrawingBrush = new PencilBrush(canvas);
+    canvas.freeDrawingBrush.color = activeColor;
+    canvas.freeDrawingBrush.width = 3;
 
     const loadImage = async () => {
       try {
@@ -262,7 +261,7 @@ export default function ImageAnnotation() {
 
     fabricCanvas.isDrawingMode = activeTool === "draw";
     
-    if (activeTool === "draw" && fabricCanvas.freeDrawingBrush) {
+    if (fabricCanvas.freeDrawingBrush) {
       fabricCanvas.freeDrawingBrush.color = activeColor;
       fabricCanvas.freeDrawingBrush.width = 3;
     }
@@ -270,11 +269,10 @@ export default function ImageAnnotation() {
     // Enable text editing on double click
     fabricCanvas.on('mouse:dblclick', (e) => {
       const target = e.target;
-      if (target && (target.type === 'textbox' || target.type === 'i-text')) {
-        // For Fabric.js v6, text editing is handled differently
-        const textObject = target as FabricText;
-        fabricCanvas.setActiveObject(textObject);
-        // Text becomes editable when double-clicked in Fabric.js v6
+      if (target && target.type === 'i-text') {
+        const textObject = target as IText;
+        textObject.enterEditing();
+        textObject.selectAll();
       }
     });
 
@@ -289,8 +287,8 @@ export default function ImageAnnotation() {
 
     const selectedObjects = fabricCanvas.getActiveObjects();
     if (selectedObjects.length > 0) {
-      selectedObjects.forEach(obj => {
-        if (obj.type === 'textbox' || obj.type === 'i-text') {
+    selectedObjects.forEach(obj => {
+        if (obj.type === 'i-text') {
           obj.set('fill', activeColor);
         } else if (obj.type === 'rect' || obj.type === 'circle' || obj.type === 'line' || obj.type === 'group') {
           obj.set('stroke', activeColor);
@@ -369,28 +367,27 @@ export default function ImageAnnotation() {
     } else if (tool === "text") {
       const handler = (e: any) => {
         const pointer = fabricCanvas.getPointer(e.e);
-        const text = new FabricText("Click to edit", {
+        const text = new IText("Double click to edit", {
           left: pointer.x,
           top: pointer.y,
           fill: activeColor,
           fontSize: 16,
           fontFamily: "Arial",
-          editable: true,
         });
         fabricCanvas.add(text);
         fabricCanvas.setActiveObject(text);
         
         // Enter editing mode immediately
         setTimeout(() => {
-          fabricCanvas.setActiveObject(text);
-          // In Fabric.js v6, text editing happens automatically when the text is active
-        }, 10);
+          text.enterEditing();
+          text.selectAll();
+        }, 100);
         
         fabricCanvas.renderAll();
         fabricCanvas.off("mouse:down", handler);
         setActiveTool("select");
         saveToHistory();
-        toast.success("Text added - double click to edit");
+        toast.success("Text added - currently editing");
       };
       fabricCanvas.on("mouse:down", handler);
     } else if (tool === "rectangle") {
