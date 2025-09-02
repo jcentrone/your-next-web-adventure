@@ -64,16 +64,97 @@ Deno.serve(async (req) => {
       }
     }
 
-    const payload = { reports, contacts, activities, media };
+    // Fetch user profile data
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    // Fetch organization data if user is part of an organization
+    const { data: organizationMember } = await supabase
+      .from("organization_members")
+      .select("*, organization_id")
+      .eq("user_id", userId)
+      .single();
+
+    let organizationData = null;
+    if (organizationMember) {
+      const { data: organization } = await supabase
+        .from("organizations")
+        .select("*")
+        .eq("id", organizationMember.organization_id)
+        .single();
+      
+      organizationData = {
+        membership: organizationMember,
+        organization: organization
+      };
+    }
+
+    // Fetch custom fields and sections
+    const { data: customFields = [] } = await supabase
+      .from("user_custom_fields")
+      .select("*")
+      .eq("user_id", userId);
+
+    const { data: customSections = [] } = await supabase
+      .from("user_custom_sections")
+      .select("*")
+      .eq("user_id", userId);
+
+    const { data: userDefects = [] } = await supabase
+      .from("user_defects")
+      .select("*")
+      .eq("user_id", userId);
+
+    const payload = { 
+      profile,
+      reports, 
+      contacts, 
+      activities, 
+      customFields,
+      customSections,
+      userDefects,
+      organizationData,
+      media,
+      exportedAt: new Date().toISOString()
+    };
+
     const zip = new JSZip();
-    zip.file("data.json", JSON.stringify(payload, null, 2));
+    zip.file("user-data.json", JSON.stringify(payload, null, 2));
+    
+    // Add a README file explaining the export
+    const readme = `# Data Export
+
+This export contains all your personal data from the Home Inspection Platform.
+
+## Files included:
+- user-data.json: All your reports, contacts, activities, custom fields, and profile information
+
+## Data structure:
+- profile: Your user profile information
+- reports: All inspection reports you've created
+- contacts: All contacts you've added
+- activities: Activity log entries
+- customFields: Custom fields you've created
+- customSections: Custom sections you've created  
+- userDefects: Personal defect templates you've created
+- organizationData: Organization information if you're part of one
+- media: References to media files in your reports
+- exportedAt: Timestamp of when this export was created
+
+Generated on: ${new Date().toLocaleString()}
+`;
+    
+    zip.file("README.txt", readme);
     const zipped = await zip.generateAsync({ type: "uint8array" });
 
     return new Response(zipped, {
       headers: {
         ...corsHeaders,
         "Content-Type": "application/zip",
-        "Content-Disposition": "attachment; filename=report-data.zip",
+        "Content-Disposition": "attachment; filename=user-data-export.zip",
       },
     });
   } catch (err) {
