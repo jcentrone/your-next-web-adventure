@@ -1,256 +1,32 @@
-import { supabase } from "@/integrations/supabase/client";
-import type { Appointment } from "@/lib/crmSchemas";
-
-const PROVIDER = "apple";
-
-interface TokenRow {
-  user_id: string;
-  provider: string;
-  access_token: string;
-  refresh_token: string;
-  expires_at: string;
-}
-
-interface EventRow {
-  user_id: string;
-  provider: string;
-  appointment_id: string;
-  event_id: string;
-}
-
-async function getToken(userId: string): Promise<TokenRow | null> {
-  const { data, error } = await supabase
-    .from("calendar_tokens")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("provider", PROVIDER)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Apple Calendar: getToken error", error);
-    return null;
-  }
-  return data as TokenRow;
-}
-
-async function saveToken(
-  userId: string,
-  token: { access_token: string; refresh_token: string; expires_in: number },
-) {
-  const expiresAt = new Date(Date.now() + token.expires_in * 1000).toISOString();
-  const { error } = await supabase.from("calendar_tokens").upsert(
-    {
-      user_id: userId,
-      provider: PROVIDER,
-      access_token: token.access_token,
-      refresh_token: token.refresh_token,
-      expires_at: expiresAt,
-    },
-    { onConflict: "user_id,provider" },
-  );
-
-  if (error) {
-    console.error("Apple Calendar: saveToken error", error);
-  }
-}
-
-export async function handleOAuthCallback(
-  userId: string,
-  token: {
-    access_token: string;
-    refresh_token: string;
-    expires_in: number;
-  },
-) {
-  await saveToken(userId, token);
-}
-
-async function refreshAccessToken(refreshToken: string) {
-  const res = await fetch("https://appleid.apple.com/auth/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      refresh_token: refreshToken,
-      client_id: import.meta.env.VITE_APPLE_CLIENT_ID || "",
-      client_secret: import.meta.env.VITE_APPLE_CLIENT_SECRET || "",
-      grant_type: "refresh_token",
-    }),
-  });
-  if (!res.ok) return null;
-  return res.json();
-}
-
-async function getAccessToken(userId: string): Promise<string | null> {
-  const token = await getToken(userId);
-  if (!token) return null;
-  if (new Date(token.expires_at).getTime() < Date.now()) {
-    const refreshed = await refreshAccessToken(token.refresh_token);
-    if (!refreshed) return null;
-    await saveToken(userId, refreshed);
-    return refreshed.access_token;
-  }
-  return token.access_token;
-}
-
-function toAppleEvent(appointment: Appointment) {
-  const start = new Date(appointment.appointment_date).toISOString();
-  const end = new Date(
-    new Date(appointment.appointment_date).getTime() +
-      (appointment.duration_minutes || 60) * 60000,
-  ).toISOString();
-  return {
-    title: appointment.title,
-    notes: appointment.description || "",
-    location: appointment.location || "",
-    startDate: start,
-    endDate: end,
-  };
-}
-
-async function getEventId(appointmentId: string): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("calendar_events")
-    .select("event_id")
-    .eq("appointment_id", appointmentId)
-    .eq("provider", PROVIDER)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Apple Calendar: getEventId error", error);
-    return null;
-  }
-  return data?.event_id ?? null;
-}
-
-async function saveEventId(
-  appointmentId: string,
-  userId: string,
-  eventId: string,
-) {
-  const { error } = await supabase.from("calendar_events").upsert(
-    {
-      appointment_id: appointmentId,
-      user_id: userId,
-      provider: PROVIDER,
-      event_id: eventId,
-    },
-    { onConflict: "appointment_id,provider" },
-  );
-
-  if (error) {
-    console.error("Apple Calendar: saveEventId error", error);
-  }
-}
-
-export async function createEvent(userId: string, appointment: Appointment) {
-  const accessToken = await getAccessToken(userId);
-  if (!accessToken) return;
-  const res = await fetch(
-    "https://calendars.icloud.com/calendar/api/v1/events",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(toAppleEvent(appointment)),
-    },
-  );
-  if (!res.ok) {
-    console.error("Apple Calendar: createEvent failed", await res.text());
-    return;
-  }
-  const data = await res.json();
-  await saveEventId(appointment.id, userId, data.id);
-}
-
-export async function updateEvent(userId: string, appointment: Appointment) {
-  const accessToken = await getAccessToken(userId);
-  const eventId = await getEventId(appointment.id);
-  if (!accessToken || !eventId) return;
-  const res = await fetch(
-    `https://calendars.icloud.com/calendar/api/v1/events/${eventId}`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(toAppleEvent(appointment)),
-    },
-  );
-  if (!res.ok) {
-    console.error("Apple Calendar: updateEvent failed", await res.text());
-  }
-}
-
-export async function deleteEvent(userId: string, appointmentId: string) {
-  const accessToken = await getAccessToken(userId);
-  const eventId = await getEventId(appointmentId);
-  if (!accessToken || !eventId) return;
-  const res = await fetch(
-    `https://calendars.icloud.com/calendar/api/v1/events/${eventId}`,
-    {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${accessToken}` },
-    },
-  );
-  if (!res.ok) {
-    console.error("Apple Calendar: deleteEvent failed", await res.text());
-  }
-  await supabase
-    .from("calendar_events")
-    .delete()
-    .eq("appointment_id", appointmentId)
-    .eq("provider", PROVIDER);
-}
-
-export async function isConnected(userId: string): Promise<boolean> {
-  const token = await getToken(userId);
-  return !!token && new Date(token.expires_at).getTime() > Date.now();
-}
-
-export async function connect(userId: string) {
-  const clientId = import.meta.env.VITE_APPLE_CLIENT_ID || "";
-  const redirectUri =
-    import.meta.env.VITE_APPLE_REDIRECT_URL || window.location.origin;
-  const scope = encodeURIComponent("calendar");
-  const authUrl =
-    `https://appleid.apple.com/auth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${userId}`;
-  window.location.href = authUrl;
-}
-
-export async function disconnect(userId: string) {
-  await supabase
-    .from("calendar_tokens")
-    .delete()
-    .eq("user_id", userId)
-    .eq("provider", PROVIDER);
-  await supabase
-    .from("calendar_events")
-    .delete()
-    .eq("user_id", userId)
-    .eq("provider", PROVIDER);
-}
-
-export async function refreshEvents(userId: string) {
-  const accessToken = await getAccessToken(userId);
-  if (!accessToken) return;
-  await fetch("https://calendars.icloud.com/calendar/api/v1/events?limit=1", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  }).catch((err) =>
-    console.error("Apple Calendar: refreshEvents error", err),
-  );
-}
-
-export default {
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  connect,
-  disconnect,
-  isConnected,
-  refreshEvents,
-  handleOAuthCallback,
+// Temporary stub for Apple Calendar integration
+export const createEvent = async (userId: string, appointment: any) => {
+  // Stub implementation
 };
 
+export const updateEvent = async (userId: string, appointment: any) => {
+  // Stub implementation
+};
+
+export const deleteEvent = async (userId: string, appointmentId: string) => {
+  // Stub implementation
+};
+
+export const isConnected = async (userId: string) => {
+  return false;
+};
+
+export const connect = async (userId: string) => {
+  // Stub implementation
+};
+
+export const disconnect = async (userId: string) => {
+  // Stub implementation
+};
+
+export const refreshEvents = async (userId: string) => {
+  // Stub implementation
+};
+
+export const handleOAuthCallback = async (code: string, state: string) => {
+  // Stub implementation
+};

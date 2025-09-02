@@ -28,7 +28,8 @@ import {
     AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import Seo from "@/components/Seo";
-import {CalendarGrid} from "@/components/calendar/CalendarGrid";
+import {DraggableCalendarGrid} from "@/components/calendar/DraggableCalendarGrid";
+import {TimeChangeConfirmDialog} from "@/components/calendar/TimeChangeConfirmDialog";
 import AppointmentPreviewDialog from "@/components/calendar/AppointmentPreviewDialog";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as outlookCalendar from "@/integrations/outlookCalendar";
@@ -49,6 +50,8 @@ const Calendar: React.FC = () => {
     const [optimizeEnabled] = useState(() => localStorage.getItem("optimizeRoute") === "true");
     const [isRouteDialogOpen, setIsRouteDialogOpen] = useState(false);
     const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; wazeUrl: string } | null>(null);
+    const [pendingDrop, setPendingDrop] = useState<{appointment: Appointment, newDate: Date} | null>(null);
+    const [isTimeChangeDialogOpen, setIsTimeChangeDialogOpen] = useState(false);
 
     const handleSync = async () => {
         if (!user) return;
@@ -273,6 +276,56 @@ const Calendar: React.FC = () => {
             setIsRouteDialogOpen(true);
         } catch (e) {
             toast.error("Failed to optimize route");
+        }
+    };
+
+    const handleAppointmentDrop = (appointmentId: string, newDate: Date) => {
+        const appointment = appointments.find(app => app.id === appointmentId);
+        if (!appointment) return;
+        
+        setPendingDrop({ appointment, newDate });
+        setIsTimeChangeDialogOpen(true);
+    };
+
+    const handleTimeChangeConfirm = (changeTime: boolean) => {
+        if (!pendingDrop) return;
+        
+        const { appointment, newDate } = pendingDrop;
+        const originalDate = new Date(appointment.appointment_date);
+        
+        let finalDate = newDate;
+        if (!changeTime) {
+            // Keep original time, just change the date
+            finalDate = new Date(newDate);
+            finalDate.setHours(originalDate.getHours(), originalDate.getMinutes(), 0, 0);
+        }
+        
+        const appointmentData = {
+            ...appointment,
+            appointment_date: finalDate.toISOString(),
+        };
+        
+        updateMutation.mutate({ 
+            id: appointment.id, 
+            data: appointmentData 
+        });
+        
+        setPendingDrop(null);
+        setIsTimeChangeDialogOpen(false);
+        
+        if (changeTime) {
+            // Open edit dialog with new date pre-filled
+            setEditingAppointment(appointment);
+            form.reset({
+                title: appointment.title,
+                description: appointment.description || "",
+                appointment_date: format(finalDate, "yyyy-MM-dd'T'HH:mm"),
+                duration_minutes: appointment.duration_minutes || 120,
+                location: appointment.location || "",
+                contact_id: appointment.contact_id || "",
+                status: appointment.status,
+            });
+            setIsDialogOpen(true);
         }
     };
 
@@ -673,10 +726,11 @@ const Calendar: React.FC = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <CalendarGrid
+                                <DraggableCalendarGrid
                                     appointments={appointments}
                                     selectedDate={selectedDate}
                                     onDateSelect={setSelectedDate}
+                                    onAppointmentDrop={handleAppointmentDrop}
                                 />
                             </CardContent>
                         </Card>
@@ -814,6 +868,15 @@ const Calendar: React.FC = () => {
                             )}
                         </CardContent>
                     </Card>
+
+                    {/* Time Change Confirmation Dialog */}
+                    <TimeChangeConfirmDialog
+                        open={isTimeChangeDialogOpen}
+                        onOpenChange={setIsTimeChangeDialogOpen}
+                        appointment={pendingDrop?.appointment || null}
+                        newDate={pendingDrop?.newDate || null}
+                        onConfirm={handleTimeChangeConfirm}
+                    />
 
                     {/* Appointment Preview Dialog */}
                     <AppointmentPreviewDialog
