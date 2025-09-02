@@ -151,11 +151,11 @@ const Index = () => {
             <p className="text-muted-foreground mb-4">
               Install as native app on any device. Blazing fast performance with offline-first architecture and automatic updates.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• One-click installation</li>
-              <li>• Native app experience</li>
-              <li>• Automatic updates</li>
-              <li>• Cross-platform compatibility</li>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
+              <li>One-click installation</li>
+              <li>Native app experience</li>
+              <li>Automatic updates</li>
+              <li>Cross-platform compatibility</li>
             </ul>
           </Card>
 
@@ -169,11 +169,11 @@ const Index = () => {
             <p className="text-muted-foreground mb-4">
               Florida Form 1802 compliant wind mitigation inspections. Help clients save thousands on insurance premiums.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• OIR-B1-1802 form compliance</li>
-              <li>• All 7 inspection questions</li>
-              <li>• Professional photo requirements</li>
-              <li>• Insurance discount calculations</li>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
+              <li>OIR-B1-1802 form compliance</li>
+              <li>All 7 inspection questions</li>
+              <li>Professional photo requirements</li>
+              <li>Insurance discount calculations</li>
             </ul>
           </Card>
 
@@ -188,11 +188,11 @@ const Index = () => {
               Professional canvas tools for image markup. Draw, highlight, and annotate photos directly in your reports.
             </p>
 
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Drawing and markup tools</li>
-              <li>• Shape and text annotations</li>
-              <li>• Color customization</li>
-              <li>• Undo/redo capabilities</li>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
+              <li>Drawing and markup tools</li>
+              <li>Shape and text annotations</li>
+              <li>Color customization</li>
+              <li>Undo/redo capabilities</li>
             </ul>
           </Card>
 
@@ -212,11 +212,11 @@ const Index = () => {
             <p className="text-muted-foreground mb-4">
               Manage complex relationships between clients, realtors, vendors, and contractors with advanced tracking.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Relationship mapping</li>
-              <li>• Communication history</li>
-              <li>• Vendor management</li>
-              <li>• Referral tracking</li>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
+              <li>Relationship mapping</li>
+              <li>Communication history</li>
+              <li>Vendor management</li>
+              <li>Referral tracking</li>
             </ul>
           </Card>
 
@@ -230,11 +230,11 @@ const Index = () => {
             <p className="text-muted-foreground mb-4">
               Connect with Calendly, Acuity Scheduling, and more. Drag-drop calendar with external sync capabilities.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Multiple booking platforms</li>
-              <li>• Drag-drop scheduling</li>
-              <li>• External calendar sync</li>
-              <li>• Automated notifications</li>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
+              <li>Multiple booking platforms</li>
+              <li>Drag-drop scheduling</li>
+              <li>External calendar sync</li>
+              <li>Automated notifications</li>
             </ul>
           </Card>
 
@@ -248,11 +248,11 @@ const Index = () => {
             <p className="text-muted-foreground mb-4">
               Complete functionality without internet. Automatic background sync ensures no data loss ever.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Full offline capability</li>
-              <li>• Intelligent background sync</li>
-              <li>• Conflict resolution</li>
-              <li>• Zero data loss guarantee</li>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
+              <li>Full offline capability</li>
+              <li>Intelligent background sync</li>
+              <li>Conflict resolution</li>
+              <li>Zero data loss guarantee</li>
             </ul>
           </Card>
         </div>
