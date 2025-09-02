@@ -117,8 +117,8 @@ const ReportsList: React.FC = () => {
         ) : filteredItems.length === 0 ? (
           <div className="rounded-lg border p-8 text-center">
             <p className="mb-4 text-muted-foreground">
-              {showArchived ? "No archived reports." : 
-               reportTypeFilter !== "all" ? `No ${reportTypeFilter === "wind_mitigation" ? "wind mitigation" : "home inspection"} reports found.` : 
+              {showArchived ? "No archived reports." :
+               reportTypeFilter !== "all" ? `No ${reportTypeFilter === "wind_mitigation" ? "uniform mitigation" : "home inspection"} reports found.` :
                "No reports yet."}
             </p>
             {!showArchived && (

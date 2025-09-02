@@ -57,7 +57,7 @@ const App = () => (
               <Route path="/reports/new/wind-mitigation" element={lazyLoad(() => import("./pages/WindMitigationNew"))} />
               <Route path="/reports/:id" element={lazyLoad(() => import("./pages/ReportEditor"))} />
               <Route path="/reports/:id/preview" element={lazyLoad(() => import("./pages/ReportPreview"))} />
-              <Route path="/reports/:reportId/annotate/:findingId/:mediaId" element={lazyLoad(() => import("./pages/ImageAnnotation"))} />
+              <Route path="/reports/:reportId/findings/:findingId/media/:mediaId/annotate" element={lazyLoad(() => import("./pages/ImageAnnotation"))} />
               <Route path="/contacts" element={lazyLoad(() => import("./pages/Contacts"))} />
               <Route path="/contacts/new" element={lazyLoad(() => import("./pages/ContactNew"))} />
               <Route path="/contacts/:id" element={lazyLoad(() => import("./pages/ContactDetail"))} />

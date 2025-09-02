@@ -658,7 +658,7 @@ const ReportEditor: React.FC = () => {
   if (report && report.reportType === "wind_mitigation") {
     return (
       <>
-        <Seo title={`${report.title} | Wind Mitigation Editor`} />
+        <Seo title={`${report.title} | Uniform Mitigation Editor`} />
         <div className="max-w-4xl mx-auto px-4 py-6">
           <React.Suspense fallback={<div>Loading...</div>}>
             <WindMitigationEditor 
@@ -950,16 +950,26 @@ const ReportEditor: React.FC = () => {
                                             type="button"
                                             className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
                                             onClick={() => {
-                                              const currentFinding = activeSection?.findings.find(f =>
-                                                f.media.some(media => media.id === m.id)
-                                              );
-
-                                              if (!currentFinding) {
-                                                toast({ title: "Error", description: "Could not find the finding for this media item", variant: "destructive" });
+                                              console.log("ReportEditor - Navigating to annotation:", {
+                                                reportId: report.id,
+                                                findingId: f.id,
+                                                mediaId: m.id,
+                                                mediaUrl: m.url,
+                                                reportType: report.reportType
+                                              });
+                                              
+                                              // Validate data before navigation
+                                              if (!report.id || !f.id || !m.id) {
+                                                toast({
+                                                  title: "Navigation Error",
+                                                  description: "Missing required IDs for annotation",
+                                                  variant: "destructive",
+                                                });
                                                 return;
                                               }
-
-                                              nav(`/reports/${id}/annotate/${currentFinding.id}/${m.id}`);
+                                              
+                                              // Navigate to annotation page using the correct route pattern
+                                              nav(`/reports/${report.id}/findings/${f.id}/media/${m.id}/annotate`);
                                             }}
                                           >
                                             <Edit3 className="w-4 h-4 text-orange-500" />

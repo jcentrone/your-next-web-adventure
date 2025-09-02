@@ -24,12 +24,17 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
         <article key={r.id} className="rounded-lg border p-4">
           <div className="flex items-start justify-between mb-2">
             <h2 className="font-medium">{r.title}</h2>
-            {r.archived && (
+            <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs">
-                <Archive className="h-3 w-3 mr-1" />
-                Archived
+                {r.reportType === "wind_mitigation" ? "Uniform Mitigation" : "Home Inspection"}
               </Badge>
-            )}
+              {r.archived && (
+                <Badge variant="outline" className="text-xs">
+                  <Archive className="h-3 w-3 mr-1" />
+                  Archived
+                </Badge>
+              )}
+            </div>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
             {/* inspectionDate is ISO; show local date */}
