@@ -107,11 +107,11 @@ const Integrations: React.FC = () => {
             type: "ai",
             category: "AI Tools",
             description: openAiConnected ? "API key saved" : "Not connected",
-            icon: <Brain className="h-5 w-5 text-muted-foreground" />,
+            icon: <img src="/icons/open-ai-logo.png" alt="OpenAI" className="h-5 w-5 rounded" />,
             component: (
                 <div className="flex items-center justify-between border p-4 rounded-md">
                     <div className="flex items-center gap-3">
-                        <Brain className="h-5 w-5 text-muted-foreground" />
+                        <img src="/icons/open-ai-logo.png" alt="OpenAI" className="h-5 w-5 rounded" />
                         <div>
                             <p className="font-medium">OpenAI Defect Detection</p>
                             <p className="text-sm text-muted-foreground">
@@ -220,7 +220,7 @@ const Integrations: React.FC = () => {
                         <div className="flex items-center gap-2">
                             {category === "Navigation & Maps" && <Navigation className="h-5 w-5 text-primary" />}
                             {category === "Calendar Sync" && <Calendar className="h-5 w-5 text-primary" />}
-                            {category === "AI Tools" && <Brain className="h-5 w-5 text-primary" />}
+                            {category === "AI Tools" && <img src="/icons/open-ai-logo.png" alt="OpenAI" className="h-5 w-5 text-primary" />}
                             <h3 className="text-base font-medium">{category}</h3>
                         </div>
                         <div className="grid gap-3">
