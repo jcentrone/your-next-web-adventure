@@ -224,12 +224,12 @@ const EmailTemplate: React.FC = () => {
                                         theme="snow"
                                         value={body}
                                         onChange={setBody}
-                                        className="h-64"
+                                        className="h-64 [&_.ql-container]:border-input [&_.ql-container]:rounded-md [&_.ql-toolbar]:border-input [&_.ql-toolbar]:rounded-t-md [&_.ql-container_.ql-editor]:min-h-[200px]"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex gap-3 pt-8">
                                 <Button type="submit" disabled={saveMutation.isPending} className="flex-1">
                                     {saveMutation.isPending ? "Saving..." : "Save Template"}
                                 </Button>
