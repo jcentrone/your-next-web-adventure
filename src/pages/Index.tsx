@@ -63,34 +63,33 @@ const Index = () => {
         <div className="text-center max-w-4xl mx-auto">
           <div className="flex items-center justify-center gap-2 mb-6">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
-              <Smartphone className="w-4 h-4" />
-              PWA Ready
+              <Star className="w-4 h-4" />
+              #1 Choice for Inspectors
             </div>
             <div className="inline-flex items-center gap-2 bg-green-500/10 text-green-600 px-3 py-1 rounded-full text-sm font-medium">
-              <WifiOff className="w-4 h-4" />
-              Works Offline
-            </div>
-            <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
               <CheckCircle className="w-4 h-4" />
               InterNACHI SOP Compliant
+            </div>
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-sm font-medium">
+              <Wind className="w-4 h-4" />
+              Wind Mitigation Specialist
             </div>
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-            Professional PWA for{" "}
+            The Complete Platform for{" "}
             <span className="text-primary">Home Inspectors</span>
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-            Specialized platform for wind mitigation and home inspections. Install as native app, work offline anywhere, 
-            create professional reports with advanced image annotation - all InterNACHI SOP compliant.
+            From CRM and scheduling to professional reports and task management - everything you need to run a successful 
+            inspection business. Specialized for both home inspections and wind mitigation with advanced offline capabilities.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             {user ? (
               <Button size="lg" className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground" asChild>
                 <Link to="/dashboard">
-                  <Download className="mr-2 w-4 h-4" />
                   Go to Dashboard
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>
@@ -99,14 +98,13 @@ const Index = () => {
               <>
                 <Button size="lg" className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground" asChild>
                   <Link to="/auth">
-                    <Download className="mr-2 w-4 h-4" />
-                    Install App & Start Trial
+                    Start Free Trial
                     <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-primary/20 hover:bg-primary/5">
                   <Globe className="mr-2 w-4 h-4" />
-                  View PWA Demo
+                  Watch Demo
                 </Button>
               </>
             )}
@@ -118,16 +116,16 @@ const Index = () => {
               <div className="text-sm text-muted-foreground">Defect Templates</div>
             </div>
             <div className="p-3">
-              <div className="text-2xl font-bold text-primary">100%</div>
-              <div className="text-sm text-muted-foreground">Offline Ready</div>
+              <div className="text-2xl font-bold text-primary">All-in-One</div>
+              <div className="text-sm text-muted-foreground">Business Platform</div>
             </div>
             <div className="p-3">
-              <div className="text-2xl font-bold text-primary">2 Min</div>
-              <div className="text-sm text-muted-foreground">Install Time</div>
+              <div className="text-2xl font-bold text-primary">Offline</div>
+              <div className="text-sm text-muted-foreground">Capable</div>
             </div>
             <div className="p-3">
-              <div className="text-2xl font-bold text-primary">24/7</div>
-              <div className="text-sm text-muted-foreground">Available</div>
+              <div className="text-2xl font-bold text-primary">Professional</div>
+              <div className="text-sm text-muted-foreground">Reports</div>
             </div>
           </div>
         </div>
