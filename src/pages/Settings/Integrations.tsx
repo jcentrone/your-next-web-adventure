@@ -6,13 +6,15 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, Navigation, Search } from "lucide-react";
+import { Calendar, Navigation, Search, Brain } from "lucide-react";
 import * as googleCalendar from "@/integrations/googleCalendar";
+import * as openAI from "@/integrations/openAI";
 
 const Integrations: React.FC = () => {
     const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState<string>("all");
+    const [openAiKey, setOpenAiKey] = useState("");
 
     const [optimizeRoute, setOptimizeRoute] = useState(
         () => localStorage.getItem("optimizeRoute") === "true"
@@ -21,6 +23,12 @@ const Integrations: React.FC = () => {
     const { data: googleConnected, refetch: refetchGoogle } = useQuery({
         queryKey: ["google-calendar-connected", user?.id],
         queryFn: () => googleCalendar.isConnected(user!.id),
+        enabled: !!user,
+    });
+
+    const { data: openAiConnected, refetch: refetchOpenAi } = useQuery({
+        queryKey: ["openai-connected", user?.id],
+        queryFn: () => openAI.isConnected(user!.id),
         enabled: !!user,
     });
 
@@ -92,8 +100,68 @@ const Integrations: React.FC = () => {
                     )}
                 </div>
             )
+        },
+        {
+            id: "openai-defects",
+            name: "OpenAI Defect Detection",
+            type: "ai",
+            category: "AI Tools",
+            description: openAiConnected ? "API key saved" : "Not connected",
+            icon: <Brain className="h-5 w-5 text-muted-foreground" />,
+            component: (
+                <div className="flex items-center justify-between border p-4 rounded-md">
+                    <div className="flex items-center gap-3">
+                        <Brain className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                            <p className="font-medium">OpenAI Defect Detection</p>
+                            <p className="text-sm text-muted-foreground">
+                                {openAiConnected ? "API key saved" : "Add your OpenAI API key to enable AI analysis."}
+                            </p>
+                        </div>
+                    </div>
+                    {openAiConnected ? (
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                await openAI.disconnect(user!.id);
+                                refetchOpenAi();
+                            }}
+                        >
+                            Disconnect
+                        </Button>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <Input
+                                type="password"
+                                placeholder="OpenAI API key"
+                                value={openAiKey}
+                                onChange={(e) => setOpenAiKey(e.target.value)}
+                                className="w-48"
+                            />
+                            <Button
+                                onClick={async () => {
+                                    await openAI.connect(user!.id, openAiKey);
+                                    setOpenAiKey("");
+                                    refetchOpenAi();
+                                }}
+                                disabled={!openAiKey}
+                            >
+                                Save
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )
         }
-    ], [optimizeRoute, googleConnected, refetchGoogle, user]);
+    ], [
+        optimizeRoute,
+        googleConnected,
+        refetchGoogle,
+        openAiConnected,
+        refetchOpenAi,
+        user,
+        openAiKey,
+    ]);
 
     const filteredIntegrations = useMemo(() => {
         return integrations.filter(integration => {
@@ -141,6 +209,7 @@ const Integrations: React.FC = () => {
                         <SelectItem value="all">All Types</SelectItem>
                         <SelectItem value="navigation">Navigation & Maps</SelectItem>
                         <SelectItem value="calendar">Calendar Sync</SelectItem>
+                        <SelectItem value="ai">AI Tools</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -151,6 +220,7 @@ const Integrations: React.FC = () => {
                         <div className="flex items-center gap-2">
                             {category === "Navigation & Maps" && <Navigation className="h-5 w-5 text-primary" />}
                             {category === "Calendar Sync" && <Calendar className="h-5 w-5 text-primary" />}
+                            {category === "AI Tools" && <Brain className="h-5 w-5 text-primary" />}
                             <h3 className="text-base font-medium">{category}</h3>
                         </div>
                         <div className="grid gap-3">

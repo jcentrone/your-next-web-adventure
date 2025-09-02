@@ -375,7 +375,14 @@ const ReportEditor: React.FC = () => {
     setAiDialogOpen(false);
   } catch (e) {
     console.error("AI analysis failed", e);
-    toast({ title: "AI analysis failed", description: "Please try again.", variant: "destructive" });
+    const message = (e as any)?.message || "";
+    toast({
+      title: "AI analysis failed",
+      description: message.includes("API key")
+        ? "Add your OpenAI API key in Settings > Integrations."
+        : "Please try again.",
+      variant: "destructive",
+    });
   } finally {
     setAiLoading(false);
   }

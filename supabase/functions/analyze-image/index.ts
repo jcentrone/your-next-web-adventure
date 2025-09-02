@@ -1,8 +1,9 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,15 +16,41 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  if (!OPENAI_API_KEY) {
-    console.error("Missing OPENAI_API_KEY");
-    return new Response(JSON.stringify({ error: "Missing OPENAI_API_KEY" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
   try {
+    const authHeader = req.headers.get("Authorization");
+    const jwt = authHeader?.replace("Bearer ", "");
+    if (!jwt) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const client = createClient(supabaseUrl, serviceKey);
+    const {
+      data: { user },
+    } = await client.auth.getUser(jwt);
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: tokenRow, error: tokenError } = await client
+      .from("ai_tokens")
+      .select("api_key")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (tokenError || !tokenRow) {
+      console.error("Missing API key", tokenError);
+      return new Response(JSON.stringify({ error: "Missing API key" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const OPENAI_API_KEY = tokenRow.api_key as string;
+
     const body = await req.json();
     const imageUrl: string | undefined = body.imageUrl; // http(s) or data URL
     const imageData: string | undefined = body.imageData; // data URL (e.g., data:image/jpeg;base64,...)
@@ -88,12 +115,18 @@ serve(async (req) => {
     const content = data?.choices?.[0]?.message?.content?.trim() ?? "";
 
     // Try to parse strict JSON and normalize severity
-    let structured: any = null;
+    let structured: {
+      title: string;
+      observation: string;
+      implications: string;
+      severity: string;
+      recommendation: string;
+    } | null = null;
     try {
-      const parsed = JSON.parse(content);
+      const parsed = JSON.parse(content) as Record<string, unknown>;
       const allowed = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
       const sevRaw = String(parsed.severity || "").trim().toLowerCase();
-      const sevMap: Record<string, typeof allowed[number]> = {
+      const sevMap: Record<string, (typeof allowed)[number]> = {
         info: "Info",
         informational: "Info",
         maintenance: "Maintenance",
@@ -120,7 +153,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ structured, analysis: content || "No analysis returned." }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
     console.error("analyze-image function error:", err);
