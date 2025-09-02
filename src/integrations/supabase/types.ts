@@ -148,6 +148,27 @@ export type Database = {
           },
         ]
       }
+      ai_tokens: {
+        Row: {
+          user_id: string
+          api_key: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          user_id: string
+          api_key: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          user_id?: string
+          api_key?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       calendar_events: {
         Row: {
           appointment_id: string
