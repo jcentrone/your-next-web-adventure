@@ -40,6 +40,7 @@ const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindM
 const FlFourPointEditor = React.lazy(() => import("@/components/reports/FlFourPointEditor"));
 const TxWindstormEditor = React.lazy(() => import("@/components/reports/TxWindstormEditor"));
 const CaWildfireEditor = React.lazy(() => import("@/components/reports/CaWildfireEditor"));
+const RoofCertificationEditor = React.lazy(() => import("@/components/reports/RoofCertificationEditor"));
 
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 type Severity = typeof SEVERITIES[number];
@@ -707,6 +708,19 @@ const ReportEditor: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <React.Suspense fallback={<div>Loading...</div>}>
             <CaWildfireEditor report={report as any} onUpdate={setReport as any} />
+          </React.Suspense>
+        </div>
+      </>
+    );
+  }
+
+  if (report && report.reportType === "roof_certification_nationwide") {
+    return (
+      <>
+        <Seo title={`${report.title} | Roof Certification Editor`} />
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <RoofCertificationEditor report={report as any} onUpdate={setReport as any} />
           </React.Suspense>
         </div>
       </>
