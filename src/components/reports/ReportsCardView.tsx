@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Archive, ArchiveRestore } from "lucide-react";
-import {downloadWindMitigationReport} from "@/utils/fillWindMitigationPDF";
+import { downloadWindMitigationReport } from "@/utils/fillWindMitigationPDF";
+import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
+import type { Report } from "@/lib/reportSchemas";
 
 interface ReportsCardViewProps {
   reports: any[];
@@ -26,7 +28,7 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
             <h2 className="font-medium">{r.title}</h2>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs">
-                {r.reportType === "wind_mitigation" ? "Uniform Mitigation" : "Home Inspection"}
+                {REPORT_TYPE_LABELS[r.reportType as Report["reportType"]]}
               </Badge>
               {r.archived && (
                 <Badge variant="outline" className="text-xs">

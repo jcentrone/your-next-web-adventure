@@ -23,6 +23,7 @@ import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 import { CoverTemplateSelector } from "@/components/ui/cover-template-selector";
 import { ColorSchemePicker, ColorScheme, COLOR_SCHEMES, CustomColors } from "@/components/ui/color-scheme-picker";
 import { CoverTemplateProps } from "@/components/report-covers/types";
+import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 
 function SeverityBadge({
   severity,
@@ -285,7 +286,7 @@ const ReportPreview: React.FC = () => {
   const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
   const DEFAULT_TEXT_COLOR = "222 47% 11%";
-  const colorVars = 
+  const colorVars =
     report.colorScheme === "custom" && report.customColors
       ? ({
           "--heading-text-color": `hsl(${report.customColors.headingText || DEFAULT_TEXT_COLOR})`,
@@ -293,12 +294,12 @@ const ReportPreview: React.FC = () => {
         } as any)
       : undefined;
 
-  if (report.reportType !== "home_inspection") {
+  if (report.reportType === "wind_mitigation") {
     return (
-        <div
-          className="max-w-4xl mx-auto px-4 py-10 text-center"
-          style={{ ...(colorVars ?? {}), color: "var(--body-text-color)" }}
-        >
+      <div
+        className="max-w-4xl mx-auto px-4 py-10 text-center"
+        style={{ ...(colorVars ?? {}), color: "var(--body-text-color)" }}
+      >
         <h1 className="text-2xl font-bold mb-4" style={{ color: "var(--heading-text-color)" }}>
           Uniform Mitigation Report
         </h1>
@@ -307,6 +308,15 @@ const ReportPreview: React.FC = () => {
           <Button onClick={handleWindMitigationDownload}>Download Uniform Mitigation PDF</Button>
           <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>Back to Editor</Button>
         </div>
+      </div>
+    );
+  }
+
+  if (report.reportType !== "home_inspection") {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-10 text-center">
+        <h1 className="text-2xl font-bold mb-4">{REPORT_TYPE_LABELS[report.reportType]} Preview Coming Soon</h1>
+        <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>Back to Editor</Button>
       </div>
     );
   }

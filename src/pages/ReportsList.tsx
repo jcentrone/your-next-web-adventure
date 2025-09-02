@@ -12,13 +12,15 @@ import { ReportsListView } from "@/components/reports/ReportsListView";
 import { ReportsCardView } from "@/components/reports/ReportsCardView";
 import { ReportsViewToggle } from "@/components/reports/ReportsViewToggle";
 import { ReportsFilterToggle } from "@/components/reports/ReportsFilterToggle";
+import type { Report } from "@/lib/reportSchemas";
+import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 
 const ReportsList: React.FC = () => {
   const { user } = useAuth();
   const [localItems, setLocalItems] = React.useState(listLocalReports());
   const [view, setView] = React.useState<"list" | "card">("list"); // Default to list view
   const [showArchived, setShowArchived] = React.useState(false);
-  const [reportTypeFilter, setReportTypeFilter] = React.useState<"all" | "home_inspection" | "wind_mitigation">("all");
+  const [reportTypeFilter, setReportTypeFilter] = React.useState<Report["reportType"] | "all">("all");
 
   const { data: remoteItems, refetch, isLoading } = useQuery({
     queryKey: ["reports", user?.id, showArchived],
@@ -118,7 +120,7 @@ const ReportsList: React.FC = () => {
           <div className="rounded-lg border p-8 text-center">
             <p className="mb-4 text-muted-foreground">
               {showArchived ? "No archived reports." :
-               reportTypeFilter !== "all" ? `No ${reportTypeFilter === "wind_mitigation" ? "uniform mitigation" : "home inspection"} reports found.` :
+               reportTypeFilter !== "all" ? `No ${REPORT_TYPE_LABELS[reportTypeFilter]} reports found.` :
                "No reports yet."}
             </p>
             {!showArchived && (
