@@ -254,6 +254,25 @@ const ReportPreview: React.FC = () => {
           }
         }
 
+        if (report.reportType === "tx_coastal_windstorm_mitigation") {
+          const photos = (report.reportData?.photos?.photos || []).filter((p: string) => isSupabaseUrl(p));
+          if (photos.length > 0) {
+            const entries = await Promise.all(
+              photos.map(async (url: string) => {
+                const signed = await getSignedUrlFromSupabaseUrl(url);
+                return [url, signed] as const;
+              })
+            );
+            if (!cancelled) {
+              setMediaUrlMap((prev) => {
+                const next = { ...prev };
+                for (const [url, signed] of entries) next[url] = signed;
+                return next;
+              });
+            }
+          }
+        }
+
         if (report.coverImage) {
           if (isSupabaseUrl(report.coverImage)) {
             const signed = await getSignedUrlFromSupabaseUrl(report.coverImage);
@@ -324,7 +343,25 @@ const ReportPreview: React.FC = () => {
           </Button>
         </div>
         <div ref={pdfContainerRef}>
-          <PDFDocument report={report} mediaUrlMap={{}} coverUrl={coverUrl} company={organization?.name || ""} />
+          <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} company={organization?.name || ""} />
+        </div>
+      </div>
+    );
+  }
+
+  if (report.reportType === "tx_coastal_windstorm_mitigation") {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        <div className="flex justify-center gap-4 mb-6">
+          <Button onClick={onPrintClick} disabled={isGeneratingPDF}>
+            {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+          </Button>
+          <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>
+            Back to Editor
+          </Button>
+        </div>
+        <div ref={pdfContainerRef}>
+          <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} company={organization?.name || ""} />
         </div>
       </div>
     );

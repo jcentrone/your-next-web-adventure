@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Wind, ClipboardList } from "lucide-react";
+import { Home, Wind, ClipboardList, Shield } from "lucide-react";
 
 const ReportTypeSelector: React.FC = () => {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const ReportTypeSelector: React.FC = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-4 gap-6">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
@@ -96,6 +96,31 @@ const ReportTypeSelector: React.FC = () => {
                 onClick={() => navigate("/reports/new/fl-four-point")}
               >
                 Create FL 4-Point Report
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Shield className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle>TX Windstorm Mitigation</CardTitle>
+              <CardDescription>
+                Texas coastal windstorm mitigation (TWIA eligibility checklist)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                <li>• County and exposure information</li>
+                <li>• Roof covering and connection details</li>
+                <li>• Opening protection verification</li>
+              </ul>
+              <Button
+                className="w-full"
+                onClick={() => navigate("/reports/new/tx-windstorm")}
+              >
+                Create TX Windstorm Report
               </Button>
             </CardContent>
           </Card>
