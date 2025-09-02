@@ -10,6 +10,7 @@ import RootLayout from "./layouts/RootLayout";
 import React from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { PWAManager } from "@/components/pwa/PWAManager";
 import GoogleCallback from "./pages/oauth/GoogleCallback";
 import OutlookCallback from "./pages/oauth/OutlookCallback";
 import AppleCallback from "./pages/oauth/AppleCallback";
@@ -36,6 +37,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
+        <PWAManager />
           <BrowserRouter
             future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
           >
