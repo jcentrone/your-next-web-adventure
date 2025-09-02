@@ -43,64 +43,52 @@ export const CA_WILDFIRE_QUESTIONS = {
       ],
     },
     {
-      name: "zone_0_5_ft",
+      name: "zone0_ember_resistant",
       fields: [
         {
-          name: "combustibles_near_structure",
-          label: "Combustibles within 0-5 ft of structure",
+          name: "zone0_clear",
+          label: "Zone 0 Clear of Combustibles",
           widget: "radio",
           options: ["Yes", "No", "Partial"],
           required: true,
         },
         {
-          name: "vegetation_managed",
-          label: "Vegetation managed (cleared/mowed)",
+          name: "mulch_present",
+          label: "Combustible Mulch Present",
           widget: "radio",
-          options: ["Yes", "No", "Partial"],
+          options: ["Yes", "No"],
           required: false,
         },
       ],
     },
     {
-      name: "zone_5_30_ft",
+      name: "zone1_and_2_defensible_space",
       fields: [
         {
-          name: "trees_overhanging",
-          label: "Trees overhanging roof",
+          name: "zone1_5to30",
+          label: "Zone 1 (5-30 ft) Vegetation Managed",
+          widget: "radio",
+          options: ["Yes", "No", "Partial"],
+          required: false,
+        },
+        {
+          name: "zone2_30to100",
+          label: "Zone 2 (30-100 ft) Vegetation Managed",
+          widget: "radio",
+          options: ["Yes", "No", "Partial"],
+          required: false,
+        },
+        {
+          name: "trees_overhanging_roof",
+          label: "Trees Overhanging Roof",
           widget: "radio",
           options: ["None", "Some", "Many"],
           required: false,
         },
-        {
-          name: "ladder_fuels",
-          label: "Ladder Fuels Present",
-          widget: "radio",
-          options: ["Yes", "No", "Partial"],
-          required: false,
-        },
       ],
     },
     {
-      name: "zone_30_100_ft",
-      fields: [
-        {
-          name: "tree_spacing",
-          label: "Tree Crown Spacing",
-          widget: "select",
-          options: ["<10 ft", "10-30 ft", ">30 ft"],
-          required: false,
-        },
-        {
-          name: "surface_fuel",
-          label: "Surface Fuel Load",
-          widget: "select",
-          options: ["Light", "Moderate", "Heavy"],
-          required: false,
-        },
-      ],
-    },
-    {
-      name: "access_utilities",
+      name: "access_and_water",
       fields: [
         {
           name: "road_width",
@@ -117,10 +105,10 @@ export const CA_WILDFIRE_QUESTIONS = {
           required: false,
         },
         {
-          name: "power_line_clearance",
-          label: "Power Line Clearance",
-          widget: "radio",
-          options: ["Adequate", "Inadequate", "N/A"],
+          name: "water_supply",
+          label: "Water Supply",
+          widget: "select",
+          options: ["Hydrant", "Water Tank", "Pool/Pond", "None"],
           required: false,
         },
       ],
