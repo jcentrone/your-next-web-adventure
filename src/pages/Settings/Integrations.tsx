@@ -7,11 +7,15 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Separator} from "@/components/ui/separator";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Calendar, CalendarDays, ExternalLink, Navigation, Search} from "lucide-react";
+import {Calendar, CalendarDays, ExternalLink, Navigation, Search, Receipt} from "lucide-react";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as outlookCalendar from "@/integrations/outlookCalendar";
 import * as appleCalendar from "@/integrations/appleCalendar";
 import * as showingTime from "@/integrations/showingTime";
+import * as quickBooks from "@/integrations/quickBooks";
+import * as xero from "@/integrations/xero";
+import * as zohoBooks from "@/integrations/zohoBooks";
+import * as freshBooks from "@/integrations/freshBooks";
 
 const Integrations: React.FC = () => {
     const {user} = useAuth();
@@ -53,6 +57,30 @@ const Integrations: React.FC = () => {
     const {data: showingTimeConnected, refetch: refetchShowingTime} = useQuery({
         queryKey: ["showingtime-connected", user?.id],
         queryFn: () => showingTime.isConnected(user!.id),
+        enabled: !!user,
+    });
+
+    const {data: quickBooksConnected, refetch: refetchQuickBooks} = useQuery({
+        queryKey: ["quickbooks-connected", user?.id],
+        queryFn: () => quickBooks.isConnected(user!.id),
+        enabled: !!user,
+    });
+
+    const {data: xeroConnected, refetch: refetchXero} = useQuery({
+        queryKey: ["xero-connected", user?.id],
+        queryFn: () => xero.isConnected(user!.id),
+        enabled: !!user,
+    });
+
+    const {data: zohoBooksConnected, refetch: refetchZohoBooks} = useQuery({
+        queryKey: ["zohobooks-connected", user?.id],
+        queryFn: () => zohoBooks.isConnected(user!.id),
+        enabled: !!user,
+    });
+
+    const {data: freshBooksConnected, refetch: refetchFreshBooks} = useQuery({
+        queryKey: ["freshbooks-connected", user?.id],
+        queryFn: () => freshBooks.isConnected(user!.id),
         enabled: !!user,
     });
 
@@ -200,6 +228,150 @@ const Integrations: React.FC = () => {
                         </Button>
                     ) : (
                         <Button onClick={() => appleCalendar.connect(user!.id)}>
+                            Connect
+                        </Button>
+                    )}
+                </div>
+            )
+        },
+        {
+            id: "quickbooks",
+            name: "QuickBooks",
+            type: "accounting",
+            category: "Accounting",
+            description: quickBooksConnected ? "Connected" : "Not connected",
+            icon: <Receipt className="h-5 w-5 text-muted-foreground"/>,
+            component: (
+                <div className="flex items-center justify-between border p-4 rounded-md">
+                    <div className="flex items-center gap-3">
+                        <Receipt className="h-5 w-5 text-muted-foreground"/>
+                        <div>
+                            <p className="font-medium">QuickBooks</p>
+                            <p className="text-sm text-muted-foreground">
+                                {quickBooksConnected ? "Connected" : "Not connected"}
+                            </p>
+                        </div>
+                    </div>
+                    {quickBooksConnected ? (
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                await quickBooks.disconnect(user!.id);
+                                refetchQuickBooks();
+                            }}
+                        >
+                            Disconnect
+                        </Button>
+                    ) : (
+                        <Button onClick={() => quickBooks.connect(user!.id)}>
+                            Connect
+                        </Button>
+                    )}
+                </div>
+            )
+        },
+        {
+            id: "xero",
+            name: "Xero",
+            type: "accounting",
+            category: "Accounting",
+            description: xeroConnected ? "Connected" : "Not connected",
+            icon: <Receipt className="h-5 w-5 text-muted-foreground"/>,
+            component: (
+                <div className="flex items-center justify-between border p-4 rounded-md">
+                    <div className="flex items-center gap-3">
+                        <Receipt className="h-5 w-5 text-muted-foreground"/>
+                        <div>
+                            <p className="font-medium">Xero</p>
+                            <p className="text-sm text-muted-foreground">
+                                {xeroConnected ? "Connected" : "Not connected"}
+                            </p>
+                        </div>
+                    </div>
+                    {xeroConnected ? (
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                await xero.disconnect(user!.id);
+                                refetchXero();
+                            }}
+                        >
+                            Disconnect
+                        </Button>
+                    ) : (
+                        <Button onClick={() => xero.connect(user!.id)}>
+                            Connect
+                        </Button>
+                    )}
+                </div>
+            )
+        },
+        {
+            id: "zoho-books",
+            name: "Zoho Books",
+            type: "accounting",
+            category: "Accounting",
+            description: zohoBooksConnected ? "Connected" : "Not connected",
+            icon: <Receipt className="h-5 w-5 text-muted-foreground"/>,
+            component: (
+                <div className="flex items-center justify-between border p-4 rounded-md">
+                    <div className="flex items-center gap-3">
+                        <Receipt className="h-5 w-5 text-muted-foreground"/>
+                        <div>
+                            <p className="font-medium">Zoho Books</p>
+                            <p className="text-sm text-muted-foreground">
+                                {zohoBooksConnected ? "Connected" : "Not connected"}
+                            </p>
+                        </div>
+                    </div>
+                    {zohoBooksConnected ? (
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                await zohoBooks.disconnect(user!.id);
+                                refetchZohoBooks();
+                            }}
+                        >
+                            Disconnect
+                        </Button>
+                    ) : (
+                        <Button onClick={() => zohoBooks.connect(user!.id)}>
+                            Connect
+                        </Button>
+                    )}
+                </div>
+            )
+        },
+        {
+            id: "freshbooks",
+            name: "FreshBooks",
+            type: "accounting",
+            category: "Accounting",
+            description: freshBooksConnected ? "Connected" : "Not connected",
+            icon: <Receipt className="h-5 w-5 text-muted-foreground"/>,
+            component: (
+                <div className="flex items-center justify-between border p-4 rounded-md">
+                    <div className="flex items-center gap-3">
+                        <Receipt className="h-5 w-5 text-muted-foreground"/>
+                        <div>
+                            <p className="font-medium">FreshBooks</p>
+                            <p className="text-sm text-muted-foreground">
+                                {freshBooksConnected ? "Connected" : "Not connected"}
+                            </p>
+                        </div>
+                    </div>
+                    {freshBooksConnected ? (
+                        <Button
+                            variant="outline"
+                            onClick={async () => {
+                                await freshBooks.disconnect(user!.id);
+                                refetchFreshBooks();
+                            }}
+                        >
+                            Disconnect
+                        </Button>
+                    ) : (
+                        <Button onClick={() => freshBooks.connect(user!.id)}>
                             Connect
                         </Button>
                     )}
@@ -399,7 +571,29 @@ const Integrations: React.FC = () => {
                 </div>
             ),
         }
-    ], [optimizeRoute, calendlyLink, acuityLink, setmoreLink, googleConnected, outlookConnected, appleConnected, user]);
+    ], [
+        optimizeRoute,
+        calendlyLink,
+        acuityLink,
+        setmoreLink,
+        googleConnected,
+        outlookConnected,
+        appleConnected,
+        showingTimeConnected,
+        quickBooksConnected,
+        xeroConnected,
+        zohoBooksConnected,
+        freshBooksConnected,
+        refetchGoogle,
+        refetchOutlook,
+        refetchApple,
+        refetchShowingTime,
+        refetchQuickBooks,
+        refetchXero,
+        refetchZohoBooks,
+        refetchFreshBooks,
+        user,
+    ]);
 
     // Filter integrations based on search query and filter type
     const filteredIntegrations = useMemo(() => {
@@ -451,6 +645,7 @@ const Integrations: React.FC = () => {
                         <SelectItem value="navigation">Navigation & Maps</SelectItem>
                         <SelectItem value="calendar">Calendar Sync</SelectItem>
                         <SelectItem value="scheduling">Scheduling Platforms</SelectItem>
+                        <SelectItem value="accounting">Accounting</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -463,6 +658,7 @@ const Integrations: React.FC = () => {
                             {category === "Navigation & Maps" && <Navigation className="h-5 w-5 text-primary"/>}
                             {category === "Calendar Sync" && <Calendar className="h-5 w-5 text-primary"/>}
                             {category === "Scheduling Platforms" && <CalendarDays className="h-5 w-5 text-primary"/>}
+                            {category === "Accounting" && <Receipt className="h-5 w-5 text-primary"/>}
                             <h3 className="text-base font-medium">{category}</h3>
                         </div>
                         <div className="grid gap-3">
