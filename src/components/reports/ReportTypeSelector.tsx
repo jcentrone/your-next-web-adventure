@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Wind } from "lucide-react";
+import { Home, Wind, ClipboardList } from "lucide-react";
 
 const ReportTypeSelector: React.FC = () => {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const ReportTypeSelector: React.FC = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
@@ -72,6 +72,30 @@ const ReportTypeSelector: React.FC = () => {
                 onClick={() => navigate("/reports/new/wind-mitigation")}
               >
                 Create Uniform Mitigation Report
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <ClipboardList className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle>Florida 4-Point (Citizens)</CardTitle>
+              <CardDescription>
+                Florida 4-point inspection for underwriting older homes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                <li>• Roof, electrical, plumbing, HVAC overview</li>
+                <li>• Photos and signatures</li>
+              </ul>
+              <Button
+                className="w-full"
+                onClick={() => navigate("/reports/new/fl-four-point")}
+              >
+                Create FL 4-Point Report
               </Button>
             </CardContent>
           </Card>

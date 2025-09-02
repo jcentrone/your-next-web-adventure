@@ -7,6 +7,7 @@ import ReportDetailsSection from "./ReportDetailsSection";
 import SectionInfoDisplay from "./SectionInfoDisplay";
 import { isSupabaseUrl } from "@/integrations/supabase/storage";
 import { COVER_TEMPLATES } from "@/constants/coverTemplates";
+import { FL_FOUR_POINT_QUESTIONS } from "@/constants/flFourPointQuestions";
 
 
 interface PDFDocumentProps {
@@ -18,11 +19,44 @@ interface PDFDocumentProps {
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
     ({report, mediaUrlMap, coverUrl, company}, ref) => {
-        // Only render PDFs for home inspection reports for now
+        if (report.reportType === "fl_four_point_citizens") {
+            const sections = FL_FOUR_POINT_QUESTIONS.sections;
+            return (
+                <div ref={ref} className="pdf-document">
+                    <section className="pdf-page-break">
+                        <div className="text-center p-8">
+                            {coverUrl && <img src={coverUrl} alt="Cover" className="mx-auto mb-6 h-40 w-auto" />}
+                            <h1 className="text-2xl font-bold mb-2">{report.title}</h1>
+                            <p className="mb-1">{report.clientName}</p>
+                            <p className="mb-1">{report.address}</p>
+                            <p className="mb-1">Inspection Date: {report.inspectionDate}</p>
+                        </div>
+                    </section>
+                    {sections.map((section) => (
+                        <section key={section.name} className="pdf-page-break p-8">
+                            <h2 className="text-xl font-semibold mb-4 capitalize">{section.name.replace(/_/g, " ")}</h2>
+                            <table className="w-full text-sm border-collapse">
+                                <tbody>
+                                {section.fields.map((field) => (
+                                    <tr key={field.name}>
+                                        <td className="border p-2 font-medium w-1/2">{field.label}</td>
+                                        <td className="border p-2">
+                                            {String((report.reportData?.[section.name] || {})[field.name] || "")}
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </section>
+                    ))}
+                </div>
+            );
+        }
+
         if (report.reportType !== "home_inspection") {
             return (
                 <div className="p-8 text-center">
-                    <p>PDF generation for wind mitigation reports is coming soon.</p>
+                    <p>PDF generation for this report type is coming soon.</p>
                 </div>
             );
         }
