@@ -113,13 +113,13 @@ const WindMitigationNew: React.FC = () => {
           user.id,
           organization?.id
         );
-        toast({ title: "Wind mitigation report created" });
+        toast({ title: "Uniform mitigation report created" });
         nav(`/reports/${report.id}`);
       } else {
-        // For now, wind mitigation reports require authentication
+        // For now, uniform mitigation reports require authentication
         toast({ 
           title: "Authentication required", 
-          description: "Wind mitigation reports require you to be logged in." 
+          description: "Uniform mitigation reports require you to be logged in."
         });
         nav('/auth');
       }
@@ -133,13 +133,13 @@ const WindMitigationNew: React.FC = () => {
   return (
     <>
       <Seo
-        title="New Wind Mitigation Report | Home Inspection"
-        description="Create a new wind mitigation inspection report for Florida insurance discounts."
+        title="New Uniform Mitigation Report | Home Inspection"
+        description="Create a new uniform mitigation verification inspection report for Florida insurance discounts."
         canonical={window.location.origin + "/reports/new/wind-mitigation"}
-        jsonLd={{ "@context": "https://schema.org", "@type": "CreateAction", name: "Create Wind Mitigation Report" }}
+        jsonLd={{ "@context": "https://schema.org", "@type": "CreateAction", name: "Create Uniform Mitigation Report" }}
       />
       <section className="max-w-2xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-semibold mb-6">New Wind Mitigation Report</h1>
+        <h1 className="text-2xl font-semibold mb-6">New Uniform Mitigation Report</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
@@ -149,7 +149,7 @@ const WindMitigationNew: React.FC = () => {
                 <FormItem>
                   <FormLabel>Report Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., 123 Main St Wind Mitigation" {...field} />
+                    <Input placeholder="e.g., 123 Main St Uniform Mitigation" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -302,10 +302,10 @@ const WindMitigationNew: React.FC = () => {
                 <FormItem>
                   <FormLabel>Property Address</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Enter the property address for wind mitigation inspection"
+                    <Textarea
+                      placeholder="Enter the property address for uniform mitigation inspection"
                       className="min-h-[80px]"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />

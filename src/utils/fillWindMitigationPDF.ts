@@ -492,18 +492,18 @@ export async function downloadWindMitigationReport(reportId: string) {
         const url = URL.createObjectURL(pdfBlob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = "wind_mitigation_report.pdf";
+        link.download = "uniform_mitigation_report.pdf";
         link.click();
         URL.revokeObjectURL(url);
         toast({
             title: "PDF Generated",
-            description: "Your Wind Mitigation Report has been generated successfully.",
+            description: "Your Uniform Mitigation Report has been generated successfully.",
         });
     } catch (error) {
         console.error(error);
         toast({
             title: "PDF Generation Failed",
-            description: "Could not generate Wind Mitigation Report.",
+            description: "Could not generate Uniform Mitigation Report.",
             variant: "destructive",
         });
     }

@@ -659,7 +659,7 @@ const ReportEditor: React.FC = () => {
   if (report && report.reportType === "wind_mitigation") {
     return (
       <>
-        <Seo title={`${report.title} | Wind Mitigation Editor`} />
+        <Seo title={`${report.title} | Uniform Mitigation Editor`} />
         <div className="max-w-4xl mx-auto px-4 py-6">
           <React.Suspense fallback={<div>Loading...</div>}>
             <WindMitigationEditor 

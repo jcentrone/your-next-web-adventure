@@ -106,15 +106,15 @@ const ReportPreview: React.FC = () => {
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "wind_mitigation_report.pdf";
+      link.download = "uniform_mitigation_report.pdf";
       link.click();
       URL.revokeObjectURL(url);
-      toast({ title: "PDF Generated", description: "Your Wind Mitigation Report has been generated successfully." });
+      toast({ title: "PDF Generated", description: "Your Uniform Mitigation Report has been generated successfully." });
     } catch (error) {
       console.error(error);
       toast({
         title: "PDF Generation Failed",
-        description: "Could not generate Wind Mitigation Report.",
+        description: "Could not generate Uniform Mitigation Report.",
         variant: "destructive",
       });
     }
@@ -300,11 +300,11 @@ const ReportPreview: React.FC = () => {
           style={{ ...(colorVars ?? {}), color: "var(--body-text-color)" }}
         >
         <h1 className="text-2xl font-bold mb-4" style={{ color: "var(--heading-text-color)" }}>
-          Wind Mitigation Report
+          Uniform Mitigation Report
         </h1>
-        <p className="text-muted-foreground mb-6">Generate your completed Wind Mitigation Report as a PDF.</p>
+        <p className="text-muted-foreground mb-6">Generate your completed Uniform Mitigation Report as a PDF.</p>
         <div className="flex justify-center gap-4">
-          <Button onClick={handleWindMitigationDownload}>Download Wind Mitigation PDF</Button>
+          <Button onClick={handleWindMitigationDownload}>Download Uniform Mitigation PDF</Button>
           <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>Back to Editor</Button>
         </div>
       </div>
