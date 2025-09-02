@@ -32,7 +32,7 @@ import { FEATURE_FLAGS } from "@/constants/featureFlags";
 const Index = () => {
   const { user } = useAuth();
   const title = "Home Report Pro | Professional PWA for Home Inspectors";
-  const description = "Modern PWA platform for home inspectors specializing in wind mitigation and home inspections. Works offline, InterNACHI SOP compliant with advanced image annotation.";
+  const description = "Modern PWA platform for home inspectors specializing in uniform mitigation and home inspections. Works offline, InterNACHI SOP compliant with advanced image annotation.";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -44,7 +44,7 @@ const Index = () => {
     url: "/",
     features: [
       "Progressive Web App (PWA)",
-      "Wind Mitigation Inspections", 
+      "Uniform Mitigation Inspections",
       "Advanced Image Annotation",
       "Offline Functionality",
       "InterNACHI SOP Compliant Reports",
@@ -147,7 +147,7 @@ const Index = () => {
               InterNACHI SOP compliant reporting with 500+ attorney-vetted templates. Custom branding and digital signatures included.
             </p>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <div>Home & wind mitigation</div>
+              <div>Home & uniform mitigation</div>
               <div>Custom branding</div>
               <div>PDF generation</div>
             </div>
@@ -185,14 +185,14 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Wind Mitigation */}
+          {/* Uniform Mitigation */}
           <div className="group">
             <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-8 group-hover:bg-primary/10 transition-colors">
               <Wind className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="text-2xl font-medium mb-4">Wind Mitigation</h3>
+            <h3 className="text-2xl font-medium mb-4">Uniform Mitigation</h3>
             <p className="text-muted-foreground leading-relaxed mb-6">
-              Specialized wind mitigation forms with OIR-B1-1802 compliance. Automated calculations for insurance discounts.
+              Specialized uniform mitigation forms with OIR-B1-1802 compliance. Automated calculations for insurance discounts.
             </p>
             <div className="space-y-2 text-sm text-muted-foreground">
               <div>OIR-B1-1802 forms</div>

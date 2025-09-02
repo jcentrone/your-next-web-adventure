@@ -35,7 +35,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
                   variant="outline" 
                   className="text-xs"
                 >
-                  {report.reportType === "wind_mitigation" ? "Wind Mitigation" : "Home Inspection"}
+                  {report.reportType === "wind_mitigation" ? "Uniform Mitigation" : "Home Inspection"}
                 </Badge>
                 {report.status && (
                   <Badge variant={report.status === "Final" ? "default" : "secondary"} className="text-xs">

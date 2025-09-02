@@ -115,10 +115,10 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
 
             toast({
                 title: "Report saved",
-                description: "Wind mitigation report has been saved successfully.",
+                description: "Uniform mitigation report has been saved successfully.",
             });
         } catch (error) {
-            console.error("Error saving wind mitigation report:", error);
+            console.error("Error saving uniform mitigation report:", error);
             toast({
                 title: "Save failed",
                 description: error instanceof Error ? error.message : "There was an error saving the report. Please try again.",

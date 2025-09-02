@@ -282,7 +282,7 @@ export async function dbCreateReport(meta: {
     await activitiesApi.trackActivity({
       userId,
       activity_type: 'report_created',
-      title: `Created ${meta.reportType === 'wind_mitigation' ? 'Wind Mitigation' : 'Home Inspection'} report: ${meta.title}`,
+      title: `Created ${meta.reportType === 'wind_mitigation' ? 'Uniform Mitigation' : 'Home Inspection'} report: ${meta.title}`,
       description: `Report for ${meta.clientName} at ${meta.address}`,
       report_id: data.id,
       contact_id: meta.contact_id,
