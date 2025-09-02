@@ -59,6 +59,8 @@ export type Profile = {
   license_number: string | null;
   provider: string | null;
   last_sign_in_at: string | null;
+  signature_url: string | null;
+  signature_type: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -329,6 +331,63 @@ export async function saveReportEmailTemplate(
     .single();
   if (error) throw error;
   return data as unknown as EmailTemplate;
+}
+
+export async function uploadSignature(file: File): Promise<string> {
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('Not authenticated');
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${user.user.id}/signature_${Date.now()}.${fileExt}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('signatures')
+    .upload(fileName, file);
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from('signatures')
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+}
+
+export async function uploadSignatureFromDataUrl(dataUrl: string, type: string): Promise<string> {
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) throw new Error('Not authenticated');
+
+  // Convert data URL to blob
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  
+  const fileName = `${user.user.id}/signature_${Date.now()}_${type}.png`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('signatures')
+    .upload(fileName, blob);
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from('signatures')
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+}
+
+export async function deleteSignature(signatureUrl: string): Promise<void> {
+  if (!signatureUrl) return;
+  
+  // Extract file path from URL
+  const urlParts = signatureUrl.split('/');
+  const fileName = urlParts.slice(-2).join('/'); // user_id/filename
+  
+  const { error } = await supabase.storage
+    .from('signatures')
+    .remove([fileName]);
+
+  if (error) throw error;
 }
 
 export async function getProfileByUserId(userId: string): Promise<Profile | null> {

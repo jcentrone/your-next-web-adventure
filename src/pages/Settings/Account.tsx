@@ -14,8 +14,11 @@ import {
   getMyProfile,
   getMyOrganization,
   updateMyProfile,
+  uploadSignatureFromDataUrl,
+  deleteSignature,
   type Organization,
 } from "@/integrations/supabase/organizationsApi";
+import SignatureManager from "@/components/signature/SignatureManager";
 
 const Account: React.FC = () => {
   const { user } = useAuth();
@@ -68,12 +71,62 @@ const Account: React.FC = () => {
     },
   });
 
+  const updateSignatureMutation = useMutation({
+    mutationFn: async ({ signatureUrl, signatureType }: { signatureUrl: string; signatureType: string }) => {
+      return updateMyProfile({
+        signature_url: signatureUrl,
+        signature_type: signatureType,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to update signature", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteSignatureMutation = useMutation({
+    mutationFn: async () => {
+      if (profile?.signature_url) {
+        await deleteSignature(profile.signature_url);
+      }
+      return updateMyProfile({
+        signature_url: null,
+        signature_type: null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to delete signature", description: error.message, variant: "destructive" });
+    },
+  });
+
   const handleSaveProfile = () => {
     updateProfileMutation.mutate({
       full_name: fullName,
       phone,
       license_number: licenseNumber,
     });
+  };
+
+  const handleSignatureUpdate = async (signatureDataUrl: string, signatureType: string) => {
+    try {
+      const signatureUrl = await uploadSignatureFromDataUrl(signatureDataUrl, signatureType);
+      updateSignatureMutation.mutate({ signatureUrl, signatureType });
+    } catch (error: any) {
+      toast({ 
+        title: "Failed to save signature", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const handleSignatureDelete = () => {
+    deleteSignatureMutation.mutate();
   };
 
   const getInitials = (name: string | null) => {
@@ -154,6 +207,15 @@ const Account: React.FC = () => {
           </Button>
         </CardContent>
       </Card>
+
+      <SignatureManager
+        currentSignature={profile.signature_url || undefined}
+        currentSignatureType={profile.signature_type || undefined}
+        fullName={profile.full_name || undefined}
+        onSignatureUpdate={handleSignatureUpdate}
+        onSignatureDelete={handleSignatureDelete}
+        isLoading={updateSignatureMutation.isPending || deleteSignatureMutation.isPending}
+      />
     </>
   );
 };
