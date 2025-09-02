@@ -7,6 +7,7 @@ import MagicLinkEmail from "./_templates/magic-link.tsx";
 import SignupConfirmationEmail from "./_templates/signup-confirmation.tsx";
 import PasswordRecoveryEmail from "./_templates/password-recovery.tsx";
 import InviteEmail from "./_templates/invite.tsx";
+import EmailChangeEmail from "./_templates/email-change.tsx";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
 const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
@@ -97,6 +98,8 @@ function getEmailTemplate(emailActionType: string, props: any) {
       return React.createElement(PasswordRecoveryEmail, props);
     case 'invite':
       return React.createElement(InviteEmail, props);
+    case 'email_change':
+      return React.createElement(EmailChangeEmail, props);
     case 'magiclink':
     default:
       return React.createElement(MagicLinkEmail, props);
@@ -112,6 +115,8 @@ function getEmailSubject(emailActionType: string, organizationName: string): str
       return `Reset your ${organizationName} password`;
     case 'invite':
       return `You've been invited to join ${organizationName}`;
+    case 'email_change':
+      return `Confirm your new email address - ${organizationName}`;
     case 'magiclink':
     default:
       return `Sign in to ${organizationName}`;

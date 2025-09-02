@@ -13,6 +13,10 @@ export type Organization = {
   email: string | null;
   website: string | null;
   license_number: string | null;
+  email_from_name: string | null;
+  email_from_address: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -120,6 +124,31 @@ export async function getMyOrganization(): Promise<Organization | null> {
   return (data as any)?.organizations || null;
 }
 
+export async function updateOrganizationBranding(
+  organizationId: string,
+  updates: {
+    email_from_name?: string;
+    email_from_address?: string;
+    primary_color?: string;
+    secondary_color?: string;
+    logo_url?: string;
+    name?: string;
+    website?: string;
+    phone?: string;
+    address?: string;
+  }
+): Promise<Organization> {
+  const { data: updated, error } = await supabase
+    .from('organizations')
+    .update(updates)
+    .eq('id', organizationId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return updated;
+}
+
 export async function updateOrganization(id: string, data: Partial<Organization>) {
   const { data: updated, error } = await supabase
     .from('organizations')
@@ -131,7 +160,6 @@ export async function updateOrganization(id: string, data: Partial<Organization>
   if (error) throw error;
   return updated;
 }
-
 export async function getOrganizationMembers(organizationId: string) {
   const { data, error } = await supabase
     .from('organization_members')
