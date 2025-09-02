@@ -270,12 +270,8 @@ export async function dbCreateReport(meta: {
       coverTemplate: "templateOne",
       previewTemplate: "classic",
       reportType: meta.reportType,
-      phoneHome: meta.phoneHome || "",
-      phoneWork: meta.phoneWork || "",
-      phoneCell: meta.phoneCell || "",
-      insuranceCompany: meta.insuranceCompany || "",
-      policyNumber: meta.policyNumber || "",
-      email: meta.email || "",
+      clientPhone: meta.phoneHome || "",
+      clientEmail: meta.email || "",
       reportData: {},
     };
   }
