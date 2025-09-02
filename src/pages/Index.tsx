@@ -153,11 +153,11 @@ const Index = () => {
               </div>
               <div>
                 <h3 className="font-bold text-xl">Smart Route Optimization</h3>
-                <span className="text-xs bg-green-500/10 text-green-600 px-2 py-1 rounded-full">Google Maps</span>
+                <span className="text-xs bg-green-500/10 text-green-600 px-2 py-1 rounded-full">Google Maps & Waze</span>
               </div>
             </div>
             <p className="text-muted-foreground mb-6 text-base leading-relaxed">
-              Automatically optimize your daily inspection routes. Save time and fuel with intelligent scheduling based on location proximity.
+              Automatically optimize your daily inspection routes using Google Maps and Waze. Save time and fuel with intelligent scheduling based on location proximity.
             </p>
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2">
@@ -256,6 +256,24 @@ const Index = () => {
               <li>• Full offline capability</li>
               <li>• Automatic background sync</li>
               <li>• Zero data loss guarantee</li>
+            </ul>
+          </Card>
+
+          {/* Wind Mitigation Specialization */}
+          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-teal-500/10 rounded-lg">
+                <Wind className="h-6 w-6 text-teal-600" />
+              </div>
+              <h3 className="font-semibold text-lg">Wind Mitigation Reports</h3>
+            </div>
+            <p className="text-muted-foreground mb-4">
+              Specialized wind mitigation inspection forms with OIR-B1-1802 compliance. Pre-filled templates for Florida insurance requirements.
+            </p>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>• OIR-B1-1802 form integration</li>
+              <li>• Insurance discount calculations</li>
+              <li>• Automated PDF generation</li>
             </ul>
           </Card>
         </div>
