@@ -13,6 +13,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import GoogleCallback from "./pages/oauth/GoogleCallback";
 import OutlookCallback from "./pages/oauth/OutlookCallback";
 import AppleCallback from "./pages/oauth/AppleCallback";
+import ShowingTimeCallback from "./pages/oauth/ShowingTimeCallback";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/oauth/google" element={<GoogleCallback />} />
               <Route path="/oauth/outlook" element={<OutlookCallback />} />
               <Route path="/oauth/apple" element={<AppleCallback />} />
+              <Route path="/oauth/showingtime" element={<ShowingTimeCallback />} />
               <Route element={<RootLayout />}>
                 <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={lazyLoad(() => import("./pages/Dashboard"))} />
