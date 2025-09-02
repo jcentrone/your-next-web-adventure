@@ -58,195 +58,242 @@ const Index = () => {
       <Seo title={title} description={description} canonical="/" jsonLd={jsonLd} />
 
       {/* Hero Section */}
-      <section id="hero" className="relative max-w-7xl mx-auto px-4 py-16 md:py-24 overflow-hidden">
+      <section id="hero" className="relative max-w-7xl mx-auto px-4 py-24 md:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 -z-10" />
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
-              <Star className="w-4 h-4" />
-              #1 Choice for Inspectors
-            </div>
-            <div className="inline-flex items-center gap-2 bg-green-500/10 text-green-600 px-3 py-1 rounded-full text-sm font-medium">
-              <CheckCircle className="w-4 h-4" />
-              InterNACHI SOP Compliant
-            </div>
-            <div className="inline-flex items-center gap-2 bg-amber-500/10 text-amber-600 px-3 py-1 rounded-full text-sm font-medium">
-              <Wind className="w-4 h-4" />
-              Wind Mitigation Specialist
-            </div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl -z-10"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl -z-10"></div>
+        
+        <div className="text-center max-w-5xl mx-auto relative z-10">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-8">
+            <Zap className="w-4 h-4" />
+            Professional Inspection Platform
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-            The Complete Platform for{" "}
-            <span className="text-primary">Home Inspectors</span>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
+            Inspection Reports
+            <br />
+            <span className="text-primary">Made Simple</span>
           </h1>
           
-          <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-            From CRM and scheduling to professional reports and task management - everything you need to run a successful 
-            inspection business. Specialized for both home inspections and wind mitigation with advanced offline capabilities.
+          <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed max-w-3xl mx-auto">
+            Create comprehensive, professional inspection reports with our modern platform. 
+            Built for inspectors who demand quality and efficiency.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
             {user ? (
-              <Button size="lg" className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground" asChild>
+              <Button size="lg" className="text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" asChild>
                 <Link to="/dashboard">
+                  <ArrowRight className="mr-2 w-5 h-5" />
                   Go to Dashboard
-                  <ArrowRight className="ml-2 w-4 h-4" />
                 </Link>
               </Button>
             ) : (
               <>
-                <Button size="lg" className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground" asChild>
+                <Button size="lg" className="text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" asChild>
                   <Link to="/auth">
+                    <ArrowRight className="mr-2 w-5 h-5" />
                     Start Free Trial
-                    <ArrowRight className="ml-2 w-4 h-4" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-primary/20 hover:bg-primary/5">
-                  <Globe className="mr-2 w-4 h-4" />
+                <Button size="lg" variant="outline" className="text-lg px-10 py-7 rounded-2xl border-2 hover:bg-muted/50 transition-all duration-300">
+                  <Globe className="mr-2 w-5 h-5" />
                   Watch Demo
                 </Button>
               </>
             )}
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div className="p-3">
-              <div className="text-2xl font-bold text-primary">500+</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold text-primary">500+</div>
               <div className="text-sm text-muted-foreground">Defect Templates</div>
             </div>
-            <div className="p-3">
-              <div className="text-2xl font-bold text-primary">All-in-One</div>
-              <div className="text-sm text-muted-foreground">Business Platform</div>
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold text-primary">PWA</div>
+              <div className="text-sm text-muted-foreground">Technology</div>
             </div>
-            <div className="p-3">
-              <div className="text-2xl font-bold text-primary">Offline</div>
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold text-primary">Offline</div>
               <div className="text-sm text-muted-foreground">Capable</div>
             </div>
-            <div className="p-3">
-              <div className="text-2xl font-bold text-primary">Professional</div>
-              <div className="text-sm text-muted-foreground">Reports</div>
+            <div className="space-y-2">
+              <div className="text-3xl md:text-4xl font-bold text-primary">24/7</div>
+              <div className="text-sm text-muted-foreground">Support</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Grid */}
-      <section id="features" className="max-w-7xl mx-auto px-4 pb-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Modern Features for Professional Inspectors</h2>
-          <p className="text-muted-foreground text-lg">
-            Advanced PWA technology meets specialized inspection workflows. Every feature designed for efficiency and professionalism.
+      <section id="features" className="max-w-7xl mx-auto px-4 pb-24">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-muted/50 text-muted-foreground px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Star className="h-4 w-4" />
+            Platform Features
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            Built for Modern Inspectors
+          </h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Professional-grade tools that streamline your workflow and deliver exceptional results
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-primary/10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Smartphone className="h-6 w-6 text-primary" />
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-card to-card/50">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-primary/10 rounded-2xl">
+                <Smartphone className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="font-semibold text-lg">Progressive Web App</h3>
+              <h3 className="font-bold text-xl">Progressive Web App</h3>
             </div>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-6 leading-relaxed">
               Install as native app on any device. Blazing fast performance with offline-first architecture and automatic updates.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-              <li>One-click installation</li>
-              <li>Native app experience</li>
-              <li>Automatic updates</li>
-              <li>Cross-platform compatibility</li>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                One-click installation
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                Native app experience
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                Cross-platform compatibility
+              </li>
             </ul>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-primary/10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-amber-500/10 rounded-lg">
-                <Wind className="h-6 w-6 text-amber-600" />
+          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-amber-50 to-orange-50">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-amber-500/10 rounded-2xl">
+                <Wind className="h-8 w-8 text-amber-600" />
               </div>
-              <h3 className="font-semibold text-lg">Wind Mitigation Specialist</h3>
+              <h3 className="font-bold text-xl">Wind Mitigation Specialist</h3>
             </div>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-6 leading-relaxed">
               Florida Form 1802 compliant wind mitigation inspections. Help clients save thousands on insurance premiums.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-              <li>OIR-B1-1802 form compliance</li>
-              <li>All 7 inspection questions</li>
-              <li>Professional photo requirements</li>
-              <li>Insurance discount calculations</li>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                OIR-B1-1802 form compliance
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                All 7 inspection questions
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                Insurance discount calculations
+              </li>
             </ul>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-primary/10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-purple-500/10 rounded-lg">
-                <Palette className="h-6 w-6 text-purple-600" />
+          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-purple-50 to-violet-50">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-purple-500/10 rounded-2xl">
+                <Palette className="h-8 w-8 text-purple-600" />
               </div>
-              <h3 className="font-semibold text-lg">Advanced Image Annotation</h3>
+              <h3 className="font-bold text-xl">Advanced Image Annotation</h3>
             </div>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-6 leading-relaxed">
               Professional canvas tools for image markup. Draw, highlight, and annotate photos directly in your reports.
             </p>
-
-            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-              <li>Drawing and markup tools</li>
-              <li>Shape and text annotations</li>
-              <li>Color customization</li>
-              <li>Undo/redo capabilities</li>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                Drawing and markup tools
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                Shape and text annotations
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                Undo/redo capabilities
+              </li>
             </ul>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-primary/10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
+          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-blue-50 to-cyan-50">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-blue-500/10 rounded-2xl">
+                <Users className="h-8 w-8 text-blue-600" />
               </div>
-              <h3 className="font-semibold text-lg">Enhanced CRM</h3>
+              <h3 className="font-bold text-xl">Enhanced CRM</h3>
             </div>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-6 leading-relaxed">
               Manage complex relationships between clients, realtors, vendors, and contractors with advanced tracking.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-              <li>Relationship mapping</li>
-              <li>Communication history</li>
-              <li>Vendor management</li>
-              <li>Referral tracking</li>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                Relationship mapping
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                Communication history
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                Referral tracking
+              </li>
             </ul>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-primary/10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <Calendar className="h-6 w-6 text-green-600" />
+          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-green-50 to-emerald-50">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-green-500/10 rounded-2xl">
+                <Calendar className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="font-semibold text-lg">Smart Booking Integration</h3>
+              <h3 className="font-bold text-xl">Smart Scheduling</h3>
             </div>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-6 leading-relaxed">
               Connect with Calendly, Acuity Scheduling, and more. Drag-drop calendar with external sync capabilities.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-              <li>Multiple booking platforms</li>
-              <li>Drag-drop scheduling</li>
-              <li>External calendar sync</li>
-              <li>Automated notifications</li>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                Multiple booking platforms
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                Drag-drop scheduling
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                External calendar sync
+              </li>
             </ul>
           </Card>
 
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-primary/10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-500/10 rounded-lg">
-                <WifiOff className="h-6 w-6 text-red-600" />
+          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-red-50 to-pink-50">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-red-500/10 rounded-2xl">
+                <WifiOff className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="font-semibold text-lg">Offline-First Architecture</h3>
+              <h3 className="font-bold text-xl">Offline-First Architecture</h3>
             </div>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-6 leading-relaxed">
               Complete functionality without internet. Automatic background sync ensures no data loss ever.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
-              <li>Full offline capability</li>
-              <li>Intelligent background sync</li>
-              <li>Conflict resolution</li>
-              <li>Zero data loss guarantee</li>
+            <ul className="text-sm text-muted-foreground space-y-2">
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                Full offline capability
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                Intelligent background sync
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                Zero data loss guarantee
+              </li>
             </ul>
           </Card>
         </div>
