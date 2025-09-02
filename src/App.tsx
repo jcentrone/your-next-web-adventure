@@ -54,8 +54,9 @@ const App = () => (
               <Route path="/reports/select-type" element={lazyLoad(() => import("./components/reports/ReportTypeSelector"))} />
               <Route path="/reports/new" element={lazyLoad(() => import("./pages/ReportNew"))} />
               <Route path="/reports/new/home-inspection" element={lazyLoad(() => import("./pages/HomeInspectionNew"))} />
-              <Route path="/reports/new/wind-mitigation" element={lazyLoad(() => import("./pages/WindMitigationNew"))} />
-              <Route path="/reports/new/:reportType" element={lazyLoad(() => import("./pages/GenericReportNew"))} />
+                <Route path="/reports/new/wind-mitigation" element={lazyLoad(() => import("./pages/WindMitigationNew"))} />
+                <Route path="/reports/new/fl-four-point" element={lazyLoad(() => import("./pages/FlFourPointNew"))} />
+                <Route path="/reports/new/:reportType" element={lazyLoad(() => import("./pages/GenericReportNew"))} />
               <Route path="/reports/:id" element={lazyLoad(() => import("./pages/ReportEditor"))} />
               <Route path="/reports/:id/preview" element={lazyLoad(() => import("./pages/ReportPreview"))} />
               <Route path="/reports/:reportId/findings/:findingId/media/:mediaId/annotate" element={lazyLoad(() => import("./pages/ImageAnnotation"))} />

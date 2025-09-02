@@ -312,6 +312,24 @@ const ReportPreview: React.FC = () => {
     );
   }
 
+  if (report.reportType === "fl_four_point_citizens") {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        <div className="flex justify-center gap-4 mb-6">
+          <Button onClick={onPrintClick} disabled={isGeneratingPDF}>
+            {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+          </Button>
+          <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>
+            Back to Editor
+          </Button>
+        </div>
+        <div ref={pdfContainerRef}>
+          <PDFDocument report={report} mediaUrlMap={{}} coverUrl={coverUrl} company={organization?.name || ""} />
+        </div>
+      </div>
+    );
+  }
+
   if (report.reportType !== "home_inspection") {
     return (
       <div className="max-w-4xl mx-auto px-4 py-10 text-center">

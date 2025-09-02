@@ -37,6 +37,7 @@ import ContactMultiSelect from "@/components/contacts/ContactMultiSelect";
 
 // Lazy load wind mitigation editor at module level
 const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
+const FlFourPointEditor = React.lazy(() => import("@/components/reports/FlFourPointEditor"));
 
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 type Severity = typeof SEVERITIES[number];
@@ -661,10 +662,23 @@ const ReportEditor: React.FC = () => {
         <Seo title={`${report.title} | Uniform Mitigation Editor`} />
         <div className="max-w-4xl mx-auto px-4 py-6">
           <React.Suspense fallback={<div>Loading...</div>}>
-            <WindMitigationEditor 
-              report={report} 
-              onUpdate={setReport} 
+            <WindMitigationEditor
+              report={report}
+              onUpdate={setReport}
             />
+          </React.Suspense>
+        </div>
+      </>
+    );
+  }
+
+  if (report && report.reportType === "fl_four_point_citizens") {
+    return (
+      <>
+        <Seo title={`${report.title} | FL 4-Point Editor`} />
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <FlFourPointEditor report={report} onUpdate={setReport} />
           </React.Suspense>
         </div>
       </>
