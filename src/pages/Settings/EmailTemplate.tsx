@@ -218,25 +218,13 @@ const EmailTemplate: React.FC = () => {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <div className="border rounded-md overflow-hidden">
+                                <div className="space-y-2">
                                     <ReactQuill
                                         ref={quillRef}
                                         theme="snow"
                                         value={body}
                                         onChange={setBody}
-                                        modules={{
-                                            toolbar: [
-                                                [{ 'header': [1, 2, false] }],
-                                                ['bold', 'italic', 'underline'],
-                                                ['link'],
-                                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                                ['clean']
-                                            ],
-                                        }}
-                                        style={{ 
-                                            height: "250px",
-                                            borderRadius: "0.375rem"
-                                        }}
+                                        className="h-64"
                                     />
                                 </div>
                             </div>
