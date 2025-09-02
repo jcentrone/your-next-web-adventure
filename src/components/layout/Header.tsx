@@ -12,14 +12,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Download } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePWAInstall } from "@/hooks/usePWAInstall";
 
 const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const { isInstallable, install } = usePWAInstall();
 
   const initials = React.useMemo(() => {
     const name = (user?.user_metadata?.full_name ||
@@ -149,6 +151,19 @@ const Header: React.FC = () => {
                     >
                       Settings
                     </Link>
+                    {isInstallable && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start gap-2"
+                        onClick={() => {
+                          install();
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                        Install App
+                      </Button>
+                    )}
                     <div className="border-t pt-4 mt-4">
                       <Button 
                         variant="outline" 
@@ -213,7 +228,19 @@ const Header: React.FC = () => {
               </Button>
             </div>
           ) : (
-            <DropdownMenu>
+            <>
+              {isInstallable && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={install}
+                  className="hidden md:flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Install App
+                </Button>
+              )}
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
                   <Avatar className="h-9 w-9">
@@ -258,6 +285,7 @@ const Header: React.FC = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </>
           )}
         </div>
       </nav>
