@@ -120,7 +120,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">This Month</CardTitle>
@@ -174,7 +174,7 @@ const Dashboard: React.FC = () => {
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
           {/* Upcoming Appointments */}
           <Card>
             <CardHeader>
@@ -194,7 +194,7 @@ const Dashboard: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {upcomingAppointments.map((appointment: any) => (
-                    <div key={appointment.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div key={appointment.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-muted/50 rounded-lg gap-3">
                       <div className="flex-1">
                         <h4 className="font-medium">{appointment.title}</h4>
                         <p className="text-sm text-muted-foreground">
@@ -240,7 +240,7 @@ const Dashboard: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {overdueTasks.map((task: any) => (
-                    <div key={task.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                    <div key={task.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200 gap-3">
                       <div className="flex-1">
                         <h4 className="font-medium">{task.title}</h4>
                         <p className="text-sm text-muted-foreground">
@@ -259,8 +259,8 @@ const Dashboard: React.FC = () => {
                   ))}
                 </div>
               )}
-              <div className="mt-4">
-                <Button variant="outline" className="w-full" asChild>
+              <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                <Button variant="outline" className="flex-1" asChild>
                   <Link to="/tasks">View All Tasks</Link>
                 </Button>
               </div>
@@ -286,7 +286,7 @@ const Dashboard: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {recentReports.slice(0, 3).map((report) => (
-                    <div key={report.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div key={report.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-muted/50 rounded-lg gap-3">
                       <div className="flex-1">
                         <h4 className="font-medium">{report.title}</h4>
                         <p className="text-sm text-muted-foreground">
@@ -300,7 +300,7 @@ const Dashboard: React.FC = () => {
                   ))}
                 </div>
               )}
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <Button variant="outline" className="flex-1" asChild>
                   <Link to="/reports">View All Reports</Link>
                 </Button>

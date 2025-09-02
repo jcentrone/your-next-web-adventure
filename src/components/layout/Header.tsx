@@ -1,9 +1,9 @@
-
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,10 +12,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
+import { Menu, X } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Header: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const initials = React.useMemo(() => {
     const name = (user?.user_metadata?.full_name ||
@@ -40,6 +44,8 @@ const Header: React.FC = () => {
             className="h-8 w-auto"
           />
         </Link>
+
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           {user ? (
             <>
@@ -58,85 +64,200 @@ const Header: React.FC = () => {
               <Link to="/tasks" className="transition-colors hover:text-primary">
                 Tasks
               </Link>
-              {/*<Link to="/defects-admin" className="transition-colors hover:text-primary">*/}
-              {/*  Defects*/}
-              {/*</Link>*/}
-              {/*<Link to="/section-manager" className="transition-colors hover:text-primary">*/}
-              {/*  Section Manager*/}
-              {/*</Link>*/}
             </>
           ) : (
             <>
-              <Link to="/" className="transition-colors hover:text-primary">
+              <Link to="#features" className="transition-colors hover:text-primary">
                 Features
               </Link>
-              <Link to="/" className="transition-colors hover:text-primary">
+              <Link to="#templates" className="transition-colors hover:text-primary">
                 Templates
               </Link>
             </>
           )}
         </nav>
+
+        {/* Mobile Navigation */}
+        {isMobile && (
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64">
+              <div className="flex items-center justify-between mb-6">
+                <Link to="/" className="flex items-center gap-2 font-bold" onClick={() => setMobileMenuOpen(false)}>
+                  <img 
+                    src="/HomeReportPro_Logo-transparent.png" 
+                    alt="Home Report Pro" 
+                    className="h-6 w-auto"
+                  />
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="h-6 w-6"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <nav className="flex flex-col space-y-4">
+                {user ? (
+                  <>
+                    <Link 
+                      to="/dashboard" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                    <Link 
+                      to="/reports" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Reports
+                    </Link>
+                    <Link 
+                      to="/contacts" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Contacts
+                    </Link>
+                    <Link 
+                      to="/calendar" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Calendar
+                    </Link>
+                    <Link 
+                      to="/tasks" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Tasks
+                    </Link>
+                    <Link 
+                      to="/settings" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Settings
+                    </Link>
+                    <div className="border-t pt-4 mt-4">
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={async () => {
+                          try {
+                            await signOut();
+                            setMobileMenuOpen(false);
+                            navigate("/");
+                          } catch (error) {
+                            console.error("Sign out failed:", error);
+                          }
+                        }}
+                      >
+                        Sign out
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Link 
+                      to="#features" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Features
+                    </Link>
+                    <Link 
+                      to="#templates" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Templates
+                    </Link>
+                    <div className="border-t pt-4 mt-4 space-y-2">
+                      <Button variant="outline" className="w-full" asChild>
+                        <Link to="/auth?mode=signin" onClick={() => setMobileMenuOpen(false)}>
+                          Sign in
+                        </Link>
+                      </Button>
+                      <Button className="w-full" asChild>
+                        <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
+                          Sign up
+                        </Link>
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        )}
+
         <div className="flex items-center gap-2">
           {!user ? (
-            <>
-              <Button asChild variant="outline">
+            <div className="hidden md:flex items-center gap-2">
+              <Button asChild variant="outline" size="sm">
                 <Link to="/auth?mode=signin">Sign in</Link>
               </Button>
-              <Button asChild>
+              <Button asChild size="sm">
                 <Link to="/auth?mode=signup">Sign up</Link>
               </Button>
-            </>
+            </div>
           ) : (
-            <>
-              {/*<Button asChild variant="outline">*/}
-              {/*  <Link to="/reports">Reports</Link>*/}
-              {/*</Button>*/}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={(user.user_metadata as any)?.avatar_url || (user.user_metadata as any)?.picture} alt="avatar" />
-                      <AvatarFallback>{initials || "U"}</AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel className="max-w-[200px] truncate">
-                    {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/reports">My Reports</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/settings">Profile Settings</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/section-manager">Section Manager</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log("Sign out button clicked");
-                      try {
-                        await signOut();
-                        console.log("Sign out completed, navigating to home");
-                        navigate("/");
-                      } catch (error) {
-                        console.error("Sign out failed:", error);
-                      }
-                    }}
-                  >
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={(user.user_metadata as any)?.avatar_url || (user.user_metadata as any)?.picture} alt="avatar" />
+                    <AvatarFallback>{initials || "U"}</AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="max-w-[200px] truncate">
+                  {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/reports">My Reports</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings">Profile Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/section-manager">Section Manager</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log("Sign out button clicked");
+                    try {
+                      await signOut();
+                      console.log("Sign out completed, navigating to home");
+                      navigate("/");
+                    } catch (error) {
+                      console.error("Sign out failed:", error);
+                    }
+                  }}
+                >
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </nav>
