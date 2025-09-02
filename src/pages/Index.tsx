@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { FEATURE_FLAGS } from "@/constants/featureFlags";
 
 const Index = () => {
   const { user } = useAuth();
@@ -72,7 +73,7 @@ const Index = () => {
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-            Complete business management with AI-powered defect detection, intelligent route optimization, 
+            Complete business management with intelligent route optimization 
             and seamless calendar integration. InterNACHI SOP compliant with wind mitigation specialization.
           </p>
           
@@ -112,35 +113,37 @@ const Index = () => {
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* AI-Powered Defect Detection */}
-          <Card className="p-8 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-2 border-primary/20">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
-                <Zap className="h-8 w-8 text-white" />
+          {/* AI-Powered Defect Detection - Hidden via feature flag */}
+          {FEATURE_FLAGS.SHOW_AI_FEATURES && (
+            <Card className="p-8 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-2 border-primary/20">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
+                  <Zap className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-xl">AI Defect Detection</h3>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Powered by OpenAI</span>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-xl">AI Defect Detection</h3>
-                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Powered by OpenAI</span>
-              </div>
-            </div>
-            <p className="text-muted-foreground mb-6 text-base leading-relaxed">
-              Upload photos and let AI automatically detect and write defect descriptions. Connect your OpenAI API key for intelligent report writing.
-            </p>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <span>Automatic defect identification</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <span>Professional narrative generation</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <span>Your OpenAI API key integration</span>
-              </li>
-            </ul>
-          </Card>
+              <p className="text-muted-foreground mb-6 text-base leading-relaxed">
+                Upload photos and let AI automatically detect and write defect descriptions. Connect your OpenAI API key for intelligent report writing.
+              </p>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span>Automatic defect identification</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span>Professional narrative generation</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+                  <span>Your OpenAI API key integration</span>
+                </li>
+              </ul>
+            </Card>
+          )}
 
           {/* Route Optimization */}
           <Card className="p-8 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-2 border-green-500/20">
@@ -285,7 +288,7 @@ const Index = () => {
               </div>
               <h3 className="font-semibold mb-2">2. Inspect</h3>
               <p className="text-sm text-muted-foreground">
-                Use offline mobile app with AI defect detection and photo capture
+                Use offline mobile app with professional defect templates and photo capture
               </p>
             </div>
             
@@ -295,7 +298,7 @@ const Index = () => {
               </div>
               <h3 className="font-semibold mb-2">3. Generate</h3>
               <p className="text-sm text-muted-foreground">
-                AI writes defects automatically with professional narratives
+                Use professional defect templates with attorney-vetted language
               </p>
             </div>
             

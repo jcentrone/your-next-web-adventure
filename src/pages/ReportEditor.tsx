@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
 import type { Contact } from "@/lib/crmSchemas";
+import { FEATURE_FLAGS } from "@/constants/featureFlags";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -966,19 +967,21 @@ const ReportEditor: React.FC = () => {
                                           </button>
                                         )}
 
-                                        {/* AI Analysis button */}
-                                        <button
-                                          type="button"
-                                          className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow"
-                                          onClick={() => {
-                                            if (!hasSignedUrl) return;
-                                            setAiDialogFindingId(f.id);
-                                            setAiDialogImages([{ id: m.id, url: resolvedUrl!, caption: m.caption }]);
-                                            setAiDialogOpen(true);
-                                          }}
-                                        >
-                                          <Wand2 className="w-4 h-4 text-blue-500" />
-                                        </button>
+                                        {/* AI Analysis button - hidden via feature flag */}
+                                        {FEATURE_FLAGS.SHOW_AI_FEATURES && (
+                                          <button
+                                            type="button"
+                                            className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow"
+                                            onClick={() => {
+                                              if (!hasSignedUrl) return;
+                                              setAiDialogFindingId(f.id);
+                                              setAiDialogImages([{ id: m.id, url: resolvedUrl!, caption: m.caption }]);
+                                              setAiDialogOpen(true);
+                                            }}
+                                          >
+                                            <Wand2 className="w-4 h-4 text-blue-500" />
+                                          </button>
+                                        )}
                                       </div>
                                     );
                                   })}
@@ -1295,13 +1298,16 @@ const ReportEditor: React.FC = () => {
             </DialogContent>
           </Dialog>
 
-          <AIAnalyzeDialog
-            open={aiDialogOpen}
-            onOpenChange={setAiDialogOpen}
-            images={aiDialogImages}
-            loading={aiLoading}
-            onConfirm={handleAIAnalyze}
-          />
+          {/* AI Analysis Dialog - hidden via feature flag */}
+          {FEATURE_FLAGS.SHOW_AI_FEATURES && (
+            <AIAnalyzeDialog
+              open={aiDialogOpen}
+              onOpenChange={setAiDialogOpen}
+              images={aiDialogImages}
+              loading={aiLoading}
+              onConfirm={handleAIAnalyze}
+            />
+          )}
 
           <CameraCapture
             isOpen={cameraOpen}

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Navigation, Search, Brain } from "lucide-react";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as openAI from "@/integrations/openAI";
+import { FEATURE_FLAGS } from "@/constants/featureFlags";
 
 const Integrations: React.FC = () => {
     const { user } = useAuth();
@@ -101,7 +102,8 @@ const Integrations: React.FC = () => {
                 </div>
             )
         },
-        {
+        // OpenAI integration - hidden via feature flag
+        ...(FEATURE_FLAGS.SHOW_AI_FEATURES ? [{
             id: "openai-defects",
             name: "OpenAI Defect Detection",
             type: "ai",
@@ -152,7 +154,7 @@ const Integrations: React.FC = () => {
                     )}
                 </div>
             )
-        }
+        }] : [])
     ], [
         optimizeRoute,
         googleConnected,
@@ -209,7 +211,7 @@ const Integrations: React.FC = () => {
                         <SelectItem value="all">All Types</SelectItem>
                         <SelectItem value="navigation">Navigation & Maps</SelectItem>
                         <SelectItem value="calendar">Calendar Sync</SelectItem>
-                        <SelectItem value="ai">AI Tools</SelectItem>
+                        {FEATURE_FLAGS.SHOW_AI_FEATURES && <SelectItem value="ai">AI Tools</SelectItem>}
                     </SelectContent>
                 </Select>
             </div>
@@ -218,9 +220,9 @@ const Integrations: React.FC = () => {
                 {Object.entries(groupedIntegrations).map(([category, categoryIntegrations]) => (
                     <div key={category} className="space-y-4">
                         <div className="flex items-center gap-2">
-                            {category === "Navigation & Maps" && <Navigation className="h-5 w-5 text-primary" />}
-                            {category === "Calendar Sync" && <Calendar className="h-5 w-5 text-primary" />}
-                            {category === "AI Tools" && <img src="/icons/open-ai-logo.png" alt="OpenAI" className="h-5 w-5 text-primary" />}
+                        {category === "Navigation & Maps" && <Navigation className="h-5 w-5 text-primary" />}
+                        {category === "Calendar Sync" && <Calendar className="h-5 w-5 text-primary" />}
+                        {category === "AI Tools" && FEATURE_FLAGS.SHOW_AI_FEATURES && <img src="/icons/open-ai-logo.png" alt="OpenAI" className="h-5 w-5 text-primary" />}
                             <h3 className="text-base font-medium">{category}</h3>
                         </div>
                         <div className="grid gap-3">
