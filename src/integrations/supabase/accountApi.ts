@@ -5,27 +5,37 @@ export async function exportReportData() {
   const client = supabase as SupabaseClient;
   
   try {
-    const { data, error } = await client.functions.invoke("export-report-data", {
-      headers: {
-        'Content-Type': 'application/json'
+    const response = await client.functions.invoke("export-report-data");
+    
+    if (response.error) {
+      console.error('Edge function error:', response.error);
+      throw new Error(response.error.message || 'Failed to export data');
+    }
+    
+    // The response.data should be a Blob for zip files
+    if (response.data) {
+      // If it's already a blob, return it
+      if (response.data instanceof Blob) {
+        return response.data;
       }
-    });
-    
-    if (error) {
-      console.error('Edge function error:', error);
-      throw new Error(error.message || 'Failed to export data');
+      
+      // If it's a Uint8Array (which JSZip generates), convert to blob
+      if (response.data instanceof Uint8Array) {
+        return new Blob([response.data], { type: 'application/zip' });
+      }
+      
+      // If it's an ArrayBuffer, convert to blob
+      if (response.data instanceof ArrayBuffer) {
+        return new Blob([response.data], { type: 'application/zip' });
+      }
+      
+      // If it's an error response with a message
+      if (typeof response.data === 'object' && response.data.error) {
+        throw new Error(response.data.error);
+      }
     }
     
-    // Ensure we got a blob response
-    if (data && data instanceof Blob) {
-      return data;
-    } else if (data && data instanceof ArrayBuffer) {
-      return new Blob([data], { type: 'application/zip' });
-    } else if (data && typeof data === 'object' && data.error) {
-      throw new Error(data.error);
-    } else {
-      throw new Error('Invalid response format from server');
-    }
+    throw new Error('No data received from export function');
   } catch (error) {
     console.error('Export error:', error);
     throw error;

@@ -69,27 +69,29 @@ Deno.serve(async (req) => {
       .from("profiles")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     // Fetch organization data if user is part of an organization
     const { data: organizationMember } = await supabase
       .from("organization_members")
-      .select("*, organization_id")
+      .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     let organizationData = null;
-    if (organizationMember) {
+    if (organizationMember?.organization_id) {
       const { data: organization } = await supabase
         .from("organizations")
         .select("*")
         .eq("id", organizationMember.organization_id)
-        .single();
+        .maybeSingle();
       
-      organizationData = {
-        membership: organizationMember,
-        organization: organization
-      };
+      if (organization) {
+        organizationData = {
+          membership: organizationMember,
+          organization: organization
+        };
+      }
     }
 
     // Fetch custom fields and sections
