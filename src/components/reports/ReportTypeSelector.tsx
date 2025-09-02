@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Wind, ClipboardList, Shield, Flame } from "lucide-react";
+import { Home, Wind, ClipboardList, Shield, Flame, ShieldCheck } from "lucide-react";
 
 const ReportTypeSelector: React.FC = () => {
   const navigate = useNavigate();
@@ -146,6 +146,31 @@ const ReportTypeSelector: React.FC = () => {
                 onClick={() => navigate("/reports/new/ca-wildfire")}
               >
                 Create CA Wildfire Report
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <ShieldCheck className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle>Roof Certification</CardTitle>
+              <CardDescription>
+                General roof condition certification for underwriting
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                <li>• Roof type and material details</li>
+                <li>• Remaining life estimates</li>
+                <li>• Photo documentation</li>
+              </ul>
+              <Button
+                className="w-full"
+                onClick={() => navigate("/reports/new/roof-certification")}
+              >
+                Create Roof Certification Report
               </Button>
             </CardContent>
           </Card>
