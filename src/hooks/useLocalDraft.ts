@@ -60,7 +60,7 @@ export function createReport(meta: {
   clientName: string;
   address: string;
   inspectionDate: string;
-  reportType?: "home_inspection" | "wind_mitigation";
+  reportType?: Report["reportType"];
 }): Report {
   const id = crypto.randomUUID();
   const reportType = meta.reportType || "home_inspection";
@@ -88,7 +88,7 @@ export function createReport(meta: {
       reportType: "home_inspection",
       sections,
     };
-  } else {
+  } else if (reportType === "wind_mitigation") {
     report = {
       id,
       title: meta.title,
@@ -109,6 +109,20 @@ export function createReport(meta: {
         "6_secondary_water_resistance": {},
         "7_opening_protection": {},
       },
+    };
+  } else {
+    report = {
+      id,
+      title: meta.title,
+      clientName: meta.clientName,
+      address: meta.address,
+      inspectionDate: meta.inspectionDate,
+      status: "Draft",
+      finalComments: "",
+      coverImage: "",
+      previewTemplate: "classic",
+      reportType,
+      reportData: {},
     };
   }
   saveReport(report);
