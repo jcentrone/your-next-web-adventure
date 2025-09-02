@@ -39,6 +39,7 @@ import ContactMultiSelect from "@/components/contacts/ContactMultiSelect";
 const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
 const FlFourPointEditor = React.lazy(() => import("@/components/reports/FlFourPointEditor"));
 const TxWindstormEditor = React.lazy(() => import("@/components/reports/TxWindstormEditor"));
+const CaWildfireEditor = React.lazy(() => import("@/components/reports/CaWildfireEditor"));
 
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 type Severity = typeof SEVERITIES[number];
@@ -693,6 +694,19 @@ const ReportEditor: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <React.Suspense fallback={<div>Loading...</div>}>
             <TxWindstormEditor report={report as any} onUpdate={setReport as any} />
+          </React.Suspense>
+        </div>
+      </>
+    );
+  }
+
+  if (report && report.reportType === "ca_wildfire_defensible_space") {
+    return (
+      <>
+        <Seo title={`${report.title} | CA Wildfire Editor`} />
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <CaWildfireEditor report={report as any} onUpdate={setReport as any} />
           </React.Suspense>
         </div>
       </>

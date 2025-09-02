@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Archive, FileText, Wind } from "lucide-react";
+import { Archive, FileText, Wind, Flame } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Report } from "@/lib/reportSchemas";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
@@ -32,7 +32,11 @@ export const ReportsFilterToggle: React.FC<ReportsFilterToggleProps> = ({
           <SelectContent>
             <SelectItem value="all">All Report Types</SelectItem>
             {Object.entries(REPORT_TYPE_LABELS).map(([value, label]) => {
-              const Icon = value.includes("wind") ? Wind : FileText;
+              const Icon = value.includes("wind")
+                ? Wind
+                : value.includes("wildfire")
+                ? Flame
+                : FileText;
               return (
                 <SelectItem key={value} value={value}>
                   <div className="flex items-center">
