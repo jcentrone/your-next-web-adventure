@@ -85,6 +85,27 @@ export type Database = {
           },
         ]
       }
+      ai_tokens: {
+        Row: {
+          api_key: string
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -147,27 +168,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      ai_tokens: {
-        Row: {
-          user_id: string
-          api_key: string
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          user_id: string
-          api_key: string
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          user_id?: string
-          api_key?: string
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
       }
       calendar_events: {
         Row: {
@@ -453,25 +453,40 @@ export type Database = {
       email_templates: {
         Row: {
           created_at: string
+          is_active: boolean | null
+          language: string | null
           organization_id: string
           report_email_body: string
           report_email_subject: string
+          template_type:
+            | Database["public"]["Enums"]["email_template_type"]
+            | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           created_at?: string
+          is_active?: boolean | null
+          language?: string | null
           organization_id: string
           report_email_body?: string
           report_email_subject?: string
+          template_type?:
+            | Database["public"]["Enums"]["email_template_type"]
+            | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           created_at?: string
+          is_active?: boolean | null
+          language?: string | null
           organization_id?: string
           report_email_body?: string
           report_email_subject?: string
+          template_type?:
+            | Database["public"]["Enums"]["email_template_type"]
+            | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -575,11 +590,15 @@ export type Database = {
           address: string | null
           created_at: string
           email: string | null
+          email_from_address: string | null
+          email_from_name: string | null
           id: string
           license_number: string | null
           logo_url: string | null
           name: string
           phone: string | null
+          primary_color: string | null
+          secondary_color: string | null
           slug: string | null
           updated_at: string
           website: string | null
@@ -588,11 +607,15 @@ export type Database = {
           address?: string | null
           created_at?: string
           email?: string | null
+          email_from_address?: string | null
+          email_from_name?: string | null
           id?: string
           license_number?: string | null
           logo_url?: string | null
           name: string
           phone?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           slug?: string | null
           updated_at?: string
           website?: string | null
@@ -601,11 +624,15 @@ export type Database = {
           address?: string | null
           created_at?: string
           email?: string | null
+          email_from_address?: string | null
+          email_from_name?: string | null
           id?: string
           license_number?: string | null
           logo_url?: string | null
           name?: string
           phone?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           slug?: string | null
           updated_at?: string
           website?: string | null
@@ -1080,6 +1107,14 @@ export type Database = {
         | "cancelled"
         | "rescheduled"
       contact_type: "client" | "realtor" | "vendor" | "contractor" | "other"
+      email_template_type:
+        | "report_share"
+        | "signup_confirmation"
+        | "password_recovery"
+        | "magic_link"
+        | "invite"
+        | "email_change"
+        | "reauthentication"
       organization_role: "owner" | "admin" | "inspector" | "viewer"
       report_status: "Draft" | "Final"
       section_key:
@@ -1250,6 +1285,15 @@ export const Constants = {
         "rescheduled",
       ],
       contact_type: ["client", "realtor", "vendor", "contractor", "other"],
+      email_template_type: [
+        "report_share",
+        "signup_confirmation",
+        "password_recovery",
+        "magic_link",
+        "invite",
+        "email_change",
+        "reauthentication",
+      ],
       organization_role: ["owner", "admin", "inspector", "viewer"],
       report_status: ["Draft", "Final"],
       section_key: [

@@ -5,7 +5,15 @@ export async function exportReportData() {
   const client = supabase as SupabaseClient;
   
   try {
-    const response = await client.functions.invoke("export-report-data");
+    // Request the edge function and explicitly ask for binary data.
+    // Without specifying the response type, supabase-js attempts to
+    // parse the body as JSON which results in an "Invalid response
+    // format" error when the function returns a zip file.
+    const response = await client.functions.invoke("export-report-data", {
+      headers: {
+        'Accept': 'application/zip'
+      }
+    });
     
     if (response.error) {
       console.error('Edge function error:', response.error);
