@@ -154,88 +154,137 @@ const EmailTemplate: React.FC = () => {
     };
 
     return (
-        <div className="container mx-auto p-4 space-y-8">
+        <div className="container mx-auto p-6 max-w-7xl">
             <Seo title="Report Email Template"/>
-            <h1 className="text-2xl font-bold">Report Email Template</h1>
-            {template?.updated_at && (
-                <span className="text-sm text-muted-foreground">
-                    Last
-                    edited {new Date(template.updated_at).toLocaleString()} {updatedBy ? `by ${updatedBy.full_name || updatedBy.email}` : ""}
-                </span>
-            )}
-          <div className={"grid grid-cols-2 md:grid-cols-2 gap-4"}>
-
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-
-              <div>
-                <Label htmlFor="subject"><h2 className="text-xl font-semibold mb-2">Subject</h2></Label>
-                <div className="mt-1 flex gap-2">
-                  <Input
-                      id="subject"
-                      ref={subjectRef}
-                      value={subject}
-                      onChange={(e) => setSubject(e.target.value)}
-                      onSelect={updateSubjectSelection}
-                      onKeyUp={updateSubjectSelection}
-                      onClick={updateSubjectSelection}
-                  />
-                  <Select
-                      value={subjectSelectValue}
-                      onValueChange={handleInsertSubject}
-                  >
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Insert merge field"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mergeFields.map((token) => (
-                          <SelectItem key={token} value={token}>
-                            {token}
-                          </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                  <Label className="mb-2 block"><h2 className="text-xl font-semibold mb-2">Body</h2></Label>
-                  <div className="flex flex-col gap-2">
-                  <Select value={bodySelectValue} onValueChange={handleInsertBody}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Insert merge field"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mergeFields.map((token) => (
-                          <SelectItem key={token} value={token}>
-                            {token}
-                          </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <ReactQuill
-                      ref={quillRef}
-                      theme="snow"
-                      value={body}
-                      onChange={setBody}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" disabled={saveMutation.isPending}>
-                  Save Template
-                </Button>
-                <Button type="button" variant="outline" onClick={handleReset} disabled={saveMutation.isPending}>
-                  Reset to default
-                </Button>
-              </div>
-            </form>
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Preview</h2>
-              <div className="border rounded-md p-4">
-                <div dangerouslySetInnerHTML={{__html: preview}}/>
-              </div>
+            
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold text-foreground">Report Email Template</h1>
+                {template?.updated_at && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                        Last edited {new Date(template.updated_at).toLocaleString()} {updatedBy ? `by ${updatedBy.full_name || updatedBy.email}` : ""}
+                    </p>
+                )}
             </div>
-          </div>
+
+            <div className="grid lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                    <div className="bg-card border rounded-lg p-6">
+                        <h2 className="text-xl font-semibold mb-4 text-card-foreground">Email Template Editor</h2>
+                        
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="space-y-3">
+                                <Label htmlFor="subject" className="text-sm font-medium">Subject Line</Label>
+                                <div className="flex gap-2">
+                                    <Input
+                                        id="subject"
+                                        ref={subjectRef}
+                                        value={subject}
+                                        onChange={(e) => setSubject(e.target.value)}
+                                        onSelect={updateSubjectSelection}
+                                        onKeyUp={updateSubjectSelection}
+                                        onClick={updateSubjectSelection}
+                                        placeholder="Enter email subject..."
+                                        className="flex-1"
+                                    />
+                                    <Select
+                                        value={subjectSelectValue}
+                                        onValueChange={handleInsertSubject}
+                                    >
+                                        <SelectTrigger className="w-[180px]">
+                                            <SelectValue placeholder="Insert field"/>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {mergeFields.map((token) => (
+                                                <SelectItem key={token} value={token}>
+                                                    {token}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <Label className="text-sm font-medium">Email Body</Label>
+                                <Select value={bodySelectValue} onValueChange={handleInsertBody}>
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Insert field"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {mergeFields.map((token) => (
+                                            <SelectItem key={token} value={token}>
+                                                {token}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <div className="border rounded-md">
+                                    <ReactQuill
+                                        ref={quillRef}
+                                        theme="snow"
+                                        value={body}
+                                        onChange={setBody}
+                                        style={{ minHeight: "200px" }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <Button type="submit" disabled={saveMutation.isPending} className="flex-1">
+                                    {saveMutation.isPending ? "Saving..." : "Save Template"}
+                                </Button>
+                                <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    onClick={handleReset} 
+                                    disabled={saveMutation.isPending}
+                                >
+                                    Reset to Default
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <div className="bg-card border rounded-lg p-6">
+                        <h2 className="text-xl font-semibold mb-4 text-card-foreground">Email Preview</h2>
+                        <div className="bg-background border rounded-lg p-4 min-h-[400px]">
+                            <div className="space-y-4">
+                                <div className="border-b border-border pb-3">
+                                    <div className="text-sm text-muted-foreground mb-1">Subject:</div>
+                                    <div className="font-medium text-foreground">
+                                        {replaceMergeFields(subject, {organization, inspector: profile, report: sampleReport}) || "No subject"}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="text-sm text-muted-foreground mb-2">Message:</div>
+                                    <div 
+                                        className="prose prose-sm max-w-none text-foreground"
+                                        dangerouslySetInnerHTML={{__html: preview}}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-muted/50 border rounded-lg p-4">
+                        <h3 className="font-medium text-sm mb-2">Available Merge Fields</h3>
+                        <div className="grid grid-cols-1 gap-1 text-xs">
+                            {mergeFields.slice(0, 6).map((field) => (
+                                <code key={field} className="bg-background px-2 py-1 rounded text-muted-foreground">
+                                    {field}
+                                </code>
+                            ))}
+                            {mergeFields.length > 6 && (
+                                <div className="text-muted-foreground italic">
+                                    +{mergeFields.length - 6} more fields available
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
