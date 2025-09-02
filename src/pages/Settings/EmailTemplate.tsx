@@ -6,7 +6,7 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Button} from "@/components/ui/button";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
-import {toast} from "@/hooks/use-toast";
+import {toast} from "@/components/ui/use-toast";
 import {
   getMyOrganization,
   getMyProfile,
@@ -218,22 +218,13 @@ const EmailTemplate: React.FC = () => {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <div className="border border-input rounded-md bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                                <div className="border rounded-md">
                                     <ReactQuill
                                         ref={quillRef}
                                         theme="snow"
                                         value={body}
                                         onChange={setBody}
-                                        style={{ minHeight: "300px" }}
-                                        modules={{
-                                            toolbar: [
-                                                [{ 'header': [1, 2, false] }],
-                                                ['bold', 'italic', 'underline'],
-                                                ['link'],
-                                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                                                ['clean']
-                                            ],
-                                        }}
+                                        style={{ minHeight: "200px" }}
                                     />
                                 </div>
                             </div>
