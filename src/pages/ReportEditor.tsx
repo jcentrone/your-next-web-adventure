@@ -41,6 +41,7 @@ const FlFourPointEditor = React.lazy(() => import("@/components/reports/FlFourPo
 const TxWindstormEditor = React.lazy(() => import("@/components/reports/TxWindstormEditor"));
 const CaWildfireEditor = React.lazy(() => import("@/components/reports/CaWildfireEditor"));
 const RoofCertificationEditor = React.lazy(() => import("@/components/reports/RoofCertificationEditor"));
+const ManufacturedHomeEditor = React.lazy(() => import("@/components/reports/ManufacturedHomeEditor"));
 
 const SEVERITIES = ["Info", "Maintenance", "Minor", "Moderate", "Major", "Safety"] as const;
 type Severity = typeof SEVERITIES[number];
@@ -726,6 +727,19 @@ const ReportEditor: React.FC = () => {
       </>
     );
   }
+  if (report && report.reportType === "manufactured_home_insurance_prep") {
+    return (
+      <>
+        <Seo title={`${report.title} | Manufactured Home Editor`} />
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <ManufacturedHomeEditor report={report as any} onUpdate={setReport as any} />
+          </React.Suspense>
+        </div>
+      </>
+    );
+  }
+
 
   if (report && report.reportType !== "home_inspection") {
     return (

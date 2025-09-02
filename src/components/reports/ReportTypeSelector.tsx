@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Wind, ClipboardList, Shield, Flame, ShieldCheck } from "lucide-react";
+import { Home, Wind, ClipboardList, Shield, Flame, ShieldCheck, Factory } from "lucide-react";
 
 const ReportTypeSelector: React.FC = () => {
   const navigate = useNavigate();
@@ -149,6 +149,30 @@ const ReportTypeSelector: React.FC = () => {
               </Button>
             </CardContent>
           </Card>
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
+              <CardHeader className="text-center">
+                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <Factory className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle>Manufactured Home Inspection</CardTitle>
+                <CardDescription>
+                  Pre-certification checklist for manufactured/mobile homes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                  <li>• Home identifiers and HUD labels</li>
+                  <li>• Foundation, tie-down, and skirting review</li>
+                  <li>• Utilities and additions evaluation</li>
+                </ul>
+                <Button
+                  className="w-full"
+                  onClick={() => navigate("/reports/new/manufactured-home")}
+                >
+                  Create Manufactured Home Report
+                </Button>
+              </CardContent>
+            </Card>
 
           <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
             <CardHeader className="text-center">
