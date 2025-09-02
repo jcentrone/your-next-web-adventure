@@ -342,7 +342,12 @@ export async function dbGetReport(id: string): Promise<Report | null> {
 }
 
 export async function dbUpdateReport(report: Report): Promise<Report> {
-  const payload = toDbPayload(report);
+  const payload = {
+    ...toDbPayload(report),
+    // Include sections for home inspection reports
+    sections: report.reportType === "home_inspection" ? (report as any).sections : null,
+  };
+  
   console.log("dbUpdateReport payload", payload);
   const { data, error } = await (supabase as any)
     .from("reports")
