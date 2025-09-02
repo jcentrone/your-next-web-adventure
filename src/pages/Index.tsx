@@ -59,43 +59,35 @@ const Index = () => {
       <Seo title={title} description={description} canonical="/" jsonLd={jsonLd} />
 
       {/* Hero Section */}
-      <section id="hero" className="relative max-w-7xl mx-auto px-4 py-16 md:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 -z-10" />
-        <div className="text-center max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-6">
-            <Star className="w-4 h-4" />
-            Complete Inspection Business Platform
-          </div>
-          
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-            Smart Home Inspection Platform for{" "}
-            <span className="text-primary">Modern Inspectors</span>
+      <section id="hero" className="relative max-w-7xl mx-auto px-4 py-20 md:py-32">
+        <div className="text-center max-w-5xl mx-auto">
+          <h1 className="text-5xl md:text-7xl font-light tracking-tight mb-8 text-foreground">
+            Professional Home Inspection{" "}
+            <span className="font-medium text-primary">Platform</span>
           </h1>
           
-          <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-            Complete business management with intelligent route optimization 
-            and seamless calendar integration. InterNACHI SOP compliant with wind mitigation specialization.
+          <p className="text-xl md:text-2xl text-muted-foreground mb-12 font-light leading-relaxed max-w-3xl mx-auto">
+            Streamline your inspection business with intelligent tools, professional reporting, and seamless integrations
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             {user ? (
-              <Button size="lg" className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground" asChild>
+              <Button size="lg" className="h-12 px-8 text-base font-medium" asChild>
                 <Link to="/dashboard">
                   Go to Dashboard
-                  <ArrowRight className="ml-2 w-4 h-4" />
+                  <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
             ) : (
               <>
-                <Button size="lg" className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground" asChild>
+                <Button size="lg" className="h-12 px-8 text-base font-medium" asChild>
                   <Link to="/auth">
-                    Start Free Trial
-                    <ArrowRight className="ml-2 w-4 h-4" />
+                    Get Started
+                    <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-primary/20 hover:bg-primary/5">
-                  <Globe className="mr-2 w-4 h-4" />
-                  Watch Demo
+                <Button size="lg" variant="ghost" className="h-12 px-8 text-base font-medium text-muted-foreground hover:text-foreground">
+                  View Demo
                 </Button>
               </>
             )}
@@ -104,229 +96,161 @@ const Index = () => {
       </section>
 
       {/* Core Features */}
-      <section id="features" className="max-w-7xl mx-auto px-4 pb-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Everything You Need in One Platform</h2>
-          <p className="text-muted-foreground text-lg">
-            Complete inspection business management with intelligent automation and modern integrations.
+      <section id="features" className="max-w-7xl mx-auto px-4 pb-24">
+        <div className="text-center mb-20">
+          <h2 className="text-4xl md:text-5xl font-light mb-6">Built for Modern Inspectors</h2>
+          <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto">
+            Essential tools designed to streamline your inspection workflow from scheduling to reporting
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* AI-Powered Defect Detection - Hidden via feature flag */}
-          {FEATURE_FLAGS.SHOW_AI_FEATURES && (
-            <Card className="p-8 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-2 border-primary/20">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
-                  <Zap className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-xl">AI Defect Detection</h3>
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Powered by OpenAI</span>
-                </div>
-              </div>
-              <p className="text-muted-foreground mb-6 text-base leading-relaxed">
-                Upload photos and let AI automatically detect and write defect descriptions. Connect your OpenAI API key for intelligent report writing.
-              </p>
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                  <span>Automatic defect identification</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                  <span>Professional narrative generation</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                  <span>Your OpenAI API key integration</span>
-                </li>
-              </ul>
-            </Card>
-          )}
-
+        <div className="grid lg:grid-cols-3 gap-16 lg:gap-8">
           {/* Route Optimization */}
-          <Card className="p-8 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-2 border-green-500/20">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
-                <MapPin className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-xl">Smart Route Optimization</h3>
-                <span className="text-xs bg-green-500/10 text-green-600 px-2 py-1 rounded-full">Google Maps & Waze</span>
-              </div>
+          <div className="group">
+            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-8 group-hover:bg-primary/10 transition-colors">
+              <MapPin className="h-8 w-8 text-primary" />
             </div>
-            <p className="text-muted-foreground mb-6 text-base leading-relaxed">
-              Automatically optimize your daily inspection routes using Google Maps and Waze. Save time and fuel with intelligent scheduling based on location proximity.
+            <h3 className="text-2xl font-medium mb-4">Smart Route Planning</h3>
+            <p className="text-muted-foreground leading-relaxed mb-6">
+              Optimize daily routes with Google Maps and Waze integration. Reduce travel time and fuel costs with intelligent scheduling.
             </p>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <span>Multi-stop route planning</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <span>Real-time traffic optimization</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <span>Fuel and time savings</span>
-              </li>
-            </ul>
-          </Card>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div>Multi-stop optimization</div>
+              <div>Real-time traffic data</div>
+              <div>Automatic rerouting</div>
+            </div>
+          </div>
 
-          {/* Google Calendar Integration */}
-          <Card className="p-8 hover:shadow-lg transition-all duration-200 hover:scale-[1.02] border-2 border-blue-500/20">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-                <Calendar className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h3 className="font-bold text-xl">Calendar Sync</h3>
-                <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-1 rounded-full">Google Calendar</span>
-              </div>
+          {/* Calendar Integration */}
+          <div className="group">
+            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-8 group-hover:bg-primary/10 transition-colors">
+              <Calendar className="h-8 w-8 text-primary" />
             </div>
-            <p className="text-muted-foreground mb-6 text-base leading-relaxed">
-              Seamless two-way sync with Google Calendar. Schedule inspections that automatically appear across all your devices.
+            <h3 className="text-2xl font-medium mb-4">Calendar Sync</h3>
+            <p className="text-muted-foreground leading-relaxed mb-6">
+              Seamless Google Calendar integration keeps your schedule synchronized across all devices with automatic conflict detection.
             </p>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <span>Two-way calendar synchronization</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <span>Automatic conflict detection</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                <span>Cross-device availability</span>
-              </li>
-            </ul>
-          </Card>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div>Two-way synchronization</div>
+              <div>Cross-device availability</div>
+              <div>Conflict detection</div>
+            </div>
+          </div>
 
           {/* Professional Reports */}
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-amber-500/10 rounded-lg">
-                <FileText className="h-6 w-6 text-amber-600" />
-              </div>
-              <h3 className="font-semibold text-lg">Professional Reports</h3>
+          <div className="group">
+            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-8 group-hover:bg-primary/10 transition-colors">
+              <FileText className="h-8 w-8 text-primary" />
             </div>
-            <p className="text-muted-foreground mb-4">
-              InterNACHI SOP compliant reports with wind mitigation specialization. Custom branding and 500+ defect templates.
+            <h3 className="text-2xl font-medium mb-4">Professional Reports</h3>
+            <p className="text-muted-foreground leading-relaxed mb-6">
+              InterNACHI SOP compliant reporting with 500+ attorney-vetted templates. Custom branding and digital signatures included.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Home & wind mitigation inspections</li>
-              <li>• Custom branding & signatures</li>
-              <li>• Professional PDF generation</li>
-            </ul>
-          </Card>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div>Home & wind mitigation</div>
+              <div>Custom branding</div>
+              <div>PDF generation</div>
+            </div>
+          </div>
 
           {/* CRM & Contacts */}
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="font-semibold text-lg">Smart CRM</h3>
+          <div className="group">
+            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-8 group-hover:bg-primary/10 transition-colors">
+              <Users className="h-8 w-8 text-primary" />
             </div>
-            <p className="text-muted-foreground mb-4">
-              Manage relationships between clients, realtors, vendors, and contractors with advanced tracking and communication history.
+            <h3 className="text-2xl font-medium mb-4">Smart CRM</h3>
+            <p className="text-muted-foreground leading-relaxed mb-6">
+              Track relationships between clients, realtors, and contractors. Comprehensive contact management with communication history.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Relationship mapping</li>
-              <li>• Communication tracking</li>
-              <li>• Referral management</li>
-            </ul>
-          </Card>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div>Relationship mapping</div>
+              <div>Communication tracking</div>
+              <div>Referral management</div>
+            </div>
+          </div>
 
           {/* Offline Capability */}
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-500/10 rounded-lg">
-                <WifiOff className="h-6 w-6 text-red-600" />
-              </div>
-              <h3 className="font-semibold text-lg">Works Offline</h3>
+          <div className="group">
+            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-8 group-hover:bg-primary/10 transition-colors">
+              <WifiOff className="h-8 w-8 text-primary" />
             </div>
-            <p className="text-muted-foreground mb-4">
-              Complete functionality without internet. PWA technology with automatic sync ensures no data loss anywhere.
+            <h3 className="text-2xl font-medium mb-4">Works Offline</h3>
+            <p className="text-muted-foreground leading-relaxed mb-6">
+              Full functionality without internet connection. Progressive Web App with automatic synchronization when online.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Full offline capability</li>
-              <li>• Automatic background sync</li>
-              <li>• Zero data loss guarantee</li>
-            </ul>
-          </Card>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div>Complete offline access</div>
+              <div>Automatic sync</div>
+              <div>Zero data loss</div>
+            </div>
+          </div>
 
-          {/* Wind Mitigation Specialization */}
-          <Card className="p-6 hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-teal-500/10 rounded-lg">
-                <Wind className="h-6 w-6 text-teal-600" />
-              </div>
-              <h3 className="font-semibold text-lg">Wind Mitigation Reports</h3>
+          {/* Wind Mitigation */}
+          <div className="group">
+            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-8 group-hover:bg-primary/10 transition-colors">
+              <Wind className="h-8 w-8 text-primary" />
             </div>
-            <p className="text-muted-foreground mb-4">
-              Specialized wind mitigation inspection forms with OIR-B1-1802 compliance. Pre-filled templates for Florida insurance requirements.
+            <h3 className="text-2xl font-medium mb-4">Wind Mitigation</h3>
+            <p className="text-muted-foreground leading-relaxed mb-6">
+              Specialized wind mitigation forms with OIR-B1-1802 compliance. Automated calculations for insurance discounts.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• OIR-B1-1802 form integration</li>
-              <li>• Insurance discount calculations</li>
-              <li>• Automated PDF generation</li>
-            </ul>
-          </Card>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <div>OIR-B1-1802 forms</div>
+              <div>Discount calculations</div>
+              <div>Compliance reporting</div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Streamlined Workflow */}
-      <section className="bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30 py-16">
+      {/* Workflow Section */}
+      <section className="bg-muted/20 py-24">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Simple 4-Step Process</h2>
-            <p className="text-muted-foreground text-lg">
-              From scheduling to report delivery with intelligent automation
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-light mb-6">Streamlined Workflow</h2>
+            <p className="text-xl text-muted-foreground font-light max-w-2xl mx-auto">
+              From inspection to delivery in four simple steps
             </p>
           </div>
           
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                <Calendar className="w-8 h-8 text-primary-foreground" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
+            <div className="text-center">
+              <div className="w-20 h-20 rounded-full border-2 border-primary/20 flex items-center justify-center mx-auto mb-6">
+                <Calendar className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">1. Schedule</h3>
-              <p className="text-sm text-muted-foreground">
-                Book inspections with Google Calendar sync and route optimization
+              <h3 className="text-xl font-medium mb-3">Schedule</h3>
+              <p className="text-muted-foreground">
+                Sync appointments with your calendar and optimize daily routes
               </p>
             </div>
             
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                <Smartphone className="w-8 h-8 text-white" />
+            <div className="text-center">
+              <div className="w-20 h-20 rounded-full border-2 border-primary/20 flex items-center justify-center mx-auto mb-6">
+                <Smartphone className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">2. Inspect</h3>
-              <p className="text-sm text-muted-foreground">
-                Use offline mobile app with professional defect templates and photo capture
+              <h3 className="text-xl font-medium mb-3">Inspect</h3>
+              <p className="text-muted-foreground">
+                Complete inspections offline with professional templates
               </p>
             </div>
             
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                <Zap className="w-8 h-8 text-white" />
+            <div className="text-center">
+              <div className="w-20 h-20 rounded-full border-2 border-primary/20 flex items-center justify-center mx-auto mb-6">
+                <FileText className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">3. Generate</h3>
-              <p className="text-sm text-muted-foreground">
-                Use professional defect templates with attorney-vetted language
+              <h3 className="text-xl font-medium mb-3">Generate</h3>
+              <p className="text-muted-foreground">
+                Create professional reports with custom branding
               </p>
             </div>
             
-            <div className="text-center group">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                <Mail className="w-8 h-8 text-white" />
+            <div className="text-center">
+              <div className="w-20 h-20 rounded-full border-2 border-primary/20 flex items-center justify-center mx-auto mb-6">
+                <Mail className="w-10 h-10 text-primary" />
               </div>
-              <h3 className="font-semibold mb-2">4. Deliver</h3>
-              <p className="text-sm text-muted-foreground">
-                Professional PDF reports delivered automatically to clients
+              <h3 className="text-xl font-medium mb-3">Deliver</h3>
+              <p className="text-muted-foreground">
+                Send reports directly to clients automatically
               </p>
             </div>
           </div>
@@ -334,101 +258,109 @@ const Index = () => {
       </section>
 
       {/* Templates Section */}
-      <section id="templates" className="max-w-7xl mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+      <section id="templates" className="max-w-7xl mx-auto px-4 py-24">
+        <div className="grid lg:grid-cols-2 gap-20 items-center">
           <div>
-            <h2 className="text-3xl font-bold mb-4">Professional Templates & Branding</h2>
-            <p className="text-muted-foreground mb-6 text-lg">
-              Attorney-vetted narrative templates for each SOP section ensure consistent, professional language. 
-              Custom branding makes every report uniquely yours.
+            <h2 className="text-4xl md:text-5xl font-light mb-8">Professional Templates</h2>
+            <p className="text-xl text-muted-foreground leading-relaxed mb-12 font-light">
+              Over 500 attorney-vetted defect narratives ensure consistent, professional language in every report. 
+              Complete branding customization makes each report uniquely yours.
             </p>
-            <div className="space-y-4 mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full" />
-                <span className="text-sm">500+ pre-written defect narratives</span>
+            <div className="space-y-6 mb-12">
+              <div className="flex items-start gap-4">
+                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-1 flex-shrink-0">
+                  <div className="w-2 h-2 bg-primary rounded-full" />
+                </div>
+                <div>
+                  <div className="font-medium mb-1">500+ Defect Narratives</div>
+                  <div className="text-muted-foreground">Attorney-reviewed templates for every inspection scenario</div>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full" />
-                <span className="text-sm">Custom logos, colors, and signatures</span>
+              <div className="flex items-start gap-4">
+                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-1 flex-shrink-0">
+                  <div className="w-2 h-2 bg-primary rounded-full" />
+                </div>
+                <div>
+                  <div className="font-medium mb-1">Custom Branding</div>
+                  <div className="text-muted-foreground">Your logo, colors, and digital signature on every report</div>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full" />
-                <span className="text-sm">Professional PDF generation</span>
+              <div className="flex items-start gap-4">
+                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-1 flex-shrink-0">
+                  <div className="w-2 h-2 bg-primary rounded-full" />
+                </div>
+                <div>
+                  <div className="font-medium mb-1">Professional Output</div>
+                  <div className="text-muted-foreground">High-quality PDF generation with customizable layouts</div>
+                </div>
               </div>
             </div>
             {user ? (
-              <Button asChild>
+              <Button size="lg" className="h-12 px-8" asChild>
                 <Link to="/defects-admin">Manage Templates</Link>
               </Button>
             ) : (
-              <Button>View Sample Report</Button>
+              <Button size="lg" variant="outline" className="h-12 px-8">View Sample Report</Button>
             )}
           </div>
-          <Card className="p-6">
-            <h4 className="font-semibold mb-4">Sample Defect Templates</h4>
-            <div className="space-y-4 text-sm">
-              <div className="p-3 bg-muted/50 rounded">
-                <div className="font-medium text-red-600 mb-1">Roof - Major</div>
-                <p className="text-muted-foreground">
-                  "Multiple shingles are missing or damaged on the south-facing slope. This condition allows water intrusion..."
+          <div className="bg-muted/30 rounded-2xl p-8">
+            <div className="space-y-6">
+              <div className="bg-background rounded-xl p-6 border border-red-200">
+                <div className="text-sm font-medium text-red-600 mb-3">Major Issue • Roof System</div>
+                <p className="text-muted-foreground leading-relaxed">
+                  Multiple shingles are missing or damaged on the south-facing slope. This condition may allow water intrusion 
+                  and should be addressed promptly by a qualified roofing contractor.
                 </p>
               </div>
-              <div className="p-3 bg-muted/50 rounded">
-                <div className="font-medium text-orange-600 mb-1">Electrical - Safety</div>
-                <p className="text-muted-foreground">
-                  "Open electrical junction box observed in basement. Recommend installing proper cover for safety..."
+              <div className="bg-background rounded-xl p-6 border border-orange-200">
+                <div className="text-sm font-medium text-orange-600 mb-3">Safety Concern • Electrical</div>
+                <p className="text-muted-foreground leading-relaxed">
+                  Open electrical junction box observed in basement area. Recommend installing proper cover 
+                  for safety compliance and code requirements.
                 </p>
               </div>
-              <div className="p-3 bg-muted/50 rounded">
-                <div className="font-medium text-blue-600 mb-1">Plumbing - Minor</div>
-                <p className="text-muted-foreground">
-                  "Minor leak observed at kitchen sink P-trap. Recommend tightening connections..."
+              <div className="bg-background rounded-xl p-6 border border-blue-200">
+                <div className="text-sm font-medium text-blue-600 mb-3">Minor Issue • Plumbing</div>
+                <p className="text-muted-foreground leading-relaxed">
+                  Minor leak observed at kitchen sink P-trap connection. Recommend tightening 
+                  connections or replacement of worn gaskets.
                 </p>
               </div>
             </div>
-          </Card>
+          </div>
         </div>
       </section>
 
       {/* Call to Action */}
-      <section className="max-w-7xl mx-auto px-4 py-16">
-        <div className="relative bg-gradient-to-br from-primary via-primary to-primary/80 rounded-3xl p-8 md:p-12 text-center overflow-hidden">
-          <div className="absolute inset-0 bg-grid-white/10 opacity-20" />
-          <div className="relative z-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Ready to Streamline Your Inspections?
-            </h2>
-            <p className="text-primary-foreground/90 text-lg mb-8 max-w-2xl mx-auto">
-              Join professional inspectors using AI-powered defect detection, smart routing, and seamless calendar sync.
-            </p>
-            
+      <section className="max-w-7xl mx-auto px-4 py-24">
+        <div className="text-center bg-muted/30 rounded-3xl p-16 md:p-24">
+          <h2 className="text-4xl md:text-6xl font-light mb-8">
+            Ready to Streamline Your Business?
+          </h2>
+          <p className="text-xl text-muted-foreground mb-12 font-light max-w-2xl mx-auto">
+            Join professional inspectors who have transformed their workflow with our modern platform
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
             {user ? (
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg" asChild>
+              <Button size="lg" className="h-12 px-8 text-base font-medium" asChild>
                 <Link to="/dashboard">
-                  Open Dashboard
+                  Access Dashboard
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
             ) : (
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg" asChild>
+              <>
+                <Button size="lg" className="h-12 px-8 text-base font-medium" asChild>
                   <Link to="/auth">
                     Start Free Trial
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                  <Globe className="mr-2 w-5 h-5" />
-                  View Demo
+                <Button size="lg" variant="outline" className="h-12 px-8 text-base font-medium">
+                  Schedule Demo
                 </Button>
-              </div>
+              </>
             )}
-            
-            <div className="mt-8 pt-8 border-t border-white/20">
-              <p className="text-white/80 text-sm">
-                ✓ AI defect detection  ✓ Route optimization  ✓ Google Calendar sync  ✓ Works offline
-              </p>
-            </div>
           </div>
         </div>
       </section>
