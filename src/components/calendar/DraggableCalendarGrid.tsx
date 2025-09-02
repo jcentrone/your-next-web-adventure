@@ -241,9 +241,9 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
                 <div className="flex flex-col h-full">
                   <div className={cn(
                     "text-sm font-medium mb-1",
-                    isToday(day) && "text-primary font-bold"
+                    isToday(cloneDay) && "text-primary font-bold"
                   )}>
-                    {format(day, "d")}
+                    {format(cloneDay, "d")}
                   </div>
                   <div className="flex-1 space-y-1 overflow-hidden">
                     {dayAppointments.slice(0, 3).map((appointment, index) => (
