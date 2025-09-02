@@ -8,6 +8,7 @@ import SectionInfoDisplay from "./SectionInfoDisplay";
 import { isSupabaseUrl } from "@/integrations/supabase/storage";
 import { COVER_TEMPLATES } from "@/constants/coverTemplates";
 import { FL_FOUR_POINT_QUESTIONS } from "@/constants/flFourPointQuestions";
+import { TX_WINDSTORM_QUESTIONS } from "@/constants/txWindstormQuestions";
 
 
 interface PDFDocumentProps {
@@ -47,6 +48,48 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                                 ))}
                                 </tbody>
                             </table>
+                        </section>
+                    ))}
+                </div>
+            );
+        }
+
+        if (report.reportType === "tx_coastal_windstorm_mitigation") {
+            const sections = TX_WINDSTORM_QUESTIONS.sections;
+            return (
+                <div ref={ref} className="pdf-document">
+                    <section className="pdf-page-break">
+                        <div className="text-center p-8">
+                            {coverUrl && <img src={coverUrl} alt="Cover" className="mx-auto mb-6 h-40 w-auto" />}
+                            <h1 className="text-2xl font-bold mb-2">{report.title}</h1>
+                            <p className="mb-1">{report.clientName}</p>
+                            <p className="mb-1">{report.address}</p>
+                            <p className="mb-1">Inspection Date: {report.inspectionDate}</p>
+                        </div>
+                    </section>
+                    {sections.map((section) => (
+                        <section key={section.name} className="pdf-page-break p-8">
+                            <h2 className="text-xl font-semibold mb-4 capitalize">{section.name.replace(/_/g, " ")}</h2>
+                            {section.name === "photos" ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {((report.reportData?.[section.name] || {}).photos || []).map((url: string, idx: number) => (
+                                        <img key={idx} src={mediaUrlMap[url] || url} alt="" className="h-24 w-auto rounded border" />
+                                    ))}
+                                </div>
+                            ) : (
+                                <table className="w-full text-sm border-collapse">
+                                    <tbody>
+                                    {section.fields.map((field) => (
+                                        <tr key={field.name}>
+                                            <td className="border p-2 font-medium w-1/2">{field.label}</td>
+                                            <td className="border p-2">
+                                                {String((report.reportData?.[section.name] || {})[field.name] || "")}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            )}
                         </section>
                     ))}
                 </div>
