@@ -148,6 +148,51 @@ export type Database = {
           },
         ]
       }
+      calendar_events: {
+        Row: {
+          appointment_id: string
+          event_id: string
+          provider: string
+          user_id: string
+        }
+        Insert: {
+          appointment_id: string
+          event_id: string
+          provider: string
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string
+          event_id?: string
+          provider?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      calendar_tokens: {
+        Row: {
+          access_token: string
+          expires_at: string | null
+          provider: string
+          refresh_token: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          expires_at?: string | null
+          provider: string
+          refresh_token?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          expires_at?: string | null
+          provider?: string
+          refresh_token?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_relationships: {
         Row: {
           created_at: string
@@ -384,6 +429,41 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          created_at: string
+          organization_id: string
+          report_email_body: string
+          report_email_subject: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          organization_id: string
+          report_email_body?: string
+          report_email_subject?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          organization_id?: string
+          report_email_body?: string
+          report_email_subject?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_invitations: {
         Row: {
           accepted_at: string | null
@@ -553,6 +633,41 @@ export type Database = {
         }
         Relationships: []
       }
+      report_shares: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          last_accessed_at: string | null
+          report_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          report_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          report_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_shares_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           address: string
@@ -660,41 +775,6 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      report_shares: {
-        Row: {
-          id: string
-          report_id: string
-          token: string
-          created_at: string
-          expires_at: string | null
-          last_accessed_at: string | null
-        }
-        Insert: {
-          id?: string
-          report_id: string
-          token: string
-          created_at?: string
-          expires_at?: string | null
-          last_accessed_at?: string | null
-        }
-        Update: {
-          id?: string
-          report_id?: string
-          token?: string
-          created_at?: string
-          expires_at?: string | null
-          last_accessed_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "report_shares_report_id_fkey"
-            columns: ["report_id"]
-            isOneToOne: false
-            referencedRelation: "reports"
             referencedColumns: ["id"]
           },
         ]
