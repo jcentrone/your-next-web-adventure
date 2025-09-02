@@ -85,6 +85,27 @@ export type Database = {
           },
         ]
       }
+      ai_tokens: {
+        Row: {
+          api_key: string
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -147,27 +168,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      ai_tokens: {
-        Row: {
-          user_id: string
-          api_key: string
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          user_id: string
-          api_key: string
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          user_id?: string
-          api_key?: string
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
       }
       calendar_events: {
         Row: {

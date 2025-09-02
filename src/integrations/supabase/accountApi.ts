@@ -10,9 +10,9 @@ export async function exportReportData() {
     // parse the body as JSON which results in an "Invalid response
     // format" error when the function returns a zip file.
     const response = await client.functions.invoke("export-report-data", {
-      // The function returns a Uint8Array/ArrayBuffer representing the
-      // zipped data export, so we need the raw array buffer here.
-      responseType: "arrayBuffer",
+      headers: {
+        'Accept': 'application/zip'
+      }
     });
     
     if (response.error) {
