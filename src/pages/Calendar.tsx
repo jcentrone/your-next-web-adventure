@@ -301,8 +301,13 @@ const Calendar: React.FC = () => {
         }
         
         const appointmentData = {
-            ...appointment,
+            title: appointment.title,
+            description: appointment.description,
             appointment_date: finalDate.toISOString(),
+            duration_minutes: appointment.duration_minutes,
+            location: appointment.location,
+            contact_id: appointment.contact_id,
+            status: appointment.status,
         };
         
         updateMutation.mutate({ 

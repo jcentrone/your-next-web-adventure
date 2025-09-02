@@ -38,27 +38,25 @@ export const TimeChangeConfirmDialog: React.FC<TimeChangeConfirmDialogProps> = (
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Change Appointment Time?</AlertDialogTitle>
-          <AlertDialogDescription className="space-y-3">
-            <div>
-              You've moved <strong>{appointment.title}</strong> from{" "}
-              <strong>{format(originalDate, "EEEE, MMMM d, yyyy")}</strong> to{" "}
-              <strong>{format(newDate, "EEEE, MMMM d, yyyy")}</strong>.
-            </div>
-            
-            {!isSameTime && (
-              <div className="p-3 bg-muted rounded-lg">
-                <div className="text-sm">
-                  <div><strong>Original time:</strong> {format(originalDate, "h:mm a")}</div>
-                  <div><strong>New time slot:</strong> {format(newDate, "h:mm a")}</div>
-                </div>
-              </div>
-            )}
-            
-            <div>
-              Do you want to change the appointment time?
-            </div>
+          <AlertDialogDescription>
+            You've moved <strong>{appointment.title}</strong> from{" "}
+            <strong>{format(originalDate, "EEEE, MMMM d, yyyy")}</strong> to{" "}
+            <strong>{format(newDate, "EEEE, MMMM d, yyyy")}</strong>.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        
+        {!isSameTime && (
+          <div className="p-3 bg-muted rounded-lg mb-4">
+            <div className="text-sm">
+              <div><strong>Original time:</strong> {format(originalDate, "h:mm a")}</div>
+              <div><strong>New time slot:</strong> {format(newDate, "h:mm a")}</div>
+            </div>
+          </div>
+        )}
+        
+        <p className="text-sm text-muted-foreground mb-4">
+          Do you want to change the appointment time?
+        </p>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={() => onConfirm(false)}>
             Keep Original Time
