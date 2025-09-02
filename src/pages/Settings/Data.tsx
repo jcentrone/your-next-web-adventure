@@ -33,18 +33,32 @@ const Data: React.FC = () => {
     setLoading(true);
     try {
       const blob = await exportReportData();
+      
+      // Verify we got a proper blob
+      if (!(blob instanceof Blob)) {
+        throw new Error("Invalid response format");
+      }
+      
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "report-data.zip";
+      a.download = "user-data-export.zip";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      toast({ title: "Export started", description: "Your data has been downloaded." });
+      toast({ 
+        title: "Export completed", 
+        description: "Your data has been downloaded successfully." 
+      });
     } catch (err) {
-      console.error(err);
-      toast({ title: "Export failed", variant: "destructive" });
+      console.error("Export error:", err);
+      const message = err instanceof Error ? err.message : "Export failed";
+      toast({ 
+        title: "Export failed", 
+        description: message,
+        variant: "destructive" 
+      });
     } finally {
       setLoading(false);
     }
