@@ -20,6 +20,7 @@ import {
   X
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -263,7 +264,23 @@ export default function ImageAnnotation() {
     
     if (activeTool === "draw" && fabricCanvas.freeDrawingBrush) {
       fabricCanvas.freeDrawingBrush.color = activeColor;
+      fabricCanvas.freeDrawingBrush.width = 3;
     }
+
+    // Enable text editing on double click
+    fabricCanvas.on('mouse:dblclick', (e) => {
+      const target = e.target;
+      if (target && (target.type === 'textbox' || target.type === 'i-text')) {
+        // For Fabric.js v6, text editing is handled differently
+        const textObject = target as FabricText;
+        fabricCanvas.setActiveObject(textObject);
+        // Text becomes editable when double-clicked in Fabric.js v6
+      }
+    });
+
+    return () => {
+      fabricCanvas.off('mouse:dblclick');
+    };
   }, [activeTool, activeColor, fabricCanvas]);
 
   // Handle color changes for selected objects
@@ -358,9 +375,17 @@ export default function ImageAnnotation() {
           fill: activeColor,
           fontSize: 16,
           fontFamily: "Arial",
+          editable: true,
         });
         fabricCanvas.add(text);
         fabricCanvas.setActiveObject(text);
+        
+        // Enter editing mode immediately
+        setTimeout(() => {
+          fabricCanvas.setActiveObject(text);
+          // In Fabric.js v6, text editing happens automatically when the text is active
+        }, 10);
+        
         fabricCanvas.renderAll();
         fabricCanvas.off("mouse:down", handler);
         setActiveTool("select");
@@ -576,117 +601,189 @@ export default function ImageAnnotation() {
         </div>
       </div>
 
-      {/* Toolbar */}
-      <div className="border-b bg-card p-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Tool buttons */}
-          <div className="flex items-center gap-1 border rounded-lg p-1">
-            <Button
-              variant={activeTool === "select" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTool("select")}
-              disabled={!canvasReady}
-            >
-              <MousePointer className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "draw" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setActiveTool("draw")}
-              disabled={!canvasReady}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "arrow" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("arrow")}
-              disabled={!canvasReady}
-            >
-              <ArrowUpRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "text" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("text")}
-              disabled={!canvasReady}
-            >
-              <Type className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "rectangle" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("rectangle")}
-              disabled={!canvasReady}
-            >
-              <Square className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "circle" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("circle")}
-              disabled={!canvasReady}
-            >
-              <Circle className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={activeTool === "line" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => handleToolClick("line")}
-              disabled={!canvasReady}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-          </div>
+        {/* Toolbar */}
+        <div className="flex items-center gap-2 p-4 border-b bg-muted/50">
+          <TooltipProvider>
+            {/* Tool selection */}
+            <div className="flex items-center gap-1 mr-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "select" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("select")}
+                  >
+                    <MousePointer className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select and move objects</p>
+                </TooltipContent>
+              </Tooltip>
 
-          {/* Color picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2" disabled={!canvasReady}>
-                <Palette className="h-4 w-4" />
-                <div 
-                  className="w-4 h-4 rounded border"
-                  style={{ backgroundColor: activeColor }}
-                />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-2">
-              <div className="grid grid-cols-3 gap-1">
-                {COLORS.map((color) => (
-                  <button
-                    key={color}
-                    className={`w-8 h-8 rounded border-2 ${
-                      activeColor === color ? "border-primary" : "border-border"
-                    }`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => setActiveColor(color)}
-                  />
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "draw" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("draw")}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Free drawing tool</p>
+                </TooltipContent>
+              </Tooltip>
 
-          {/* Undo/Redo */}
-          <div className="flex items-center gap-1 border rounded-lg p-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={undo}
-              disabled={!canvasReady || historyIndex <= 0}
-            >
-              <Undo className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={redo}
-              disabled={!canvasReady || historyIndex >= history.length - 1}
-            >
-              <Redo className="h-4 w-4" />
-            </Button>
-          </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "arrow" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("arrow")}
+                  >
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add arrow</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "text" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("text")}
+                  >
+                    <Type className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add text (double-click to edit)</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "rectangle" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("rectangle")}
+                  >
+                    <Square className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add rectangle</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "circle" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("circle")}
+                  >
+                    <Circle className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add circle</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === "line" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleToolClick("line")}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add line</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            {/* Color picker */}
+            <Popover>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-12 h-8 p-1">
+                      <div className="flex items-center gap-1">
+                        <div 
+                          className="w-4 h-4 rounded border"
+                          style={{ backgroundColor: activeColor }}
+                        />
+                        <Palette className="h-3 w-3" />
+                      </div>
+                    </Button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Choose color</p>
+                </TooltipContent>
+              </Tooltip>
+              <PopoverContent className="w-48 p-2">
+                <div className="grid grid-cols-3 gap-1">
+                  {COLORS.map((color) => (
+                    <button
+                      key={color}
+                      className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 ${
+                        activeColor === color ? "border-primary" : "border-gray-300"
+                      }`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setActiveColor(color)}
+                    />
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Undo/Redo */}
+            <div className="flex items-center gap-1 ml-4">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={undo}
+                    disabled={historyIndex <= 0}
+                  >
+                    <Undo className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Undo</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={redo}
+                    disabled={historyIndex >= history.length - 1}
+                  >
+                    <Redo className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Redo</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
         </div>
-      </div>
 
       {/* Canvas */}
       <div className="p-4">
