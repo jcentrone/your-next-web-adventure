@@ -650,6 +650,8 @@ export type Database = {
           license_number: string | null
           phone: string | null
           provider: string | null
+          signature_type: string | null
+          signature_url: string | null
           updated_at: string
           user_id: string
         }
@@ -663,6 +665,8 @@ export type Database = {
           license_number?: string | null
           phone?: string | null
           provider?: string | null
+          signature_type?: string | null
+          signature_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -676,6 +680,8 @@ export type Database = {
           license_number?: string | null
           phone?: string | null
           provider?: string | null
+          signature_type?: string | null
+          signature_url?: string | null
           updated_at?: string
           user_id?: string
         }
