@@ -468,7 +468,6 @@ const ReportPreview: React.FC = () => {
                             organization={organization}
                             mediaUrlMap={mediaUrlMap}
                             coverUrl={coverUrl}
-                            company={organization?.name || ""}
                             className={tpl.cover}
                         />
                     </div>

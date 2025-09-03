@@ -21,12 +21,14 @@ interface SpecializedReportPreviewProps {
     report: Report;
     mediaUrlMap: Record<string, string>;
     coverUrl: string;
-    company?: string;
+    inspector?: Profile;
+    organization?: any;
+    className?: string;
 }
 
 
 const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedReportPreviewProps>(
-    ({report, inspector, organization, mediaUrlMap, coverUrl, company, classNameProp}, ref) => {
+    ({report, inspector, organization, mediaUrlMap, coverUrl, className}, ref) => {
         const config = QUESTION_CONFIGS[report.reportType];
 
         if (!config) {
@@ -112,7 +114,7 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                             inspectionDate={report.inspectionDate}
                             weatherConditions={report.weatherConditions || ""}
                             colorScheme={coverColorScheme}
-                            className={classNameProp}
+                            className={className}
 
                         />
 
@@ -124,7 +126,7 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                 <div className="preview-page">
                     <section className="pdf-page-break p-8 min-h-[11in]">
                         <h1 className="text-3xl font-bold mb-8 text-primary">{report.title}</h1>
-                        {config.sections.map((section, sectionIndex) => (
+                        {config.sections.filter(section => section.name.toLowerCase() !== 'photos' && section.name.toLowerCase() !== 'images').map((section, sectionIndex) => (
                             <div key={section.name} className={sectionIndex > 0 ? "mt-8" : ""}>
                                 <h2 className="text-2xl font-bold mb-4 capitalize text-primary border-b border-gray-300 pb-2">
                                     {section.name.replace(/_/g, " ")}
