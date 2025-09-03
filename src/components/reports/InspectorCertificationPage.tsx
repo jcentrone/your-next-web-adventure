@@ -73,16 +73,17 @@ const InspectorCertificationPage: React.FC<InspectorCertificationPageProps> = ({
                 </div>
               </div>
               
-              <div className="text-right">
+              <div className="text-left">
                 <div className="mb-6">
+                  <p className="text-sm mt-1">{new Date(report.inspectionDate).toLocaleDateString()}</p>
                   <div className="border-b border-gray-400 w-40 mb-2"></div>
                   <p className="text-sm text-gray-600">Date</p>
-                  <p className="text-sm mt-1">{new Date(report.inspectionDate).toLocaleDateString()}</p>
+
                 </div>
               </div>
             </div>
           </div>
-          
+
           {organization && (
             <div className="mt-12 pt-8 border-t text-center">
               <p className="text-sm text-gray-600">
