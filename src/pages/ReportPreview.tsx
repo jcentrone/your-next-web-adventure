@@ -23,7 +23,6 @@ import { COVER_TEMPLATES, CoverTemplateId } from "@/constants/coverTemplates";
 import { CoverTemplateSelector } from "@/components/ui/cover-template-selector";
 import { ColorSchemePicker, ColorScheme, COLOR_SCHEMES, CustomColors } from "@/components/ui/color-scheme-picker";
 import { CoverTemplateProps } from "@/components/report-covers/types";
-import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 
 function SeverityBadge({
   severity,
@@ -369,6 +368,27 @@ const ReportPreview: React.FC = () => {
         } as any)
       : undefined;
 
+  const coverPreviewData: CoverTemplateProps = {
+    reportTitle: report.title,
+    clientName: report.clientName,
+    coverImage: coverUrl,
+    organizationName: organization?.name || "",
+    organizationAddress: organization?.address || "",
+    organizationPhone: organization?.phone || "",
+    organizationEmail: organization?.email || "",
+    organizationWebsite: organization?.website || "",
+    organizationLogo: organization?.logo_url || "",
+    inspectorName: inspector?.full_name || "",
+    inspectorLicenseNumber: inspector?.license_number || "",
+    inspectorPhone: inspector?.phone || "",
+    inspectorEmail: inspector?.email || "",
+    clientAddress: report.address,
+    clientEmail: report.clientEmail || "",
+    clientPhone: report.clientPhone || "",
+    inspectionDate: report.inspectionDate,
+    weatherConditions: report.weatherConditions || "",
+  };
+
   if (report.reportType === "wind_mitigation") {
     return (
       <div
@@ -387,102 +407,66 @@ const ReportPreview: React.FC = () => {
     );
   }
 
-  if (report.reportType === "fl_four_point_citizens") {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="flex justify-center gap-4 mb-6">
-          <Button onClick={onPrintClick} disabled={isGeneratingPDF}>
-            {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-          </Button>
-          <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>
-            Back to Editor
-          </Button>
-        </div>
-        <div ref={pdfContainerRef}>
-          <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} company={organization?.name || ""} />
-        </div>
+  const topBar = (
+    <div className="max-w-4xl mx-auto px-4 py-4 print-hidden flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          onClick={() => nav(`/reports/${report.id}`)}
+          aria-label="Close preview and return to editor"
+        >
+          Close Preview
+        </Button>
+        <CoverTemplateSelector
+          value={report.coverTemplate}
+          onChange={handleCoverTemplateChange}
+          disabled={savingCoverTpl}
+          data={coverPreviewData}
+        />
+        <StyleSelector
+          value={report.previewTemplate}
+          onChange={handleStyleTemplateChange}
+          disabled={savingStyleTpl}
+        />
+        <ColorSchemePicker
+          value={report.colorScheme || "default"}
+          customColors={report.customColors}
+          onChange={handleColorSchemeChange}
+          disabled={savingColorScheme}
+        />
       </div>
-    );
-  }
-
-  if (report.reportType === "tx_coastal_windstorm_mitigation") {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="flex justify-center gap-4 mb-6">
-          <Button onClick={onPrintClick} disabled={isGeneratingPDF}>
-            {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-          </Button>
-          <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>
-            Back to Editor
-          </Button>
-        </div>
-        <div ref={pdfContainerRef}>
-          <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} company={organization?.name || ""} />
-        </div>
-      </div>
-    );
-  }
-
-  if (report.reportType === "ca_wildfire_defensible_space") {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="flex justify-center gap-4 mb-6">
-          <Button onClick={onPrintClick} disabled={isGeneratingPDF}>
-            {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-          </Button>
-          <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>
-            Back to Editor
-          </Button>
-        </div>
-        <div ref={pdfContainerRef}>
-          <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} company={organization?.name || ""} />
-        </div>
-      </div>
-    );
-  }
-
-  if (report.reportType === "roof_certification_nationwide") {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="flex justify-center gap-4 mb-6">
-          <Button onClick={onPrintClick} disabled={isGeneratingPDF}>
-            {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-          </Button>
-          <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>
-            Back to Editor
-          </Button>
-        </div>
-        <div ref={pdfContainerRef}>
-          <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} company={organization?.name || ""} />
-        </div>
-      </div>
-    );
-  }
-  if (report.reportType === "manufactured_home_insurance_prep") {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="flex justify-center gap-4 mb-6">
-          <Button onClick={onPrintClick} disabled={isGeneratingPDF}>
-            {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-          </Button>
-          <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>
-            Back to Editor
-          </Button>
-        </div>
-        <div ref={pdfContainerRef}>
-          <PDFDocument report={report} mediaUrlMap={mediaUrlMap} coverUrl={coverUrl} company={organization?.name || ""} />
-        </div>
-      </div>
-    );
-  }
-
+      <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
+        {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+      </Button>
+    </div>
+  );
 
   if (report.reportType !== "home_inspection") {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-10 text-center">
-        <h1 className="text-2xl font-bold mb-4">{REPORT_TYPE_LABELS[report.reportType]} Preview Coming Soon</h1>
-        <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)}>Back to Editor</Button>
-      </div>
+      <>
+        <Seo
+          title={`${report.title} | Preview`}
+          description={`Preview of report for ${report.clientName}`}
+          canonical={window.location.origin + `/reports/${report.id}/preview`}
+          jsonLd={{
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: report.title,
+            datePublished: report.inspectionDate,
+          }}
+        />
+        {topBar}
+        <div className="max-w-4xl mx-auto px-4 py-10">
+          <div ref={pdfContainerRef} style={colorVars}>
+            <PDFDocument
+              report={report}
+              mediaUrlMap={mediaUrlMap}
+              coverUrl={coverUrl}
+              company={organization?.name || ""}
+            />
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -538,28 +522,6 @@ const ReportPreview: React.FC = () => {
           accent: COLOR_SCHEMES[report.colorScheme].accent,
         }
       : undefined;
-
-  const coverPreviewData: CoverTemplateProps = {
-    reportTitle: report.title,
-    clientName: report.clientName,
-    coverImage: coverUrl,
-    organizationName: organization?.name || "",
-    organizationAddress: organization?.address || "",
-    organizationPhone: organization?.phone || "",
-    organizationEmail: organization?.email || "",
-    organizationWebsite: organization?.website || "",
-    organizationLogo: organization?.logo_url || "",
-    inspectorName: inspector?.full_name || "",
-    inspectorLicenseNumber: inspector?.license_number || "",
-    inspectorPhone: inspector?.phone || "",
-    inspectorEmail: inspector?.email || "",
-    clientAddress: report.address,
-    clientEmail: report.clientEmail || "",
-    clientPhone: report.clientPhone || "",
-    inspectionDate: report.inspectionDate,
-    weatherConditions: report.weatherConditions || "",
-  };
-
   return (
     <>
       <Seo
@@ -575,33 +537,7 @@ const ReportPreview: React.FC = () => {
       />
 
       {/* Top bar */}
-      <div className="max-w-4xl mx-auto px-4 py-4 print-hidden flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => nav(`/reports/${report.id}`)} aria-label="Close preview and return to editor">
-            Close Preview
-          </Button>
-          <CoverTemplateSelector
-            value={report.coverTemplate}
-            onChange={handleCoverTemplateChange}
-            disabled={savingCoverTpl}
-            data={coverPreviewData}
-          />
-          <StyleSelector
-            value={report.previewTemplate}
-            onChange={handleStyleTemplateChange}
-            disabled={savingStyleTpl}
-          />
-          <ColorSchemePicker
-            value={report.colorScheme || "default"}
-            customColors={report.customColors}
-            onChange={handleColorSchemeChange}
-            disabled={savingColorScheme}
-          />
-        </div>
-        <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
-          {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-        </Button>
-      </div>
+      {topBar}
 
         <div ref={pdfContainerRef} className="flex flex-col items-center" style={colorVars}>
         {/* Cover Page */}
