@@ -6,6 +6,8 @@ export interface BookingSettings {
   slug: string;
   default_duration?: number | null;
   advance_notice?: number | null;
+  template?: string;
+  theme_color?: string | null;
 }
 
 export interface AppointmentPayload {
@@ -22,7 +24,9 @@ export const bookingApi = {
   async getSettingsBySlug(slug: string): Promise<BookingSettings | null> {
     const { data, error } = await supabase
       .from('booking_settings' as any)
-      .select('*')
+      .select(
+        'id, user_id, slug, default_duration, advance_notice, template, theme_color'
+      )
       .eq('slug', slug)
       .maybeSingle();
 
@@ -33,7 +37,9 @@ export const bookingApi = {
   async getSettingsByUser(userId: string): Promise<BookingSettings | null> {
     const { data, error } = await supabase
       .from('booking_settings' as any)
-      .select('*')
+      .select(
+        'id, user_id, slug, default_duration, advance_notice, template, theme_color'
+      )
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -41,10 +47,15 @@ export const bookingApi = {
     return data as BookingSettings | null;
   },
 
-  async upsertSettings(userId: string, slug: string): Promise<BookingSettings> {
+  async upsertSettings(
+    userId: string,
+    slug: string,
+    template: string = 'templateA',
+    themeColor?: string | null
+  ): Promise<BookingSettings> {
     const { data, error } = await supabase
       .from('booking_settings' as any)
-      .upsert({ user_id: userId, slug })
+      .upsert({ user_id: userId, slug, template, theme_color: themeColor })
       .select()
       .single();
 
