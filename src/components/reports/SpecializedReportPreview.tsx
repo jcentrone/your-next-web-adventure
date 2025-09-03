@@ -8,6 +8,7 @@ import {MANUFACTURED_HOME_QUESTIONS} from "@/constants/manufacturedHomeQuestions
 import {ROOF_CERTIFICATION_QUESTIONS} from "@/constants/roofCertificationQuestions";
 import {COVER_TEMPLATES} from "@/constants/coverTemplates.ts";
 import {Profile} from "@/integrations/supabase/organizationsApi.ts";
+import InspectorCertificationPage from "./InspectorCertificationPage";
 
 const QUESTION_CONFIGS: Partial<Record<Report["reportType"], { sections: readonly any[] }>> = {
     fl_four_point_citizens: FL_FOUR_POINT_QUESTIONS,
@@ -175,6 +176,14 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                         </section>
                     </div>
                 )}
+
+                {/* Inspector Certification Page */}
+                <InspectorCertificationPage
+                    inspector={inspector}
+                    organization={organization}
+                    report={report}
+                    mediaUrlMap={mediaUrlMap}
+                />
             </div>
         );
     }
