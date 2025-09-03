@@ -102,7 +102,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                     {/* Cover Page - Full Height */}
                     <div className="preview-page">
                         <section className="pdf-page-break h-full flex flex-col">
-                            <div className="flex-1">
+                            <div className="flex-1 h-full">
                                 <CoverComponent
                                     reportTitle={report.title}
                                     clientName={report.clientName}
