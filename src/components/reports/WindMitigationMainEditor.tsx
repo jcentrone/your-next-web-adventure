@@ -3,6 +3,8 @@ import { WindMitigationReport } from "@/lib/reportSchemas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { dbUpdateReport } from "@/integrations/supabase/reportsApi";
+import { toast } from "@/components/ui/use-toast";
 
 interface WindMitigationMainEditorProps {
   report: WindMitigationReport;
@@ -11,12 +13,27 @@ interface WindMitigationMainEditorProps {
 
 const WindMitigationMainEditor: React.FC<WindMitigationMainEditorProps> = ({ report, onUpdate }) => {
   const nav = useNavigate();
-  
+
+  const handleSave = async () => {
+    try {
+      await dbUpdateReport(report);
+      onUpdate(report);
+      toast({ title: "Report saved" });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Save failed", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Uniform Mitigation Verification Inspection</h1>
-        <Button onClick={() => nav(`/reports/${report.id}/preview`)}>Preview Report</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={() => nav("/reports")}>Back to Reports</Button>
+          <Button variant="outline" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
+          <Button onClick={handleSave}>Save Report</Button>
+        </div>
       </div>
       
       <Card>

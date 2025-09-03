@@ -628,6 +628,20 @@ const ReportEditor: React.FC = () => {
     toast({ title: "Report finalized. Use Preview to print/PDF." });
   };
 
+  const handleSave = async () => {
+    if (!report) return;
+    try {
+      saveLocalReport(report);
+      if (user) {
+        await dbUpdateReport(report);
+      }
+      toast({ title: "Report saved" });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Save failed", variant: "destructive" });
+    }
+  };
+
   const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !report) return;
@@ -759,8 +773,17 @@ const ReportEditor: React.FC = () => {
   return (
     <>
       <Seo title={`${report.title} | Report Editor`} />
-      <div className="max-w-7xl mx-auto px-4 py-6 md:flex md:flex-nowrap items-start gap-6">
-        <aside className="w-full md:w-64 shrink-0">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{report.title}</h1>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" onClick={() => nav("/reports")}>Back to Reports</Button>
+            <Button variant="outline" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
+            <Button onClick={handleSave}>Save Report</Button>
+          </div>
+        </div>
+        <div className="md:flex md:flex-nowrap items-start gap-6">
+          <aside className="w-full md:w-64 shrink-0">
           <div className="rounded-lg border p-3">
             <h2 className="font-medium mb-3">Sections</h2>
             <nav className="space-y-1">
@@ -860,11 +883,11 @@ const ReportEditor: React.FC = () => {
               )}
             </nav>
           </div>
-        </aside>
-        <main className="flex-1 min-w-0">
+          </aside>
+          <main className="flex-1 min-w-0">
           {!showDetails && !excludedKeys.includes(activeSection.key) && (
             <>
-              <div className="flex justify-between border-b mb-4">
+              <div className="border-b mb-4">
                 <div className="mb-4 flex gap-6">
                   <button
                     onClick={() => setActiveTab("info")}
@@ -879,14 +902,6 @@ const ReportEditor: React.FC = () => {
                     Observations
                   </button>
                 </div>
-                <Button
-                  variant="secondary"
-                  onClick={() => nav(`/reports/${report.id}/preview`)}
-                >
-                  Preview Report
-                </Button>
-          
-                
               </div>
 
               {activeTab === "info" && (
@@ -1413,7 +1428,8 @@ const ReportEditor: React.FC = () => {
               setCustomSectionDialogOpen(false);
             }}
           />
-        </main>
+          </main>
+        </div>
       </div>
     </>
   );
