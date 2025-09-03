@@ -50,9 +50,13 @@ const InspectorCertificationPage: React.FC<InspectorCertificationPageProps> = ({
                 <div className="mb-6">
                   {inspector?.signature_url && (
                     <img
-                      src={mediaUrlMap[inspector.signature_url] || inspector.signature_url}
+                      src={inspector.signature_url}
                       alt="Inspector Signature"
                       className="h-16 w-auto mb-2"
+                      onError={(e) => {
+                        console.log('Signature failed to load:', inspector.signature_url);
+                        e.currentTarget.style.display = 'none';
+                      }}
                     />
                   )}
                   <div className="border-b border-gray-400 w-64 mb-2"></div>

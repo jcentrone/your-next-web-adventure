@@ -1,7 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, PenTool, Type, Trash2 } from "lucide-react";
 import SignatureUploadField from "./SignatureUploadField";
 import SignatureDrawDialog from "./SignatureDrawDialog";
@@ -116,58 +115,45 @@ const SignatureManager: React.FC<SignatureManagerProps> = ({
           </p>
         )}
 
-        <Tabs defaultValue="upload" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="upload">
-              <Upload className="h-4 w-4 mr-2" />
-              Upload
-            </TabsTrigger>
-            <TabsTrigger value="draw">
-              <PenTool className="h-4 w-4 mr-2" />
-              Draw
-            </TabsTrigger>
-            <TabsTrigger value="type">
-              <Type className="h-4 w-4 mr-2" />
-              Type
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="upload" className="space-y-4">
-            <SignatureUploadField
-              currentSignature={currentSignature}
-              onSignatureUpload={handleFileUpload}
-              isUploading={isUploading || isLoading}
-            />
-          </TabsContent>
-
-          <TabsContent value="draw" className="space-y-4">
+        <div className="space-y-4">
+          <h3 className="text-sm font-medium">Choose a signature method:</h3>
+          
+          <div className="grid gap-3">
             <Button
+              variant="outline"
               onClick={() => setShowDrawDialog(true)}
               disabled={isLoading}
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2 h-12"
             >
-              <PenTool className="h-4 w-4 mr-2" />
-              {currentSignature ? "Replace with Drawing" : "Draw Signature"}
+              <PenTool className="h-5 w-5" />
+              <div className="text-center">
+                <div className="font-medium">Draw Signature</div>
+                <div className="text-xs text-muted-foreground">Use your finger, stylus, or mouse</div>
+              </div>
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Use your finger, stylus, or mouse to draw your signature.
-            </p>
-          </TabsContent>
 
-          <TabsContent value="type" className="space-y-4">
             <Button
+              variant="outline"
               onClick={() => setShowTypeDialog(true)}
               disabled={isLoading}
-              className="w-full"
+              className="w-full flex items-center justify-center gap-2 h-12"
             >
-              <Type className="h-4 w-4 mr-2" />
-              {currentSignature ? "Replace with Typed" : "Create Typed Signature"}
+              <Type className="h-5 w-5" />
+              <div className="text-center">
+                <div className="font-medium">Type Signature</div>
+                <div className="text-xs text-muted-foreground">Generate from your name</div>
+              </div>
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Generate a signature from your name using cursive fonts.
-            </p>
-          </TabsContent>
-        </Tabs>
+
+            <div className="relative">
+              <SignatureUploadField
+                currentSignature={currentSignature}
+                onSignatureUpload={handleFileUpload}
+                isUploading={isUploading || isLoading}
+              />
+            </div>
+          </div>
+        </div>
 
         <SignatureDrawDialog
           open={showDrawDialog}

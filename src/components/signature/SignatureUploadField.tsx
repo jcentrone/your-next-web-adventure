@@ -76,10 +76,13 @@ const SignatureUploadField: React.FC<SignatureUploadFieldProps> = ({
         variant="outline"
         onClick={handleUploadClick}
         disabled={isUploading}
-        className="w-full"
+        className="w-full flex items-center justify-center gap-2 h-12"
       >
-        <Upload className="h-4 w-4 mr-2" />
-        {isUploading ? "Uploading..." : currentSignature ? "Replace Signature" : "Upload Signature"}
+        <Upload className="h-5 w-5" />
+        <div className="text-center">
+          <div className="font-medium">{isUploading ? "Uploading..." : (currentSignature ? "Replace Image" : "Upload Image")}</div>
+          <div className="text-xs text-muted-foreground">PNG, JPG up to 2MB</div>
+        </div>
       </Button>
 
       <p className="text-xs text-muted-foreground">
