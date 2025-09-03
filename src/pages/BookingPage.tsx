@@ -1,136 +1,95 @@
 import React from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { Calendar } from '@demark-pro/react-booking-calendar';
-import '@demark-pro/react-booking-calendar/dist/react-booking-calendar.css';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { bookingApi, AppointmentPayload } from '@/integrations/supabase/bookingApi';
-import { servicesApi, type Service } from '@/integrations/supabase/servicesApi';
-import { REPORT_TYPE_LABELS } from '@/constants/reportTypes';
-import { contactsApi } from '@/integrations/supabase/crmApi';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useQuery } from '@tanstack/react-query';
+import { bookingApi, type BookingSettings } from '@/integrations/supabase/bookingApi';
+import { supabase } from '@/integrations/supabase/client';
+import Widget from '@/components/booking/Widget';
+
+interface TemplateProps {
+  organization: {
+    logo_url: string | null;
+    name: string | null;
+    primary_color: string | null;
+    secondary_color: string | null;
+  } | null;
+  children: React.ReactNode;
+}
+
+const TemplateA: React.FC<TemplateProps> = ({ organization, children }) => (
+  <div
+    className="min-h-screen p-4"
+    style={{ backgroundColor: organization?.primary_color || undefined }}
+  >
+    <div className="max-w-2xl mx-auto space-y-4">
+      {organization?.logo_url && (
+        <img
+          src={organization.logo_url}
+          alt={organization.name || ''}
+          className="h-16 mx-auto"
+        />
+      )}
+      {organization?.name && (
+        <h1
+          className="text-2xl font-bold text-center"
+          style={{ color: organization.secondary_color || undefined }}
+        >
+          {organization.name}
+        </h1>
+      )}
+      {children}
+    </div>
+  </div>
+);
+
+const BOOKING_TEMPLATES = {
+  templateA: TemplateA,
+} as const;
+
+type TemplateId = keyof typeof BOOKING_TEMPLATES;
 
 const BookingPage: React.FC = () => {
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const embed = searchParams.get('embed') === '1';
 
-  const { data: settings, isLoading: settingsLoading } = useQuery({
+  const { data: settings, isLoading: settingsLoading } = useQuery<BookingSettings | null>({
     queryKey: ['booking-settings', slug],
     queryFn: () => bookingApi.getSettingsBySlug(slug!),
     enabled: !!slug,
   });
 
-  const { data: reserved = [], isLoading: appointmentsLoading } = useQuery<{ start_date: string; end_date: string }[]>({
-    queryKey: ['booking-reserved', settings?.user_id],
-    queryFn: () => bookingApi.getTakenAppointments(settings!.user_id),
+  const { data: organization, isLoading: orgLoading } = useQuery({
+    queryKey: ['booking-organization', settings?.user_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('organization_members')
+        .select('organizations(logo_url,name,primary_color,secondary_color)')
+        .eq('user_id', settings!.user_id)
+        .single<{ organizations: TemplateProps['organization'] }>();
+      if (error) throw error;
+      return data?.organizations ?? null;
+    },
     enabled: !!settings?.user_id,
   });
-
-  const { data: services = [] } = useQuery<Service[]>({
-    queryKey: ['booking-services', settings?.user_id],
-    queryFn: () => servicesApi.list(settings!.user_id),
-    enabled: !!settings?.user_id,
-  });
-
-  const [selected, setSelected] = React.useState<Date[]>([]);
-  const [name, setName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [serviceIds, setServiceIds] = React.useState<string[]>([]);
-
-  const mutation = useMutation({
-    mutationFn: (payload: AppointmentPayload) => bookingApi.createAppointment(payload),
-  });
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!settings || selected.length === 0) return;
-
-    const [first_name, ...rest] = name.trim().split(/\s+/);
-    const last_name = rest.join(' ');
-
-    try {
-      const contact = await contactsApi.create({
-        user_id: settings.user_id,
-        first_name,
-        last_name,
-        email,
-        contact_type: 'client',
-      });
-
-      const contact_id = contact.id;
-
-      mutation.mutate({
-        user_id: settings.user_id,
-        title: 'Online booking',
-        status: 'scheduled',
-        appointment_date: selected[0].toISOString(),
-        contact_id,
-        service_ids: serviceIds,
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   if (settingsLoading) return <div className="p-4">Loading...</div>;
   if (!settings) return <div className="p-4">Booking page not found.</div>;
 
-  const reservedRanges = reserved.map(r => ({
-    startDate: new Date(r.start_date),
-    endDate: new Date(r.end_date),
-  }));
+  if (embed) {
+    return <Widget settings={settings} />;
+  }
+
+  if (orgLoading) return <div className="p-4">Loading...</div>;
+
+  const templateKey = (settings.template || 'templateA') as TemplateId;
+  const Template = BOOKING_TEMPLATES[templateKey] || TemplateA;
 
   return (
-    <div className={embed ? '' : 'container mx-auto p-4 space-y-4'}>
-      <Calendar selected={selected} reserved={reservedRanges} onChange={setSelected} />
-      <form onSubmit={onSubmit} className="space-y-2">
-        <input
-          className="border p-2 w-full"
-          placeholder="Your name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          required
-        />
-        <input
-          className="border p-2 w-full"
-          placeholder="Your email"
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
-        {services.length > 0 && (
-          <div className="space-y-1">
-            <p className="font-medium">Select Services</p>
-            {services.map((s) => {
-              const isChecked = serviceIds.includes(s.id!);
-              return (
-                <label key={s.id} className="flex items-center gap-2">
-                  <Checkbox
-                    checked={isChecked}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setServiceIds([...serviceIds, s.id!]);
-                      } else {
-                        setServiceIds(serviceIds.filter((id) => id !== s.id));
-                      }
-                    }}
-                  />
-                  <span>
-                    {REPORT_TYPE_LABELS[s.name]} (${s.price})
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        )}
-        <button type="submit" className="px-4 py-2 bg-primary text-primary-foreground rounded" disabled={mutation.isPending}>
-          Book
-        </button>
-        {mutation.isSuccess && <p className="text-green-600">Booked!</p>}
-      </form>
-    </div>
+    <Template organization={organization || null}>
+      <Widget settings={settings} />
+    </Template>
   );
 };
 
 export default BookingPage;
+

@@ -1,4 +1,7 @@
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { bookingApi, type BookingSettings } from "@/integrations/supabase/bookingApi";
+import Widget from "./booking/Widget";
 
 export type BookingService = "calendly" | "acuity" | "setmore" | "internal";
 
@@ -8,6 +11,12 @@ interface BookingWidgetProps {
 }
 
 const BookingWidget: React.FC<BookingWidgetProps> = ({ service, link }) => {
+  const { data: settings } = useQuery<BookingSettings | null>({
+    queryKey: ["booking-settings", link],
+    queryFn: () => bookingApi.getSettingsBySlug(link),
+    enabled: service === "internal" && !!link,
+  });
+
   if (!link) return null;
 
   const iframeProps = {
@@ -17,12 +26,15 @@ const BookingWidget: React.FC<BookingWidgetProps> = ({ service, link }) => {
 
   switch (service) {
     case "internal":
-      return <iframe {...iframeProps} src={`/book/${link}?embed=1`} />;
+      if (!settings) return null;
+      return <Widget settings={settings} />;
     case "calendly":
       return (
         <iframe
           {...iframeProps}
-          src={`${link}${link.includes("?" ) ? "&" : "?"}embed_domain=${typeof window !== "undefined" ? window.location.hostname : ""}&embed_type=Inline`}
+          src={`${link}${link.includes("?") ? "&" : "?"}embed_domain=${
+            typeof window !== "undefined" ? window.location.hostname : ""
+          }&embed_type=Inline`}
         />
       );
     case "acuity":
@@ -34,3 +46,4 @@ const BookingWidget: React.FC<BookingWidgetProps> = ({ service, link }) => {
 };
 
 export default BookingWidget;
+
