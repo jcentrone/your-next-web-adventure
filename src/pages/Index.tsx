@@ -59,18 +59,35 @@ const Index = () => {
 
       {/* Hero Section */}
       <section id="hero" className="relative max-w-7xl mx-auto px-4 py-32 md:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20 -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-background to-purple-50/30 -z-10" />
+        <div className="absolute top-20 left-20 w-32 h-32 bg-primary/20 rounded-full blur-2xl animate-pulse -z-10"></div>
+        <div className="absolute bottom-32 right-32 w-24 h-24 bg-amber-300/30 rounded-full blur-xl animate-pulse -z-10" style={{animationDelay: '1s'}}></div>
         
         <div className="text-center max-w-4xl mx-auto relative z-10">
-          <div className="inline-flex items-center gap-2 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-sm font-medium mb-8 border">
-            <Zap className="w-4 h-4" />
-            Professional Inspection Platform
+          <div className="relative inline-block mb-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-lg"></div>
+            <div className="relative bg-white/80 backdrop-blur-sm border border-primary/20 px-6 py-3 rounded-2xl">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-3 h-3 bg-primary rounded-full animate-ping"></div>
+                  <div className="absolute inset-0 w-3 h-3 bg-primary rounded-full"></div>
+                </div>
+                <span className="text-primary font-medium">Professional Inspection Platform</span>
+              </div>
+            </div>
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6 text-foreground leading-tight">
-            Inspection Reports
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
+            <span className="bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
+              Inspection Reports
+            </span>
             <br />
-            <span className="text-primary">Made Simple</span>
+            <span className="relative">
+              <span className="bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Made Simple
+              </span>
+              <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-600 to-purple-600 rounded-full opacity-30"></div>
+            </span>
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed max-w-2xl mx-auto">
@@ -80,21 +97,27 @@ const Index = () => {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             {user ? (
-              <Button size="lg" className="text-base px-8 py-3" asChild>
-                <Link to="/dashboard">
-                  <ArrowRight className="mr-2 w-4 h-4" />
-                  Go to Dashboard
-                </Link>
-              </Button>
-            ) : (
-              <>
-                <Button size="lg" className="text-base px-8 py-3" asChild>
-                  <Link to="/auth">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-blue-600 rounded-xl blur opacity-70 group-hover:opacity-100 transition-opacity"></div>
+                <Button size="lg" className="relative text-base px-8 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90" asChild>
+                  <Link to="/dashboard">
                     <ArrowRight className="mr-2 w-4 h-4" />
-                    Start Free Trial
+                    Go to Dashboard
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="text-base px-8 py-3">
+              </div>
+            ) : (
+              <>
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-blue-600 rounded-xl blur opacity-70 group-hover:opacity-100 transition-opacity"></div>
+                  <Button size="lg" className="relative text-base px-8 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90" asChild>
+                    <Link to="/auth">
+                      <ArrowRight className="mr-2 w-4 h-4" />
+                      Start Free Trial
+                    </Link>
+                  </Button>
+                </div>
+                <Button size="lg" variant="outline" className="text-base px-8 py-3 border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5">
                   <Globe className="mr-2 w-4 h-4" />
                   Watch Demo
                 </Button>
@@ -115,161 +138,213 @@ const Index = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Smartphone className="h-6 w-6 text-primary" />
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* PWA Card */}
+          <Card className="relative p-0 overflow-hidden hover:shadow-xl transition-all duration-500 group border-0 bg-gradient-to-br from-white via-blue-50/50 to-purple-50/30">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-200/30 to-transparent rounded-full blur-2xl"></div>
+            <div className="relative p-8">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="relative">
+                    <div className="w-8 h-8 bg-white/20 rounded-lg"></div>
+                    <div className="absolute inset-1 bg-white/40 rounded-md"></div>
+                    <div className="absolute inset-2 bg-white rounded-sm"></div>
+                  </div>
+                </div>
+                <h3 className="font-bold text-xl bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">Progressive Web App</h3>
               </div>
-              <h3 className="font-semibold text-lg">Progressive Web App</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Install as native app on any device. Works offline with automatic sync when connected.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">One-click installation</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Full offline functionality</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Cross-platform compatibility</span>
+                </div>
+              </div>
             </div>
-            <p className="text-muted-foreground mb-6 leading-relaxed">
-              Install as native app on any device. Works offline with automatic sync when connected.
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-3">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                One-click installation
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                Full offline functionality
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                Cross-platform compatibility
-              </li>
-            </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-amber-500/10 rounded-lg">
-                <Wind className="h-6 w-6 text-amber-600" />
+          {/* Wind Mitigation Card */}
+          <Card className="relative p-0 overflow-hidden hover:shadow-xl transition-all duration-500 group border-0 bg-gradient-to-br from-white via-amber-50/50 to-orange-50/30">
+            <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br from-amber-200/40 to-transparent rounded-full blur-xl"></div>
+            <div className="relative p-8">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mb-4 group-hover:rotate-12 transition-transform duration-300">
+                  <div className="relative">
+                    <div className="w-8 h-1 bg-white/80 rounded-full transform -rotate-12"></div>
+                    <div className="w-6 h-1 bg-white/60 rounded-full transform rotate-12 mt-1"></div>
+                    <div className="w-4 h-1 bg-white/40 rounded-full transform -rotate-6 mt-1"></div>
+                  </div>
+                </div>
+                <h3 className="font-bold text-xl bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent">Wind Mitigation Specialist</h3>
               </div>
-              <h3 className="font-semibold text-lg">Wind Mitigation Specialist</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Florida Form 1802 compliant inspections. Help clients save thousands on insurance premiums.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">OIR-B1-1802 form compliance</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">All 7 inspection questions</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Insurance discount calculations</span>
+                </div>
+              </div>
             </div>
-            <p className="text-muted-foreground mb-6 leading-relaxed">
-              Florida Form 1802 compliant inspections. Help clients save thousands on insurance premiums.
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-3">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                OIR-B1-1802 form compliance
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                All 7 inspection questions
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                Insurance discount calculations
-              </li>
-            </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-purple-500/10 rounded-lg">
-                <Palette className="h-6 w-6 text-purple-600" />
+          {/* Image Annotation Card */}
+          <Card className="relative p-0 overflow-hidden hover:shadow-xl transition-all duration-500 group border-0 bg-gradient-to-br from-white via-purple-50/50 to-pink-50/30">
+            <div className="absolute bottom-0 right-0 w-28 h-28 bg-gradient-to-tl from-purple-200/30 to-transparent rounded-full blur-xl"></div>
+            <div className="relative p-8">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="relative">
+                    <div className="w-8 h-6 bg-white/20 rounded border border-white/40"></div>
+                    <div className="absolute top-1 left-1 w-2 h-2 bg-white rounded-full"></div>
+                    <div className="absolute top-1 right-1 w-1 h-1 bg-white/60 rounded-full"></div>
+                    <div className="absolute bottom-1 left-2 w-3 h-0.5 bg-white/80 rounded"></div>
+                  </div>
+                </div>
+                <h3 className="font-bold text-xl bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent">Advanced Image Annotation</h3>
               </div>
-              <h3 className="font-semibold text-lg">Advanced Image Annotation</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Professional canvas tools for image markup. Draw, highlight, and annotate photos directly in your reports.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Drawing and markup tools</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Shape and text annotations</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Undo/redo capabilities</span>
+                </div>
+              </div>
             </div>
-            <p className="text-muted-foreground mb-6 leading-relaxed">
-              Professional canvas tools for image markup. Draw, highlight, and annotate photos directly in your reports.
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-3">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                Drawing and markup tools
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                Shape and text annotations
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                Undo/redo capabilities
-              </li>
-            </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-blue-500/10 rounded-lg">
-                <Users className="h-6 w-6 text-blue-600" />
+          {/* CRM Card */}
+          <Card className="relative p-0 overflow-hidden hover:shadow-xl transition-all duration-500 group border-0 bg-gradient-to-br from-white via-emerald-50/50 to-teal-50/30">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-emerald-200/40 to-transparent rounded-full blur-lg"></div>
+            <div className="relative p-8">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="relative">
+                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                    <div className="w-2 h-2 bg-white/70 rounded-full absolute -right-1 -top-1"></div>
+                    <div className="w-2 h-2 bg-white/70 rounded-full absolute -left-1 top-2"></div>
+                    <div className="w-1.5 h-1.5 bg-white/50 rounded-full absolute right-1 bottom-0"></div>
+                    <div className="w-4 h-0.5 bg-white/60 rounded absolute -bottom-2 -left-1"></div>
+                  </div>
+                </div>
+                <h3 className="font-bold text-xl bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">Enhanced CRM</h3>
               </div>
-              <h3 className="font-semibold text-lg">Enhanced CRM</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Manage complex relationships between clients, realtors, vendors, and contractors with advanced tracking.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Relationship mapping</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Communication history</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Referral tracking</span>
+                </div>
+              </div>
             </div>
-            <p className="text-muted-foreground mb-6 leading-relaxed">
-              Manage complex relationships between clients, realtors, vendors, and contractors with advanced tracking.
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-3">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                Relationship mapping
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                Communication history
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                Referral tracking
-              </li>
-            </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-green-500/10 rounded-lg">
-                <FileText className="h-6 w-6 text-green-600" />
+          {/* Templates Card */}
+          <Card className="relative p-0 overflow-hidden hover:shadow-xl transition-all duration-500 group border-0 bg-gradient-to-br from-white via-green-50/50 to-lime-50/30">
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-200/30 to-transparent rounded-full blur-2xl"></div>
+            <div className="relative p-8">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-lime-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 relative">
+                  <div className="text-white font-bold text-lg">92</div>
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">✓</span>
+                  </div>
+                </div>
+                <h3 className="font-bold text-xl bg-gradient-to-r from-green-700 to-lime-700 bg-clip-text text-transparent">Professional Templates</h3>
               </div>
-              <h3 className="font-semibold text-lg">92 Professional Templates</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Attorney-vetted narrative templates for each SOP section with custom branding options.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-green-500 to-lime-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Pre-written defect narratives</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-green-500 to-lime-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Custom logos, colors, signatures</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-green-500 to-lime-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Professional PDF generation</span>
+                </div>
+              </div>
             </div>
-            <p className="text-muted-foreground mb-6 leading-relaxed">
-              Attorney-vetted narrative templates for each SOP section with custom branding options.
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-3">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                Pre-written defect narratives
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                Custom logos, colors, signatures
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                Professional PDF generation
-              </li>
-            </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-slate-500/10 rounded-lg">
-                <MapPin className="h-6 w-6 text-slate-600" />
+          {/* Integrations Card */}
+          <Card className="relative p-0 overflow-hidden hover:shadow-xl transition-all duration-500 group border-0 bg-gradient-to-br from-white via-slate-50/50 to-gray-50/30">
+            <div className="absolute top-0 left-0 w-28 h-28 bg-gradient-to-br from-slate-200/30 to-transparent rounded-full blur-xl"></div>
+            <div className="relative p-8">
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-slate-600 to-gray-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="relative">
+                    <div className="w-3 h-3 bg-white rounded border border-white/40"></div>
+                    <div className="w-2 h-2 bg-white/70 rounded absolute -right-2 top-0.5"></div>
+                    <div className="w-2 h-2 bg-white/70 rounded absolute -left-2 top-0.5"></div>
+                    <div className="w-4 h-0.5 bg-white/60 rounded absolute -bottom-1 -left-0.5"></div>
+                    <div className="w-0.5 h-4 bg-white/60 rounded absolute -right-0.5 -bottom-1 transform rotate-90"></div>
+                  </div>
+                </div>
+                <h3 className="font-bold text-xl bg-gradient-to-r from-slate-700 to-gray-700 bg-clip-text text-transparent">Smart Integrations</h3>
               </div>
-              <h3 className="font-semibold text-lg">Smart Integrations</h3>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Essential integrations to streamline your workflow and enhance productivity.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-slate-500 to-gray-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Google Calendar sync</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-slate-500 to-gray-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Route optimization</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-gradient-to-r from-slate-500 to-gray-500 rounded-full"></div>
+                  <span className="text-sm text-muted-foreground">Embeddable website widget</span>
+                </div>
+              </div>
             </div>
-            <p className="text-muted-foreground mb-6 leading-relaxed">
-              Essential integrations to streamline your workflow and enhance productivity.
-            </p>
-            <ul className="text-sm text-muted-foreground space-y-3">
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-slate-600 flex-shrink-0" />
-                Google Calendar sync
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-slate-600 flex-shrink-0" />
-                Route optimization
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-slate-600 flex-shrink-0" />
-                Embeddable website widget
-              </li>
-            </ul>
           </Card>
         </div>
       </section>
@@ -286,40 +361,90 @@ const Index = () => {
           
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center group">
-              <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
-                <Users className="w-8 h-8 text-primary-foreground" />
+              <div className="relative w-20 h-20 mx-auto mb-4">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary to-blue-600 rounded-2xl group-hover:scale-105 transition-all duration-300"></div>
+                <div className="absolute inset-2 bg-white/20 rounded-xl"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                    <div className="w-2 h-2 bg-white/70 rounded-full absolute -right-1 -top-1"></div>
+                    <div className="w-2 h-2 bg-white/70 rounded-full absolute -left-1 top-2"></div>
+                  </div>
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">1</span>
+                </div>
               </div>
-              <h3 className="font-semibold mb-2">1. Capture & Schedule</h3>
+              <h3 className="font-semibold mb-2 text-lg">Capture & Schedule</h3>
               <p className="text-sm text-muted-foreground">
                 Mobile CRM with booking widget integration. Add contacts and schedule appointments seamlessly.
               </p>
             </div>
             
             <div className="text-center group">
-              <div className="w-16 h-16 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
-                <Smartphone className="w-8 h-8 text-white" />
+              <div className="relative w-20 h-20 mx-auto mb-4">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl group-hover:scale-105 transition-all duration-300"></div>
+                <div className="absolute inset-2 bg-white/20 rounded-xl"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="w-6 h-8 bg-white/30 rounded-sm border border-white/50"></div>
+                    <div className="absolute inset-1 bg-white/60 rounded-sm"></div>
+                    <div className="absolute top-2 left-1.5 w-3 h-0.5 bg-white rounded"></div>
+                    <div className="absolute top-3 left-1.5 w-2 h-0.5 bg-white/80 rounded"></div>
+                  </div>
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">2</span>
+                </div>
               </div>
-              <h3 className="font-semibold mb-2">2. Inspect & Document</h3>
+              <h3 className="font-semibold mb-2 text-lg">Inspect & Document</h3>
               <p className="text-sm text-muted-foreground">
                 Use PWA offline mode with advanced image annotation. Work anywhere without connectivity.
               </p>
             </div>
             
             <div className="text-center group">
-              <div className="w-16 h-16 bg-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
-                <FileText className="w-8 h-8 text-white" />
+              <div className="relative w-20 h-20 mx-auto mb-4">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl group-hover:scale-105 transition-all duration-300"></div>
+                <div className="absolute inset-2 bg-white/20 rounded-xl"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="w-6 h-7 bg-white/30 rounded-sm border border-white/50"></div>
+                    <div className="absolute top-1 left-1 w-4 h-1 bg-white rounded"></div>
+                    <div className="absolute top-2.5 left-1 w-3 h-0.5 bg-white/80 rounded"></div>
+                    <div className="absolute top-3.5 left-1 w-2 h-0.5 bg-white/60 rounded"></div>
+                    <div className="absolute bottom-1 left-1 w-4 h-1 bg-white/40 rounded"></div>
+                  </div>
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">3</span>
+                </div>
               </div>
-              <h3 className="font-semibold mb-2">3. Generate Reports</h3>
+              <h3 className="font-semibold mb-2 text-lg">Generate Reports</h3>
               <p className="text-sm text-muted-foreground">
                 Create InterNACHI SOP compliant home inspections or specialized wind mitigation reports.
               </p>
             </div>
             
             <div className="text-center group">
-              <div className="w-16 h-16 bg-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
-                <CheckSquare className="w-8 h-8 text-white" />
+              <div className="relative w-20 h-20 mx-auto mb-4">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl group-hover:scale-105 transition-all duration-300"></div>
+                <div className="absolute inset-2 bg-white/20 rounded-xl"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative">
+                    <div className="w-5 h-5 bg-white/30 rounded border border-white/50"></div>
+                    <div className="absolute inset-1 bg-white/20 rounded"></div>
+                    <div className="absolute top-1.5 left-1.5 w-2 h-2 bg-white rounded-sm"></div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-white/60 rounded-full flex items-center justify-center">
+                      <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">4</span>
+                </div>
               </div>
-              <h3 className="font-semibold mb-2">4. Deliver & Follow-up</h3>
+              <h3 className="font-semibold mb-2 text-lg">Deliver & Follow-up</h3>
               <p className="text-sm text-muted-foreground">
                 Automated email delivery with task tracking. Never miss important follow-ups.
               </p>
