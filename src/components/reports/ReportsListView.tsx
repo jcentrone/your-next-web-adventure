@@ -67,7 +67,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <Button size="sm" variant="ghost" asChild>
-                <Link to={`/reports/${report.id}/edit`}>
+                <Link to={`/reports/${report.id}`}>
                   <Pencil className="h-4 w-4" />
                   <span className="sr-only">Edit</span>
                 </Link>
