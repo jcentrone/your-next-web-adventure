@@ -13,6 +13,14 @@ const TemplateB: React.FC<TemplateProps> = ({ org, settings }) => (
       )}
       {org?.name && <h1 className="text-xl font-semibold text-center">{org.name}</h1>}
       <Widget settings={settings} />
+      {(org?.address || org?.phone || org?.email || org?.website) && (
+        <div className="text-center space-y-1 text-sm text-gray-700">
+          {org.address && <p>{org.address}</p>}
+          {org.phone && <p>{org.phone}</p>}
+          {org.email && <p>{org.email}</p>}
+          {org.website && <p>{org.website}</p>}
+        </div>
+      )}
     </div>
   </div>
 );
