@@ -7,24 +7,41 @@ import { Check, X } from 'lucide-react';
 
 interface FormValues {
   slug: string;
+  template: string;
+  theme_color: string;
 }
 
 const Booking: React.FC = () => {
   const { user } = useAuth();
-  const { register, handleSubmit, reset, watch } = useForm<FormValues>();
+  const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
+    defaultValues: { template: 'templateA', theme_color: '#1e293b' },
+  });
 
-  const { data: settings } = useQuery({
+  useQuery({
     queryKey: ['my-booking-settings', user?.id],
     queryFn: () => bookingApi.getSettingsByUser(user!.id),
     enabled: !!user,
-    onSuccess: (data) => data && reset({ slug: data.slug }),
+    onSuccess: (data) =>
+      data &&
+      reset({
+        slug: data.slug,
+        template: data.template || 'templateA',
+        theme_color: data.theme_color || '#1e293b',
+      }),
   });
 
   const mutation = useMutation({
-    mutationFn: (values: FormValues) => bookingApi.upsertSettings(user!.id, values.slug),
+    mutationFn: (values: FormValues) =>
+      bookingApi.upsertSettings(
+        user!.id,
+        values.slug,
+        values.template,
+        values.theme_color
+      ),
   });
 
   const slug = watch('slug') || '';
+  const template = watch('template');
   const [debouncedSlug, setDebouncedSlug] = React.useState(slug);
 
   React.useEffect(() => {
@@ -40,10 +57,13 @@ const Booking: React.FC = () => {
 
   const isAvailable = !debouncedSlug || !slugMatch || slugMatch.user_id === user?.id;
 
-  const onSubmit = handleSubmit(values => mutation.mutate(values));
+  const onSubmit = handleSubmit((values) => mutation.mutate(values));
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const shareUrl = settings?.slug ? `${origin}/book/${settings.slug}` : '';
-  const embedCode = settings?.slug ? `<iframe src="${shareUrl}?embed=1" style="width:100%;height:700px;border:0;" />` : '';
+  const shareUrl = slug ? `${origin}/book/${slug}` : '';
+  const widgetEmbedCode =
+    slug
+      ? `<iframe src="${shareUrl}?embed=1" style="width:100%;height:700px;border:0;" />`
+      : '';
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 max-w-md">
@@ -70,6 +90,45 @@ const Booking: React.FC = () => {
           <p className="text-sm text-red-500 mt-1">This slug is unavailable. Another user may have taken it.</p>
         )}
       </div>
+
+      <div>
+        <p className="block text-sm font-medium mb-1">Template</p>
+        <div className="flex gap-4">
+          {['templateA', 'templateB', 'templateC'].map((t) => (
+            <label key={t} className="flex flex-col items-center gap-1">
+              <input
+                type="radio"
+                value={t}
+                {...register('template')}
+                className="sr-only"
+              />
+              <div
+                className={`w-16 h-10 border flex items-center justify-center text-xs ${
+                  template === t ? 'ring-2 ring-primary' : ''
+                }`}
+              >
+                {t.replace('template', 'Template ')}
+              </div>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div>
+      <label className="block text-sm font-medium mb-1">Theme color</label>
+      <input type="color" {...register('theme_color')} className="h-10 w-10 p-0 border" />
+      <div className="flex gap-2 mt-2">
+        {['#1e293b', '#be123c', '#15803d', '#1d4ed8'].map((c) => (
+          <button
+            type="button"
+            key={c}
+            className="w-8 h-8 rounded-full border"
+            style={{ backgroundColor: c }}
+            onClick={() => setValue('theme_color', c)}
+          />
+        ))}
+      </div>
+      </div>
       <button
         type="submit"
         className="px-4 py-2 bg-primary text-primary-foreground rounded"
@@ -78,14 +137,20 @@ const Booking: React.FC = () => {
         Save
       </button>
       {shareUrl && (
-        <div className="space-y-2">
-          <div>
-            <p className="text-sm font-medium">Shareable link</p>
+        <div className="space-y-6">
+          <p className="text-sm text-muted-foreground">
+            Share your booking page or embed the widget on your site. The previews
+            below use your selected template and color.
+          </p>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Booking page URL</p>
             <code className="block p-2 bg-muted break-all">{shareUrl}</code>
+            <iframe src={shareUrl} className="w-full h-64 border" />
           </div>
-          <div>
-            <p className="text-sm font-medium">Embed code</p>
-            <code className="block p-2 bg-muted break-all">{embedCode}</code>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Widget embed code</p>
+            <code className="block p-2 bg-muted break-all">{widgetEmbedCode}</code>
+            <iframe src={`${shareUrl}?embed=1`} className="w-full h-64 border" />
           </div>
         </div>
       )}
