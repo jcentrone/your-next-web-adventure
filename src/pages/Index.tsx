@@ -58,7 +58,7 @@ const Index = () => {
       <Seo title={title} description={description} canonical="/" jsonLd={jsonLd} />
 
       {/* Hero Section */}
-      <section id="hero" className="relative max-w-7xl mx-auto px-4 py-24 md:py-32 overflow-hidden">
+      <section id="hero" className="relative max-w-7xl mx-auto px-4 py-24 md:py-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 -z-10" />
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl -z-10"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl -z-10"></div>
@@ -109,10 +109,7 @@ const Index = () => {
       {/* Features Grid */}
       <section id="features" className="max-w-7xl mx-auto px-4 pb-24">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-muted/50 text-muted-foreground px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <Star className="h-4 w-4" />
-            Platform Features
-          </div>
+
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             Built for Modern Inspectors
           </h2>
