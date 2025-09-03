@@ -69,7 +69,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
             <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="sm" variant="ghost" asChild>
+                  <Button size="sm" variant="ghost" className="border" asChild>
                     <Link to={`/reports/${report.id}`}>
                       <Pencil className="h-4 w-4" />
                       <span className="sr-only">Edit</span>
@@ -85,6 +85,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
                     <Button
                       size="sm"
                       variant="outline"
+                      className="border"
                       onClick={() => downloadWindMitigationReport(report)}
                     >
                       Download
@@ -96,7 +97,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
               
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="sm" variant="ghost" asChild>
+                  <Button size="sm" variant="ghost" className="border" asChild>
                     <Link to={`/reports/${report.id}/preview`}>
                       <Eye className="h-4 w-4" />
                       <span className="sr-only">Preview</span>
@@ -112,6 +113,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
                     <Button
                       size="sm"
                       variant="ghost"
+                      className="border"
                       onClick={() => onArchive(report.id, !report.archived)}
                     >
                       {report.archived ? (
@@ -131,6 +133,7 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
                   <Button
                     size="sm"
                     variant="destructive"
+                    className="border"
                     onClick={() => onDelete(report.id)}
                   >
                     <Trash2 className="h-4 w-4" />

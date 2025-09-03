@@ -49,10 +49,10 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
               <>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button asChild size="sm">
+                    <Button asChild size="sm" variant="ghost" className="border">
                       <Link to={`/reports/${r.id}`}>
-                        <Pencil className="h-4 w-4 mr-1" />
-                        Edit
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
                       </Link>
                     </Button>
                   </TooltipTrigger>
@@ -65,6 +65,7 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
                       <Button
                         size="sm"
                         variant="outline"
+                        className="border"
                         onClick={() => downloadWindMitigationReport(r)}
                       >
                         Download
@@ -75,10 +76,10 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
                 ) : (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button asChild size="sm" variant="outline">
+                      <Button asChild size="sm" variant="ghost" className="border">
                         <Link to={`/reports/${r.id}/preview`}>
-                          <Eye className="h-4 w-4 mr-1" />
-                          Preview
+                          <Eye className="h-4 w-4" />
+                          <span className="sr-only">Preview</span>
                         </Link>
                       </Button>
                     </TooltipTrigger>
@@ -93,10 +94,16 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
                 <TooltipTrigger asChild>
                   <Button 
                     size="sm" 
-                    variant="ghost" 
+                    variant="ghost"
+                    className="border"
                     onClick={() => onArchive(r.id, !r.archived)}
                   >
-                    {r.archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                    {r.archived ? (
+                      <ArchiveRestore className="h-4 w-4" />
+                    ) : (
+                      <Archive className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">{r.archived ? "Restore" : "Archive"}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{r.archived ? "Restore report" : "Archive report"}</TooltipContent>
@@ -105,8 +112,9 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
             
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" variant="destructive" onClick={() => onDelete(r.id)}>
+                <Button size="sm" variant="destructive" className="border" onClick={() => onDelete(r.id)}>
                   <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Delete</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Delete report</TooltipContent>
