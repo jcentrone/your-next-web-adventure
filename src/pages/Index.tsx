@@ -249,30 +249,29 @@ const Index = () => {
               <div className="mb-6">
                 <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                   <div className="relative">
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
-                    <div className="w-2 h-2 bg-white/70 rounded-full absolute -right-1 -top-1"></div>
-                    <div className="w-2 h-2 bg-white/70 rounded-full absolute -left-1 top-2"></div>
-                    <div className="w-1.5 h-1.5 bg-white/50 rounded-full absolute right-1 bottom-0"></div>
-                    <div className="w-4 h-0.5 bg-white/60 rounded absolute -bottom-2 -left-1"></div>
+                    <div className="w-4 h-4 bg-white rounded-lg border border-white/40"></div>
+                    <div className="absolute top-1 left-1 w-2 h-2 bg-white/70 rounded-full"></div>
+                    <div className="absolute top-1 right-1 w-1 h-1 bg-white/50 rounded-full"></div>
+                    <div className="absolute bottom-1 left-1 w-2 h-0.5 bg-white/80 rounded"></div>
                   </div>
                 </div>
-                <h3 className="font-bold text-xl bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">Enhanced CRM</h3>
+                <h3 className="font-bold text-xl bg-gradient-to-r from-emerald-700 to-teal-700 bg-clip-text text-transparent">Simple CRM</h3>
               </div>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                Manage complex relationships between clients, realtors, vendors, and contractors with advanced tracking.
+                Straightforward contact management. Keep track of your clients and key contacts without the complexity.
               </p>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
-                  <span className="text-sm text-muted-foreground">Relationship mapping</span>
+                  <span className="text-sm text-muted-foreground">Contact information storage</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
-                  <span className="text-sm text-muted-foreground">Communication history</span>
+                  <span className="text-sm text-muted-foreground">Basic note taking</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
-                  <span className="text-sm text-muted-foreground">Referral tracking</span>
+                  <span className="text-sm text-muted-foreground">Easy search and filtering</span>
                 </div>
               </div>
             </div>
