@@ -46,6 +46,7 @@ const App = () => (
               <Route path="/oauth/outlook" element={<OutlookCallback />} />
               <Route path="/oauth/apple" element={<AppleCallback />} />
               <Route path="/oauth/showingtime" element={<ShowingTimeCallback />} />
+              <Route path="/book/:slug" element={lazyLoad(() => import("./pages/BookingPage"))} />
               <Route element={<RootLayout />}>
                 <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={lazyLoad(() => import("./pages/Dashboard"))} />

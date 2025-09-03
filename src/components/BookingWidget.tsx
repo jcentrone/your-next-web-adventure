@@ -1,6 +1,6 @@
 import React from "react";
 
-export type BookingService = "calendly" | "acuity" | "setmore";
+export type BookingService = "calendly" | "acuity" | "setmore" | "internal";
 
 interface BookingWidgetProps {
   service: BookingService;
@@ -12,11 +12,12 @@ const BookingWidget: React.FC<BookingWidgetProps> = ({ service, link }) => {
 
   const iframeProps = {
     className: "w-full min-h-[700px] border-none",
-    src: link,
     allowFullScreen: true,
   } as const;
 
   switch (service) {
+    case "internal":
+      return <iframe {...iframeProps} src={`/book/${link}?embed=1`} />;
     case "calendly":
       return (
         <iframe
@@ -26,7 +27,7 @@ const BookingWidget: React.FC<BookingWidgetProps> = ({ service, link }) => {
       );
     case "acuity":
     case "setmore":
-      return <iframe {...iframeProps} />;
+      return <iframe {...iframeProps} src={link} />;
     default:
       return null;
   }
