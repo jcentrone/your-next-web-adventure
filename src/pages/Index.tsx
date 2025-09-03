@@ -226,25 +226,25 @@ const Index = () => {
           <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-green-50 to-emerald-50">
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-green-500/10 rounded-2xl">
-                <Calendar className="h-8 w-8 text-green-600" />
+                <Zap className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="font-bold text-xl">Smart Scheduling</h3>
+              <h3 className="font-bold text-xl">Key Integrations</h3>
             </div>
             <p className="text-muted-foreground mb-6 leading-relaxed">
-              Connect with Calendly, Acuity Scheduling, and more. Drag-drop calendar with external sync capabilities.
+              Essential integrations to streamline your workflow and enhance productivity.
             </p>
             <ul className="text-sm text-muted-foreground space-y-2">
               <li className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                Multiple booking platforms
+                Google Calendar sync
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                Drag-drop scheduling
+                Embeddable website widget
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                External calendar sync
+                Route optimization
               </li>
             </ul>
           </Card>
@@ -500,7 +500,7 @@ const Index = () => {
             <div className="space-y-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-primary rounded-full" />
-                <span className="text-sm">500+ pre-written defect narratives</span>
+                <span className="text-sm">92 pre-written defect narratives</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-primary rounded-full" />
