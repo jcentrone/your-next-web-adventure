@@ -5,6 +5,7 @@ import '@demark-pro/react-booking-calendar/dist/react-booking-calendar.css';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { bookingApi, AppointmentPayload } from '@/integrations/supabase/bookingApi';
 import { servicesApi, type Service } from '@/integrations/supabase/servicesApi';
+import { REPORT_TYPE_LABELS } from '@/constants/reportTypes';
 import { contactsApi } from '@/integrations/supabase/crmApi';
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -116,7 +117,7 @@ const BookingPage: React.FC = () => {
                     }}
                   />
                   <span>
-                    {s.name} (${s.price})
+                    {REPORT_TYPE_LABELS[s.name]} (${s.price})
                   </span>
                 </label>
               );

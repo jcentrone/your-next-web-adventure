@@ -3,9 +3,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useForm } from 'react-hook-form';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { servicesApi, Service } from '@/integrations/supabase/servicesApi';
+import { REPORT_TYPE_LABELS } from '@/constants/reportTypes';
 
 interface ServiceForm {
-  name: string;
+  name: Service['name'];
   price: number;
 }
 
@@ -50,11 +51,17 @@ const Services: React.FC = () => {
 
     return (
       <form onSubmit={onSubmit} className="flex gap-2 items-center">
-        <input
+        <select
           className="border p-1 flex-1"
           {...register('name')}
           required
-        />
+        >
+          {Object.entries(REPORT_TYPE_LABELS).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label}
+            </option>
+          ))}
+        </select>
         <input
           type="number"
           step="0.01"
@@ -82,12 +89,21 @@ const Services: React.FC = () => {
   return (
     <div className="space-y-4 max-w-md">
       <form onSubmit={onCreate} className="flex gap-2 items-center">
-        <input
+        <select
           className="border p-1 flex-1"
-          placeholder="Service name"
           {...createForm.register('name')}
+          defaultValue=""
           required
-        />
+        >
+          <option value="" disabled>
+            Select service
+          </option>
+          {Object.entries(REPORT_TYPE_LABELS).map(([key, label]) => (
+            <option key={key} value={key}>
+              {label}
+            </option>
+          ))}
+        </select>
         <input
           type="number"
           step="0.01"
