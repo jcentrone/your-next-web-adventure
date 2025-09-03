@@ -13,7 +13,7 @@ import { CA_WILDFIRE_QUESTIONS } from "@/constants/caWildfireQuestions";
 import { MANUFACTURED_HOME_QUESTIONS } from "@/constants/manufacturedHomeQuestions";
 import { ROOF_CERTIFICATION_QUESTIONS } from "@/constants/roofCertificationQuestions";
 
-const QUESTION_CONFIGS: Partial<Record<Report["reportType"], { sections: any[] }>> = {
+const QUESTION_CONFIGS: Partial<Record<Report["reportType"], { sections: readonly any[] }>> = {
     fl_four_point_citizens: FL_FOUR_POINT_QUESTIONS,
     tx_coastal_windstorm_mitigation: TX_WINDSTORM_QUESTIONS,
     ca_wildfire_defensible_space: CA_WILDFIRE_QUESTIONS,
@@ -49,7 +49,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                 : undefined;
 
         const renderField = (sectionName: string, field: any) => {
-            const sectionData = (report.reportData?.[sectionName] || {}) as Record<string, any>;
+            const sectionData = ((report as any).reportData?.[sectionName] || {}) as Record<string, any>;
             const value = sectionData[field.name];
 
             if (field.widget === "upload") {
