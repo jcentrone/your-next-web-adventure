@@ -44,8 +44,13 @@ const ReportsList: React.FC = () => {
   const items = user ? remoteItems || [] : localItems;
   const archivedCount = archivedItems?.filter(item => item.archived).length || 0;
   
-  // Filter items by report type
+  // Filter items by report type and archived status
   const filteredItems = items.filter((item: any) => {
+    // First filter by archived status
+    if (showArchived && !item.archived) return false;
+    if (!showArchived && item.archived) return false;
+    
+    // Then filter by report type
     if (reportTypeFilter === "all") return true;
     return item.reportType === reportTypeFilter;
   });

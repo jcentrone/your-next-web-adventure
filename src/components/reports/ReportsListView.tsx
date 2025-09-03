@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FileText, Eye, Trash2, Archive, ArchiveRestore, Wind, Flame, ShieldCheck, Home, Pencil } from "lucide-react";
 import { downloadWindMitigationReport } from "@/utils/fillWindMitigationPDF";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
@@ -66,49 +67,78 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="ghost" asChild>
-                <Link to={`/reports/${report.id}`}>
-                  <Pencil className="h-4 w-4" />
-                  <span className="sr-only">Edit</span>
-                </Link>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" variant="ghost" asChild>
+                    <Link to={`/reports/${report.id}`}>
+                      <Pencil className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit report</TooltipContent>
+              </Tooltip>
+              
               {report.reportType === "windMitigation" && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => downloadWindMitigationReport(report)}
-                >
-                  Download
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => downloadWindMitigationReport(report)}
+                    >
+                      Download
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Download PDF</TooltipContent>
+                </Tooltip>
               )}
-              <Button size="sm" variant="ghost" asChild>
-                <Link to={`/reports/${report.id}/preview`}>
-                  <Eye className="h-4 w-4" />
-                  <span className="sr-only">Preview</span>
-                </Link>
-              </Button>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button size="sm" variant="ghost" asChild>
+                    <Link to={`/reports/${report.id}/preview`}>
+                      <Eye className="h-4 w-4" />
+                      <span className="sr-only">Preview</span>
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Preview report</TooltipContent>
+              </Tooltip>
+              
               {onArchive && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onArchive(report.id, !report.archived)}
-                >
-                  {report.archived ? (
-                    <ArchiveRestore className="h-4 w-4" />
-                  ) : (
-                    <Archive className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">{report.archived ? "Restore" : "Archive"}</span>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onArchive(report.id, !report.archived)}
+                    >
+                      {report.archived ? (
+                        <ArchiveRestore className="h-4 w-4" />
+                      ) : (
+                        <Archive className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">{report.archived ? "Restore" : "Archive"}</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{report.archived ? "Restore report" : "Archive report"}</TooltipContent>
+                </Tooltip>
               )}
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => onDelete(report.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Delete</span>
-              </Button>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => onDelete(report.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete report</TooltipContent>
+              </Tooltip>
             </div>
           </div>
         ))}
