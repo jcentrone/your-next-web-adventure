@@ -1,13 +1,14 @@
 import React from "react";
-import { Report } from "@/lib/reportSchemas";
-import { COVER_TEMPLATES } from "@/constants/coverTemplates";
-import { COLOR_SCHEMES } from "@/components/ui/color-scheme-picker";
-import CoverPageWrapper from "./CoverPageWrapper";
-import { FL_FOUR_POINT_QUESTIONS } from "@/constants/flFourPointQuestions";
-import { TX_WINDSTORM_QUESTIONS } from "@/constants/txWindstormQuestions";
-import { CA_WILDFIRE_QUESTIONS } from "@/constants/caWildfireQuestions";
-import { MANUFACTURED_HOME_QUESTIONS } from "@/constants/manufacturedHomeQuestions";
-import { ROOF_CERTIFICATION_QUESTIONS } from "@/constants/roofCertificationQuestions";
+import {Report} from "@/lib/reportSchemas";
+import {COLOR_SCHEMES} from "@/components/ui/color-scheme-picker";
+import {FL_FOUR_POINT_QUESTIONS} from "@/constants/flFourPointQuestions";
+import {TX_WINDSTORM_QUESTIONS} from "@/constants/txWindstormQuestions";
+import {CA_WILDFIRE_QUESTIONS} from "@/constants/caWildfireQuestions";
+import {MANUFACTURED_HOME_QUESTIONS} from "@/constants/manufacturedHomeQuestions";
+import {ROOF_CERTIFICATION_QUESTIONS} from "@/constants/roofCertificationQuestions";
+import {COVER_TEMPLATES} from "@/constants/coverTemplates.ts";
+import {Profile} from "@/integrations/supabase/organizationsApi.ts";
+
 const QUESTION_CONFIGS: Partial<Record<Report["reportType"], { sections: readonly any[] }>> = {
     fl_four_point_citizens: FL_FOUR_POINT_QUESTIONS,
     tx_coastal_windstorm_mitigation: TX_WINDSTORM_QUESTIONS,
@@ -23,8 +24,9 @@ interface SpecializedReportPreviewProps {
     company?: string;
 }
 
+
 const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedReportPreviewProps>(
-    ({ report, mediaUrlMap, coverUrl, company }, ref) => {
+    ({report, inspector, organization, mediaUrlMap, coverUrl, company, classNameProp}, ref) => {
         const config = QUESTION_CONFIGS[report.reportType];
 
         if (!config) {
@@ -34,21 +36,23 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                 </div>
             );
         }
+        const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
+
 
         const coverColorScheme =
             report.colorScheme === "custom" && report.customColors
                 ? {
-                      primary: report.customColors.primary || "220 87% 56%",
-                      secondary: report.customColors.secondary || "220 70% 40%",
-                      accent: report.customColors.accent || "220 90% 70%",
-                  }
+                    primary: report.customColors.primary || "220 87% 56%",
+                    secondary: report.customColors.secondary || "220 70% 40%",
+                    accent: report.customColors.accent || "220 90% 70%",
+                }
                 : report.colorScheme && report.colorScheme !== "default"
-                ? {
-                      primary: COLOR_SCHEMES[report.colorScheme].primary,
-                      secondary: COLOR_SCHEMES[report.colorScheme].secondary,
-                      accent: COLOR_SCHEMES[report.colorScheme].accent,
-                  }
-                : undefined;
+                    ? {
+                        primary: COLOR_SCHEMES[report.colorScheme].primary,
+                        secondary: COLOR_SCHEMES[report.colorScheme].secondary,
+                        accent: COLOR_SCHEMES[report.colorScheme].accent,
+                    }
+                    : undefined;
 
         const renderField = (sectionName: string, field: any) => {
             const sectionData = ((report as any).reportData?.[sectionName] || {}) as Record<string, any>;
@@ -59,15 +63,15 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
             }
 
             if (field.widget === "signature" && value) {
-                return <img src={mediaUrlMap[value] || value} alt="Signature" className="h-16 w-auto" />;
+                return <img src={mediaUrlMap[value] || value} alt="Signature" className="h-16 w-auto"/>;
             }
 
             return String(value || "");
         };
 
         // Collect all images for separate pages
-        const allImages: Array<{url: string, caption?: string, sectionName: string, fieldLabel: string}> = [];
-        
+        const allImages: Array<{ url: string, caption?: string, sectionName: string, fieldLabel: string }> = [];
+
         config.sections.forEach(section => {
             section.fields.forEach((field: any) => {
                 if (field.widget === "upload") {
@@ -85,17 +89,37 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
         });
 
         return (
-            <div ref={ref} className="pdf-document">
-                {/* Cover Page - Full Height */}
-                <div className="preview-page">
-                    <CoverPageWrapper
-                        report={report}
-                        coverUrl={coverUrl}
-                        company={company}
-                        colorScheme={coverColorScheme}
-                    />
+            <div ref={ref} className="pdf-document" style={coverColorScheme as any}>
+                <div className="preview-page page-break">
+                    <div className="h-[1056px]">
+                        <CoverComponent
+                            reportTitle={report.title}
+                            clientName={report.clientName}
+                            coverImage={coverUrl}
+                            organizationName={organization?.name || ""}
+                            organizationAddress={organization?.address || ""}
+                            organizationPhone={organization?.phone || ""}
+                            organizationEmail={organization?.email || ""}
+                            organizationWebsite={organization?.website || ""}
+                            organizationLogo={organization?.logo_url || ""}
+                            inspectorName={inspector?.full_name || ""}
+                            inspectorLicenseNumber={inspector?.license_number || ""}
+                            inspectorPhone={inspector?.phone || ""}
+                            inspectorEmail={inspector?.email || ""}
+                            clientAddress={report.address}
+                            clientEmail={report.clientEmail || ""}
+                            clientPhone={report.clientPhone || ""}
+                            inspectionDate={report.inspectionDate}
+                            weatherConditions={report.weatherConditions || ""}
+                            colorScheme={coverColorScheme}
+                            className={classNameProp}
+
+                        />
+
+
+                    </div>
                 </div>
-                
+
                 {/* Content Page - All form fields without images */}
                 <div className="preview-page">
                     <section className="pdf-page-break p-8 min-h-[11in]">
@@ -124,7 +148,7 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                         ))}
                     </section>
                 </div>
-                
+
                 {/* Images Pages - Two per row */}
                 {allImages.length > 0 && (
                     <div className="preview-page">
@@ -135,10 +159,10 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                             <div className="grid grid-cols-2 gap-6">
                                 {allImages.map((image, idx) => (
                                     <div key={idx} className="break-inside-avoid">
-                                        <img 
-                                            src={mediaUrlMap[image.url] || image.url} 
+                                        <img
+                                            src={mediaUrlMap[image.url] || image.url}
                                             alt={`${image.sectionName} - ${image.fieldLabel}`}
-                                            className="w-full h-64 object-contain rounded border pdf-image mb-2" 
+                                            className="w-full h-64 object-contain rounded border pdf-image mb-2"
                                         />
                                         <p className="text-xs text-gray-600 font-semibold">
                                             {image.sectionName} - {image.fieldLabel}
