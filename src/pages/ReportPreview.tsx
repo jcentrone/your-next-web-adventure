@@ -14,6 +14,7 @@ import { toast } from "@/components/ui/use-toast";
 import { AlertCircle, AlertOctagon, AlertTriangle, Info, MinusCircle, Wrench } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import PDFDocument from "@/components/reports/PDFDocument";
+import SpecializedReportPreview from "@/components/reports/SpecializedReportPreview";
 import ReportDetailsSection from "@/components/reports/ReportDetailsSection";
 import SectionInfoDisplay from "@/components/reports/SectionInfoDisplay";
 import "../styles/pdf.css";
@@ -458,7 +459,7 @@ const ReportPreview: React.FC = () => {
         {topBar}
         <div className="max-w-4xl mx-auto px-4 py-10">
           <div ref={pdfContainerRef} style={colorVars}>
-            <PDFDocument
+            <SpecializedReportPreview
               report={report}
               mediaUrlMap={mediaUrlMap}
               coverUrl={coverUrl}

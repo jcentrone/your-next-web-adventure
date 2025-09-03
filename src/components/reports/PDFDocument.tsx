@@ -7,19 +7,6 @@ import ReportDetailsSection from "./ReportDetailsSection";
 import SectionInfoDisplay from "./SectionInfoDisplay";
 import { isSupabaseUrl } from "@/integrations/supabase/storage";
 import { COVER_TEMPLATES } from "@/constants/coverTemplates";
-import { FL_FOUR_POINT_QUESTIONS } from "@/constants/flFourPointQuestions";
-import { TX_WINDSTORM_QUESTIONS } from "@/constants/txWindstormQuestions";
-import { CA_WILDFIRE_QUESTIONS } from "@/constants/caWildfireQuestions";
-import { MANUFACTURED_HOME_QUESTIONS } from "@/constants/manufacturedHomeQuestions";
-import { ROOF_CERTIFICATION_QUESTIONS } from "@/constants/roofCertificationQuestions";
-
-const QUESTION_CONFIGS: Partial<Record<Report["reportType"], { sections: readonly any[] }>> = {
-    fl_four_point_citizens: FL_FOUR_POINT_QUESTIONS,
-    tx_coastal_windstorm_mitigation: TX_WINDSTORM_QUESTIONS,
-    ca_wildfire_defensible_space: CA_WILDFIRE_QUESTIONS,
-    roof_certification_nationwide: ROOF_CERTIFICATION_QUESTIONS,
-    manufactured_home_insurance_prep: MANUFACTURED_HOME_QUESTIONS,
-};
 
 
 interface PDFDocumentProps {
@@ -31,152 +18,11 @@ interface PDFDocumentProps {
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
     ({report, mediaUrlMap, coverUrl, company}, ref) => {
-        const config = QUESTION_CONFIGS[report.reportType];
-
-        const coverColorScheme =
-            report.colorScheme === "custom" && report.customColors
-                ? {
-                      primary: report.customColors.primary || "220 87% 56%",
-                      secondary: report.customColors.secondary || "220 70% 40%",
-                      accent: report.customColors.accent || "220 90% 70%",
-                  }
-                : report.colorScheme && report.colorScheme !== "default"
-                ? {
-                      primary: COLOR_SCHEMES[report.colorScheme].primary,
-                      secondary: COLOR_SCHEMES[report.colorScheme].secondary,
-                      accent: COLOR_SCHEMES[report.colorScheme].accent,
-                  }
-                : undefined;
-
-        const renderField = (sectionName: string, field: any) => {
-            const sectionData = ((report as any).reportData?.[sectionName] || {}) as Record<string, any>;
-            const value = sectionData[field.name];
-
-            if (field.widget === "upload") {
-                const urls = Array.isArray(value) ? value : [];
-                return (
-                    <div className="grid grid-cols-2 gap-3">
-                        {urls.map((url: string, idx: number) => (
-                            <img 
-                                key={idx} 
-                                src={mediaUrlMap[url] || url} 
-                                alt="" 
-                                className="w-full max-h-48 object-contain rounded border pdf-image" 
-                            />
-                        ))}
-                    </div>
-                );
-            }
-
-            if (field.widget === "signature" && value) {
-                return <img src={mediaUrlMap[value] || value} alt="Signature" className="h-16 w-auto" />;
-            }
-
-            return String(value || "");
-        };
-
-        if (config) {
-            const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
-            
-            // Separate images from form fields for specialized reports
-            const allImages: Array<{url: string, caption?: string, sectionName: string, fieldLabel: string}> = [];
-            
-            config.sections.forEach(section => {
-                section.fields.forEach((field: any) => {
-                    if (field.widget === "upload") {
-                        const sectionData = ((report as any).reportData?.[section.name] || {}) as Record<string, any>;
-                        const urls = Array.isArray(sectionData[field.name]) ? sectionData[field.name] : [];
-                        urls.forEach((url: string) => {
-                            allImages.push({
-                                url,
-                                sectionName: section.name.replace(/_/g, " "),
-                                fieldLabel: field.label
-                            });
-                        });
-                    }
-                });
-            });
-
-            return (
-                <div ref={ref} className="pdf-document">
-                    {/* Cover Page - Full Height */}
-                    <div className="preview-page">
-                        <section className="pdf-page-break h-full flex flex-col">
-                            <div className="flex-1 h-full">
-                                <CoverComponent
-                                    reportTitle={report.title}
-                                    clientName={report.clientName}
-                                    clientAddress={report.address}
-                                    coverImage={coverUrl}
-                                    organizationName={company}
-                                    inspectionDate={report.inspectionDate}
-                                    colorScheme={coverColorScheme}
-                                />
-                            </div>
-                        </section>
-                    </div>
-                    
-                    {/* Content Page - All form fields without images */}
-                    <div className="preview-page">
-                        <section className="pdf-page-break p-8">
-                            <h1 className="text-3xl font-bold mb-8 text-primary">{report.title}</h1>
-                            {config.sections.map((section, sectionIndex) => (
-                                <div key={section.name} className={sectionIndex > 0 ? "mt-8" : ""}>
-                                    <h2 className="text-2xl font-bold mb-4 capitalize text-primary border-b border-gray-300 pb-2">
-                                        {section.name.replace(/_/g, " ")}
-                                    </h2>
-                                    <table className="w-full text-sm border-collapse mb-6">
-                                        <tbody>
-                                        {section.fields
-                                            .filter((field: any) => field.widget !== "upload")
-                                            .map((field: any) => (
-                                                <tr key={field.name} className="border-b">
-                                                    <td className="border-r p-3 font-semibold w-1/3 bg-gray-50 align-top">
-                                                        {field.label}
-                                                    </td>
-                                                    <td className="p-3 align-top">{renderField(section.name, field)}</td>
-                                                </tr>
-                                            ))
-                                        }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ))}
-                        </section>
-                    </div>
-                    
-                    {/* Images Pages - Two per row */}
-                    {allImages.length > 0 && (
-                        <div className="preview-page">
-                            <section className="pdf-page-break p-8">
-                                <h2 className="text-2xl font-bold mb-6 text-primary border-b border-gray-300 pb-2">
-                                    Supporting Images
-                                </h2>
-                                <div className="grid grid-cols-2 gap-6">
-                                    {allImages.map((image, idx) => (
-                                        <div key={idx} className="break-inside-avoid">
-                                            <img 
-                                                src={mediaUrlMap[image.url] || image.url} 
-                                                alt={`${image.sectionName} - ${image.fieldLabel}`}
-                                                className="w-full h-64 object-contain rounded border pdf-image mb-2" 
-                                            />
-                                            <p className="text-xs text-gray-600 font-semibold">
-                                                {image.sectionName} - {image.fieldLabel}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        if (report.reportType !== "home_inspection") {
+        // This component now only handles home inspection reports
+        if (report.reportType !== "home_inspection" || !("sections" in report)) {
             return (
                 <div className="p-8 text-center">
-                    <p>PDF generation for this report type is coming soon.</p>
+                    <p>This component only handles home inspection reports.</p>
                 </div>
             );
         }
