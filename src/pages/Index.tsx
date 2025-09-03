@@ -58,46 +58,44 @@ const Index = () => {
       <Seo title={title} description={description} canonical="/" jsonLd={jsonLd} />
 
       {/* Hero Section */}
-      <section id="hero" className="relative max-w-7xl mx-auto px-4 py-24 md:py-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 -z-10" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl -z-10"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/10 rounded-full blur-3xl -z-10"></div>
+      <section id="hero" className="relative max-w-7xl mx-auto px-4 py-32 md:py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/20 -z-10" />
         
-        <div className="text-center max-w-5xl mx-auto relative z-10">
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-8">
+        <div className="text-center max-w-4xl mx-auto relative z-10">
+          <div className="inline-flex items-center gap-2 bg-muted text-muted-foreground px-3 py-1.5 rounded-full text-sm font-medium mb-8 border">
             <Zap className="w-4 h-4" />
             Professional Inspection Platform
           </div>
           
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 bg-gradient-to-r from-foreground via-primary to-foreground bg-clip-text text-transparent leading-tight">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6 text-foreground leading-tight">
             Inspection Reports
             <br />
             <span className="text-primary">Made Simple</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed max-w-2xl mx-auto">
             Create comprehensive, professional inspection reports with our modern platform. 
             Built for inspectors who demand quality and efficiency.
           </p>
           
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             {user ? (
-              <Button size="lg" className="text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" asChild>
+              <Button size="lg" className="text-base px-8 py-3" asChild>
                 <Link to="/dashboard">
-                  <ArrowRight className="mr-2 w-5 h-5" />
+                  <ArrowRight className="mr-2 w-4 h-4" />
                   Go to Dashboard
                 </Link>
               </Button>
             ) : (
               <>
-                <Button size="lg" className="text-lg px-10 py-7 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300" asChild>
+                <Button size="lg" className="text-base px-8 py-3" asChild>
                   <Link to="/auth">
-                    <ArrowRight className="mr-2 w-5 h-5" />
+                    <ArrowRight className="mr-2 w-4 h-4" />
                     Start Free Trial
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="text-lg px-10 py-7 rounded-2xl border-2 hover:bg-muted/50 transition-all duration-300">
-                  <Globe className="mr-2 w-5 h-5" />
+                <Button size="lg" variant="outline" className="text-base px-8 py-3">
+                  <Globe className="mr-2 w-4 h-4" />
                   Watch Demo
                 </Button>
               </>
@@ -118,18 +116,18 @@ const Index = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-card to-card/50">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-primary/10 rounded-2xl">
-                <Smartphone className="h-8 w-8 text-primary" />
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <Smartphone className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="font-bold text-xl">Progressive Web App</h3>
+              <h3 className="font-semibold text-lg">Progressive Web App</h3>
             </div>
             <p className="text-muted-foreground mb-6 leading-relaxed">
               Install as native app on any device. Blazing fast performance with offline-first architecture and automatic updates.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-3">
               <li className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
                 One-click installation
@@ -145,17 +143,17 @@ const Index = () => {
             </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-amber-50 to-orange-50">
+          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-amber-500/10 rounded-2xl">
-                <Wind className="h-8 w-8 text-amber-600" />
+              <div className="p-3 bg-amber-500/10 rounded-lg">
+                <Wind className="h-6 w-6 text-amber-600" />
               </div>
-              <h3 className="font-bold text-xl">Wind Mitigation Specialist</h3>
+              <h3 className="font-semibold text-lg">Wind Mitigation Specialist</h3>
             </div>
             <p className="text-muted-foreground mb-6 leading-relaxed">
               Florida Form 1802 compliant wind mitigation inspections. Help clients save thousands on insurance premiums.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-3">
               <li className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
                 OIR-B1-1802 form compliance
@@ -171,17 +169,17 @@ const Index = () => {
             </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-purple-50 to-violet-50">
+          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-purple-500/10 rounded-2xl">
-                <Palette className="h-8 w-8 text-purple-600" />
+              <div className="p-3 bg-purple-500/10 rounded-lg">
+                <Palette className="h-6 w-6 text-purple-600" />
               </div>
-              <h3 className="font-bold text-xl">Advanced Image Annotation</h3>
+              <h3 className="font-semibold text-lg">Advanced Image Annotation</h3>
             </div>
             <p className="text-muted-foreground mb-6 leading-relaxed">
               Professional canvas tools for image markup. Draw, highlight, and annotate photos directly in your reports.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-3">
               <li className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-purple-600 flex-shrink-0" />
                 Drawing and markup tools
@@ -197,17 +195,17 @@ const Index = () => {
             </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-blue-50 to-cyan-50">
+          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-blue-500/10 rounded-2xl">
-                <Users className="h-8 w-8 text-blue-600" />
+              <div className="p-3 bg-blue-500/10 rounded-lg">
+                <Users className="h-6 w-6 text-blue-600" />
               </div>
-              <h3 className="font-bold text-xl">Enhanced CRM</h3>
+              <h3 className="font-semibold text-lg">Enhanced CRM</h3>
             </div>
             <p className="text-muted-foreground mb-6 leading-relaxed">
               Manage complex relationships between clients, realtors, vendors, and contractors with advanced tracking.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-3">
               <li className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />
                 Relationship mapping
@@ -223,17 +221,17 @@ const Index = () => {
             </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-green-50 to-emerald-50">
+          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-green-500/10 rounded-2xl">
-                <Zap className="h-8 w-8 text-green-600" />
+              <div className="p-3 bg-green-500/10 rounded-lg">
+                <Zap className="h-6 w-6 text-green-600" />
               </div>
-              <h3 className="font-bold text-xl">Key Integrations</h3>
+              <h3 className="font-semibold text-lg">Key Integrations</h3>
             </div>
             <p className="text-muted-foreground mb-6 leading-relaxed">
               Essential integrations to streamline your workflow and enhance productivity.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-3">
               <li className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                 Google Calendar sync
@@ -249,27 +247,27 @@ const Index = () => {
             </ul>
           </Card>
 
-          <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-0 shadow-md bg-gradient-to-br from-red-50 to-pink-50">
+          <Card className="p-8 hover:shadow-lg transition-all duration-300 border border-border/50">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-red-500/10 rounded-2xl">
-                <WifiOff className="h-8 w-8 text-red-600" />
+              <div className="p-3 bg-slate-500/10 rounded-lg">
+                <WifiOff className="h-6 w-6 text-slate-600" />
               </div>
-              <h3 className="font-bold text-xl">Offline-First Architecture</h3>
+              <h3 className="font-semibold text-lg">Offline-First Architecture</h3>
             </div>
             <p className="text-muted-foreground mb-6 leading-relaxed">
               Complete functionality without internet. Automatic background sync ensures no data loss ever.
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2">
+            <ul className="text-sm text-muted-foreground space-y-3">
               <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-slate-600 flex-shrink-0" />
                 Full offline capability
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-slate-600 flex-shrink-0" />
                 Intelligent background sync
               </li>
               <li className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-slate-600 flex-shrink-0" />
                 Zero data loss guarantee
               </li>
             </ul>
@@ -278,10 +276,10 @@ const Index = () => {
       </section>
 
       {/* PWA Benefits Section */}
-      <section className="bg-gradient-to-br from-primary/5 via-background to-secondary/5 py-16">
+      <section className="bg-muted/30 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-medium mb-4 border">
               <Download className="w-4 h-4" />
               Progressive Web App
             </div>
@@ -293,8 +291,8 @@ const Index = () => {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-6 h-6 text-primary" />
               </div>
               <h3 className="font-semibold mb-2">Lightning Fast</h3>
               <p className="text-sm text-muted-foreground">
@@ -303,8 +301,8 @@ const Index = () => {
             </div>
             
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <WifiOff className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <WifiOff className="w-6 h-6 text-primary" />
               </div>
               <h3 className="font-semibold mb-2">Works Offline</h3>
               <p className="text-sm text-muted-foreground">
@@ -313,8 +311,8 @@ const Index = () => {
             </div>
             
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Smartphone className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Smartphone className="w-6 h-6 text-primary" />
               </div>
               <h3 className="font-semibold mb-2">Native Experience</h3>
               <p className="text-sm text-muted-foreground">
@@ -323,8 +321,8 @@ const Index = () => {
             </div>
             
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-primary" />
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-6 h-6 text-primary" />
               </div>
               <h3 className="font-semibold mb-2">Always Updated</h3>
               <p className="text-sm text-muted-foreground">
@@ -408,7 +406,7 @@ const Index = () => {
       </section>
 
       {/* Enhanced Workflow Section */}
-      <section id="workflow" className="bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30 py-16">
+      <section id="workflow" className="bg-muted/30 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Modern Inspection Workflow</h2>
@@ -419,40 +417,40 @@ const Index = () => {
           
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                <Users className="w-10 h-10 text-primary-foreground" />
+              <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+                <Users className="w-8 h-8 text-primary-foreground" />
               </div>
-              <h3 className="font-semibold mb-2 text-lg">1. Capture & Schedule</h3>
+              <h3 className="font-semibold mb-2">1. Capture & Schedule</h3>
               <p className="text-sm text-muted-foreground">
                 Mobile CRM with booking widget integration. Add contacts and schedule appointments seamlessly.
               </p>
             </div>
             
             <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                <Smartphone className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+                <Smartphone className="w-8 h-8 text-white" />
               </div>
-              <h3 className="font-semibold mb-2 text-lg">2. Inspect & Document</h3>
+              <h3 className="font-semibold mb-2">2. Inspect & Document</h3>
               <p className="text-sm text-muted-foreground">
                 Use PWA offline mode with advanced image annotation. Work anywhere without connectivity.
               </p>
             </div>
             
             <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                <FileText className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 bg-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+                <FileText className="w-8 h-8 text-white" />
               </div>
-              <h3 className="font-semibold mb-2 text-lg">3. Generate Reports</h3>
+              <h3 className="font-semibold mb-2">3. Generate Reports</h3>
               <p className="text-sm text-muted-foreground">
                 Create InterNACHI SOP compliant home inspections or specialized wind mitigation reports.
               </p>
             </div>
             
             <div className="text-center group">
-              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                <CheckSquare className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 bg-orange-600 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-200">
+                <CheckSquare className="w-8 h-8 text-white" />
               </div>
-              <h3 className="font-semibold mb-2 text-lg">4. Deliver & Follow-up</h3>
+              <h3 className="font-semibold mb-2">4. Deliver & Follow-up</h3>
               <p className="text-sm text-muted-foreground">
                 Automated email delivery with task tracking. Never miss important follow-ups.
               </p>
@@ -461,7 +459,7 @@ const Index = () => {
 
           {/* Workflow Benefits */}
           <div className="mt-12 grid md:grid-cols-3 gap-6">
-            <Card className="p-6 text-center bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <Card className="p-6 text-center border border-border/50">
               <Clock className="w-8 h-8 text-blue-600 mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Save 2+ Hours Per Report</h4>
               <p className="text-sm text-muted-foreground">
@@ -469,7 +467,7 @@ const Index = () => {
               </p>
             </Card>
             
-            <Card className="p-6 text-center bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+            <Card className="p-6 text-center border border-border/50">
               <Star className="w-8 h-8 text-green-600 mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Professional Quality</h4>
               <p className="text-sm text-muted-foreground">
@@ -477,7 +475,7 @@ const Index = () => {
               </p>
             </Card>
             
-            <Card className="p-6 text-center bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
+            <Card className="p-6 text-center border border-border/50">
               <Layers className="w-8 h-8 text-purple-600 mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Zero Learning Curve</h4>
               <p className="text-sm text-muted-foreground">
@@ -546,10 +544,10 @@ const Index = () => {
       </section>
 
       {/* Enhanced Security & Compliance */}
-      <section id="security" className="bg-gradient-to-br from-slate-50 to-gray-50 py-16">
+      <section id="security" className="bg-muted/30 py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <Shield className="w-16 h-16 text-primary mx-auto mb-6" />
+            <Shield className="w-12 h-12 text-primary mx-auto mb-6" />
             <h2 className="text-3xl font-bold mb-4">Enterprise-Grade Security</h2>
             <p className="text-muted-foreground text-lg mb-8 max-w-3xl mx-auto">
               Your business data and client information are protected with military-grade encryption 
@@ -558,7 +556,7 @@ const Index = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow border border-border/50">
               <Shield className="w-8 h-8 text-green-600 mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Row-Level Security</h4>
               <p className="text-sm text-muted-foreground">
@@ -566,7 +564,7 @@ const Index = () => {
               </p>
             </Card>
             
-            <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow border border-border/50">
               <Globe className="w-8 h-8 text-blue-600 mx-auto mb-3" />
               <h4 className="font-semibold mb-2">End-to-End Encryption</h4>
               <p className="text-sm text-muted-foreground">
@@ -574,7 +572,7 @@ const Index = () => {
               </p>
             </Card>
             
-            <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow border border-border/50">
               <Users className="w-8 h-8 text-purple-600 mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Role-Based Access</h4>
               <p className="text-sm text-muted-foreground">
@@ -582,7 +580,7 @@ const Index = () => {
               </p>
             </Card>
             
-            <Card className="p-6 text-center hover:shadow-lg transition-shadow">
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow border border-border/50">
               <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Compliance Ready</h4>
               <p className="text-sm text-muted-foreground">
@@ -591,7 +589,7 @@ const Index = () => {
             </Card>
           </div>
 
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
+          <Card className="p-8 border border-border/50">
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold mb-4">Standards & Compliance</h3>
               <p className="text-muted-foreground">
@@ -624,7 +622,7 @@ const Index = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </section>
 
