@@ -11,6 +11,14 @@ const TemplateC: React.FC<TemplateProps> = ({ org, settings }) => (
     <main className="flex-1 flex items-center justify-center p-4">
       <Widget settings={settings} />
     </main>
+    {(org?.address || org?.phone || org?.email || org?.website) && (
+      <footer className="p-4 bg-white text-center space-y-1 text-sm">
+        {org.address && <p>{org.address}</p>}
+        {org.phone && <p>{org.phone}</p>}
+        {org.email && <p>{org.email}</p>}
+        {org.website && <p>{org.website}</p>}
+      </footer>
+    )}
   </div>
 );
 

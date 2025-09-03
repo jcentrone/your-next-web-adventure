@@ -5,6 +5,7 @@ import { bookingApi, type BookingSettings } from '@/integrations/supabase/bookin
 import { supabase } from '@/integrations/supabase/client';
 import Widget from '@/components/booking/Widget';
 import { templates, type TemplateId, type TemplateProps } from '@/components/booking/templates';
+import { getMyOrganization } from '@/integrations/supabase/organizationsApi';
 
 const BookingPage: React.FC = () => {
   const { slug } = useParams();
@@ -17,16 +18,42 @@ const BookingPage: React.FC = () => {
     enabled: !!slug,
   });
 
-  const { data: organization, isLoading: orgLoading } = useQuery({
+  const { data: organization, isLoading: orgLoading } = useQuery<TemplateProps['org'] | null>({
     queryKey: ['booking-organization', settings?.user_id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('organization_members')
-        .select('organizations(logo_url,name,primary_color,secondary_color)')
-        .eq('user_id', settings!.user_id)
-        .single<{ organizations: TemplateProps['org'] }>();
-      if (error) throw error;
-      return data?.organizations ?? null;
+      const userId = settings!.user_id;
+      const { data: auth } = await supabase.auth.getUser();
+      let org: TemplateProps['org'] | null = null;
+      if (auth.user?.id === userId) {
+        org = await getMyOrganization();
+      } else {
+        const { data, error } = await supabase
+          .from('organization_members')
+          .select('organizations(logo_url,name,address,phone,email,website,primary_color,secondary_color)')
+          .eq('user_id', userId)
+          .single<{ organizations: TemplateProps['org'] }>();
+        if (error && error.code !== 'PGRST116') throw error;
+        org = data?.organizations ?? null;
+      }
+      if (org) return org;
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url, phone, email')
+        .eq('user_id', userId)
+        .single<{ full_name: string | null; avatar_url: string | null; phone: string | null; email: string | null }>();
+      if (profileError) throw profileError;
+      if (!profile) return null;
+      return {
+        logo_url: profile.avatar_url,
+        name: profile.full_name,
+        address: null,
+        phone: profile.phone,
+        email: profile.email,
+        website: null,
+        primary_color: null,
+        secondary_color: null,
+      };
     },
     enabled: !!settings?.user_id,
   });
