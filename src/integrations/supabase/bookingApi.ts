@@ -16,6 +16,7 @@ export interface AppointmentPayload {
   appointment_end?: string | null;
   contact_name?: string;
   contact_email?: string;
+  service_ids?: string[];
 }
 
 export const bookingApi = {
@@ -70,13 +71,29 @@ export const bookingApi = {
   },
 
   async createAppointment(appointment: AppointmentPayload) {
+    const { service_ids = [], ...appt } = appointment;
+
     const { data, error } = await supabase
       .from('appointments')
-      .insert(appointment)
+      .insert(appt)
       .select()
       .single();
 
     if (error) throw error;
+
+    if (service_ids.length > 0) {
+      const { error: svcError } = await supabase
+        .from('appointment_services')
+        .insert(
+          service_ids.map((id) => ({
+            user_id: appt.user_id,
+            appointment_id: data.id,
+            service_id: id,
+          }))
+        );
+      if (svcError) throw svcError;
+    }
+
     return data;
   }
 };
