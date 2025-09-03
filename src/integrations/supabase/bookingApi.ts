@@ -52,16 +52,21 @@ export const bookingApi = {
     return data as BookingSettings;
   },
 
-  async getTakenAppointments(userId: string): Promise<{ start_date: string; end_date: string | null }[]> {
+  async getTakenAppointments(userId: string): Promise<{ start_date: string; end_date: string }[]> {
     const { data, error } = await supabase
       .from('appointments')
-      .select('appointment_date, appointment_end')
+      .select('appointment_date, duration_minutes')
       .eq('user_id', userId)
       .in('status', ['scheduled', 'confirmed', 'in_progress']);
 
     if (error) throw error;
-    const rows = (data as { appointment_date: string; appointment_end: string | null }[]) || [];
-    return rows.map((a) => ({ start_date: a.appointment_date, end_date: a.appointment_end }));
+    const rows = (data as { appointment_date: string; duration_minutes: number | null }[]) || [];
+    return rows.map((a) => {
+      const end = new Date(
+        new Date(a.appointment_date).getTime() + (a.duration_minutes ?? 0) * 60000
+      );
+      return { start_date: a.appointment_date, end_date: end.toISOString() };
+    });
   },
 
   async createAppointment(appointment: AppointmentPayload) {

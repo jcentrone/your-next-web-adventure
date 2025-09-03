@@ -16,7 +16,7 @@ const BookingPage: React.FC = () => {
     enabled: !!slug,
   });
 
-  const { data: reserved = [], isLoading: appointmentsLoading } = useQuery<{ start_date: string; end_date: string | null }[]>({
+  const { data: reserved = [], isLoading: appointmentsLoading } = useQuery<{ start_date: string; end_date: string }[]>({
     queryKey: ['booking-reserved', settings?.user_id],
     queryFn: () => bookingApi.getTakenAppointments(settings!.user_id),
     enabled: !!settings?.user_id,
@@ -49,7 +49,7 @@ const BookingPage: React.FC = () => {
 
   const reservedRanges = reserved.map(r => ({
     startDate: new Date(r.start_date),
-    endDate: new Date(r.end_date || r.start_date),
+    endDate: new Date(r.end_date),
   }));
 
   return (
