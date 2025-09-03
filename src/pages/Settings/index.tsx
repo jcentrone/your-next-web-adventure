@@ -15,6 +15,7 @@ import Data from "./Data";
 import Integrations from "./Integrations";
 import Advanced from "./Advanced";
 import Booking from "./Booking";
+import Services from "./Services";
 
 const Settings: React.FC = () => {
   const location = useLocation();
@@ -55,6 +56,7 @@ const Settings: React.FC = () => {
           <TabsTrigger value="email-template">Email Template</TabsTrigger>
           <TabsTrigger value="data">Data</TabsTrigger>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
+          <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="booking">Booking</TabsTrigger>
           {isAdminOrOwner && <TabsTrigger value="advanced">Advanced</TabsTrigger>}
         </TabsList>
@@ -77,6 +79,9 @@ const Settings: React.FC = () => {
         </TabsContent>
         <TabsContent value="integrations">
           <Integrations />
+        </TabsContent>
+        <TabsContent value="services">
+          <Services />
         </TabsContent>
         <TabsContent value="booking">
           <Booking />
