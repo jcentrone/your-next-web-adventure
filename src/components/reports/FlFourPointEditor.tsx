@@ -7,6 +7,7 @@ import { InfoFieldWidget } from "./InfoFieldWidget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
 import { uploadFindingFiles, getSignedUrlFromSupabaseUrl, isSupabaseUrl } from "@/integrations/supabase/storage";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbUpdateReport } from "@/integrations/supabase/reportsApi";
@@ -28,6 +29,7 @@ const FormSchema = z.object(sectionSchema);
 
 const FlFourPointEditor: React.FC<EditorProps> = ({ report, onUpdate }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>("");
 
   React.useEffect(() => {
@@ -105,7 +107,11 @@ const FlFourPointEditor: React.FC<EditorProps> = ({ report, onUpdate }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{FL_FOUR_POINT_QUESTIONS.title}</h1>
-        <Button onClick={handleSave}>Save Report</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={() => navigate("/reports")}>Back to Reports</Button>
+          <Button variant="outline" onClick={() => navigate(`/reports/${report.id}/preview`)}>Preview</Button>
+          <Button onClick={handleSave}>Save Report</Button>
+        </div>
       </div>
 
       <div className="space-y-2">
