@@ -104,22 +104,18 @@ const Index = () => {
             )}
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-3 gap-8 text-center">
             <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-primary">500+</div>
+              <div className="text-3xl md:text-4xl font-bold text-primary">92</div>
               <div className="text-sm text-muted-foreground">Defect Templates</div>
             </div>
             <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-primary">PWA</div>
-              <div className="text-sm text-muted-foreground">Technology</div>
+              <div className="text-3xl md:text-4xl font-bold text-primary">📱</div>
+              <div className="text-sm text-muted-foreground">Available as App</div>
             </div>
             <div className="space-y-2">
               <div className="text-3xl md:text-4xl font-bold text-primary">Offline</div>
               <div className="text-sm text-muted-foreground">Capable</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl md:text-4xl font-bold text-primary">24/7</div>
-              <div className="text-sm text-muted-foreground">Support</div>
             </div>
           </div>
         </div>

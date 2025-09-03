@@ -69,6 +69,7 @@ const App = () => (
               <Route path="/contacts/:id" element={lazyLoad(() => import("./pages/ContactDetail"))} />
               <Route path="/calendar" element={lazyLoad(() => import("./pages/Calendar"))} />
               <Route path="/tasks" element={lazyLoad(() => import("./pages/Tasks"))} />
+              <Route path="/support" element={lazyLoad(() => import("./pages/ContactSupport"))} />
               <Route path="/defects-admin" element={lazyLoad(() => import("./pages/DefectsAdmin"))} />
               <Route path="/section-manager" element={lazyLoad(() => import("./pages/SectionManager"))} />
               <Route path="/settings/*" element={lazyLoad(() => import("./pages/Settings"))} />
