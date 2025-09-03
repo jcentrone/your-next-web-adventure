@@ -4,48 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { bookingApi, type BookingSettings } from '@/integrations/supabase/bookingApi';
 import { supabase } from '@/integrations/supabase/client';
 import Widget from '@/components/booking/Widget';
-
-interface TemplateProps {
-  organization: {
-    logo_url: string | null;
-    name: string | null;
-    primary_color: string | null;
-    secondary_color: string | null;
-  } | null;
-  children: React.ReactNode;
-}
-
-const TemplateA: React.FC<TemplateProps> = ({ organization, children }) => (
-  <div
-    className="min-h-screen p-4"
-    style={{ backgroundColor: organization?.primary_color || undefined }}
-  >
-    <div className="max-w-2xl mx-auto space-y-4">
-      {organization?.logo_url && (
-        <img
-          src={organization.logo_url}
-          alt={organization.name || ''}
-          className="h-16 mx-auto"
-        />
-      )}
-      {organization?.name && (
-        <h1
-          className="text-2xl font-bold text-center"
-          style={{ color: organization.secondary_color || undefined }}
-        >
-          {organization.name}
-        </h1>
-      )}
-      {children}
-    </div>
-  </div>
-);
-
-const BOOKING_TEMPLATES = {
-  templateA: TemplateA,
-} as const;
-
-type TemplateId = keyof typeof BOOKING_TEMPLATES;
+import { templates, type TemplateId, type TemplateProps } from '@/components/booking/templates';
 
 const BookingPage: React.FC = () => {
   const { slug } = useParams();
@@ -65,7 +24,7 @@ const BookingPage: React.FC = () => {
         .from('organization_members')
         .select('organizations(logo_url,name,primary_color,secondary_color)')
         .eq('user_id', settings!.user_id)
-        .single<{ organizations: TemplateProps['organization'] }>();
+        .single<{ organizations: TemplateProps['org'] }>();
       if (error) throw error;
       return data?.organizations ?? null;
     },
@@ -82,13 +41,9 @@ const BookingPage: React.FC = () => {
   if (orgLoading) return <div className="p-4">Loading...</div>;
 
   const templateKey = (settings.template || 'templateA') as TemplateId;
-  const Template = BOOKING_TEMPLATES[templateKey] || TemplateA;
+  const Template = templates[templateKey] ?? templates.templateA;
 
-  return (
-    <Template organization={organization || null}>
-      <Widget settings={settings} />
-    </Template>
-  );
+  return <Template org={organization || null} settings={settings} />;
 };
 
 export default BookingPage;
