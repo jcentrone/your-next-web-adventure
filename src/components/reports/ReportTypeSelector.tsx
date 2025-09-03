@@ -23,7 +23,7 @@ const ReportTypeSelector: React.FC = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
