@@ -1,9 +1,10 @@
 import { supabase } from './client';
+import type { Report } from "@/lib/reportSchemas";
 
 export interface Service {
   id?: string;
   user_id: string;
-  name: string;
+  name: Report["reportType"];
   price: number;
   created_at?: string;
   updated_at?: string;
