@@ -14,8 +14,7 @@ export interface AppointmentPayload {
   status: string;
   appointment_date: string;
   appointment_end?: string | null;
-  contact_name?: string;
-  contact_email?: string;
+  contact_id?: string;
   service_ids?: string[];
 }
 

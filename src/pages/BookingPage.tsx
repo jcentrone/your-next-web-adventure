@@ -5,6 +5,7 @@ import '@demark-pro/react-booking-calendar/dist/react-booking-calendar.css';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { bookingApi, AppointmentPayload } from '@/integrations/supabase/bookingApi';
 import { servicesApi, type Service } from '@/integrations/supabase/servicesApi';
+import { contactsApi } from '@/integrations/supabase/crmApi';
 import { Checkbox } from '@/components/ui/checkbox';
 
 const BookingPage: React.FC = () => {
@@ -39,19 +40,35 @@ const BookingPage: React.FC = () => {
     mutationFn: (payload: AppointmentPayload) => bookingApi.createAppointment(payload),
   });
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!settings || selected.length === 0) return;
 
-    mutation.mutate({
-      user_id: settings.user_id,
-      title: 'Online booking',
-      status: 'scheduled',
-      appointment_date: selected[0].toISOString(),
-      contact_name: name,
-      contact_email: email,
-      service_ids: serviceIds,
-    });
+    const [first_name, ...rest] = name.trim().split(/\s+/);
+    const last_name = rest.join(' ');
+
+    try {
+      const contact = await contactsApi.create({
+        user_id: settings.user_id,
+        first_name,
+        last_name,
+        email,
+        contact_type: 'client',
+      });
+
+      const contact_id = contact.id;
+
+      mutation.mutate({
+        user_id: settings.user_id,
+        title: 'Online booking',
+        status: 'scheduled',
+        appointment_date: selected[0].toISOString(),
+        contact_id,
+        service_ids: serviceIds,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   if (settingsLoading) return <div className="p-4">Loading...</div>;
