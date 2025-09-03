@@ -7,6 +7,7 @@ import {Button} from "@/components/ui/button";
 import {toast} from "@/hooks/use-toast";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
 import {uploadFindingFiles, getSignedUrlFromSupabaseUrl, isSupabaseUrl} from "@/integrations/supabase/storage";
 import {useAuth} from "@/contexts/AuthContext";
 import {WIND_MITIGATION_QUESTIONS} from "@/constants/windMitigationQuestions";
@@ -26,6 +27,7 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
     console.log("WindMitigationEditor render", {reportId: report.id, reportData: report.reportData});
 
     const {user} = useAuth();
+    const navigate = useNavigate();
     const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>("");
 
     React.useEffect(() => {
@@ -137,7 +139,8 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
                     <p className="text-sm text-muted-foreground">Form {WIND_MITIGATION_QUESTIONS.version}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    {/* Cover page selection removed */}
+                    <Button variant="secondary" onClick={() => navigate("/reports")}>Back to Reports</Button>
+                    <Button variant="outline" onClick={() => navigate(`/reports/${report.id}/preview`)}>Preview</Button>
                     <Button onClick={handleSave} className="shrink-0">
                         Save Report
                     </Button>
