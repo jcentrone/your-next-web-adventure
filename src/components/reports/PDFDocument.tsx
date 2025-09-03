@@ -13,6 +13,14 @@ import { CA_WILDFIRE_QUESTIONS } from "@/constants/caWildfireQuestions";
 import { MANUFACTURED_HOME_QUESTIONS } from "@/constants/manufacturedHomeQuestions";
 import { ROOF_CERTIFICATION_QUESTIONS } from "@/constants/roofCertificationQuestions";
 
+const QUESTION_CONFIGS: Partial<Record<Report["reportType"], { sections: any[] }>> = {
+    fl_four_point_citizens: FL_FOUR_POINT_QUESTIONS,
+    tx_coastal_windstorm_mitigation: TX_WINDSTORM_QUESTIONS,
+    ca_wildfire_defensible_space: CA_WILDFIRE_QUESTIONS,
+    roof_certification_nationwide: ROOF_CERTIFICATION_QUESTIONS,
+    manufactured_home_insurance_prep: MANUFACTURED_HOME_QUESTIONS,
+};
+
 
 interface PDFDocumentProps {
     report: Report;
@@ -23,201 +31,73 @@ interface PDFDocumentProps {
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
     ({report, mediaUrlMap, coverUrl, company}, ref) => {
-        if (report.reportType === "fl_four_point_citizens") {
-            const sections = FL_FOUR_POINT_QUESTIONS.sections;
+        const config = QUESTION_CONFIGS[report.reportType];
+
+        const coverColorScheme =
+            report.colorScheme === "custom" && report.customColors
+                ? {
+                      primary: report.customColors.primary || "220 87% 56%",
+                      secondary: report.customColors.secondary || "220 70% 40%",
+                      accent: report.customColors.accent || "220 90% 70%",
+                  }
+                : report.colorScheme && report.colorScheme !== "default"
+                ? {
+                      primary: COLOR_SCHEMES[report.colorScheme].primary,
+                      secondary: COLOR_SCHEMES[report.colorScheme].secondary,
+                      accent: COLOR_SCHEMES[report.colorScheme].accent,
+                  }
+                : undefined;
+
+        const renderField = (sectionName: string, field: any) => {
+            const sectionData = (report.reportData?.[sectionName] || {}) as Record<string, any>;
+            const value = sectionData[field.name];
+
+            if (field.widget === "upload") {
+                const urls = Array.isArray(value) ? value : [];
+                return (
+                    <div className="flex flex-wrap gap-2">
+                        {urls.map((url: string, idx: number) => (
+                            <img key={idx} src={mediaUrlMap[url] || url} alt="" className="h-24 w-auto rounded border" />
+                        ))}
+                    </div>
+                );
+            }
+
+            if (field.widget === "signature" && value) {
+                return <img src={mediaUrlMap[value] || value} alt="Signature" className="h-12 w-auto" />;
+            }
+
+            return String(value || "");
+        };
+
+        if (config) {
+            const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
             return (
                 <div ref={ref} className="pdf-document">
                     <section className="pdf-page-break">
-                        <div className="text-center p-8">
-                            {coverUrl && <img src={coverUrl} alt="Cover" className="mx-auto mb-6 h-40 w-auto" />}
-                            <h1 className="text-2xl font-bold mb-2">{report.title}</h1>
-                            <p className="mb-1">{report.clientName}</p>
-                            <p className="mb-1">{report.address}</p>
-                            <p className="mb-1">Inspection Date: {report.inspectionDate}</p>
-                        </div>
+                        <CoverComponent
+                            reportTitle={report.title}
+                            clientName={report.clientName}
+                            clientAddress={report.address}
+                            coverImage={coverUrl}
+                            organizationName={company}
+                            inspectionDate={report.inspectionDate}
+                            colorScheme={coverColorScheme}
+                        />
                     </section>
-                    {sections.map((section) => (
+                    {config.sections.map((section) => (
                         <section key={section.name} className="pdf-page-break p-8">
                             <h2 className="text-xl font-semibold mb-4 capitalize">{section.name.replace(/_/g, " ")}</h2>
                             <table className="w-full text-sm border-collapse">
                                 <tbody>
-                                {section.fields.map((field) => (
+                                {section.fields.map((field: any) => (
                                     <tr key={field.name}>
                                         <td className="border p-2 font-medium w-1/2">{field.label}</td>
-                                        <td className="border p-2">
-                                            {String((report.reportData?.[section.name] || {})[field.name] || "")}
-                                        </td>
+                                        <td className="border p-2">{renderField(section.name, field)}</td>
                                     </tr>
                                 ))}
                                 </tbody>
                             </table>
-                        </section>
-                    ))}
-                </div>
-            );
-        }
-
-        if (report.reportType === "tx_coastal_windstorm_mitigation") {
-            const sections = TX_WINDSTORM_QUESTIONS.sections;
-            return (
-                <div ref={ref} className="pdf-document">
-                    <section className="pdf-page-break">
-                        <div className="text-center p-8">
-                            {coverUrl && <img src={coverUrl} alt="Cover" className="mx-auto mb-6 h-40 w-auto" />}
-                            <h1 className="text-2xl font-bold mb-2">{report.title}</h1>
-                            <p className="mb-1">{report.clientName}</p>
-                            <p className="mb-1">{report.address}</p>
-                            <p className="mb-1">Inspection Date: {report.inspectionDate}</p>
-                        </div>
-                    </section>
-                    {sections.map((section) => (
-                        <section key={section.name} className="pdf-page-break p-8">
-                            <h2 className="text-xl font-semibold mb-4 capitalize">{section.name.replace(/_/g, " ")}</h2>
-                            {section.name === "photos" ? (
-                                <div className="flex flex-wrap gap-2">
-                                    {((report.reportData?.[section.name] || {}).photos || []).map((url: string, idx: number) => (
-                                        <img key={idx} src={mediaUrlMap[url] || url} alt="" className="h-24 w-auto rounded border" />
-                                    ))}
-                                </div>
-                            ) : (
-                                <table className="w-full text-sm border-collapse">
-                                    <tbody>
-                                    {section.fields.map((field) => (
-                                        <tr key={field.name}>
-                                            <td className="border p-2 font-medium w-1/2">{field.label}</td>
-                                            <td className="border p-2">
-                                                {String((report.reportData?.[section.name] || {})[field.name] || "")}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </section>
-                    ))}
-                </div>
-            );
-        }
-
-        if (report.reportType === "ca_wildfire_defensible_space") {
-            const sections = CA_WILDFIRE_QUESTIONS.sections;
-            return (
-                <div ref={ref} className="pdf-document">
-                    <section className="pdf-page-break">
-                        <div className="text-center p-8">
-                            {coverUrl && <img src={coverUrl} alt="Cover" className="mx-auto mb-6 h-40 w-auto" />}
-                            <h1 className="text-2xl font-bold mb-2">{report.title}</h1>
-                            <p className="mb-1">{report.clientName}</p>
-                            <p className="mb-1">{report.address}</p>
-                            <p className="mb-1">Inspection Date: {report.inspectionDate}</p>
-                        </div>
-                    </section>
-                    {sections.map((section) => (
-                        <section key={section.name} className="pdf-page-break p-8">
-                            <h2 className="text-xl font-semibold mb-4 capitalize">{section.name.replace(/_/g, " ")}</h2>
-                            {section.name === "photos" ? (
-                                <div className="flex flex-wrap gap-2">
-                                    {((report.reportData?.[section.name] || {}).photos || []).map((url: string, idx: number) => (
-                                        <img key={idx} src={mediaUrlMap[url] || url} alt="" className="h-24 w-auto rounded border" />
-                                    ))}
-                                </div>
-                            ) : (
-                                <table className="w-full text-sm border-collapse">
-                                    <tbody>
-                                    {section.fields.map((field) => (
-                                        <tr key={field.name}>
-                                            <td className="border p-2 font-medium w-1/2">{field.label}</td>
-                                            <td className="border p-2">
-                                                {String((report.reportData?.[section.name] || {})[field.name] || "")}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </section>
-                    ))}
-                </div>
-            );
-        }
-
-        if (report.reportType === "roof_certification_nationwide") {
-            const sections = ROOF_CERTIFICATION_QUESTIONS.sections;
-            return (
-                <div ref={ref} className="pdf-document">
-                    <section className="pdf-page-break">
-                        <div className="text-center p-8">
-                            {coverUrl && <img src={coverUrl} alt="Cover" className="mx-auto mb-6 h-40 w-auto" />}
-                            <h1 className="text-2xl font-bold mb-2">{report.title}</h1>
-                            <p className="mb-1">{report.clientName}</p>
-                            <p className="mb-1">{report.address}</p>
-                            <p className="mb-1">Inspection Date: {report.inspectionDate}</p>
-                        </div>
-                    </section>
-                    {sections.map((section) => (
-                        <section key={section.name} className="pdf-page-break p-8">
-                            <h2 className="text-xl font-semibold mb-4 capitalize">{section.name.replace(/_/g, " ")}</h2>
-                            {section.name === "photos" ? (
-                                <div className="flex flex-wrap gap-2">
-                                    {((report.reportData?.[section.name] || {}).photos || []).map((url: string, idx: number) => (
-                                        <img key={idx} src={mediaUrlMap[url] || url} alt="" className="h-24 w-auto rounded border" />
-                                    ))}
-                                </div>
-                            ) : (
-                                <table className="w-full text-sm border-collapse">
-                                    <tbody>
-                                    {section.fields.map((field) => (
-                                        <tr key={field.name}>
-                                            <td className="border p-2 font-medium w-1/2">{field.label}</td>
-                                            <td className="border p-2">
-                                                {String((report.reportData?.[section.name] || {})[field.name] || "")}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            )}
-                        </section>
-                    ))}
-                </div>
-            );
-        }
-        if (report.reportType === "manufactured_home_insurance_prep") {
-            const sections = MANUFACTURED_HOME_QUESTIONS.sections;
-            return (
-                <div ref={ref} className="pdf-document">
-                    <section className="pdf-page-break">
-                        <div className="text-center p-8">
-                            {coverUrl && <img src={coverUrl} alt="Cover" className="mx-auto mb-6 h-40 w-auto" />}
-                            <h1 className="text-2xl font-bold mb-2">{report.title}</h1>
-                            <p className="mb-1">{report.clientName}</p>
-                            <p className="mb-1">{report.address}</p>
-                            <p className="mb-1">Inspection Date: {report.inspectionDate}</p>
-                        </div>
-                    </section>
-                    {sections.map((section) => (
-                        <section key={section.name} className="pdf-page-break p-8">
-                            <h2 className="text-xl font-semibold mb-4 capitalize">{section.name.replace(/_/g, " ")}</h2>
-                            {section.name === "photos_notes" ? (
-                                <div className="flex flex-wrap gap-2">
-                                    {((report.reportData?.[section.name] || {}).photos || []).map((url: string, idx: number) => (
-                                        <img key={idx} src={mediaUrlMap[url] || url} alt="" className="h-24 w-auto rounded border" />
-                                    ))}
-                                </div>
-                            ) : (
-                                <table className="w-full text-sm border-collapse">
-                                    <tbody>
-                                    {section.fields.map((field) => (
-                                        <tr key={field.name}>
-                                            <td className="border p-2 font-medium w-1/2">{field.label}</td>
-                                            <td className="border p-2">
-                                                {String((report.reportData?.[section.name] || {})[field.name] || "")}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            )}
                         </section>
                     ))}
                 </div>
