@@ -103,36 +103,11 @@ const ReportTypeSelector: React.FC = () => {
           <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
             <CardHeader className="text-center">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <CardTitle>TX Windstorm Mitigation</CardTitle>
-              <CardDescription>
-                Texas coastal windstorm mitigation (TWIA eligibility checklist)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                <li>• County and exposure information</li>
-                <li>• Roof covering and connection details</li>
-                <li>• Opening protection verification</li>
-              </ul>
-              <Button
-                className="w-full"
-                onClick={() => navigate("/reports/new/tx-windstorm")}
-              >
-                Create TX Windstorm Report
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
-            <CardHeader className="text-center">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Flame className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>CA Wildfire Assessment</CardTitle>
+              <CardTitle>Wildfire Assessment</CardTitle>
               <CardDescription>
-                California wildfire defensible space assessment for underwriting
+                Wildfire defensible space assessment for underwriting
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -145,34 +120,35 @@ const ReportTypeSelector: React.FC = () => {
                 className="w-full"
                 onClick={() => navigate("/reports/new/ca-wildfire")}
               >
-                Create CA Wildfire Report
+                Create Wildfire Report
               </Button>
             </CardContent>
           </Card>
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
-              <CardHeader className="text-center">
-                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <Factory className="w-8 h-8 text-primary" />
-                </div>
-                <CardTitle>Manufactured Home Inspection</CardTitle>
-                <CardDescription>
-                  Pre-certification checklist for manufactured/mobile homes
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-muted-foreground mb-6">
-                  <li>• Home identifiers and HUD labels</li>
-                  <li>• Foundation, tie-down, and skirting review</li>
-                  <li>• Utilities and additions evaluation</li>
-                </ul>
-                <Button
-                  className="w-full"
-                  onClick={() => navigate("/reports/new/manufactured-home")}
-                >
-                  Create Manufactured Home Report
-                </Button>
-              </CardContent>
-            </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <Factory className="w-8 h-8 text-primary" />
+              </div>
+              <CardTitle>Manufactured Home Inspection</CardTitle>
+              <CardDescription>
+                Pre-certification checklist for manufactured/mobile homes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+                <li>• Home identifiers and HUD labels</li>
+                <li>• Foundation, tie-down, and skirting review</li>
+                <li>• Utilities and additions evaluation</li>
+              </ul>
+              <Button
+                className="w-full"
+                onClick={() => navigate("/reports/new/manufactured-home")}
+              >
+                Create Manufactured Home Report
+              </Button>
+            </CardContent>
+          </Card>
 
           <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
             <CardHeader className="text-center">

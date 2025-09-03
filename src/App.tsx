@@ -56,7 +56,7 @@ const App = () => (
               <Route path="/reports/new/home-inspection" element={lazyLoad(() => import("./pages/HomeInspectionNew"))} />
                 <Route path="/reports/new/wind-mitigation" element={lazyLoad(() => import("./pages/WindMitigationNew"))} />
                 <Route path="/reports/new/fl-four-point" element={lazyLoad(() => import("./pages/FlFourPointNew"))} />
-                <Route path="/reports/new/tx-windstorm" element={lazyLoad(() => import("./pages/TxWindstormNew"))} />
+                
                 <Route path="/reports/new/ca-wildfire" element={lazyLoad(() => import("./pages/CaWildfireNew"))} />
                 <Route path="/reports/new/roof-certification" element={lazyLoad(() => import("./pages/RoofCertificationNew"))} />
                 <Route path="/reports/new/manufactured-home" element={lazyLoad(() => import("./pages/ManufacturedHomeNew"))} />
