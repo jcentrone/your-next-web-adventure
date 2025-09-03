@@ -113,10 +113,13 @@ const Account: React.FC = () => {
   };
 
   const handleSignatureUpdate = async (signatureDataUrl: string, signatureType: string) => {
+    console.log('Updating signature:', { signatureType, dataUrlLength: signatureDataUrl?.length });
     try {
       const signatureUrl = await uploadSignatureFromDataUrl(signatureDataUrl, signatureType);
+      console.log('Signature uploaded successfully:', signatureUrl);
       updateSignatureMutation.mutate({ signatureUrl, signatureType });
     } catch (error: any) {
+      console.error('Failed to upload signature:', error);
       toast({ 
         title: "Failed to save signature", 
         description: error.message, 

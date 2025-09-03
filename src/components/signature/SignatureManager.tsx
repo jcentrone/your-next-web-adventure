@@ -29,12 +29,14 @@ const SignatureManager: React.FC<SignatureManagerProps> = ({
   const [isUploading, setIsUploading] = React.useState(false);
 
   const handleFileUpload = async (file: File) => {
+    console.log('Starting file upload:', { fileName: file.name, fileSize: file.size, fileType: file.type });
     setIsUploading(true);
     try {
       // Create data URL from file
       const reader = new FileReader();
       reader.onload = (e) => {
         const dataUrl = e.target?.result as string;
+        console.log('File converted to data URL, length:', dataUrl?.length);
         onSignatureUpdate(dataUrl, 'uploaded');
         toast({
           title: "Signature uploaded",
@@ -43,6 +45,7 @@ const SignatureManager: React.FC<SignatureManagerProps> = ({
       };
       reader.readAsDataURL(file);
     } catch (error) {
+      console.error('File upload error:', error);
       toast({
         title: "Upload failed",
         description: "Failed to upload signature. Please try again.",
