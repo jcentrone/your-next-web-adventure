@@ -4,7 +4,7 @@ import DOMPurify from 'dompurify';
 
 export interface Term {
   id?: string;
-  user_id: string;
+  organization_id: string;
   report_type: Report['reportType'] | 'all';
   content_html: string;
   file_url?: string | null;
@@ -14,9 +14,12 @@ export interface Term {
 
 const TERMS_BUCKET = 'terms-conditions';
 
-async function uploadDocx(userId: string, file: File): Promise<string> {
+async function uploadDocx(
+  organizationId: string,
+  file: File,
+): Promise<string> {
   const cleanName = file.name.replace(/\s+/g, '_');
-  const path = `${userId}/${Date.now()}_${cleanName}`;
+  const path = `${organizationId}/${Date.now()}_${cleanName}`;
   const { error } = await supabase.storage
     .from(TERMS_BUCKET)
     .upload(path, file, {
@@ -30,11 +33,11 @@ async function uploadDocx(userId: string, file: File): Promise<string> {
   return path;
 }
 
-async function list(userId: string): Promise<Term[]> {
+async function list(organizationId: string): Promise<Term[]> {
   const { data, error } = await supabase
-    .from('terms_and_conditions' as any)
+    .from('terms_conditions')
     .select('*')
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .order('created_at', { ascending: true });
 
   if (error) throw error;
@@ -44,11 +47,11 @@ async function list(userId: string): Promise<Term[]> {
 async function save(term: Term & { file?: File | null }): Promise<Term> {
   let file_url = term.file_url;
   if (term.file) {
-    file_url = await uploadDocx(term.user_id, term.file);
+    file_url = await uploadDocx(term.organization_id, term.file);
   }
 
   const payload = {
-    user_id: term.user_id,
+    organization_id: term.organization_id,
     report_type: term.report_type,
     content_html: DOMPurify.sanitize(term.content_html),
     file_url,
@@ -56,7 +59,7 @@ async function save(term: Term & { file?: File | null }): Promise<Term> {
 
   if (term.id) {
     const { data, error } = await supabase
-      .from('terms_and_conditions' as any)
+      .from('terms_conditions')
       .update(payload)
       .eq('id', term.id)
       .select()
@@ -66,7 +69,7 @@ async function save(term: Term & { file?: File | null }): Promise<Term> {
     return data as unknown as Term;
   } else {
     const { data, error } = await supabase
-      .from('terms_and_conditions' as any)
+      .from('terms_conditions')
       .insert(payload)
       .select()
       .single();
@@ -78,7 +81,7 @@ async function save(term: Term & { file?: File | null }): Promise<Term> {
 
 async function remove(id: string): Promise<void> {
   const { error } = await supabase
-    .from('terms_and_conditions' as any)
+    .from('terms_conditions')
     .delete()
     .eq('id', id);
   if (error) throw error;
