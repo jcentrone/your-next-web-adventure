@@ -5,14 +5,21 @@ import {appointmentsApi, contactsApi} from "@/integrations/supabase/crmApi";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription} from "@/components/ui/dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger
+} from "@/components/ui/dialog";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
-import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
+import {AddressAutocomplete} from "@/components/maps/AddressAutocomplete";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
-import {Calendar as CalendarIcon, Edit, Plus, Trash2, Settings} from "lucide-react";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Calendar as CalendarIcon, Edit, Plus, Settings, Trash2} from "lucide-react";
 import {format} from "date-fns";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -38,7 +45,7 @@ import * as googleCalendar from "@/integrations/googleCalendar";
 import * as outlookCalendar from "@/integrations/outlookCalendar";
 import * as appleCalendar from "@/integrations/appleCalendar";
 import {syncExternalEvents} from "@/integrations/syncExternalEvents";
-import { getOptimizedRoute } from "@/components/maps/routeOptimizer";
+import {getOptimizedRoute} from "@/components/maps/routeOptimizer";
 import RouteChoiceDialog from "@/components/maps/RouteChoiceDialog";
 
 const Calendar: React.FC = () => {
@@ -53,10 +60,10 @@ const Calendar: React.FC = () => {
     const [optimizeEnabled] = useState(() => localStorage.getItem("optimizeRoute") === "true");
     const [isRouteDialogOpen, setIsRouteDialogOpen] = useState(false);
     const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; wazeUrl: string } | null>(null);
-    const [pendingDrop, setPendingDrop] = useState<{appointment: Appointment, newDate: Date} | null>(null);
+    const [pendingDrop, setPendingDrop] = useState<{ appointment: Appointment, newDate: Date } | null>(null);
     const [isTimeChangeDialogOpen, setIsTimeChangeDialogOpen] = useState(false);
     const [isCalendarSettingsOpen, setIsCalendarSettingsOpen] = useState(false);
-    const { settings: calendarSettings, updateSettings: updateCalendarSettings } = useCalendarSettings();
+    const {settings: calendarSettings, updateSettings: updateCalendarSettings} = useCalendarSettings();
     const [appointmentsView, setAppointmentsView] = useState<'day' | 'all'>("day");
 
     const handleSync = async () => {
@@ -277,8 +284,8 @@ const Calendar: React.FC = () => {
             return;
         }
         try {
-            const { googleMapsUrl, wazeUrl } = await getOptimizedRoute(addresses);
-            setRouteUrls({ googleMapsUrl, wazeUrl });
+            const {googleMapsUrl, wazeUrl} = await getOptimizedRoute(addresses);
+            setRouteUrls({googleMapsUrl, wazeUrl});
             setIsRouteDialogOpen(true);
         } catch (e) {
             toast.error("Failed to optimize route");
@@ -288,24 +295,24 @@ const Calendar: React.FC = () => {
     const handleAppointmentDrop = (appointmentId: string, newDate: Date) => {
         const appointment = appointments.find(app => app.id === appointmentId);
         if (!appointment) return;
-        
-        setPendingDrop({ appointment, newDate });
+
+        setPendingDrop({appointment, newDate});
         setIsTimeChangeDialogOpen(true);
     };
 
     const handleTimeChangeConfirm = (changeTime: boolean) => {
         if (!pendingDrop) return;
-        
-        const { appointment, newDate } = pendingDrop;
+
+        const {appointment, newDate} = pendingDrop;
         const originalDate = new Date(appointment.appointment_date);
-        
+
         let finalDate = newDate;
         if (!changeTime) {
             // Keep original time, just change the date
             finalDate = new Date(newDate);
             finalDate.setHours(originalDate.getHours(), originalDate.getMinutes(), 0, 0);
         }
-        
+
         const appointmentData = {
             title: appointment.title,
             description: appointment.description,
@@ -315,15 +322,15 @@ const Calendar: React.FC = () => {
             contact_id: appointment.contact_id,
             status: appointment.status,
         };
-        
-        updateMutation.mutate({ 
-            id: appointment.id, 
-            data: appointmentData 
+
+        updateMutation.mutate({
+            id: appointment.id,
+            data: appointmentData
         });
-        
+
         setPendingDrop(null);
         setIsTimeChangeDialogOpen(false);
-        
+
         if (changeTime) {
             // Open edit dialog with new date pre-filled
             setEditingAppointment(appointment);
@@ -368,12 +375,12 @@ const Calendar: React.FC = () => {
                             <Button variant="outline" onClick={handleSync}>
                                 Refresh
                             </Button>
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 size="icon"
                                 onClick={() => setIsCalendarSettingsOpen(true)}
                             >
-                                <Settings className="w-4 h-4" />
+                                <Settings className="w-4 h-4"/>
                             </Button>
                             {optimizeEnabled && (
                                 <Button variant="outline" onClick={handleOptimizeRoute}>
@@ -515,8 +522,8 @@ const Calendar: React.FC = () => {
                                                                                 selectedContact.state,
                                                                                 selectedContact.zip_code,
                                                                             ]
-                                                                                  .filter(Boolean)
-                                                                                  .join(", ")
+                                                                                .filter(Boolean)
+                                                                                .join(", ")
                                                                             : "";
 
                                                                         field.onChange(value);
@@ -559,12 +566,12 @@ const Calendar: React.FC = () => {
                                                             <FormItem>
                                                                 <FormLabel>Location</FormLabel>
                                                                 <FormControl>
-                                                                     <AddressAutocomplete
-                                                                         value={form.watch('location')}
-                                                                         onAddressChange={(address) => field.onChange(address.formatted_address)}
-                                                                         onInputChange={field.onChange}
-                                                                         placeholder="Appointment location"
-                                                                     />
+                                                                    <AddressAutocomplete
+                                                                        value={form.watch('location')}
+                                                                        onAddressChange={(address) => field.onChange(address.formatted_address)}
+                                                                        onInputChange={field.onChange}
+                                                                        placeholder="Appointment location"
+                                                                    />
                                                                 </FormControl>
                                                                 <FormMessage/>
                                                             </FormItem>
@@ -744,27 +751,29 @@ const Calendar: React.FC = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                <DraggableCalendarGrid
-                    appointments={appointments}
-                    selectedDate={selectedDate}
-                    onDateSelect={setSelectedDate}
-                    onAppointmentDrop={handleAppointmentDrop}
-                    calendarSettings={calendarSettings}
-                    contacts={contacts}
-                />
+                                <DraggableCalendarGrid
+                                    appointments={appointments}
+                                    selectedDate={selectedDate}
+                                    onDateSelect={setSelectedDate}
+                                    onAppointmentDrop={handleAppointmentDrop}
+                                    calendarSettings={calendarSettings}
+                                    contacts={contacts}
+                                />
                             </CardContent>
                         </Card>
 
                         {/* Appointments */}
                         <Card className="min-w-[400px]">
-                            <Tabs value={appointmentsView} onValueChange={(value) => setAppointmentsView(value as 'day' | 'all')} className="w-full">
+                            <Tabs value={appointmentsView}
+                                  onValueChange={(value) => setAppointmentsView(value as 'day' | 'all')}
+                                  className="w-full">
                                 <CardHeader className="p-0">
                                     <TabsList className="grid w-full grid-cols-2">
                                         <TabsTrigger value="day">{format(selectedDate, "MMMM d, yyyy")}</TabsTrigger>
                                         <TabsTrigger value="all">All Appointments</TabsTrigger>
                                     </TabsList>
                                 </CardHeader>
-                                <CardContent>
+                                <CardContent className="max-h-[697px] overflow-auto">
                                     <TabsContent value="day">
                                         {selectedDateAppointments.length === 0 ? (
                                             <p className="text-muted-foreground text-center py-4">
@@ -802,7 +811,7 @@ const Calendar: React.FC = () => {
                                                                     handleEdit(appointment);
                                                                 }}
                                                             >
-                                                                <Edit className="w-4 h-4" />
+                                                                <Edit className="w-4 h-4"/>
                                                             </Button>
                                                             <Button
                                                                 size="sm"
@@ -812,7 +821,7 @@ const Calendar: React.FC = () => {
                                                                     handleDelete(appointment);
                                                                 }}
                                                             >
-                                                                <Trash2 className="w-4 h-4" />
+                                                                <Trash2 className="w-4 h-4"/>
                                                             </Button>
                                                         </div>
                                                     </div>
@@ -821,64 +830,66 @@ const Calendar: React.FC = () => {
                                         )}
                                     </TabsContent>
                                     <TabsContent value="all">
-                                        {appointments.length === 0 ? (
-                                            <p className="text-muted-foreground text-center py-8">
-                                                No appointments yet. Create your first appointment to get started.
-                                            </p>
-                                        ) : (
-                                            <div className="space-y-3">
-                                                {appointments.map((appointment) => (
-                                                    <div
-                                                        key={appointment.id}
-                                                        className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
-                                                        onClick={() => setPreviewAppointment(appointment)}
-                                                    >
-                                                        <div className="flex-1">
-                                                            <h4 className="font-medium">{appointment.title}</h4>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                {format(new Date(appointment.appointment_date), "MMM d, yyyy 'at' h:mm a")}
-                                                                {appointment.location && ` • ${appointment.location}`}
-                                                            </p>
-                                                            {(appointment as any).contact && (
+                                        <div>
+                                            {appointments.length === 0 ? (
+                                                <p className="text-muted-foreground text-center py-8">
+                                                    No appointments yet. Create your first appointment to get started.
+                                                </p>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    {appointments.map((appointment) => (
+                                                        <div
+                                                            key={appointment.id}
+                                                            className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
+                                                            onClick={() => setPreviewAppointment(appointment)}
+                                                        >
+                                                            <div className="flex-1">
+                                                                <h4 className="font-medium">{appointment.title}</h4>
                                                                 <p className="text-sm text-muted-foreground">
-                                                                    {(appointment as any).contact.first_name} {(appointment as any).contact.last_name}
+                                                                    {format(new Date(appointment.appointment_date), "MMM d, yyyy 'at' h:mm a")}
+                                                                    {appointment.location && ` • ${appointment.location}`}
                                                                 </p>
-                                                            )}
-                                                            {appointment.description && (
-                                                                <p className="text-sm text-muted-foreground mt-1">
-                                                                    {appointment.description}
-                                                                </p>
-                                                            )}
+                                                                {(appointment as any).contact && (
+                                                                    <p className="text-sm text-muted-foreground">
+                                                                        {(appointment as any).contact.first_name} {(appointment as any).contact.last_name}
+                                                                    </p>
+                                                                )}
+                                                                {appointment.description && (
+                                                                    <p className="text-sm text-muted-foreground mt-1">
+                                                                        {appointment.description}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Badge className={getStatusColor(appointment.status)}>
+                                                                    {appointment.status}
+                                                                </Badge>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleEdit(appointment);
+                                                                    }}
+                                                                >
+                                                                    <Edit className="w-4 h-4"/>
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDelete(appointment);
+                                                                    }}
+                                                                >
+                                                                    <Trash2 className="w-4 h-4"/>
+                                                                </Button>
+                                                            </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge className={getStatusColor(appointment.status)}>
-                                                                {appointment.status}
-                                                            </Badge>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleEdit(appointment);
-                                                                }}
-                                                            >
-                                                                <Edit className="w-4 h-4" />
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDelete(appointment);
-                                                                }}
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </TabsContent>
                                 </CardContent>
                             </Tabs>
@@ -886,20 +897,20 @@ const Calendar: React.FC = () => {
                     </div>
 
                     {/* Time Change Confirmation Dialog */}
-            <TimeChangeConfirmDialog
-                open={isTimeChangeDialogOpen}
-                onOpenChange={setIsTimeChangeDialogOpen}
-                appointment={pendingDrop?.appointment || null}
-                newDate={pendingDrop?.newDate || null}
-                onConfirm={handleTimeChangeConfirm}
-            />
+                    <TimeChangeConfirmDialog
+                        open={isTimeChangeDialogOpen}
+                        onOpenChange={setIsTimeChangeDialogOpen}
+                        appointment={pendingDrop?.appointment || null}
+                        newDate={pendingDrop?.newDate || null}
+                        onConfirm={handleTimeChangeConfirm}
+                    />
 
-            <CalendarSettingsDialog
-                open={isCalendarSettingsOpen}
-                onOpenChange={setIsCalendarSettingsOpen}
-                settings={calendarSettings}
-                onSettingsChange={updateCalendarSettings}
-            />
+                    <CalendarSettingsDialog
+                        open={isCalendarSettingsOpen}
+                        onOpenChange={setIsCalendarSettingsOpen}
+                        settings={calendarSettings}
+                        onSettingsChange={updateCalendarSettings}
+                    />
 
                     {/* Appointment Preview Dialog */}
                     <AppointmentPreviewDialog
