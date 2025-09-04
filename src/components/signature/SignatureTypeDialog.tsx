@@ -54,14 +54,16 @@ const SignatureTypeDialog: React.FC<SignatureTypeDialogProps> = ({
     // Set font properties
     const selectedFontData = SIGNATURE_FONTS.find(f => f.id === selectedFont);
     const fontFamily = selectedFontData?.name || 'Dancing Script';
-    
-    ctx.font = `48px "${fontFamily}", cursive`;
-    ctx.fillStyle = '#000000';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
 
-    // Draw signature text
-    ctx.fillText(signatureName.trim(), canvas.width / 2, canvas.height / 2);
+    void document.fonts.load(`48px "${fontFamily}"`).then(() => {
+      ctx.font = `48px "${fontFamily}", cursive`;
+      ctx.fillStyle = '#000000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Draw signature text
+      ctx.fillText(signatureName.trim(), canvas.width / 2, canvas.height / 2);
+    });
   }, [signatureName, selectedFont]);
 
   React.useEffect(() => {

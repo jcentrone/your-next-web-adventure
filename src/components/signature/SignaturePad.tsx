@@ -89,12 +89,16 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const font = SIGNATURE_FONTS.find((f) => f.id === selectedFont)?.name || SIGNATURE_FONTS[0].name;
-      ctx.font = `48px "${font}", cursive`;
-      ctx.fillStyle = "#000000";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(typedName.trim(), canvas.width / 2, canvas.height / 2);
+      const font =
+        SIGNATURE_FONTS.find((f) => f.id === selectedFont)?.name || SIGNATURE_FONTS[0].name;
+
+      void document.fonts.load(`48px "${font}"`).then(() => {
+        ctx.font = `48px "${font}", cursive`;
+        ctx.fillStyle = "#000000";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(typedName.trim(), canvas.width / 2, canvas.height / 2);
+      });
     }, [typedName, selectedFont]);
 
     useEffect(() => {
