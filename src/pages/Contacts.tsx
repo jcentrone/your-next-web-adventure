@@ -15,7 +15,7 @@ import { Plus, Search, Mail, Phone, Building, MapPin, Edit, Trash2 } from "lucid
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ContactSchema, CreateContactSchema, type Contact } from "@/lib/crmSchemas";
+import { CreateContactSchema, type Contact } from "@/lib/crmSchemas";
 import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
@@ -23,6 +23,14 @@ import { ContactsViewToggle } from "@/components/contacts/ContactsViewToggle";
 import { ContactsListView } from "@/components/contacts/ContactsListView";
 import { ContactsCardView } from "@/components/contacts/ContactsCardView";
 import { ContactsFilter } from "@/components/contacts/ContactsFilter";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const Contacts: React.FC = () => {
   const { user } = useAuth();
@@ -36,6 +44,8 @@ const Contacts: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ["contacts", user?.id, searchQuery],
@@ -122,6 +132,16 @@ const Contacts: React.FC = () => {
 
     return filtered;
   }, [contacts, searchQuery, selectedType, sortField, sortDirection]);
+
+  const totalPages = Math.ceil(filteredAndSortedContacts.length / itemsPerPage) || 1;
+  const paginatedContacts = React.useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredAndSortedContacts.slice(start, start + itemsPerPage);
+  }, [filteredAndSortedContacts, currentPage, itemsPerPage]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage, searchQuery, selectedType, sortField, sortDirection]);
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -563,7 +583,7 @@ const Contacts: React.FC = () => {
         ) : (
           view === "list" ? (
             <ContactsListView
-              contacts={filteredAndSortedContacts}
+              contacts={paginatedContacts}
               onEdit={handleEdit}
               onDelete={handleDelete}
               getContactTypeColor={getContactTypeColor}
@@ -573,12 +593,70 @@ const Contacts: React.FC = () => {
             />
           ) : (
             <ContactsCardView
-              contacts={filteredAndSortedContacts}
+              contacts={paginatedContacts}
               onEdit={handleEdit}
               onDelete={handleDelete}
               getContactTypeColor={getContactTypeColor}
             />
           )
+        )}
+        {filteredAndSortedContacts.length > 0 && (
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">Rows per page:</span>
+              <Select
+                value={itemsPerPage.toString()}
+                onValueChange={(value) => setItemsPerPage(Number(value))}
+              >
+                <SelectTrigger className="h-8 w-[70px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent side="top">
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCurrentPage((p) => Math.max(1, p - 1));
+                    }}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      isActive={currentPage === i + 1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(i + 1);
+                      }}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCurrentPage((p) => Math.min(totalPages, p + 1));
+                    }}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
         )}
       </div>
     </>
