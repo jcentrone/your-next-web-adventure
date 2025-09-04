@@ -55,7 +55,13 @@ export const bookingApi = {
   ): Promise<BookingSettings> {
     const { data, error } = await supabase
       .from('booking_settings' as any)
-      .upsert({ user_id: userId, slug, template, theme_color: themeColor })
+      .upsert(
+        { user_id: userId, slug, template, theme_color: themeColor },
+        { 
+          onConflict: 'user_id',
+          ignoreDuplicates: false 
+        }
+      )
       .select()
       .single();
 
