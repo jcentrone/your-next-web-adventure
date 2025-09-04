@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Trash2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 interface TermRow extends Term {
   file?: File | null;
@@ -36,7 +37,7 @@ const TermsAndConditions: React.FC = () => {
   };
 
   const addRow = () => {
-    setRows((prev) => [...prev, { user_id: user!.id, report_type: 'all', text: '', file: null }]);
+    setRows((prev) => [...prev, { user_id: user!.id, report_type: 'all', content_html: '', file: null }]);
   };
 
   const saveMutation = useMutation({
@@ -60,6 +61,18 @@ const TermsAndConditions: React.FC = () => {
       toast({ title: 'Error', description: 'Failed to delete terms.', variant: 'destructive' });
     },
   });
+
+  const handleFileChange = async (index: number, file: File | null) => {
+    if (!file) {
+      updateRow(index, { file: null });
+      return;
+    }
+    const { convertToHtml } = await import('mammoth/mammoth.browser');
+    const arrayBuffer = await file.arrayBuffer();
+    const { value } = await convertToHtml({ arrayBuffer });
+    const sanitized = DOMPurify.sanitize(value);
+    updateRow(index, { file, content_html: sanitized });
+  };
 
   const handleSave = (index: number) => {
     const row = rows[index];
@@ -115,15 +128,13 @@ const TermsAndConditions: React.FC = () => {
                 <Input
                   type="file"
                   accept=".docx"
-                  onChange={(e) =>
-                    updateRow(index, { file: e.target.files ? e.target.files[0] : null })
-                  }
+                  onChange={(e) => handleFileChange(index, e.target.files?.[0] || null)}
                 />
               </TableCell>
               <TableCell>
                 <Textarea
-                  value={row.text || ''}
-                  onChange={(e) => updateRow(index, { text: e.target.value })}
+                  value={row.content_html || ''}
+                  onChange={(e) => updateRow(index, { content_html: e.target.value })}
                   className="min-h-24"
                 />
               </TableCell>
