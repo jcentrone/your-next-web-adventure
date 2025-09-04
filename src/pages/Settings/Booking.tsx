@@ -88,8 +88,10 @@ const Booking: React.FC = () => {
 
   // Auto-save on form changes
   const formValues = watch();
+  const [lastSavedValues, setLastSavedValues] = React.useState<FormValues | null>(null);
+  
   React.useEffect(() => {
-    if (!bookingSettings || !isAvailable) return;
+    if (!bookingSettings || !isAvailable || mutation.isPending) return;
     
     const hasChanges = 
       formValues.slug !== bookingSettings.slug ||
@@ -97,13 +99,21 @@ const Booking: React.FC = () => {
       formValues.theme_color !== bookingSettings.theme_color ||
       formValues.layout !== bookingSettings.layout;
 
-    if (hasChanges && formValues.slug) {
+    // Check if these are different from what we last saved to avoid loops
+    const isDifferentFromLastSaved = !lastSavedValues || 
+      formValues.slug !== lastSavedValues.slug ||
+      formValues.template !== lastSavedValues.template ||
+      formValues.theme_color !== lastSavedValues.theme_color ||
+      formValues.layout !== lastSavedValues.layout;
+
+    if (hasChanges && formValues.slug && isDifferentFromLastSaved) {
       const timeoutId = setTimeout(() => {
+        setLastSavedValues(formValues);
         mutation.mutate(formValues);
       }, 1000);
       return () => clearTimeout(timeoutId);
     }
-  }, [formValues, bookingSettings, isAvailable, mutation]);
+  }, [formValues.slug, formValues.template, formValues.theme_color, formValues.layout, bookingSettings?.slug, bookingSettings?.template, bookingSettings?.theme_color, bookingSettings?.layout, isAvailable, mutation.isPending]);
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const shareUrl = slug ? `${origin}/book/${slug}` : '';
   const widgetEmbedCode = slug ? `<iframe src="${shareUrl}?embed=1" style="width:100%;height:700px;border:0;" />` : '';

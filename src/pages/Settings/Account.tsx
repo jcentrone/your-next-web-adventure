@@ -60,23 +60,6 @@ const Account: React.FC = () => {
     }
   }, [profile]);
 
-  // Auto-save effect
-  React.useEffect(() => {
-    if (!profile) return;
-    
-    const hasChanges = 
-      fullName !== (profile.full_name || "") ||
-      phone !== (profile.phone || "") ||
-      licenseNumber !== (profile.license_number || "");
-
-    if (hasChanges) {
-      const timeoutId = setTimeout(() => {
-        handleSaveProfile();
-      }, 2000);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [fullName, phone, licenseNumber, profile]);
-
   const updateProfileMutation = useMutation({
     mutationFn: updateMyProfile,
     onSuccess: () => {
@@ -87,6 +70,30 @@ const Account: React.FC = () => {
       toast({ title: "Failed to update profile", description: error.message });
     },
   });
+
+  // Auto-save effect
+  const [lastSavedValues, setLastSavedValues] = React.useState<any>(null);
+  
+  React.useEffect(() => {
+    if (!profile || updateProfileMutation.isPending) return;
+    
+    const hasChanges = 
+      fullName !== (profile.full_name || "") ||
+      phone !== (profile.phone || "") ||
+      licenseNumber !== (profile.license_number || "");
+
+    const currentValues = { fullName, phone, licenseNumber };
+    const isDifferentFromLastSaved = !lastSavedValues || 
+      JSON.stringify(currentValues) !== JSON.stringify(lastSavedValues);
+
+    if (hasChanges && isDifferentFromLastSaved) {
+      const timeoutId = setTimeout(() => {
+        setLastSavedValues(currentValues);
+        handleSaveProfile();
+      }, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [fullName, phone, licenseNumber, profile?.full_name, profile?.phone, profile?.license_number, updateProfileMutation.isPending]);
 
   const updateSignatureMutation = useMutation({
     mutationFn: async ({ signatureUrl, signatureType }: { signatureUrl: string; signatureType: string }) => {

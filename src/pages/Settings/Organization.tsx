@@ -64,32 +64,6 @@ const OrganizationSettings: React.FC = () => {
     setLogoPreview(organization?.logo_url || null);
   }, [organization]);
 
-  // Auto-save effect
-  React.useEffect(() => {
-    if (!organization) return;
-    
-    const hasChanges = 
-      orgName !== (organization.name || "") ||
-      orgEmail !== (organization.email || "") ||
-      orgPhone !== (organization.phone || "") ||
-      orgAddress !== (organization.address || "") ||
-      orgWebsite !== (organization.website || "") ||
-      orgLicense !== (organization.license_number || "");
-
-    if (hasChanges && orgName && orgEmail && orgPhone && orgAddress) {
-      const timeoutId = setTimeout(() => {
-        handleSaveOrganization();
-      }, 2000);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [orgName, orgEmail, orgPhone, orgAddress, orgWebsite, orgLicense, organization]);
-
-  React.useEffect(() => {
-    if (organizationError) {
-      setShowOrganizationError(true);
-    }
-  }, [organizationError]);
-
   const updateOrganizationMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => updateOrganization(id, data),
     onSuccess: () => {
@@ -100,6 +74,33 @@ const OrganizationSettings: React.FC = () => {
       toast({ title: "Failed to update organization", description: error.message });
     },
   });
+
+  // Auto-save effect
+  const [lastSavedValues, setLastSavedValues] = React.useState<any>(null);
+  
+  React.useEffect(() => {
+    if (!organization || updateOrganizationMutation.isPending) return;
+    
+    const hasChanges = 
+      orgName !== (organization.name || "") ||
+      orgEmail !== (organization.email || "") ||
+      orgPhone !== (organization.phone || "") ||
+      orgAddress !== (organization.address || "") ||
+      orgWebsite !== (organization.website || "") ||
+      orgLicense !== (organization.license_number || "");
+
+    const currentValues = { orgName, orgEmail, orgPhone, orgAddress, orgWebsite, orgLicense };
+    const isDifferentFromLastSaved = !lastSavedValues || 
+      JSON.stringify(currentValues) !== JSON.stringify(lastSavedValues);
+
+    if (hasChanges && orgName && orgEmail && orgPhone && orgAddress && isDifferentFromLastSaved) {
+      const timeoutId = setTimeout(() => {
+        setLastSavedValues(currentValues);
+        handleSaveOrganization();
+      }, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [orgName, orgEmail, orgPhone, orgAddress, orgWebsite, orgLicense, organization?.name, organization?.email, organization?.phone, organization?.address, organization?.website, organization?.license_number, updateOrganizationMutation.isPending]);
 
   const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5MB
   const MIN_LOGO_DIMENSION = 200;
