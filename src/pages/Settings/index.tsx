@@ -9,11 +9,12 @@ import {
 import { 
   User, 
   Building2, 
-  Users, 
-  Mail, 
-  Database, 
-  Plug, 
-  Briefcase, 
+  Users,
+  Mail,
+  FileText,
+  Database,
+  Plug,
+  Briefcase,
   Calendar,
   Shield,
   Settings2
@@ -22,6 +23,7 @@ import EmailTemplate from "./EmailTemplate";
 import Account from "./Account";
 import Organization from "./Organization";
 import Members from "./Members";
+import TermsAndConditions from "./TermsAndConditions";
 import Data from "./Data";
 import Integrations from "./Integrations";
 import Advanced from "./Advanced";
@@ -62,6 +64,7 @@ const Settings: React.FC = () => {
     { id: "account", label: "Account", icon: User, description: "Manage your personal account settings" },
     { id: "organization", label: "Organization", icon: Building2, description: "Company profile and branding" },
     ...(isAdminOrOwner ? [{ id: "members", label: "Members", icon: Users, description: "Manage team members and permissions" }] : []),
+    { id: "terms-and-conditions", label: "Terms & Conditions", icon: FileText, description: "Manage terms and conditions" },
     { id: "email-template", label: "Email Template", icon: Mail, description: "Customize email notifications" },
     { id: "data", label: "Data", icon: Database, description: "Import, export, and manage data" },
     { id: "integrations", label: "Integrations", icon: Plug, description: "Connect third-party services" },
@@ -78,6 +81,7 @@ const Settings: React.FC = () => {
       case "account": return <Account />;
       case "organization": return <Organization />;
       case "members": return isAdminOrOwner ? <Members /> : null;
+      case "terms-and-conditions": return <TermsAndConditions />;
       case "email-template": return <EmailTemplate />;
       case "data": return <Data />;
       case "integrations": return <Integrations />;
