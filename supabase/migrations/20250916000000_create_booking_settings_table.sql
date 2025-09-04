@@ -4,7 +4,9 @@ create table if not exists public.booking_settings (
   user_id uuid not null references auth.users(id),
   slug text not null,
   default_duration integer,
-  advance_notice integer
+  advance_notice integer,
+  template text not null default 'templateA',
+  theme_color text
 );
 
 -- Indexes
