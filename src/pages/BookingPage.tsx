@@ -58,11 +58,27 @@ const BookingPage: React.FC = () => {
     enabled: !!settings?.user_id,
   });
 
+  const { data: taken = [] } = useQuery({
+    queryKey: ['booking-taken', settings?.user_id],
+    queryFn: () => bookingApi.getTakenAppointments(settings!.user_id),
+    enabled: !!settings?.user_id,
+  });
+
+  const reservedRanges = React.useMemo(
+    () =>
+      taken.map((a: { appointment_date: string; duration_minutes: number | null }) => {
+        const start = new Date(a.appointment_date);
+        const end = new Date(start.getTime() + (a.duration_minutes ?? 0) * 60000);
+        return { startDate: start, endDate: end };
+      }),
+    [taken]
+  );
+
   if (settingsLoading) return <div className="p-4">Loading...</div>;
   if (!settings) return <div className="p-4">Booking page not found.</div>;
 
   if (embed) {
-    return <Widget settings={settings} />;
+    return <Widget settings={settings} reserved={reservedRanges} />;
   }
 
   if (orgLoading) return <div className="p-4">Loading...</div>;
@@ -72,7 +88,7 @@ const BookingPage: React.FC = () => {
 
   return (
     <Template org={organization || null}>
-      <Widget settings={settings} />
+      <Widget settings={settings} reserved={reservedRanges} />
     </Template>
   );
 };

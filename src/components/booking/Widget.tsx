@@ -10,14 +10,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 interface WidgetProps {
   settings: BookingSettings;
+  reserved: { startDate: Date; endDate: Date }[];
 }
 
-const Widget: React.FC<WidgetProps> = ({ settings }) => {
-  const { data: reserved = [] } = useQuery<{ start_date: string; end_date: string }[]>({
-    queryKey: ['booking-reserved', settings.user_id],
-    queryFn: () => bookingApi.getTakenAppointments(settings.user_id),
-    enabled: !!settings.user_id,
-  });
+const Widget: React.FC<WidgetProps> = ({ settings, reserved }) => {
 
   const { data: services = [] } = useQuery<Service[]>({
     queryKey: ['booking-services', settings.user_id],
@@ -63,14 +59,9 @@ const Widget: React.FC<WidgetProps> = ({ settings }) => {
     }
   };
 
-  const reservedRanges = reserved.map(r => ({
-    startDate: new Date(r.start_date),
-    endDate: new Date(r.end_date),
-  }));
-
   return (
     <div className="space-y-4">
-      <Calendar selected={selected} reserved={reservedRanges} onChange={setSelected} />
+      <Calendar selected={selected} reserved={reserved} onChange={setSelected} />
       <form onSubmit={onSubmit} className="space-y-2">
         <input
           className="border p-2 w-full"
