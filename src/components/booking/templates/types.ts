@@ -1,4 +1,4 @@
-import { BookingSettings } from '@/integrations/supabase/bookingApi';
+import type { ReactNode } from 'react';
 
 export interface TemplateProps {
   org: {
@@ -11,5 +11,5 @@ export interface TemplateProps {
     primary_color: string | null;
     secondary_color: string | null;
   } | null;
-  settings: BookingSettings;
+  children?: ReactNode;
 }

@@ -70,7 +70,11 @@ const BookingPage: React.FC = () => {
   const templateKey = (settings.template || 'templateA') as TemplateId;
   const Template = templates[templateKey] ?? templates.templateA;
 
-  return <Template org={organization || null} settings={settings} />;
+  return (
+    <Template org={organization || null}>
+      <Widget settings={settings} />
+    </Template>
+  );
 };
 
 export default BookingPage;
