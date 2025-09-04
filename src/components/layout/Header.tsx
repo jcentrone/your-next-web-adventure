@@ -38,7 +38,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="max-w-7xl mx-auto flex h-14 items-center justify-between px-4">
+      <nav className="flex h-14 items-center justify-between px-5">
         <Link to="/" className="flex items-center gap-2 font-bold">
           <img 
             src="/HomeReportPro_Logo-transparent.png" 
@@ -268,7 +268,25 @@ const Header: React.FC = () => {
                  <DropdownMenuItem asChild>
                    <Link to="/reports" className="flex items-center gap-2">
                      <FileText className="h-4 w-4" />
-                     My Reports
+                     Reports
+                   </Link>
+                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                   <Link to="/contacts" className="flex items-center gap-2">
+                     <Users className="h-4 w-4" />
+                     Contacts
+                   </Link>
+                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                   <Link to="/calendar" className="flex items-center gap-2">
+                     <Calendar className="h-4 w-4" />
+                     Calendar
+                   </Link>
+                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                   <Link to="/reports" className="flex items-center gap-2">
+                     <CheckSquare className="h-4 w-4" />
+                     Tasks
                    </Link>
                  </DropdownMenuItem>
                  <DropdownMenuItem asChild>
