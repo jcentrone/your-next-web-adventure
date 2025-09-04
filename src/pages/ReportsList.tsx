@@ -170,8 +170,8 @@ const ReportsList: React.FC = () => {
             )}
             {filteredItems.length > 0 && (
               <div className="flex items-center justify-between mt-4">
-                <div className="w-64 flex items-center gap-2">
-                  <div className="text-sm">Rows per page:</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Rows per page:</span>
                   <Select
                     value={itemsPerPage.toString()}
                     onValueChange={(value) => setItemsPerPage(Number(value))}
@@ -186,7 +186,7 @@ const ReportsList: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Pagination className="justify-end">
+                <Pagination>
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious
