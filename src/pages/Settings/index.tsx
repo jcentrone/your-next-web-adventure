@@ -15,7 +15,8 @@ import {
   Plug, 
   Briefcase, 
   Calendar,
-  Shield
+  Shield,
+  Settings2
 } from "lucide-react";
 import EmailTemplate from "./EmailTemplate";
 import Account from "./Account";
@@ -66,7 +67,7 @@ const Settings: React.FC = () => {
     { id: "integrations", label: "Integrations", icon: Plug, description: "Connect third-party services" },
     { id: "services", label: "Services", icon: Briefcase, description: "Manage your service offerings" },
     { id: "booking", label: "Booking", icon: Calendar, description: "Configure your booking page" },
-    ...(isAdminOrOwner ? [{ id: "section-manager", label: "Section Manager", icon: Shield, description: "Manage custom sections and fields" }] : []),
+    { id: "section-manager", label: "Section Manager", icon: Settings2, description: "Manage custom sections and fields" },
     ...(isAdminOrOwner ? [{ id: "advanced", label: "Advanced", icon: Shield, description: "Advanced system settings" }] : []),
   ];
 
@@ -82,7 +83,7 @@ const Settings: React.FC = () => {
       case "integrations": return <Integrations />;
       case "services": return <Services />;
       case "booking": return <Booking />;
-      case "section-manager": return isAdminOrOwner ? <SectionManager /> : null;
+      case "section-manager": return <SectionManager />;
       case "advanced": return isAdminOrOwner ? <Advanced /> : null;
       default: return <Account />;
     }
