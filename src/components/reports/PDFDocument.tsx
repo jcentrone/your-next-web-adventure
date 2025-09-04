@@ -14,10 +14,11 @@ interface PDFDocumentProps {
     mediaUrlMap: Record<string, string>;
     coverUrl: string;
     company?: string;
+    termsHtml?: string;
 }
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
-    ({report, mediaUrlMap, coverUrl, company}, ref) => {
+    ({report, mediaUrlMap, coverUrl, company, termsHtml}, ref) => {
         // This component now only handles home inspection reports
         if (report.reportType !== "home_inspection" || !("sections" in report)) {
             return (
@@ -263,6 +264,13 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                         </article>
                     </div>
                 ))}
+                {termsHtml && (
+                    <div className="preview-page">
+                        <article className={tpl.container}>
+                            <section className="pdf-page-break" dangerouslySetInnerHTML={{ __html: termsHtml }} />
+                        </article>
+                    </div>
+                )}
             </div>
         );
     }
