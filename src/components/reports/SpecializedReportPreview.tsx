@@ -178,13 +178,6 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                     </div>
                 )}
 
-                {/* Terms and Conditions Page */}
-                {termsHtml && (
-                    <div className="preview-page">
-                        <section className="pdf-page-break p-8 min-h-[11in]" dangerouslySetInnerHTML={{ __html: termsHtml }} />
-                    </div>
-                )}
-
                 {/* Inspector Certification Page */}
                 <InspectorCertificationPage
                     inspector={inspector}
@@ -192,6 +185,13 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                     report={report}
                     mediaUrlMap={mediaUrlMap}
                 />
+
+                {/* Terms and Conditions Page */}
+                {termsHtml && (
+                    <div className="preview-page">
+                        <section className="pdf-page-break p-8 min-h-[11in]" dangerouslySetInnerHTML={{ __html: termsHtml }} />
+                    </div>
+                )}
             </div>
         );
     }
