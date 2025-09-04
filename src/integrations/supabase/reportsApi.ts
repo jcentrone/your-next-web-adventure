@@ -23,6 +23,7 @@ function toDbPayload(report: Report) {
     inspection_date: report.inspectionDate.slice(0, 10), // 'YYYY-MM-DD'
     status: report.status,
     final_comments: report.finalComments || null,
+    terms_html: (report as any).termsHtml || null,
     cover_image: report.coverImage || null,
     cover_template: report.coverTemplate || 'templateOne',
     preview_template: report.previewTemplate || 'classic',
@@ -67,6 +68,7 @@ function fromDbRow(row: any): Report {
     inspectionDate: new Date(`${row.inspection_date}T00:00:00Z`).toISOString(),
     status: row.status,
     finalComments: row.final_comments || "",
+    termsHtml: row.terms_html ?? undefined,
     coverImage: row.cover_image || "",
     coverTemplate: transformCoverTemplate(row.cover_template || "templateOne"),
     previewTemplate: row.preview_template || "classic",

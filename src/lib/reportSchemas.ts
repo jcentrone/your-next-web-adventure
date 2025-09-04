@@ -54,6 +54,7 @@ export const BaseReportSchema = z.object({
     weatherConditions: z.string().optional(),
     status: z.enum(["Draft", "Final"]).default("Draft"),
     finalComments: z.string().optional().default(""),
+    termsHtml: z.string().optional(),
     coverImage: z.string().optional().default(""),
     coverTemplate: z
         .enum(["templateOne", "templateTwo", "templateThree", "templateFour", "templateFive", "templateSix",
