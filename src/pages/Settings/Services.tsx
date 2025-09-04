@@ -98,105 +98,15 @@ const Services: React.FC = () => {
     });
 
     return (
-      <Card className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary">
-        <CardContent className="p-6">
-          {isEditing ? (
-            <form onSubmit={onSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="service-name">Service Type</Label>
-                  <Select onValueChange={(value) => setValue('name', value as Service['name'])} defaultValue={service.name}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(REPORT_TYPE_LABELS).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="service-price">Price</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="service-price"
-                      type="number"
-                      step="0.01"
-                      className="pl-10"
-                      {...register('price', { valueAsNumber: true })}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" size="sm" className="flex items-center gap-2">
-                  <Check className="h-4 w-4" />
-                  Save
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => setIsEditing(false)} className="flex items-center gap-2">
-                  <X className="h-4 w-4" />
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="font-semibold text-lg">{REPORT_TYPE_LABELS[service.name]}</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-2xl font-bold text-primary">${service.price}</span>
-                </div>
-              </div>
-              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => deleteMutation.mutate(service.id!)}
-                  className="flex items-center gap-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Add New Service */}
-      <Card className="border-dashed border-2 border-primary/20 hover:border-primary/40 transition-colors">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Add New Service
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onCreate} className="space-y-4">
+      <div className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+        {isEditing ? (
+          <form onSubmit={onSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="new-service-name">Service Type</Label>
-                <Select onValueChange={(value) => createForm.setValue('name', value as Service['name'])}>
+                <Label htmlFor="service-name">Service Type</Label>
+                <Select onValueChange={(value) => setValue('name', value as Service['name'])} defaultValue={service.name}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select service type" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(REPORT_TYPE_LABELS).map(([key, label]) => (
@@ -208,47 +118,129 @@ const Services: React.FC = () => {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="new-service-price">Price</Label>
+                <Label htmlFor="service-price">Price</Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="new-service-price"
+                    id="service-price"
                     type="number"
                     step="0.01"
-                    placeholder="0.00"
                     className="pl-10"
-                    {...createForm.register('price', { valueAsNumber: true })}
+                    {...register('price', { valueAsNumber: true })}
                   />
                 </div>
               </div>
             </div>
-            <Button
-              type="submit"
-              disabled={createMutation.isPending}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              {createMutation.isPending ? 'Adding...' : 'Add Service'}
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit" size="sm" className="flex items-center gap-2">
+                <Check className="h-4 w-4" />
+                Save
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => setIsEditing(false)} className="flex items-center gap-2">
+                <X className="h-4 w-4" />
+                Cancel
+              </Button>
+            </div>
           </form>
-        </CardContent>
-      </Card>
+        ) : (
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <h3 className="font-medium">{REPORT_TYPE_LABELS[service.name]}</h3>
+              <div className="flex items-center gap-2 mt-1">
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <span className="font-semibold">${service.price}</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditing(true)}
+                className="flex items-center gap-2"
+              >
+                <Edit3 className="h-4 w-4" />
+                Edit
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => deleteMutation.mutate(service.id!)}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Add New Service */}
+      <div className="border border-dashed border-border rounded-lg p-6">
+        <div className="mb-4">
+          <h3 className="text-lg font-medium flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            Add New Service
+          </h3>
+        </div>
+        <form onSubmit={onCreate} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="new-service-name">Service Type</Label>
+              <Select onValueChange={(value) => createForm.setValue('name', value as Service['name'])}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select service type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(REPORT_TYPE_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="new-service-price">Price</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="new-service-price"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="pl-10"
+                  {...createForm.register('price', { valueAsNumber: true })}
+                />
+              </div>
+            </div>
+          </div>
+          <Button
+            type="submit"
+            disabled={createMutation.isPending}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            {createMutation.isPending ? 'Adding...' : 'Add Service'}
+          </Button>
+        </form>
+      </div>
 
       {/* Existing Services */}
       <div className="space-y-4">
-        <h3 className="text-xl font-semibold">Your Services</h3>
+        <h3 className="text-lg font-medium">Your Services</h3>
         {services.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <div className="text-muted-foreground">
-                <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">No services yet</p>
-                <p className="text-sm mt-1">Add your first service to get started</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="text-center py-12 border border-dashed border-border rounded-lg">
+            <Briefcase className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+            <p className="text-lg font-medium text-muted-foreground">No services yet</p>
+            <p className="text-sm text-muted-foreground mt-1">Add your first service to get started</p>
+          </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="space-y-3">
             {services.map((service) => (
               <ServiceItem key={service.id} service={service} />
             ))}

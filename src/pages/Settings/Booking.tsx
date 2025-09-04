@@ -103,215 +103,202 @@ const Booking: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Configuration */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-medium flex items-center gap-2 mb-4">
             <Globe className="h-5 w-5" />
             Booking Page Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="space-y-6">
-            {/* Slug Configuration */}
-            <div className="space-y-2">
-              <Label htmlFor="slug" className="text-base font-medium">Booking Page URL</Label>
-              <p className="text-sm text-muted-foreground">
-                This will be the unique URL for your booking page
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  {origin}/book/
-                </span>
-                <div className="relative flex-1 max-w-md">
-                  <Input
-                    id="slug"
-                    placeholder="e.g. joe-inspections"
-                    className={`pr-10 ${!isAvailable && debouncedSlug ? 'border-destructive' : isAvailable && debouncedSlug ? 'border-green-500' : ''}`}
-                    {...register('slug')}
-                    required
-                  />
-                  {debouncedSlug && !isChecking && (
-                    isAvailable ? (
-                      <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
-                    ) : (
-                      <X className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-destructive" />
-                    )
-                  )}
-                </div>
+          </h3>
+        </div>
+        
+        <form onSubmit={onSubmit} className="space-y-6">
+          {/* Slug Configuration */}
+          <div className="space-y-2">
+            <Label htmlFor="slug" className="text-base font-medium">Booking Page URL</Label>
+            <p className="text-sm text-muted-foreground">
+              This will be the unique URL for your booking page
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                {origin}/book/
+              </span>
+              <div className="relative flex-1 max-w-md">
+                <Input
+                  id="slug"
+                  placeholder="e.g. joe-inspections"
+                  className={`pr-10 ${!isAvailable && debouncedSlug ? 'border-destructive' : isAvailable && debouncedSlug ? 'border-green-500' : ''}`}
+                  {...register('slug')}
+                  required
+                />
+                {debouncedSlug && !isChecking && (
+                  isAvailable ? (
+                    <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-green-500" />
+                  ) : (
+                    <X className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-destructive" />
+                  )
+                )}
               </div>
-              {debouncedSlug && !isChecking && !isAvailable && (
-                <p className="text-sm text-destructive">This URL is already taken. Please choose a different one.</p>
-              )}
             </div>
+            {debouncedSlug && !isChecking && !isAvailable && (
+              <p className="text-sm text-destructive">This URL is already taken. Please choose a different one.</p>
+            )}
+          </div>
 
-            <Separator />
+          <hr className="border-border" />
 
-            {/* Template Selection */}
-            <div className="space-y-4">
-              <Label className="text-base font-medium flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                Template Style
-              </Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {templateOptions.map((option) => (
-                  <div key={option.id} className="relative">
-                    <input
-                      type="radio"
-                      id={option.id}
-                      value={option.id}
-                      {...register('template')}
-                      className="sr-only"
-                    />
-                    <label
-                      htmlFor={option.id}
-                      className={`block cursor-pointer rounded-lg border-2 p-4 transition-all hover:border-primary/50 ${
-                        template === option.id ? 'border-primary bg-primary/5' : 'border-border'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">{option.name}</h4>
-                        {template === option.id && (
-                          <Check className="h-4 w-4 text-primary" />
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground">{option.description}</p>
-                    </label>
-                  </div>
+          {/* Template Selection */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Template Style
+            </Label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {templateOptions.map((option) => (
+                <div key={option.id} className="relative">
+                  <input
+                    type="radio"
+                    id={option.id}
+                    value={option.id}
+                    {...register('template')}
+                    className="sr-only"
+                  />
+                  <label
+                    htmlFor={option.id}
+                    className={`block cursor-pointer rounded-lg border p-4 transition-colors hover:border-primary/50 ${
+                      template === option.id ? 'border-primary bg-primary/5' : 'border-border'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">{option.name}</h4>
+                      {template === option.id && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{option.description}</p>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <hr className="border-border" />
+
+          {/* Theme Color */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              Theme Color
+            </Label>
+            <div className="flex items-center gap-4">
+              <Input
+                type="color"
+                {...register('theme_color')}
+                className="w-16 h-12 p-1 rounded-lg"
+              />
+              <div className="flex gap-2 flex-wrap">
+                {colorPresets.map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.color}
+                    className={`w-8 h-8 rounded-full border-2 transition-colors hover:scale-110 ${
+                      themeColor === preset.color ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+                    }`}
+                    style={{ backgroundColor: preset.color }}
+                    onClick={() => setValue('theme_color', preset.color)}
+                    title={preset.name}
+                  />
                 ))}
               </div>
             </div>
+          </div>
 
-            <Separator />
-
-            {/* Theme Color */}
-            <div className="space-y-4">
-              <Label className="text-base font-medium flex items-center gap-2">
-                <Palette className="h-4 w-4" />
-                Theme Color
-              </Label>
-              <div className="flex items-center gap-4">
-                <Input
-                  type="color"
-                  {...register('theme_color')}
-                  className="w-16 h-12 p-1 rounded-lg"
-                />
-                <div className="flex gap-2 flex-wrap">
-                  {colorPresets.map((preset) => (
-                    <button
-                      type="button"
-                      key={preset.color}
-                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
-                        themeColor === preset.color ? 'border-primary ring-2 ring-primary/20' : 'border-border'
-                      }`}
-                      style={{ backgroundColor: preset.color }}
-                      onClick={() => setValue('theme_color', preset.color)}
-                      title={preset.name}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
+          <div className="flex gap-4">
+            <Button
+              type="submit"
+              disabled={mutation.isPending || isChecking || !isAvailable}
+              className="flex items-center gap-2"
+            >
+              {mutation.isPending ? 'Saving...' : 'Save Settings'}
+            </Button>
+            {shareUrl && (
               <Button
-                type="submit"
-                disabled={mutation.isPending || isChecking || !isAvailable}
+                type="button"
+                variant="outline"
+                onClick={() => window.open(shareUrl, '_blank')}
                 className="flex items-center gap-2"
               >
-                {mutation.isPending ? 'Saving...' : 'Save Settings'}
+                <Eye className="h-4 w-4" />
+                Preview
               </Button>
-              {shareUrl && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => window.open(shareUrl, '_blank')}
-                  className="flex items-center gap-2"
-                >
-                  <Eye className="h-4 w-4" />
-                  Preview
-                </Button>
-              )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            )}
+          </div>
+        </form>
+      </div>
 
       {/* Share & Embed */}
       {shareUrl && (
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Link className="h-5 w-5" />
-                Share Your Booking Page
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium">Booking Page URL</Label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Input
-                    value={shareUrl}
-                    readOnly
-                    className="flex-1 bg-muted"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigator.clipboard.writeText(shareUrl)}
-                  >
-                    Copy
-                  </Button>
-                </div>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium flex items-center gap-2">
+              <Link className="h-5 w-5" />
+              Share Your Booking Page
+            </h3>
+            <div>
+              <Label className="text-sm font-medium">Booking Page URL</Label>
+              <div className="mt-1 flex items-center gap-2">
+                <Input
+                  value={shareUrl}
+                  readOnly
+                  className="flex-1 bg-muted"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigator.clipboard.writeText(shareUrl)}
+                >
+                  Copy
+                </Button>
               </div>
-              <Card className="border-2 border-dashed border-muted-foreground/25">
-                <CardContent className="p-4">
-                  <iframe
-                    src={shareUrl}
-                    className="w-full h-64 rounded border-0"
-                    title="Booking Page Preview"
-                  />
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="border border-dashed border-border rounded-lg p-4">
+              <iframe
+                src={shareUrl}
+                className="w-full h-64 rounded border-0"
+                title="Booking Page Preview"
+              />
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Code className="h-5 w-5" />
-                Embed Widget
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium">Embed Code</Label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Input
-                    value={widgetEmbedCode}
-                    readOnly
-                    className="flex-1 bg-muted font-mono text-xs"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigator.clipboard.writeText(widgetEmbedCode)}
-                  >
-                    Copy
-                  </Button>
-                </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium flex items-center gap-2">
+              <Code className="h-5 w-5" />
+              Embed Widget
+            </h3>
+            <div>
+              <Label className="text-sm font-medium">Embed Code</Label>
+              <div className="mt-1 flex items-center gap-2">
+                <Input
+                  value={widgetEmbedCode}
+                  readOnly
+                  className="flex-1 bg-muted font-mono text-xs"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigator.clipboard.writeText(widgetEmbedCode)}
+                >
+                  Copy
+                </Button>
               </div>
-              <Card className="border-2 border-dashed border-muted-foreground/25">
-                <CardContent className="p-4">
-                  <iframe
-                    src={`${shareUrl}?embed=1`}
-                    className="w-full h-64 rounded border-0"
-                    title="Widget Preview"
-                  />
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="border border-dashed border-border rounded-lg p-4">
+              <iframe
+                src={`${shareUrl}?embed=1`}
+                className="w-full h-64 rounded border-0"
+                title="Widget Preview"
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

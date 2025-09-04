@@ -15,11 +15,8 @@ import {
   Plug, 
   Briefcase, 
   Calendar,
-  Shield,
-  ChevronRight
+  Shield
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import EmailTemplate from "./EmailTemplate";
 import Account from "./Account";
 import Organization from "./Organization";
@@ -89,80 +86,60 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto p-6 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
-            Settings
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your account, organization, and application preferences
+    <div className="flex h-screen bg-background">
+      {/* Fixed Sidebar */}
+      <div className="w-64 bg-muted/30 border-r border-border">
+        <div className="p-6">
+          <h1 className="text-2xl font-bold">Settings</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage your preferences
           </p>
         </div>
+        
+        <nav className="px-3">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentTab === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-colors ${
+                  isActive 
+                    ? "bg-primary text-primary-foreground" 
+                    : "hover:bg-muted text-foreground"
+                }`}
+                onClick={() => navigate(item.id)}
+              >
+                <Icon className="h-4 w-4" />
+                <div className="flex-1">
+                  <div className="font-medium text-sm">{item.label}</div>
+                </div>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-6 overflow-hidden border-0 shadow-xl bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-0">
-                <nav className="space-y-1">
-                  {menuItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = currentTab === item.id;
-                    
-                    return (
-                      <Button
-                        key={item.id}
-                        variant={isActive ? "default" : "ghost"}
-                        className={`w-full justify-start h-auto p-4 text-left transition-all duration-200 hover:scale-[1.02] group ${
-                          isActive 
-                            ? "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg" 
-                            : "hover:bg-muted/50"
-                        }`}
-                        onClick={() => navigate(item.id)}
-                      >
-                        <div className="flex items-center gap-3 flex-1">
-                          <Icon className={`h-5 w-5 ${isActive ? "text-primary-foreground" : "text-muted-foreground"} group-hover:scale-110 transition-transform`} />
-                          <div className="flex-1 min-w-0">
-                            <div className={`font-medium ${isActive ? "text-primary-foreground" : "text-foreground"}`}>
-                              {item.label}
-                            </div>
-                            <div className={`text-xs mt-1 ${isActive ? "text-primary-foreground/80" : "text-muted-foreground"} line-clamp-2`}>
-                              {item.description}
-                            </div>
-                          </div>
-                          <ChevronRight className={`h-4 w-4 ${isActive ? "text-primary-foreground" : "text-muted-foreground"} group-hover:translate-x-1 transition-transform`} />
-                        </div>
-                      </Button>
-                    );
-                  })}
-                </nav>
-              </CardContent>
-            </Card>
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-8">
+          <div className="mb-6">
+            <div className="flex items-center gap-3">
+              {currentItem && (
+                <>
+                  <currentItem.icon className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="text-xl font-semibold">{currentItem.label}</h2>
+                </>
+              )}
+            </div>
+            {currentItem && (
+              <p className="text-sm text-muted-foreground mt-1">{currentItem.description}</p>
+            )}
           </div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <Card className="border-0 shadow-xl bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-8">
-                <div className="mb-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    {currentItem && (
-                      <>
-                        <currentItem.icon className="h-6 w-6 text-primary" />
-                        <h2 className="text-2xl font-semibold">{currentItem.label}</h2>
-                      </>
-                    )}
-                  </div>
-                  {currentItem && (
-                    <p className="text-muted-foreground">{currentItem.description}</p>
-                  )}
-                </div>
-                <div className="animate-fade-in">
-                  {renderContent()}
-                </div>
-              </CardContent>
-            </Card>
+          
+          <div>
+            {renderContent()}
           </div>
         </div>
       </div>
