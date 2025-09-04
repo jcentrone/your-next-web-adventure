@@ -11,6 +11,7 @@ import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import {Calendar as CalendarIcon, Edit, Plus, Trash2, Settings} from "lucide-react";
 import {format} from "date-fns";
 import {useForm} from "react-hook-form";
@@ -56,6 +57,7 @@ const Calendar: React.FC = () => {
     const [isTimeChangeDialogOpen, setIsTimeChangeDialogOpen] = useState(false);
     const [isCalendarSettingsOpen, setIsCalendarSettingsOpen] = useState(false);
     const { settings: calendarSettings, updateSettings: updateCalendarSettings } = useCalendarSettings();
+    const [appointmentsView, setAppointmentsView] = useState<'day' | 'all'>("day");
 
     const handleSync = async () => {
         if (!user) return;
@@ -753,139 +755,135 @@ const Calendar: React.FC = () => {
                             </CardContent>
                         </Card>
 
-                        {/* Appointments for selected date */}
+                        {/* Appointments */}
                         <Card className="min-w-[400px]">
-                            <CardHeader>
-                                <CardTitle>
-                                    {format(selectedDate, "MMMM d, yyyy")}
-                                </CardTitle>
-                            </CardHeader>
-
-                            <CardContent>
-                                {selectedDateAppointments.length === 0 ? (
-                                    <p className="text-muted-foreground text-center py-4">
-                                        No appointments for this date
-                                    </p>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {selectedDateAppointments.map((appointment) => (
-                                            <div key={appointment.id}
-                                                 className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
-                                                 onClick={() => setPreviewAppointment(appointment)}>
-                                                <div className="flex-1">
-                                                    <h4 className="font-medium">{appointment.title}</h4>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {format(new Date(appointment.appointment_date), "h:mm a")}
-                                                        {appointment.location && ` • ${appointment.location}`}
-                                                    </p>
-                                                    {(appointment as any).contacts && (
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {(appointment as any).contacts.first_name} {(appointment as any).contacts.last_name}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Badge className={getStatusColor(appointment.status)}>
-                                                        {appointment.status}
-                                                    </Badge>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleEdit(appointment);
-                                                        }}
+                            <Tabs value={appointmentsView} onValueChange={(value) => setAppointmentsView(value as 'day' | 'all')} className="w-full">
+                                <CardHeader className="p-0">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="day">{format(selectedDate, "MMMM d, yyyy")}</TabsTrigger>
+                                        <TabsTrigger value="all">All Appointments</TabsTrigger>
+                                    </TabsList>
+                                </CardHeader>
+                                <CardContent>
+                                    <TabsContent value="day">
+                                        {selectedDateAppointments.length === 0 ? (
+                                            <p className="text-muted-foreground text-center py-4">
+                                                No appointments for this date
+                                            </p>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {selectedDateAppointments.map((appointment) => (
+                                                    <div
+                                                        key={appointment.id}
+                                                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
+                                                        onClick={() => setPreviewAppointment(appointment)}
                                                     >
-                                                        <Edit className="w-4 h-4"/>
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDelete(appointment);
-                                                        }}
-                                                    >
-                                                        <Trash2 className="w-4 h-4"/>
-                                                    </Button>
-                                                </div>
+                                                        <div className="flex-1">
+                                                            <h4 className="font-medium">{appointment.title}</h4>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {format(new Date(appointment.appointment_date), "h:mm a")}
+                                                                {appointment.location && ` • ${appointment.location}`}
+                                                            </p>
+                                                            {(appointment as any).contacts && (
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    {(appointment as any).contacts.first_name} {(appointment as any).contacts.last_name}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge className={getStatusColor(appointment.status)}>
+                                                                {appointment.status}
+                                                            </Badge>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleEdit(appointment);
+                                                                }}
+                                                            >
+                                                                <Edit className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDelete(appointment);
+                                                                }}
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
+                                        )}
+                                    </TabsContent>
+                                    <TabsContent value="all">
+                                        {appointments.length === 0 ? (
+                                            <p className="text-muted-foreground text-center py-8">
+                                                No appointments yet. Create your first appointment to get started.
+                                            </p>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {appointments.map((appointment) => (
+                                                    <div
+                                                        key={appointment.id}
+                                                        className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
+                                                        onClick={() => setPreviewAppointment(appointment)}
+                                                    >
+                                                        <div className="flex-1">
+                                                            <h4 className="font-medium">{appointment.title}</h4>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {format(new Date(appointment.appointment_date), "MMM d, yyyy 'at' h:mm a")}
+                                                                {appointment.location && ` • ${appointment.location}`}
+                                                            </p>
+                                                            {(appointment as any).contact && (
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    {(appointment as any).contact.first_name} {(appointment as any).contact.last_name}
+                                                                </p>
+                                                            )}
+                                                            {appointment.description && (
+                                                                <p className="text-sm text-muted-foreground mt-1">
+                                                                    {appointment.description}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Badge className={getStatusColor(appointment.status)}>
+                                                                {appointment.status}
+                                                            </Badge>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleEdit(appointment);
+                                                                }}
+                                                            >
+                                                                <Edit className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDelete(appointment);
+                                                                }}
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </TabsContent>
+                                </CardContent>
+                            </Tabs>
                         </Card>
                     </div>
-
-
-
-
-
-
-                    {/* All Appointments List */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>All Appointments</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            {appointments.length === 0 ? (
-                                <p className="text-muted-foreground text-center py-8">
-                                    No appointments yet. Create your first appointment to get started.
-                                </p>
-                            ) : (
-                                <div className="space-y-3">
-                                    {appointments.map((appointment) => (
-                                        <div key={appointment.id}
-                                             className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
-                                             onClick={() => setPreviewAppointment(appointment)}>
-                                            <div className="flex-1">
-                                                <h4 className="font-medium">{appointment.title}</h4>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {format(new Date(appointment.appointment_date), "MMM d, yyyy 'at' h:mm a")}
-                                                    {appointment.location && ` • ${appointment.location}`}
-                                                </p>
-                                                {(appointment as any).contact && (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {(appointment as any).contact.first_name} {(appointment as any).contact.last_name}
-                                                    </p>
-                                                )}
-                                                {appointment.description && (
-                                                    <p className="text-sm text-muted-foreground mt-1">
-                                                        {appointment.description}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge className={getStatusColor(appointment.status)}>
-                                                    {appointment.status}
-                                                </Badge>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleEdit(appointment);
-                                                    }}
-                                                >
-                                                    <Edit className="w-4 h-4"/>
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDelete(appointment);
-                                                    }}
-                                                >
-                                                    <Trash2 className="w-4 h-4"/>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
 
                     {/* Time Change Confirmation Dialog */}
             <TimeChangeConfirmDialog
