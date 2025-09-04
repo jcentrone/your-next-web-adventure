@@ -401,7 +401,7 @@ const Index = () => {
                     Start Free Trial
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
+                <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg" >
                   <Globe className="mr-2 w-4 h-4" />
                   Watch Demo
                 </Button>
