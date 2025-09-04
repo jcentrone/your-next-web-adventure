@@ -8,20 +8,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Check, X, Link, Code, Globe, Palette, Eye } from 'lucide-react';
+import { Check, X, Link, Code, Globe, Palette, Eye, Monitor, LayoutGrid } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface FormValues {
   slug: string;
   template: string;
   theme_color: string;
+  layout: string;
 }
 
 const Booking: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
-    defaultValues: { template: 'templateA', theme_color: '#1e293b' },
+    defaultValues: { template: 'templateA', theme_color: '#1e293b', layout: 'vertical' },
   });
 
   const { data: bookingSettings } = useQuery({
@@ -36,6 +37,7 @@ const Booking: React.FC = () => {
         slug: bookingSettings.slug,
         template: bookingSettings.template || 'templateA',
         theme_color: bookingSettings.theme_color || '#1e293b',
+        layout: bookingSettings.layout || 'vertical',
       });
     }
   }, [bookingSettings, reset]);
@@ -46,7 +48,10 @@ const Booking: React.FC = () => {
         user!.id,
         values.slug,
         values.template,
-        values.theme_color
+        values.theme_color,
+        undefined, // advance_notice
+        undefined, // default_duration
+        values.layout
       ),
     onSuccess: () => {
       toast({
@@ -208,6 +213,49 @@ const Booking: React.FC = () => {
                     title={preset.name}
                   />
                 ))}
+              </div>
+            </div>
+          </div>
+
+          <hr className="border-border" />
+
+          {/* Layout Selection */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium flex items-center gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              Booking Layout
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              Choose how your booking page is laid out
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
+                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  watch('layout') === 'vertical' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                }`}
+                onClick={() => setValue('layout', 'vertical')}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <Monitor className="h-5 w-5" />
+                  <span className="font-medium">Vertical (Stacked)</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Services, then calendar, then contact form - all stacked vertically
+                </p>
+              </div>
+              <div
+                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                  watch('layout') === 'horizontal' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
+                }`}
+                onClick={() => setValue('layout', 'horizontal')}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <LayoutGrid className="h-5 w-5" />
+                  <span className="font-medium">Horizontal (Two Column)</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Calendar on left, services and contact form on right
+                </p>
               </div>
             </div>
           </div>

@@ -8,6 +8,7 @@ export interface BookingSettings {
   advance_notice?: number | null;
   template?: string;
   theme_color?: string | null;
+  layout?: string;
 }
 
 export interface AppointmentPayload {
@@ -25,7 +26,7 @@ export const bookingApi = {
     const { data, error } = await supabase
       .from('booking_settings' as any)
       .select(
-        'id, user_id, slug, default_duration, advance_notice, template, theme_color'
+        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout'
       )
       .eq('slug', slug)
       .maybeSingle();
@@ -38,7 +39,7 @@ export const bookingApi = {
     const { data, error } = await supabase
       .from('booking_settings' as any)
       .select(
-        'id, user_id, slug, default_duration, advance_notice, template, theme_color'
+        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout'
       )
       .eq('user_id', userId)
       .maybeSingle();
@@ -51,7 +52,10 @@ export const bookingApi = {
     userId: string,
     slug: string,
     template: string = 'templateA',
-    themeColor: string | null = '#1e293b'
+    themeColor: string | null = '#1e293b',
+    advanceNotice?: number,
+    defaultDuration?: number,
+    layout: string = 'vertical'
   ): Promise<BookingSettings> {
     // First check if slug is already taken by another user
     const { data: existingSlug } = await supabase
@@ -68,7 +72,15 @@ export const bookingApi = {
     const { data, error } = await supabase
       .from('booking_settings' as any)
       .upsert(
-        { user_id: userId, slug, template, theme_color: themeColor },
+        {
+          user_id: userId,
+          slug,
+          template,
+          theme_color: themeColor,
+          advance_notice: advanceNotice,
+          default_duration: defaultDuration,
+          layout,
+        },
         { 
           onConflict: 'user_id',
           ignoreDuplicates: false 

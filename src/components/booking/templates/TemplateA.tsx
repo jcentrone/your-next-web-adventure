@@ -1,7 +1,7 @@
 import React from 'react';
 import type { TemplateProps } from './types';
 
-const TemplateA: React.FC<TemplateProps> = ({ org, children }) => (
+const TemplateA: React.FC<TemplateProps> = ({ org, children, layout }) => (
   <div
     className="min-h-screen bg-slate-50"
     style={{

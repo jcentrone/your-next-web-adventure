@@ -216,6 +216,7 @@ export type Database = {
           advance_notice: number | null
           default_duration: number | null
           id: string
+          layout: string | null
           slug: string
           template: string
           theme_color: string | null
@@ -225,6 +226,7 @@ export type Database = {
           advance_notice?: number | null
           default_duration?: number | null
           id?: string
+          layout?: string | null
           slug: string
           template?: string
           theme_color?: string | null
@@ -234,6 +236,7 @@ export type Database = {
           advance_notice?: number | null
           default_duration?: number | null
           id?: string
+          layout?: string | null
           slug?: string
           template?: string
           theme_color?: string | null

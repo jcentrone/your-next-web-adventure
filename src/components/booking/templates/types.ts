@@ -12,4 +12,5 @@ export interface TemplateProps {
     secondary_color: string | null;
   } | null;
   children?: ReactNode;
+  layout?: 'vertical' | 'horizontal';
 }

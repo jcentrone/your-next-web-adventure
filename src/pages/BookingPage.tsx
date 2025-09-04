@@ -78,7 +78,7 @@ const BookingPage: React.FC = () => {
   if (!settings) return <div className="p-4">Booking page not found.</div>;
 
   if (embed) {
-    return <Widget settings={settings} reserved={reservedRanges} />;
+    return <Widget settings={settings} reserved={reservedRanges} layout={settings.layout as 'vertical' | 'horizontal'} />;
   }
 
   if (orgLoading) return <div className="p-4">Loading...</div>;
@@ -87,8 +87,8 @@ const BookingPage: React.FC = () => {
   const Template = templates[templateKey] ?? templates.templateA;
 
   return (
-    <Template org={organization || null}>
-      <Widget settings={settings} reserved={reservedRanges} />
+    <Template org={organization || null} layout={settings.layout as 'vertical' | 'horizontal'}>
+      <Widget settings={settings} reserved={reservedRanges} layout={settings.layout as 'vertical' | 'horizontal'} />
     </Template>
   );
 };
