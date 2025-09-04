@@ -4,6 +4,13 @@ import { useForm } from 'react-hook-form';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { servicesApi, Service } from '@/integrations/supabase/servicesApi';
 import { REPORT_TYPE_LABELS } from '@/constants/reportTypes';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash2, Plus, DollarSign, Edit3, Check, X, Briefcase } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ServiceForm {
   name: Service['name'];
@@ -12,6 +19,7 @@ interface ServiceForm {
 
 const Services: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { data: services = [], refetch } = useQuery({
     queryKey: ['services', user?.id],
     queryFn: () => servicesApi.list(user!.id),
@@ -25,105 +33,227 @@ const Services: React.FC = () => {
     onSuccess: () => {
       refetch();
       createForm.reset();
+      toast({
+        title: "Service added",
+        description: "Your new service has been added successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add service. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, values }: { id: string; values: ServiceForm }) =>
       servicesApi.update(id, values),
-    onSuccess: () => refetch(),
+    onSuccess: () => {
+      refetch();
+      toast({
+        title: "Service updated",
+        description: "Service has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update service. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => servicesApi.remove(id),
-    onSuccess: () => refetch(),
+    onSuccess: () => {
+      refetch();
+      toast({
+        title: "Service deleted",
+        description: "Service has been removed successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete service. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const onCreate = createForm.handleSubmit((values) => createMutation.mutate(values));
 
   const ServiceItem: React.FC<{ service: Service }> = ({ service }) => {
-    const { register, handleSubmit } = useForm<ServiceForm>({
+    const [isEditing, setIsEditing] = React.useState(false);
+    const { register, handleSubmit, setValue, watch } = useForm<ServiceForm>({
       defaultValues: { name: service.name, price: service.price },
     });
-    const onSubmit = handleSubmit((values) =>
-      updateMutation.mutate({ id: service.id!, values })
-    );
+
+    const onSubmit = handleSubmit((values) => {
+      updateMutation.mutate({ id: service.id!, values });
+      setIsEditing(false);
+    });
 
     return (
-      <form onSubmit={onSubmit} className="flex gap-2 items-center">
-        <select
-          className="border p-1 flex-1"
-          {...register('name')}
-          required
-        >
-          {Object.entries(REPORT_TYPE_LABELS).map(([key, label]) => (
-            <option key={key} value={key}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <input
-          type="number"
-          step="0.01"
-          className="border p-1 w-24"
-          {...register('price', { valueAsNumber: true })}
-          required
-        />
-        <button
-          type="submit"
-          className="px-2 py-1 bg-primary text-primary-foreground rounded"
-        >
-          Save
-        </button>
-        <button
-          type="button"
-          onClick={() => deleteMutation.mutate(service.id!)}
-          className="px-2 py-1 bg-destructive text-destructive-foreground rounded"
-        >
-          Delete
-        </button>
-      </form>
+      <Card className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary/20 hover:border-l-primary">
+        <CardContent className="p-6">
+          {isEditing ? (
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="service-name">Service Type</Label>
+                  <Select onValueChange={(value) => setValue('name', value as Service['name'])} defaultValue={service.name}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(REPORT_TYPE_LABELS).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="service-price">Price</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="service-price"
+                      type="number"
+                      step="0.01"
+                      className="pl-10"
+                      {...register('price', { valueAsNumber: true })}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit" size="sm" className="flex items-center gap-2">
+                  <Check className="h-4 w-4" />
+                  Save
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => setIsEditing(false)} className="flex items-center gap-2">
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg">{REPORT_TYPE_LABELS[service.name]}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-2xl font-bold text-primary">${service.price}</span>
+                </div>
+              </div>
+              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Edit3 className="h-4 w-4" />
+                  Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => deleteMutation.mutate(service.id!)}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     );
   };
 
   return (
-    <div className="space-y-4 max-w-md">
-      <form onSubmit={onCreate} className="flex gap-2 items-center">
-        <select
-          className="border p-1 flex-1"
-          {...createForm.register('name')}
-          defaultValue=""
-          required
-        >
-          <option value="" disabled>
-            Select service
-          </option>
-          {Object.entries(REPORT_TYPE_LABELS).map(([key, label]) => (
-            <option key={key} value={key}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <input
-          type="number"
-          step="0.01"
-          className="border p-1 w-24"
-          placeholder="Price"
-          {...createForm.register('price', { valueAsNumber: true })}
-          required
-        />
-        <button
-          type="submit"
-          className="px-2 py-1 bg-primary text-primary-foreground rounded"
-          disabled={createMutation.isPending}
-        >
-          Add
-        </button>
-      </form>
-      <div className="space-y-2">
-        {services.map((s) => (
-          <ServiceItem key={s.id} service={s} />
-        ))}
+    <div className="space-y-6">
+      {/* Add New Service */}
+      <Card className="border-dashed border-2 border-primary/20 hover:border-primary/40 transition-colors">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            Add New Service
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onCreate} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="new-service-name">Service Type</Label>
+                <Select onValueChange={(value) => createForm.setValue('name', value as Service['name'])}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select service type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(REPORT_TYPE_LABELS).map(([key, label]) => (
+                      <SelectItem key={key} value={key}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="new-service-price">Price</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="new-service-price"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="pl-10"
+                    {...createForm.register('price', { valueAsNumber: true })}
+                  />
+                </div>
+              </div>
+            </div>
+            <Button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              {createMutation.isPending ? 'Adding...' : 'Add Service'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Existing Services */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold">Your Services</h3>
+        {services.length === 0 ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <div className="text-muted-foreground">
+                <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">No services yet</p>
+                <p className="text-sm mt-1">Add your first service to get started</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {services.map((service) => (
+              <ServiceItem key={service.id} service={service} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

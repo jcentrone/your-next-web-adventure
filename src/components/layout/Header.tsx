@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { Menu, X, Download } from "lucide-react";
+import { Menu, X, Download, Home, FileText, Users, Calendar, CheckSquare, Settings } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 
@@ -51,19 +51,24 @@ const Header: React.FC = () => {
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
           {user ? (
             <>
-              <Link to="/dashboard" className="transition-colors hover:text-primary">
+              <Link to="/dashboard" className="flex items-center gap-2 transition-colors hover:text-primary">
+                <Home className="h-4 w-4" />
                 Dashboard
               </Link>
-              <Link to="/reports" className="transition-colors hover:text-primary">
+              <Link to="/reports" className="flex items-center gap-2 transition-colors hover:text-primary">
+                <FileText className="h-4 w-4" />
                 Reports
               </Link>
-              <Link to="/contacts" className="transition-colors hover:text-primary">
+              <Link to="/contacts" className="flex items-center gap-2 transition-colors hover:text-primary">
+                <Users className="h-4 w-4" />
                 Contacts
               </Link>
-              <Link to="/calendar" className="transition-colors hover:text-primary">
+              <Link to="/calendar" className="flex items-center gap-2 transition-colors hover:text-primary">
+                <Calendar className="h-4 w-4" />
                 Calendar
               </Link>
-              <Link to="/tasks" className="transition-colors hover:text-primary">
+              <Link to="/tasks" className="flex items-center gap-2 transition-colors hover:text-primary">
+                <CheckSquare className="h-4 w-4" />
                 Tasks
               </Link>
             </>
@@ -254,18 +259,30 @@ const Header: React.FC = () => {
                   {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard">Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/reports">My Reports</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings">Profile Settings</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/section-manager">Section Manager</Link>
-                </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                   <Link to="/dashboard" className="flex items-center gap-2">
+                     <Home className="h-4 w-4" />
+                     Dashboard
+                   </Link>
+                 </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                   <Link to="/reports" className="flex items-center gap-2">
+                     <FileText className="h-4 w-4" />
+                     My Reports
+                   </Link>
+                 </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                   <Link to="/settings" className="flex items-center gap-2">
+                     <Settings className="h-4 w-4" />
+                     Settings
+                   </Link>
+                 </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                   <Link to="/section-manager" className="flex items-center gap-2">
+                     <FileText className="h-4 w-4" />
+                     Section Manager
+                   </Link>
+                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={async (e) => {
