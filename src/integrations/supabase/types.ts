@@ -1038,6 +1038,44 @@ export type Database = {
           },
         ]
       }
+      terms_conditions: {
+        Row: {
+          content_html: string
+          created_at: string
+          file_url: string | null
+          id: string
+          organization_id: string
+          report_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          content_html: string
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          organization_id: string
+          report_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content_html?: string
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          organization_id?: string
+          report_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "terms_conditions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_custom_fields: {
         Row: {
           created_at: string
