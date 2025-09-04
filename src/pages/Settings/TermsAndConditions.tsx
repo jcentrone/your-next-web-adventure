@@ -20,7 +20,7 @@ const TermsAndConditions: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const { data: terms = [], refetch } = useQuery({
+  const { data: terms, refetch } = useQuery({
     queryKey: ['terms-and-conditions', user?.id],
     queryFn: () => termsApi.list(user!.id),
     enabled: !!user,
@@ -29,7 +29,7 @@ const TermsAndConditions: React.FC = () => {
   const [rows, setRows] = React.useState<TermRow[]>([]);
 
   React.useEffect(() => {
-    setRows(terms);
+    if (terms) setRows(terms);
   }, [terms]);
 
   const updateRow = (index: number, updates: Partial<TermRow>) => {
