@@ -25,11 +25,12 @@ interface SpecializedReportPreviewProps {
     inspector?: Profile;
     organization?: any;
     className?: string;
+    termsHtml?: string;
 }
 
 
 const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedReportPreviewProps>(
-    ({report, inspector, organization, mediaUrlMap, coverUrl, className}, ref) => {
+    ({report, inspector, organization, mediaUrlMap, coverUrl, className, termsHtml}, ref) => {
         const config = QUESTION_CONFIGS[report.reportType];
 
         if (!config) {
@@ -174,6 +175,13 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                                 ))}
                             </div>
                         </section>
+                    </div>
+                )}
+
+                {/* Terms and Conditions Page */}
+                {termsHtml && (
+                    <div className="preview-page">
+                        <section className="pdf-page-break p-8 min-h-[11in]" dangerouslySetInnerHTML={{ __html: termsHtml }} />
                     </div>
                 )}
 

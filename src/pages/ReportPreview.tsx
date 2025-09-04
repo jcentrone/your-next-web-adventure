@@ -452,6 +452,7 @@ const ReportPreview: React.FC = () => {
                             mediaUrlMap={mediaUrlMap}
                             coverUrl={coverUrl}
                             className={tpl.cover}
+                            termsHtml={termsHtml}
                         />
                     </div>
                 </div>
