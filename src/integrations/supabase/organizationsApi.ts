@@ -173,21 +173,27 @@ export async function updateOrganization(id: string, data: Partial<Organization>
   return updated;
 }
 export async function getOrganizationMembers(organizationId: string) {
-  const { data, error } = await supabase
+  // First fetch organization members
+  const { data: members, error: membersError } = await supabase
     .from('organization_members')
-    .select(`
-      *,
-      profiles:user_id (
-        full_name,
-        email,
-        avatar_url
-      )
-    `)
+    .select('*')
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: true });
 
-  if (error) throw error;
-  return data as any[];
+  if (membersError) throw membersError;
+  if (!members?.length) return [] as any[];
+
+  // Then fetch profile data for each member
+  const memberIds = members.map((m) => m.user_id);
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('user_id, full_name, email, avatar_url')
+    .in('user_id', memberIds);
+
+  if (profilesError) throw profilesError;
+
+  const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
+  return members.map((m) => ({ ...m, profiles: profileMap.get(m.user_id) || null }));
 }
 
 export async function inviteUserToOrganization(data: {
