@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useDropzone } from "react-dropzone";
 import { toast } from "@/components/ui/use-toast";
 import { RotateCcw, Save, Upload, Trash2 } from "lucide-react";
+import { uploadSignatureFromDataUrl } from "@/integrations/supabase/organizationsApi";
 
 const SIGNATURE_FONTS = [
   { id: "dancing", name: "Dancing Script", className: "font-dancing" },
@@ -25,7 +26,7 @@ interface SignaturePadProps {
   currentSignature?: string;
   currentSignatureType?: string;
   fullName?: string;
-  onChange: (dataUrl: string, type: string) => void;
+  onSave: (signatureUrl: string, type: string) => void;
   onDelete: () => void;
   isLoading?: boolean;
 }
@@ -36,7 +37,7 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
       currentSignature,
       currentSignatureType,
       fullName = "",
-      onChange,
+      onSave,
       onDelete,
       isLoading = false,
     },
@@ -45,25 +46,16 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
     const [signature, setSignature] = useState<string | undefined>(currentSignature);
     const [signatureType, setSignatureType] = useState<string | undefined>(currentSignatureType);
     const [tab, setTab] = useState("draw");
+    const [uploadedImage, setUploadedImage] = useState<string | undefined>();
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+      setSignature(currentSignature);
+      setSignatureType(currentSignatureType);
+    }, [currentSignature, currentSignatureType]);
 
     // Draw
     const canvasRef = useRef<SignatureCanvas | null>(null);
-
-    const applyDraw = () => {
-      if (!canvasRef.current || canvasRef.current.isEmpty()) {
-        toast({
-          title: "No signature",
-          description: "Please draw your signature before saving.",
-          variant: "destructive",
-        });
-        return;
-      }
-      const dataUrl = canvasRef.current.toDataURL("image/png");
-      setSignature(dataUrl);
-      setSignatureType("drawn");
-      onChange(dataUrl, "drawn");
-    };
-
     const clearDraw = () => {
       canvasRef.current?.clear();
     };
@@ -89,33 +81,21 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      const font = SIGNATURE_FONTS.find((f) => f.id === selectedFont)?.name || SIGNATURE_FONTS[0].name;
-      ctx.font = `48px "${font}", cursive`;
-      ctx.fillStyle = "#000000";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(typedName.trim(), canvas.width / 2, canvas.height / 2);
+      const font =
+        SIGNATURE_FONTS.find((f) => f.id === selectedFont)?.name || SIGNATURE_FONTS[0].name;
+
+      void document.fonts.load(`48px "${font}"`).then(() => {
+        ctx.font = `48px "${font}", cursive`;
+        ctx.fillStyle = "#000000";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(typedName.trim(), canvas.width / 2, canvas.height / 2);
+      });
     }, [typedName, selectedFont]);
 
     useEffect(() => {
       generateTypedSignature();
     }, [generateTypedSignature]);
-
-    const applyTyped = () => {
-      if (!typedName.trim()) {
-        toast({
-          title: "Name required",
-          description: "Please enter your name to create a signature.",
-          variant: "destructive",
-        });
-        return;
-      }
-      if (!typedCanvasRef.current) return;
-      const dataUrl = typedCanvasRef.current.toDataURL("image/png");
-      setSignature(dataUrl);
-      setSignatureType("typed");
-      onChange(dataUrl, "typed");
-    };
 
     // Upload
     const handleFile = (file: File) => {
@@ -137,10 +117,17 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
       }
       const reader = new FileReader();
       reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        setSignature(dataUrl);
-        setSignatureType("uploaded");
-        onChange(dataUrl, "uploaded");
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0);
+          const pngDataUrl = canvas.toDataURL("image/png");
+          setUploadedImage(pngDataUrl);
+        };
+        img.src = e.target?.result as string;
       };
       reader.readAsDataURL(file);
     };
@@ -165,7 +152,68 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
     const handleRemove = () => {
       setSignature(undefined);
       setSignatureType(undefined);
+      setUploadedImage(undefined);
       onDelete();
+    };
+
+    const handleSave = async () => {
+      let dataUrl: string | undefined;
+      let type: string | undefined;
+
+      if (tab === "draw") {
+        if (!canvasRef.current || canvasRef.current.isEmpty()) {
+          toast({
+            title: "No signature",
+            description: "Please draw your signature before saving.",
+            variant: "destructive",
+          });
+          return;
+        }
+        dataUrl = canvasRef.current.toDataURL("image/png");
+        type = "drawn";
+      } else if (tab === "type") {
+        if (!typedName.trim()) {
+          toast({
+            title: "Name required",
+            description: "Please enter your name to create a signature.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (!typedCanvasRef.current) return;
+        dataUrl = typedCanvasRef.current.toDataURL("image/png");
+        type = "typed";
+      } else if (tab === "upload") {
+        if (!uploadedImage) {
+          toast({
+            title: "No image uploaded",
+            description: "Please upload an image before saving.",
+            variant: "destructive",
+          });
+          return;
+        }
+        dataUrl = uploadedImage;
+        type = "uploaded";
+      }
+
+      if (!dataUrl || !type) return;
+
+      try {
+        setIsSaving(true);
+        const url = await uploadSignatureFromDataUrl(dataUrl, type);
+        setSignature(url);
+        setSignatureType(type);
+        onSave(url, type);
+        toast({ title: "Signature saved" });
+      } catch (error) {
+        toast({
+          title: "Failed to save signature",
+          description: error instanceof Error ? error.message : String(error),
+          variant: "destructive",
+        });
+      } finally {
+        setIsSaving(false);
+      }
     };
 
     return (
@@ -177,10 +225,10 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
               variant="outline"
               size="sm"
               onClick={handleRemove}
-              disabled={isLoading}
+              disabled={isLoading || isSaving}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Remove
+              Delete
             </Button>
           )}
         </div>
@@ -225,10 +273,6 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Clear
               </Button>
-              <Button type="button" onClick={applyDraw}>
-                <Save className="h-4 w-4 mr-2" />
-                Use
-              </Button>
             </div>
           </TabsContent>
 
@@ -271,13 +315,6 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
                 />
               </div>
             </div>
-
-            <div className="flex justify-end">
-              <Button type="button" onClick={applyTyped} disabled={!typedName.trim()}>
-                <Save className="h-4 w-4 mr-2" />
-                Use
-              </Button>
-            </div>
           </TabsContent>
 
           <TabsContent value="upload" className="space-y-2">
@@ -288,16 +325,33 @@ const SignaturePad = React.forwardRef<SignaturePadHandle, SignaturePadProps>(
               })}
             >
               <input {...getInputProps({ onChange: handleInputChange })} />
-              <Upload className="h-8 w-8 mb-2" />
-              {isDragActive ? (
-                <p>Drop the image here...</p>
+              {uploadedImage ? (
+                <img
+                  src={uploadedImage}
+                  alt="Upload preview"
+                  className="max-h-48 object-contain"
+                />
               ) : (
-                <p>Drag and drop an image here, or click to browse</p>
+                <>
+                  <Upload className="h-8 w-8 mb-2" />
+                  {isDragActive ? (
+                    <p>Drop the image here...</p>
+                  ) : (
+                    <p>Drag and drop an image here, or click to browse</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-2">PNG, JPG up to 2MB</p>
+                </>
               )}
-              <p className="text-xs text-muted-foreground mt-2">PNG, JPG up to 2MB</p>
             </div>
           </TabsContent>
         </Tabs>
+
+        <div className="flex justify-end">
+          <Button type="button" onClick={handleSave} disabled={isSaving || isLoading}>
+            <Save className="h-4 w-4 mr-2" />
+            Save Signature
+          </Button>
+        </div>
       </div>
     );
   }

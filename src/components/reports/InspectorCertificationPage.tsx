@@ -15,6 +15,17 @@ const InspectorCertificationPage: React.FC<InspectorCertificationPageProps> = ({
   report,
   mediaUrlMap,
 }) => {
+  const [signatureError, setSignatureError] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!inspector?.signature_url) {
+      console.error("Inspector signature is missing");
+    } else {
+      // Reset error state if a new signature URL is provided
+      setSignatureError(false);
+    }
+  }, [inspector?.signature_url]);
+
   return (
     <div className="preview-page">
       <section className="pdf-page-break p-8 min-h-[11in] flex flex-col justify-center">
@@ -48,16 +59,23 @@ const InspectorCertificationPage: React.FC<InspectorCertificationPageProps> = ({
             <div className="flex justify-between items-end">
               <div className="text-left">
                 <div className="mb-6">
-                  {inspector?.signature_url && (
+                  {inspector?.signature_url && !signatureError ? (
                     <img
                       src={inspector.signature_url}
                       alt="Inspector Signature"
                       className="h-16 w-auto mb-2"
-                      onError={(e) => {
-                        console.log('Signature failed to load:', inspector.signature_url);
-                        e.currentTarget.style.display = 'none';
+                      onError={() => {
+                        console.error(
+                          "Signature failed to load:",
+                          inspector.signature_url,
+                        );
+                        setSignatureError(true);
                       }}
                     />
+                  ) : (
+                    <div className="h-16 w-64 flex items-center justify-center mb-2 text-sm text-gray-500 italic">
+                      Signature not available
+                    </div>
                   )}
                   <div className="border-b border-gray-400 w-64 mb-2"></div>
                   <p className="text-sm text-gray-600">Inspector Signature</p>

@@ -7,9 +7,8 @@ const Footer: React.FC = () => {
         <p>© {new Date().getFullYear()} Home Report Pro. All rights reserved.</p>
         <nav className="flex items-center gap-4">
           <a href="#features" className="hover:text-foreground">Features</a>
-          <a href="#templates" className="hover:text-foreground">Templates</a>
-          <a href="#offline" className="hover:text-foreground">Offline</a>
-          <a href="#security" className="hover:text-foreground">Security</a>
+          <a href="/documentation" className="hover:text-foreground">Documentation</a>
+          <a href="/support" className="hover:text-foreground">Support</a>
         </nav>
       </div>
     </footer>
