@@ -277,12 +277,6 @@ const Header: React.FC = () => {
                      Settings
                    </Link>
                  </DropdownMenuItem>
-                 <DropdownMenuItem asChild>
-                   <Link to="/section-manager" className="flex items-center gap-2">
-                     <FileText className="h-4 w-4" />
-                     Section Manager
-                   </Link>
-                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={async (e) => {

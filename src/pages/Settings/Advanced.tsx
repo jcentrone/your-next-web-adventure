@@ -7,11 +7,6 @@ const Advanced: React.FC = () => {
       <h2 className="text-lg font-medium">Advanced Settings</h2>
       <ul className="list-disc pl-4 space-y-2">
         <li>
-          <Link to="/section-manager" className="text-primary underline">
-            Section Manager
-          </Link>
-        </li>
-        <li>
           <Link to="/defects-admin" className="text-primary underline">
             Defects Admin
           </Link>
