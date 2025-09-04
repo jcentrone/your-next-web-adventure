@@ -53,6 +53,18 @@ export const bookingApi = {
     template: string = 'templateA',
     themeColor: string | null = '#1e293b'
   ): Promise<BookingSettings> {
+    // First check if slug is already taken by another user
+    const { data: existingSlug } = await supabase
+      .from('booking_settings' as any)
+      .select('user_id')
+      .eq('slug', slug)
+      .neq('user_id', userId)
+      .maybeSingle();
+
+    if (existingSlug) {
+      throw new Error(`Slug "${slug}" is already taken. Please choose a different one.`);
+    }
+
     const { data, error } = await supabase
       .from('booking_settings' as any)
       .upsert(

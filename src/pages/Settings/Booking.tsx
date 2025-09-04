@@ -41,6 +41,9 @@ const Booking: React.FC = () => {
         values.template,
         values.theme_color
       ),
+    onError: (error: Error) => {
+      console.error('Booking settings save error:', error.message);
+    },
   });
 
   const slug = watch('slug') || '';
@@ -143,6 +146,12 @@ const Booking: React.FC = () => {
       >
         Save
       </button>
+      {mutation.error && (
+        <p className="text-sm text-red-500">{mutation.error.message}</p>
+      )}
+      {mutation.isSuccess && (
+        <p className="text-sm text-green-500">Settings saved successfully!</p>
+      )}
       {shareUrl && (
         <div className="space-y-6">
           <p className="text-sm text-muted-foreground">

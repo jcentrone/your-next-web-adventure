@@ -106,6 +106,48 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_services: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          id: string
+          service_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          id?: string
+          service_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          id?: string
+          service_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_services_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -168,6 +210,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      booking_settings: {
+        Row: {
+          advance_notice: number | null
+          default_duration: number | null
+          id: string
+          slug: string
+          template: string
+          theme_color: string | null
+          user_id: string
+        }
+        Insert: {
+          advance_notice?: number | null
+          default_duration?: number | null
+          id?: string
+          slug: string
+          template?: string
+          theme_color?: string | null
+          user_id: string
+        }
+        Update: {
+          advance_notice?: number | null
+          default_duration?: number | null
+          id?: string
+          slug?: string
+          template?: string
+          theme_color?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       calendar_events: {
         Row: {
@@ -854,6 +926,33 @@ export type Database = {
           items?: string[]
           section_key?: Database["public"]["Enums"]["section_key"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          price?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
