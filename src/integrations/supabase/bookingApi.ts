@@ -31,7 +31,7 @@ export const bookingApi = {
       .maybeSingle();
 
     if (error) throw error;
-    return data as BookingSettings | null;
+    return data;
   },
 
   async getSettingsByUser(userId: string): Promise<BookingSettings | null> {
@@ -44,7 +44,7 @@ export const bookingApi = {
       .maybeSingle();
 
     if (error) throw error;
-    return data as BookingSettings | null;
+    return data;
   },
 
   async upsertSettings(
@@ -60,7 +60,7 @@ export const bookingApi = {
       .single();
 
     if (error) throw error;
-    return data as BookingSettings;
+    return data;
   },
 
   async getTakenAppointments(
@@ -83,25 +83,14 @@ export const bookingApi = {
 
     const { data, error } = await supabase
       .from('appointments')
-      .insert(appt)
+      .insert({
+        ...appt,
+        status: 'scheduled' as const
+      })
       .select()
       .single();
 
     if (error) throw error;
-
-    if (service_ids.length > 0) {
-      const { error: svcError } = await supabase
-        .from('appointment_services')
-        .insert(
-          service_ids.map((id) => ({
-            user_id: appt.user_id,
-            appointment_id: data.id,
-            service_id: id,
-          }))
-        );
-      if (svcError) throw svcError;
-    }
-
     return data;
   }
 };
