@@ -2,8 +2,10 @@
 do $$
 begin
   if not exists (select 1 from storage.buckets where id = 'terms-conditions') then
+
     -- Use positional arguments to avoid named-argument syntax issues
     perform storage.create_bucket('terms-conditions', 'terms-conditions', false);
+
   end if;
 end
 $$;
