@@ -46,7 +46,7 @@ const TermsAndConditions: React.FC = () => {
   const addRow = () => {
     setRows((prev) => [
       ...prev,
-      { organization_id: organization!.id, report_type: 'all', content_html: '', file: null },
+      { organization_id: organization!.id, report_type: null, content_html: '', file: null },
     ]);
   };
 
@@ -118,8 +118,12 @@ const TermsAndConditions: React.FC = () => {
             <TableRow key={row.id || index}>
               <TableCell>
                 <Select
-                  value={row.report_type}
-                  onValueChange={(val) => updateRow(index, { report_type: val as TermRow['report_type'] })}
+                  value={row.report_type ?? 'all'}
+                  onValueChange={(val) =>
+                    updateRow(index, {
+                      report_type: val === 'all' ? null : (val as TermRow['report_type']),
+                    })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select template" />

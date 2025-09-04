@@ -5,7 +5,7 @@ import DOMPurify from 'dompurify';
 export interface Term {
   id?: string;
   organization_id: string;
-  report_type: Report['reportType'] | 'all';
+  report_type: Report['reportType'] | null;
   content_html: string;
   file_url?: string | null;
   created_at?: string;
@@ -41,7 +41,12 @@ async function list(organizationId: string): Promise<Term[]> {
     .order('created_at', { ascending: true });
 
   if (error) throw error;
-  return (data as unknown as Term[]) || [];
+  return (
+    ((data as unknown as Term[]) || []).map((t) => ({
+      ...t,
+      report_type: (t.report_type as unknown) === 'all' ? null : t.report_type,
+    }))
+  );
 }
 
 async function save(term: Term & { file?: File | null }): Promise<Term> {
@@ -52,7 +57,8 @@ async function save(term: Term & { file?: File | null }): Promise<Term> {
 
   const payload = {
     organization_id: term.organization_id,
-    report_type: term.report_type,
+    report_type:
+      (term.report_type as unknown) === 'all' ? null : term.report_type,
     content_html: DOMPurify.sanitize(term.content_html),
     file_url,
   };
