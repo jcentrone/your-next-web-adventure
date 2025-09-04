@@ -4,6 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { termsApi, Term } from '@/integrations/supabase/termsApi';
 import { REPORT_TYPE_LABELS } from '@/constants/reportTypes';
 import { useToast } from '@/hooks/use-toast';
+import { getMyOrganization } from '@/integrations/supabase/organizationsApi';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -20,10 +21,16 @@ const TermsAndConditions: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const { data: terms, refetch } = useQuery({
-    queryKey: ['terms-and-conditions', user?.id],
-    queryFn: () => termsApi.list(user!.id),
+  const { data: organization } = useQuery({
+    queryKey: ['my-organization'],
+    queryFn: getMyOrganization,
     enabled: !!user,
+  });
+
+  const { data: terms, refetch } = useQuery({
+    queryKey: ['terms-and-conditions', organization?.id],
+    queryFn: () => termsApi.list(organization!.id),
+    enabled: !!organization?.id,
   });
 
   const [rows, setRows] = React.useState<TermRow[]>([]);
@@ -37,11 +44,14 @@ const TermsAndConditions: React.FC = () => {
   };
 
   const addRow = () => {
-    setRows((prev) => [...prev, { user_id: user!.id, report_type: 'all', content_html: '', file: null }]);
+    setRows((prev) => [
+      ...prev,
+      { organization_id: organization!.id, report_type: 'all', content_html: '', file: null },
+    ]);
   };
 
   const saveMutation = useMutation({
-    mutationFn: (row: TermRow) => termsApi.save({ ...row, user_id: user!.id }),
+    mutationFn: (row: TermRow) => termsApi.save({ ...row, organization_id: organization!.id }),
     onSuccess: () => {
       toast({ title: 'Saved', description: 'Terms saved successfully.' });
       refetch();
