@@ -73,7 +73,7 @@ const features: Feature[] = [
       "Easy search and filtering"
     ],
     Icon: Users,
-    color: "from-emerald-500 to-teal-500"
+    color: "from-blue-500 to-indigo-500"
   },
   {
     title: "Professional Templates",
@@ -85,7 +85,7 @@ const features: Feature[] = [
       "Professional PDF generation"
     ],
     Icon: FileText,
-    color: "from-green-500 to-lime-500"
+    color: "from-purple-500 to-violet-500"
   },
   {
     title: "Seamless Integrations",
@@ -260,7 +260,7 @@ const Index = () => {
                     <div className="w-2 h-2 bg-white/70 rounded-full absolute -left-1 top-2"></div>
                   </div>
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full flex items-center justify-center">
+                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-bold">1</span>
                 </div>
               </div>
@@ -272,7 +272,7 @@ const Index = () => {
             
             <div className="text-center group">
               <div className="relative w-20 h-20 mx-auto mb-4">
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl group-hover:scale-105 transition-all duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl group-hover:scale-105 transition-all duration-300"></div>
                 <div className="absolute inset-2 bg-white/20 rounded-xl"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="relative">
@@ -351,7 +351,7 @@ const Index = () => {
             </Card>
             
             <Card className="p-6 text-center border border-border/50">
-              <Star className="w-8 h-8 text-green-600 mx-auto mb-3" />
+              <Star className="w-8 h-8 text-purple-600 mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Professional Quality</h4>
               <p className="text-sm text-muted-foreground">
                 Attorney-vetted narratives and professional branding every time
