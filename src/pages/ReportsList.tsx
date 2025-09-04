@@ -3,6 +3,21 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { listReports as listLocalReports, deleteReport as deleteLocalReport } from "@/hooks/useLocalDraft";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +36,8 @@ const ReportsList: React.FC = () => {
   const [view, setView] = React.useState<"list" | "card">("list"); // Default to list view
   const [showArchived, setShowArchived] = React.useState(false);
   const [reportTypeFilter, setReportTypeFilter] = React.useState<Report["reportType"] | "all">("all");
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   const { data: remoteItems, refetch, isLoading } = useQuery({
     queryKey: ["reports", user?.id, showArchived],
@@ -54,6 +71,16 @@ const ReportsList: React.FC = () => {
     if (reportTypeFilter === "all") return true;
     return item.reportType === reportTypeFilter;
   });
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
+  const paginatedItems = React.useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, currentPage, itemsPerPage]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [itemsPerPage, showArchived, reportTypeFilter, items]);
 
   const onDelete = async (id: string) => {
     try {
@@ -135,11 +162,71 @@ const ReportsList: React.FC = () => {
             )}
           </div>
         ) : (
-          view === "list" ? (
-            <ReportsListView reports={filteredItems} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
-          ) : (
-            <ReportsCardView reports={filteredItems} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
-          )
+          <>
+            {view === "list" ? (
+              <ReportsListView reports={paginatedItems} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
+            ) : (
+              <ReportsCardView reports={paginatedItems} onDelete={onDelete} onArchive={user ? onArchive : undefined} showArchived={showArchived} />
+            )}
+            {filteredItems.length > 0 && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">Rows per page:</span>
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => setItemsPerPage(Number(value))}
+                  >
+                    <SelectTrigger className="h-8 w-[70px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent side="top">
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage((p) => Math.max(1, p - 1));
+                        }}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === i + 1}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(i + 1);
+                          }}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage((p) => Math.min(totalPages, p + 1));
+                        }}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
         )}
       </section>
     </>
