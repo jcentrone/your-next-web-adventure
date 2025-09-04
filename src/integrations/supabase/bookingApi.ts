@@ -51,7 +51,7 @@ export const bookingApi = {
     userId: string,
     slug: string,
     template: string = 'templateA',
-    themeColor?: string | null
+    themeColor: string | null = '#1e293b'
   ): Promise<BookingSettings> {
     const { data, error } = await supabase
       .from('booking_settings' as any)

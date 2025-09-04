@@ -42,6 +42,7 @@ const Booking: React.FC = () => {
 
   const slug = watch('slug') || '';
   const template = watch('template');
+  const themeColor = watch('theme_color');
   const [debouncedSlug, setDebouncedSlug] = React.useState(slug);
 
   React.useEffect(() => {
@@ -122,9 +123,12 @@ const Booking: React.FC = () => {
           <button
             type="button"
             key={c}
-            className="w-8 h-8 rounded-full border"
+            className={`w-8 h-8 rounded-full border ${
+              themeColor === c ? 'ring-2 ring-offset-2 ring-primary' : ''
+            }`}
             style={{ backgroundColor: c }}
             onClick={() => setValue('theme_color', c)}
+            aria-label={`Select ${c} theme`}
           />
         ))}
       </div>
