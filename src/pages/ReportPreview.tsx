@@ -7,50 +7,19 @@ import {useAuth} from "@/contexts/AuthContext";
 import {dbGetReport, dbUpdateReport} from "@/integrations/supabase/reportsApi";
 import {Report} from "@/lib/reportSchemas";
 import {getSignedUrlFromSupabaseUrl, isSupabaseUrl} from "@/integrations/supabase/storage";
-import {Badge} from "@/components/ui/badge";
 import {PREVIEW_TEMPLATES, PreviewTemplateId} from "@/constants/previewTemplates";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {toast} from "@/components/ui/use-toast";
-import {AlertCircle, AlertOctagon, AlertTriangle, Info, MinusCircle, Wrench} from "lucide-react";
 import {useReactToPrint} from "react-to-print";
 import SpecializedReportPreview from "@/components/reports/SpecializedReportPreview";
-import ReportDetailsSection from "@/components/reports/ReportDetailsSection";
-import SectionInfoDisplay from "@/components/reports/SectionInfoDisplay";
+import PDFDocument from "@/components/reports/PDFDocument";
 import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
-import {getMyOrganization, getMyProfile, Organization, Profile} from "@/integrations/supabase/organizationsApi";
-import {COVER_TEMPLATES, CoverTemplateId} from "@/constants/coverTemplates";
+import {getMyOrganization, getMyProfile, Organization, Profile, getTermsConditions} from "@/integrations/supabase/organizationsApi";
+import type {CoverTemplateId} from "@/constants/coverTemplates";
 import {CoverTemplateSelector} from "@/components/ui/cover-template-selector";
 import {COLOR_SCHEMES, ColorScheme, ColorSchemePicker, CustomColors} from "@/components/ui/color-scheme-picker";
 import {CoverTemplateProps} from "@/components/report-covers/types";
-
-function SeverityBadge({
-                           severity,
-                           classes,
-                       }: {
-    severity: string;
-    classes?: Record<string, string>;
-}) {
-    if (classes) {
-        const cls = classes[severity] ?? "";
-        return (
-            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${cls}`}>
-        {severity}
-      </span>
-        );
-    }
-    const map: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-        Safety: "destructive",
-        Major: "default",
-        Moderate: "secondary",
-        Minor: "outline",
-        Maintenance: "outline",
-        Info: "outline",
-    };
-    const variant = map[severity] ?? "outline";
-    return <Badge variant={variant}>{severity}</Badge>;
-}
-
 
 function StyleSelector({
                            value,
@@ -85,6 +54,7 @@ const ReportPreview: React.FC = () => {
     const [coverUrl, setCoverUrl] = React.useState<string>("");
     const [organization, setOrganization] = React.useState<Organization | null>(null);
     const [inspector, setInspector] = React.useState<Profile | null>(null);
+    const [termsHtml, setTermsHtml] = React.useState<string | null>(null);
 
     const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
     const [savingCoverTpl, setSavingCoverTpl] = React.useState(false);
@@ -356,11 +326,24 @@ const ReportPreview: React.FC = () => {
         };
     }, [user, report]);
 
+    React.useEffect(() => {
+        if (!organization || !report) return;
+        (async () => {
+            try {
+                const terms = await getTermsConditions(organization.id);
+                const match =
+                    terms.find((t) => t.report_type === report.reportType) ||
+                    terms.find((t) => t.report_type === null);
+                setTermsHtml(match?.content_html || null);
+            } catch (e) {
+                console.error("Failed to fetch terms:", e);
+            }
+        })();
+    }, [organization, report]);
+
     if (!report) return null;
 
     const tpl = PREVIEW_TEMPLATES[report.previewTemplate] || PREVIEW_TEMPLATES.classic;
-    const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
-    const severityOrder = ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"] as const;
 
     const DEFAULT_TEXT_COLOR = "222 47% 11%";
     const colorVars =
@@ -476,58 +459,6 @@ const ReportPreview: React.FC = () => {
         );
     }
 
-    const summary = report.sections.flatMap((s) =>
-        s.findings.filter(
-            (f) =>
-                f.includeInSummary ||
-                f.severity === "Safety" ||
-                f.severity === "Major" ||
-                f.severity === "Moderate" ||
-                f.severity === "Minor" ||
-                f.severity === "Maintenance" ||
-                f.severity === "Info"
-        )
-    );
-    const severityCounts = summary.reduce((acc, finding) => {
-        acc[finding.severity] = (acc[finding.severity] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-    const orderedSeverities = severityOrder.filter((sev) => severityCounts[sev]);
-
-    const SEVERITY_ICONS: Record<string, React.ElementType> = {
-        Safety: AlertTriangle,
-        Major: AlertOctagon,
-        Moderate: AlertCircle,
-        Minor: MinusCircle,
-        Maintenance: Wrench,
-        Info: Info,
-    };
-
-    const sectionSeverityCounts = report.sections.reduce((acc, sec) => {
-        const counts: Record<string, number> = {};
-        sec.findings
-            .filter((f) => f.includeInSummary || ["Safety", "Major", "Moderate", "Minor", "Maintenance", "Info"].includes(f.severity))
-            .forEach((f) => {
-                counts[f.severity] = (counts[f.severity] || 0) + 1;
-            });
-        if (Object.keys(counts).length > 0) acc.push({sectionTitle: sec.title, counts});
-        return acc;
-    }, [] as { sectionTitle: string; counts: Record<string, number> }[]);
-
-    const previewColorScheme =
-        report.colorScheme === "custom" && report.customColors
-            ? {
-                primary: report.customColors.primary || "220 87% 56%",
-                secondary: report.customColors.secondary || "220 70% 40%",
-                accent: report.customColors.accent || "220 90% 70%",
-            }
-            : report.colorScheme && report.colorScheme !== "default"
-                ? {
-                    primary: COLOR_SCHEMES[report.colorScheme].primary,
-                    secondary: COLOR_SCHEMES[report.colorScheme].secondary,
-                    accent: COLOR_SCHEMES[report.colorScheme].accent,
-                }
-                : undefined;
     return (
         <>
             <Seo
@@ -545,167 +476,14 @@ const ReportPreview: React.FC = () => {
             {/* Top bar */}
             {topBar}
 
-            <div ref={pdfContainerRef} className="flex flex-col items-center" style={colorVars}>
-                {/* Cover Page */}
-                <div className="preview-page page-break">
-                    <div className={`${tpl.container} h-[1056px]`}>
-                        <CoverComponent
-                            reportTitle={report.title}
-                            clientName={report.clientName}
-                            coverImage={coverUrl}
-                            organizationName={organization?.name || ""}
-                            organizationAddress={organization?.address || ""}
-                            organizationPhone={organization?.phone || ""}
-                            organizationEmail={organization?.email || ""}
-                            organizationWebsite={organization?.website || ""}
-                            organizationLogo={organization?.logo_url || ""}
-                            inspectorName={inspector?.full_name || ""}
-                            inspectorLicenseNumber={inspector?.license_number || ""}
-                            inspectorPhone={inspector?.phone || ""}
-                            inspectorEmail={inspector?.email || ""}
-                            clientAddress={report.address}
-                            clientEmail={report.clientEmail || ""}
-                            clientPhone={report.clientPhone || ""}
-                            inspectionDate={report.inspectionDate}
-                            weatherConditions={report.weatherConditions || ""}
-                            colorScheme={previewColorScheme}
-                            className={tpl.cover}
-                        />
-                    </div>
-                </div>
-
-                {/* Report Details */}
-                <div className="preview-page page-break">
-                    <div className={tpl.container}>
-                        <ReportDetailsSection
-                            report={report}
-                            sectionInfo={report.sections.find((s) => s.key === "report_details")?.info || {}}
-                            className={tpl.reportDetails}
-                        />
-                    </div>
-                </div>
-
-                {/* Summary */}
-                {Object.keys(severityCounts).length > 0 && (
-                    <div className="preview-page page-break">
-                        <div className={tpl.container}>
-                            <section className="my-10 text-center">
-                                <h2 className={tpl.summaryTitle}>Summary of Deficiencies</h2>
-
-                                <div className="flex flex-wrap justify-center gap-8 mb-8">
-                                    {orderedSeverities.map((severity) => {
-                                        const Icon = SEVERITY_ICONS[severity];
-                                        return (
-                                            <div key={severity} className="flex flex-col items-center">
-                                                <div
-                                                    className={`flex items-center justify-center w-20 h-20 rounded-full ${tpl.severityBadge[severity] || ""}`}>
-                                                    <Icon size={45} className="text-white"/>
-                                                </div>
-                                                <span className="mt-2 font-bold">{severityCounts[severity]}</span>
-                                                <span className="text-sm">{severity}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Breakdown by section */}
-                                <div className="mt-6 text-left max-w-3xl mx-auto">
-                                    {sectionSeverityCounts.map(({sectionTitle, counts}) => {
-                                        const breakdown = orderedSeverities
-                                            .filter((sev) => counts[sev])
-                                            .map((sev) => `${counts[sev]} ${sev}${counts[sev] > 1 ? "s" : ""}`)
-                                            .join(", ");
-                                        return (
-                                            <div key={sectionTitle} className="py-2 border-b border-gray-200">
-                                                <h3 className="font-semibold">{sectionTitle}</h3>
-                                                <p className="text-sm text-gray-700">{breakdown}</p>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </section>
-                        </div>
-                    </div>
-                )}
-
-                {/* Sections */}
-                {report.sections
-                    .filter((sec) => sec.key !== "report_details")
-                    .map((sec) => (
-                        <div key={sec.id} className="preview-page page-break">
-                            <div className={tpl.container}>
-                                <section className={tpl.sectionWrapper}>
-                                    <h2 className={tpl.h2}>{sec.title}</h2>
-
-                                    <SectionInfoDisplay sectionKey={sec.key} sectionInfo={sec.info || {}}
-                                                        className={tpl.sectionInfo}/>
-
-                                    {sec.findings.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground">No material defects noted.</p>
-                                    ) : (
-                                        sec.findings.map((f) => {
-                                            const Icon = SEVERITY_ICONS[f.severity];
-                                            return (
-                                                <article key={f.id} className={tpl.findingWrapper}>
-                                                    <h3 className={tpl.h3}>
-                            <span
-                                aria-label={`${f.severity} issue`}
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 mr-2 rounded ${tpl.severityBadge[f.severity] || ""}`}
-                            >
-                              <Icon size={14}/>
-                                {f.severity}
-                            </span>
-                                                        {f.title}
-                                                    </h3>
-                                                    {f.narrative &&
-                                                        <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
-                                                    {f.recommendation &&
-                                                        <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>}
-                                                    {f.media.length > 0 && (
-                                                        <div className="mt-2 grid grid-cols-2 gap-3">
-                                                            {f.media.map((m) => {
-                                                                const hasSignedUrl = !isSupabaseUrl(m.url) || !!mediaUrlMap[m.id];
-                                                                if (!hasSignedUrl) {
-                                                                    return (
-                                                                        <figure key={m.id}>
-                                                                            <div
-                                                                                className="w-full h-32 bg-muted rounded border"/>
-                                                                            {m.caption && <figcaption
-                                                                                className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>}
-                                                                        </figure>
-                                                                    );
-                                                                }
-                                                                const resolvedUrl = mediaUrlMap[m.id] || m.url;
-                                                                return (
-                                                                    <figure key={m.id}>
-                                                                        {m.type === "image" ? (
-                                                                            <img src={resolvedUrl}
-                                                                                 alt={m.caption || f.title}
-                                                                                 loading="lazy"
-                                                                                 className="w-full rounded border"/>
-                                                                        ) : m.type === "video" ? (
-                                                                            <video src={resolvedUrl} controls
-                                                                                   className="w-full rounded border"/>
-                                                                        ) : (
-                                                                            <audio src={resolvedUrl} controls/>
-                                                                        )}
-                                                                        {m.caption && <figcaption
-                                                                            className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>}
-                                                                    </figure>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-                                                </article>
-                                            );
-                                        })
-                                    )}
-                                </section>
-                            </div>
-                        </div>
-                    ))}
-            </div>
-
+            <PDFDocument
+                ref={pdfContainerRef}
+                report={report}
+                mediaUrlMap={mediaUrlMap}
+                coverUrl={coverUrl}
+                company={organization?.name || ""}
+                termsHtml={termsHtml || undefined}
+            />
         </>
     );
 };
