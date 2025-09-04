@@ -64,6 +64,26 @@ const OrganizationSettings: React.FC = () => {
     setLogoPreview(organization?.logo_url || null);
   }, [organization]);
 
+  // Auto-save effect
+  React.useEffect(() => {
+    if (!organization) return;
+    
+    const hasChanges = 
+      orgName !== (organization.name || "") ||
+      orgEmail !== (organization.email || "") ||
+      orgPhone !== (organization.phone || "") ||
+      orgAddress !== (organization.address || "") ||
+      orgWebsite !== (organization.website || "") ||
+      orgLicense !== (organization.license_number || "");
+
+    if (hasChanges && orgName && orgEmail && orgPhone && orgAddress) {
+      const timeoutId = setTimeout(() => {
+        handleSaveOrganization();
+      }, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [orgName, orgEmail, orgPhone, orgAddress, orgWebsite, orgLicense, organization]);
+
   React.useEffect(() => {
     if (organizationError) {
       setShowOrganizationError(true);
@@ -405,15 +425,11 @@ const OrganizationSettings: React.FC = () => {
               </div>
             </div>
 
+            {/* Auto-save indicator */}
             <div className="flex items-center gap-4 pt-4">
-              <Button
-                onClick={handleSaveOrganization}
-                disabled={updateOrganizationMutation.isPending}
-                className="flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                {updateOrganizationMutation.isPending ? "Saving..." : "Save Organization Details"}
-              </Button>
+              {updateOrganizationMutation.isPending && (
+                <div className="text-sm text-muted-foreground">Auto-saving...</div>
+              )}
               {logoFile && (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   <Camera className="h-3 w-3" />

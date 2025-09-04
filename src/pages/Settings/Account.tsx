@@ -60,6 +60,23 @@ const Account: React.FC = () => {
     }
   }, [profile]);
 
+  // Auto-save effect
+  React.useEffect(() => {
+    if (!profile) return;
+    
+    const hasChanges = 
+      fullName !== (profile.full_name || "") ||
+      phone !== (profile.phone || "") ||
+      licenseNumber !== (profile.license_number || "");
+
+    if (hasChanges) {
+      const timeoutId = setTimeout(() => {
+        handleSaveProfile();
+      }, 2000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [fullName, phone, licenseNumber, profile]);
+
   const updateProfileMutation = useMutation({
     mutationFn: updateMyProfile,
     onSuccess: () => {
@@ -205,9 +222,9 @@ const Account: React.FC = () => {
             {organization && <Badge variant="outline">{organization.name}</Badge>}
           </div>
 
-          <Button onClick={handleSaveProfile} disabled={updateProfileMutation.isPending}>
-            {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
-          </Button>
+          {updateProfileMutation.isPending && (
+            <div className="text-sm text-muted-foreground">Auto-saving...</div>
+          )}
         </CardContent>
       </Card>
 

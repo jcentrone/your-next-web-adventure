@@ -85,7 +85,25 @@ const Booking: React.FC = () => {
   });
 
   const isAvailable = !debouncedSlug || !slugMatch || slugMatch.user_id === user?.id;
-  const onSubmit = handleSubmit((values) => mutation.mutate(values));
+
+  // Auto-save on form changes
+  const formValues = watch();
+  React.useEffect(() => {
+    if (!bookingSettings || !isAvailable) return;
+    
+    const hasChanges = 
+      formValues.slug !== bookingSettings.slug ||
+      formValues.template !== bookingSettings.template ||
+      formValues.theme_color !== bookingSettings.theme_color ||
+      formValues.layout !== bookingSettings.layout;
+
+    if (hasChanges && formValues.slug) {
+      const timeoutId = setTimeout(() => {
+        mutation.mutate(formValues);
+      }, 1000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formValues, bookingSettings, isAvailable, mutation]);
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const shareUrl = slug ? `${origin}/book/${slug}` : '';
   const widgetEmbedCode = slug ? `<iframe src="${shareUrl}?embed=1" style="width:100%;height:700px;border:0;" />` : '';
@@ -116,7 +134,7 @@ const Booking: React.FC = () => {
           </h3>
         </div>
         
-        <form onSubmit={onSubmit} className="space-y-6">
+        <div className="space-y-6">
           {/* Slug Configuration */}
           <div className="space-y-2">
             <Label htmlFor="slug" className="text-base font-medium">Booking Page URL</Label>
@@ -261,13 +279,9 @@ const Booking: React.FC = () => {
           </div>
 
           <div className="flex gap-4">
-            <Button
-              type="submit"
-              disabled={mutation.isPending || isChecking || !isAvailable}
-              className="flex items-center gap-2"
-            >
-              {mutation.isPending ? 'Saving...' : 'Save Settings'}
-            </Button>
+            {mutation.isPending && (
+              <div className="text-sm text-muted-foreground">Saving...</div>
+            )}
             {shareUrl && (
               <Button
                 type="button"
@@ -280,7 +294,7 @@ const Booking: React.FC = () => {
               </Button>
             )}
           </div>
-        </form>
+        </div>
       </div>
 
       {/* Share & Embed */}
