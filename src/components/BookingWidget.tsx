@@ -17,6 +17,22 @@ const BookingWidget: React.FC<BookingWidgetProps> = ({ service, link }) => {
     enabled: service === "internal" && !!link,
   });
 
+  const { data: taken = [] } = useQuery({
+    queryKey: ["booking-taken", settings?.user_id],
+    queryFn: () => bookingApi.getTakenAppointments(settings!.user_id),
+    enabled: service === "internal" && !!settings?.user_id,
+  });
+
+  const reservedRanges = React.useMemo(
+    () =>
+      taken.map((a: { appointment_date: string; duration_minutes: number | null }) => {
+        const start = new Date(a.appointment_date);
+        const end = new Date(start.getTime() + (a.duration_minutes ?? 0) * 60000);
+        return { startDate: start, endDate: end };
+      }),
+    [taken]
+  );
+
   if (!link) return null;
 
   const iframeProps = {
@@ -27,7 +43,7 @@ const BookingWidget: React.FC<BookingWidgetProps> = ({ service, link }) => {
   switch (service) {
     case "internal":
       if (!settings) return null;
-      return <Widget settings={settings} />;
+      return <Widget settings={settings} reserved={reservedRanges} />;
     case "calendly":
       return (
         <iframe

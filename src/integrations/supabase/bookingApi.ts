@@ -63,7 +63,9 @@ export const bookingApi = {
     return data as BookingSettings;
   },
 
-  async getTakenAppointments(userId: string): Promise<{ start_date: string; end_date: string }[]> {
+  async getTakenAppointments(
+    userId: string
+  ): Promise<{ appointment_date: string; duration_minutes: number | null }[]> {
     const { data, error } = await supabase
       .from('appointments')
       .select('appointment_date, duration_minutes')
@@ -71,13 +73,9 @@ export const bookingApi = {
       .in('status', ['scheduled', 'confirmed', 'in_progress']);
 
     if (error) throw error;
-    const rows = (data as { appointment_date: string; duration_minutes: number | null }[]) || [];
-    return rows.map((a) => {
-      const end = new Date(
-        new Date(a.appointment_date).getTime() + (a.duration_minutes ?? 0) * 60000
-      );
-      return { start_date: a.appointment_date, end_date: end.toISOString() };
-    });
+    return (
+      (data as { appointment_date: string; duration_minutes: number | null }[]) || []
+    );
   },
 
   async createAppointment(appointment: AppointmentPayload) {
