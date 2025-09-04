@@ -14,7 +14,6 @@ import {
   getMyProfile,
   getMyOrganization,
   updateMyProfile,
-  uploadSignatureFromDataUrl,
   deleteSignature,
   type Organization,
 } from "@/integrations/supabase/organizationsApi";
@@ -66,13 +65,20 @@ const Account: React.FC = () => {
       toast({ title: "Profile updated successfully" });
       queryClient.invalidateQueries({ queryKey: ["my-profile"] });
     },
-    onError: (error: any) => {
-      toast({ title: "Failed to update profile", description: error.message });
+    onError: (error: unknown) => {
+      toast({
+        title: "Failed to update profile",
+        description: error instanceof Error ? error.message : String(error),
+      });
     },
   });
 
   // Auto-save effect
-  const [lastSavedValues, setLastSavedValues] = React.useState<any>(null);
+  const [lastSavedValues, setLastSavedValues] = React.useState<{
+    fullName: string;
+    phone: string;
+    licenseNumber: string;
+  } | null>(null);
   
   React.useEffect(() => {
     if (!profile || updateProfileMutation.isPending) return;
@@ -105,8 +111,12 @@ const Account: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-profile"] });
     },
-    onError: (error: any) => {
-      toast({ title: "Failed to update signature", description: error.message, variant: "destructive" });
+    onError: (error: unknown) => {
+      toast({
+        title: "Failed to update signature",
+        description: error instanceof Error ? error.message : String(error),
+        variant: "destructive",
+      });
     },
   });
 
@@ -123,8 +133,12 @@ const Account: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-profile"] });
     },
-    onError: (error: any) => {
-      toast({ title: "Failed to delete signature", description: error.message, variant: "destructive" });
+    onError: (error: unknown) => {
+      toast({
+        title: "Failed to delete signature",
+        description: error instanceof Error ? error.message : String(error),
+        variant: "destructive",
+      });
     },
   });
 
@@ -136,20 +150,8 @@ const Account: React.FC = () => {
     });
   };
 
-  const handleSignatureUpdate = async (signatureDataUrl: string, signatureType: string) => {
-    console.log('Updating signature:', { signatureType, dataUrlLength: signatureDataUrl?.length });
-    try {
-      const signatureUrl = await uploadSignatureFromDataUrl(signatureDataUrl, signatureType);
-      console.log('Signature uploaded successfully:', signatureUrl);
-      updateSignatureMutation.mutate({ signatureUrl, signatureType });
-    } catch (error: any) {
-      console.error('Failed to upload signature:', error);
-      toast({ 
-        title: "Failed to save signature", 
-        description: error.message, 
-        variant: "destructive" 
-      });
-    }
+  const handleSignatureSave = (signatureUrl: string, signatureType: string) => {
+    updateSignatureMutation.mutate({ signatureUrl, signatureType });
   };
 
   const handleSignatureDelete = () => {
@@ -239,7 +241,7 @@ const Account: React.FC = () => {
         currentSignature={profile.signature_url || undefined}
         currentSignatureType={profile.signature_type || undefined}
         fullName={profile.full_name || undefined}
-        onChange={handleSignatureUpdate}
+        onSave={handleSignatureSave}
         onDelete={handleSignatureDelete}
         isLoading={updateSignatureMutation.isPending || deleteSignatureMutation.isPending}
       />
