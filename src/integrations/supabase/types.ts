@@ -825,6 +825,7 @@ export type Database = {
           report_type: string | null
           sections: Json | null
           status: Database["public"]["Enums"]["report_status"]
+          terms_html: string | null
           title: string
           updated_at: string
           user_id: string
@@ -856,6 +857,7 @@ export type Database = {
           report_type?: string | null
           sections?: Json | null
           status?: Database["public"]["Enums"]["report_status"]
+          terms_html?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -887,6 +889,7 @@ export type Database = {
           report_type?: string | null
           sections?: Json | null
           status?: Database["public"]["Enums"]["report_status"]
+          terms_html?: string | null
           title?: string
           updated_at?: string
           user_id?: string
