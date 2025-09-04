@@ -17,18 +17,21 @@ const Booking: React.FC = () => {
     defaultValues: { template: 'templateA', theme_color: '#1e293b' },
   });
 
-  useQuery({
+  const { data: bookingSettings } = useQuery({
     queryKey: ['my-booking-settings', user?.id],
     queryFn: () => bookingApi.getSettingsByUser(user!.id),
     enabled: !!user,
-    onSuccess: (data) =>
-      data &&
-      reset({
-        slug: data.slug,
-        template: data.template || 'templateA',
-        theme_color: data.theme_color || '#1e293b',
-      }),
   });
+
+  React.useEffect(() => {
+    if (bookingSettings) {
+      reset({
+        slug: bookingSettings.slug,
+        template: bookingSettings.template || 'templateA',
+        theme_color: bookingSettings.theme_color || '#1e293b',
+      });
+    }
+  }, [bookingSettings, reset]);
 
   const mutation = useMutation({
     mutationFn: (values: FormValues) =>

@@ -31,7 +31,7 @@ export const bookingApi = {
       .maybeSingle();
 
     if (error) throw error;
-    return data;
+    return data as unknown as BookingSettings | null;
   },
 
   async getSettingsByUser(userId: string): Promise<BookingSettings | null> {
@@ -44,7 +44,7 @@ export const bookingApi = {
       .maybeSingle();
 
     if (error) throw error;
-    return data;
+    return data as unknown as BookingSettings | null;
   },
 
   async upsertSettings(
@@ -60,7 +60,7 @@ export const bookingApi = {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as unknown as BookingSettings;
   },
 
   async getTakenAppointments(
