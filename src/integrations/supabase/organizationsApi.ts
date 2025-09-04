@@ -73,6 +73,16 @@ export type EmailTemplate = {
   updated_by: string | null;
 };
 
+export type TermsConditions = {
+  id: string;
+  organization_id: string;
+  report_type: string | null;
+  content_html: string;
+  file_url: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export async function createOrganization(data: {
   name: string;
   slug?: string;
@@ -331,6 +341,50 @@ export async function saveReportEmailTemplate(
     .single();
   if (error) throw error;
   return data as unknown as EmailTemplate;
+}
+
+export async function getTermsConditions(
+  organizationId: string,
+): Promise<TermsConditions[]> {
+  const { data, error } = await supabase
+    .from('terms_conditions')
+    .select('*')
+    .eq('organization_id', organizationId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return (data as TermsConditions[]) || [];
+}
+
+export async function upsertTermsConditions(data: {
+  organizationId: string;
+  reportType?: string | null;
+  contentHtml: string;
+  fileUrl?: string | null;
+}): Promise<TermsConditions> {
+  const sanitizedHtml = DOMPurify.sanitize(data.contentHtml);
+  const { data: row, error } = await supabase
+    .from('terms_conditions')
+    .upsert(
+      {
+        organization_id: data.organizationId,
+        report_type: data.reportType ?? null,
+        content_html: sanitizedHtml,
+        file_url: data.fileUrl ?? null,
+      },
+      { onConflict: 'organization_id,report_type' },
+    )
+    .select('*')
+    .single();
+  if (error) throw error;
+  return row as TermsConditions;
+}
+
+export async function deleteTermsConditions(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('terms_conditions')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
 }
 
 export async function uploadSignature(file: File): Promise<string> {

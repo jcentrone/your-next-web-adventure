@@ -1,17 +1,18 @@
 import { supabase } from './client';
 import type { Report } from '@/lib/reportSchemas';
+import DOMPurify from 'dompurify';
 
 export interface Term {
   id?: string;
   user_id: string;
   report_type: Report['reportType'] | 'all';
-  text: string;
+  content_html: string;
   file_url?: string | null;
   created_at?: string;
   updated_at?: string;
 }
 
-const TERMS_BUCKET = 'terms-and-conditions';
+const TERMS_BUCKET = 'terms-conditions';
 
 async function uploadDocx(userId: string, file: File): Promise<string> {
   const cleanName = file.name.replace(/\s+/g, '_');
@@ -49,7 +50,7 @@ async function save(term: Term & { file?: File | null }): Promise<Term> {
   const payload = {
     user_id: term.user_id,
     report_type: term.report_type,
-    text: term.text,
+    content_html: DOMPurify.sanitize(term.content_html),
     file_url,
   };
 
