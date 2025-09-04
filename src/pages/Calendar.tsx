@@ -743,13 +743,8 @@ const Calendar: React.FC = () => {
 
                     <div className="flex w-full gap-6">
                         {/* Calendar View */}
-                        <Card className="w-full">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <CalendarIcon className="w-5 h-5"/>
-                                    Calendar View
-                                </CardTitle>
-                            </CardHeader>
+                        <Card className="w-full pt-6">
+
                             <CardContent>
                                 <DraggableCalendarGrid
                                     appointments={appointments}
