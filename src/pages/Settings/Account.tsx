@@ -18,7 +18,7 @@ import {
   deleteSignature,
   type Organization,
 } from "@/integrations/supabase/organizationsApi";
-import SignatureManager from "@/components/signature/SignatureManager";
+import SignaturePad from "@/components/signature/SignaturePad";
 
 const Account: React.FC = () => {
   const { user } = useAuth();
@@ -235,12 +235,12 @@ const Account: React.FC = () => {
         </CardContent>
       </Card>
 
-      <SignatureManager
+      <SignaturePad
         currentSignature={profile.signature_url || undefined}
         currentSignatureType={profile.signature_type || undefined}
         fullName={profile.full_name || undefined}
-        onSignatureUpdate={handleSignatureUpdate}
-        onSignatureDelete={handleSignatureDelete}
+        onChange={handleSignatureUpdate}
+        onDelete={handleSignatureDelete}
         isLoading={updateSignatureMutation.isPending || deleteSignatureMutation.isPending}
       />
     </>
