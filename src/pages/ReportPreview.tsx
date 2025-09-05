@@ -16,10 +16,16 @@ import PDFDocument from "@/components/reports/PDFDocument";
 import PreviewThumbnailNav from "@/components/reports/PreviewThumbnailNav";
 import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
-import {getMyOrganization, getMyProfile, Organization, Profile, getTermsConditions} from "@/integrations/supabase/organizationsApi";
+import {
+    getMyOrganization,
+    getMyProfile,
+    getTermsConditions,
+    Organization,
+    Profile
+} from "@/integrations/supabase/organizationsApi";
 import type {CoverTemplateId} from "@/constants/coverTemplates";
 import {CoverTemplateSelector} from "@/components/ui/cover-template-selector";
-import {COLOR_SCHEMES, ColorScheme, ColorSchemePicker, CustomColors} from "@/components/ui/color-scheme-picker";
+import {ColorScheme, ColorSchemePicker, CustomColors} from "@/components/ui/color-scheme-picker";
 import {CoverTemplateProps} from "@/components/report-covers/types";
 
 function StyleSelector({
@@ -395,43 +401,45 @@ const ReportPreview: React.FC = () => {
         );
     }
 
-    const TOPBAR_HEIGHT = 72;
+    const TOPBAR_HEIGHT = 129;
 
     const topBar = (
-        <div
-            className="fixed top-0 left-0 right-0 z-50 bg-background shadow print-hidden"
-            style={{height: TOPBAR_HEIGHT}}
-        >
-            <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-2 h-full">
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => nav(`/reports/${report.id}`)}
-                        aria-label="Close preview and return to editor"
-                    >
-                        Close Preview
+        <div className="fixed top-0 right-0 left-0 h-[80px]">
+            <div
+                className="z-20 bg-background shadow print-hidden"
+                style={{height: TOPBAR_HEIGHT}}
+            >
+                <div className="mx-auto px-4 py-4 flex items-end justify-between gap-2 h-full">
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => nav(`/reports/${report.id}`)}
+                            aria-label="Close preview and return to editor"
+                        >
+                            Close Preview
+                        </Button>
+                        <CoverTemplateSelector
+                            value={report.coverTemplate}
+                            onChange={handleCoverTemplateChange}
+                            disabled={savingCoverTpl}
+                            data={coverPreviewData}
+                        />
+                        <StyleSelector
+                            value={report.previewTemplate}
+                            onChange={handleStyleTemplateChange}
+                            disabled={savingStyleTpl}
+                        />
+                        <ColorSchemePicker
+                            value={report.colorScheme || "default"}
+                            customColors={report.customColors}
+                            onChange={handleColorSchemeChange}
+                            disabled={savingColorScheme}
+                        />
+                    </div>
+                    <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
+                        {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
                     </Button>
-                    <CoverTemplateSelector
-                        value={report.coverTemplate}
-                        onChange={handleCoverTemplateChange}
-                        disabled={savingCoverTpl}
-                        data={coverPreviewData}
-                    />
-                    <StyleSelector
-                        value={report.previewTemplate}
-                        onChange={handleStyleTemplateChange}
-                        disabled={savingStyleTpl}
-                    />
-                    <ColorSchemePicker
-                        value={report.colorScheme || "default"}
-                        customColors={report.customColors}
-                        onChange={handleColorSchemeChange}
-                        disabled={savingColorScheme}
-                    />
                 </div>
-                <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
-                    {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-                </Button>
             </div>
         </div>
     );
@@ -450,21 +458,25 @@ const ReportPreview: React.FC = () => {
                         datePublished: report.inspectionDate,
                     }}
                 />
-                {topBar}
-                <div className="flex mt-[72px] print:mt-0">
+
+                <div className="flex  print:mt-0">
+
                     <PreviewThumbnailNav containerRef={pdfContainerRef}/>
-                    <div className="flex-1">
-                        <div className="max-w-4xl mx-auto px-4 py-10">
-                            <div ref={pdfContainerRef} style={colorVars}>
-                                <SpecializedReportPreview
-                                    report={report}
-                                    inspector={inspector}
-                                    organization={organization}
-                                    mediaUrlMap={mediaUrlMap}
-                                    coverUrl={coverUrl}
-                                    className={tpl.cover}
-                                    termsHtml={termsHtml}
-                                />
+                    <div className="flex flex-col">
+                        {topBar}
+                        <div className="flex-1">
+                            <div className="max-w-4xl mx-auto px-4 py-10">
+                                <div ref={pdfContainerRef} style={colorVars}>
+                                    <SpecializedReportPreview
+                                        report={report}
+                                        inspector={inspector}
+                                        organization={organization}
+                                        mediaUrlMap={mediaUrlMap}
+                                        coverUrl={coverUrl}
+                                        className={tpl.cover}
+                                        termsHtml={termsHtml}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -490,9 +502,9 @@ const ReportPreview: React.FC = () => {
             {/* Top bar */}
             {topBar}
 
-            <div className="flex mt-[72px] print:mt-0">
+            <div className="flex mt-1 print:mt-0">
                 <PreviewThumbnailNav containerRef={pdfContainerRef}/>
-                <div className="flex-1">
+                <div className="flex-1  pt-24">
                     <PDFDocument
                         ref={pdfContainerRef}
                         report={report}
