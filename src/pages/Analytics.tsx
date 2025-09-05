@@ -26,10 +26,14 @@ interface AnalyticsData {
   totalContacts: number;
   totalAppointments: number;
   completedReports: number;
+  totalRevenue: number;
+  averageRevenue: number;
   monthlyReports: Array<{ month: string; count: number; revenue?: number }>;
   reportsByType: Array<{ type: string; count: number; value: number }>;
   recentActivity: Array<{ date: string; type: string; count: number }>;
 }
+
+type AnalyticsResponse = Omit<AnalyticsData, "totalRevenue" | "averageRevenue">;
 
 const chartConfig = {
   count: {
@@ -74,7 +78,23 @@ export default function Analytics() {
 
       if (error) throw error;
 
-      setAnalytics(data as AnalyticsData);
+      const rawData = data as AnalyticsResponse;
+      const monthlyReports = rawData.monthlyReports || [];
+      const totalRevenue = monthlyReports.reduce(
+        (sum: number, r: { revenue?: number }) => sum + (r.revenue || 0),
+        0
+      );
+      const totalReportCount = monthlyReports.reduce(
+        (sum: number, r: { count: number }) => sum + r.count,
+        0
+      );
+
+      setAnalytics({
+        ...rawData,
+        totalRevenue,
+        averageRevenue:
+          totalReportCount > 0 ? totalRevenue / totalReportCount : 0,
+      } as AnalyticsData);
 
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -167,10 +187,10 @@ export default function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${(analytics.totalReports * 500).toLocaleString()}
+              ${analytics.totalRevenue.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
-              Based on completed reports
+              Average ${analytics.averageRevenue.toFixed(2)} per report
             </p>
           </CardContent>
         </Card>
