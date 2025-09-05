@@ -66,88 +66,15 @@ export default function Analytics() {
       const startDate = dateRange.startDate;
       const endDate = dateRange.endDate;
 
-      // Fetch all data in parallel
-      const [reportsRes, contactsRes, appointmentsRes] = await Promise.all([
-        supabase
-          .from("reports")
-          .select("*")
-          .eq("user_id", user!.id)
-          .gte("created_at", startDate.toISOString())
-          .lte("created_at", endDate.toISOString()),
-        supabase
-          .from("contacts")
-          .select("*")
-          .eq("user_id", user!.id)
-          .eq("is_active", true),
-        supabase
-          .from("appointments")
-          .select("*")
-          .eq("user_id", user!.id)
-          .gte("appointment_date", startDate.toISOString())
-          .lte("appointment_date", endDate.toISOString()),
-      ]);
-
-      if (reportsRes.error) throw reportsRes.error;
-      if (contactsRes.error) throw contactsRes.error;
-      if (appointmentsRes.error) throw appointmentsRes.error;
-
-      const reports = reportsRes.data;
-      const contacts = contactsRes.data;
-      const appointments = appointmentsRes.data;
-
-      // Process data
-      const monthlyData = [] as { month: string; count: number; revenue: number }[];
-      const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-      const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-      while (current <= end) {
-        const monthStr = current.toLocaleDateString("en-US", {
-          month: "short",
-          year: "2-digit",
-        });
-        const monthReports = reports.filter((r) => {
-          const reportDate = new Date(r.created_at);
-          return (
-            reportDate.getFullYear() === current.getFullYear() &&
-            reportDate.getMonth() === current.getMonth()
-          );
-        });
-        monthlyData.push({
-          month: monthStr,
-          count: monthReports.length,
-          revenue: monthReports.length * 500, // Estimate $500 per report
-        });
-        current.setMonth(current.getMonth() + 1);
-      }
-
-      // Report types analysis
-      const reportTypes = reports.reduce((acc: any, report) => {
-        const type = report.report_type || 'home_inspection';
-        acc[type] = (acc[type] || 0) + 1;
-        return acc;
-      }, {});
-
-      const reportsByType = Object.entries(reportTypes).map(([type, count]) => ({
-        type: type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        count: count as number,
-        value: (count as number) * 100 / reports.length
-      }));
-
-      // Recent activity
-      const recentActivity = monthlyData.slice(-7).map((month) => ({
-        date: month.month,
-        type: "Reports",
-        count: month.count,
-      }));
-
-      setAnalytics({
-        totalReports: reports.length,
-        totalContacts: contacts.length,
-        totalAppointments: appointments.length,
-        completedReports: reports.filter(r => r.status === 'Final').length,
-        monthlyReports: monthlyData,
-        reportsByType,
-        recentActivity
+      const { data, error } = await supabase.rpc("analytics_summary", {
+        p_user_id: user!.id,
+        p_start_date: startDate.toISOString(),
+        p_end_date: endDate.toISOString(),
       });
+
+      if (error) throw error;
+
+      setAnalytics(data as AnalyticsData);
 
     } catch (error) {
       console.error('Error loading analytics:', error);
