@@ -458,25 +458,21 @@ const ReportPreview: React.FC = () => {
                         datePublished: report.inspectionDate,
                     }}
                 />
-
-                <div className="flex  print:mt-0">
-
+                {topBar}
+                <div className="flex mt-1 print:mt-0">
                     <PreviewThumbnailNav containerRef={pdfContainerRef}/>
-                    <div className="flex flex-col">
-                        {topBar}
-                        <div className="flex-1">
-                            <div className="max-w-4xl mx-auto px-4 py-10">
-                                <div ref={pdfContainerRef} style={colorVars}>
-                                    <SpecializedReportPreview
-                                        report={report}
-                                        inspector={inspector}
-                                        organization={organization}
-                                        mediaUrlMap={mediaUrlMap}
-                                        coverUrl={coverUrl}
-                                        className={tpl.cover}
-                                        termsHtml={termsHtml}
-                                    />
-                                </div>
+                    <div className="flex-1 pt-24">
+                        <div className="max-w-4xl mx-auto px-4 py-10">
+                            <div ref={pdfContainerRef} style={colorVars}>
+                                <SpecializedReportPreview
+                                    report={report}
+                                    inspector={inspector}
+                                    organization={organization}
+                                    mediaUrlMap={mediaUrlMap}
+                                    coverUrl={coverUrl}
+                                    className={tpl.cover}
+                                    termsHtml={termsHtml}
+                                />
                             </div>
                         </div>
                     </div>
@@ -504,7 +500,7 @@ const ReportPreview: React.FC = () => {
 
             <div className="flex mt-1 print:mt-0">
                 <PreviewThumbnailNav containerRef={pdfContainerRef}/>
-                <div className="flex-1  pt-24">
+                <div className="flex-1 pt-24">
                     <PDFDocument
                         ref={pdfContainerRef}
                         report={report}
