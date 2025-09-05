@@ -17,6 +17,7 @@ import {OpeningProtectionQuestion} from "./windmitigation/OpeningProtectionQuest
 import {GenericQuestion} from "./windmitigation/GenericQuestion";
 import {RoofToWallQuestion} from "./windmitigation/RoofToWallQuestion";
 import {dbUpdateReport} from "@/integrations/supabase/reportsApi.ts";
+import ReportDetailsForm from "./ReportDetailsForm";
 
 interface WindMitigationEditorProps {
     report: WindMitigationReport;
@@ -146,6 +147,8 @@ const WindMitigationEditor: React.FC<WindMitigationEditorProps> = ({report, onUp
                     </Button>
                 </div>
             </div>
+
+            <ReportDetailsForm report={report as any} onUpdate={onUpdate as any} />
 
             <div className="space-y-2">
                 <Label className="text-sm font-medium">Cover Image</Label>
