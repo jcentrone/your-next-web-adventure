@@ -14,6 +14,7 @@ import { dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { toast } from "@/components/ui/use-toast";
 import type { CaWildfireDefensibleSpaceReport } from "@/lib/reportSchemas";
 import { CA_WILDFIRE_QUESTIONS } from "@/constants/caWildfireQuestions";
+import ReportDetailsForm from "./ReportDetailsForm";
 
 interface EditorProps {
   report: CaWildfireDefensibleSpaceReport;
@@ -173,6 +174,8 @@ const CaWildfireEditor: React.FC<EditorProps> = ({ report, onUpdate }) => {
           <Button onClick={handleSave}>Save Report</Button>
         </div>
       </div>
+
+      <ReportDetailsForm report={report as any} onUpdate={onUpdate as any} />
 
       <div className="space-y-2">
         <Label className="text-sm font-medium">Cover Image</Label>
