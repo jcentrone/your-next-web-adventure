@@ -602,8 +602,8 @@ const Contacts: React.FC = () => {
         )}
         {filteredAndSortedContacts.length > 0 && (
           <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Rows per page:</span>
+            <div className="flex items-center gap-2 ps-2">
+              <span className="text-sm w-[100px]">Rows per page:</span>
               <Select
                 value={itemsPerPage.toString()}
                 onValueChange={(value) => setItemsPerPage(Number(value))}
@@ -618,7 +618,7 @@ const Contacts: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Pagination>
+            <Pagination  className="justify-end">
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
