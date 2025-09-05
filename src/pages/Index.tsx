@@ -372,14 +372,14 @@ const Index = () => {
       {/* Enhanced Call to Action */}
       <section className="max-w-7xl mx-auto px-4 py-16">
         <div className="relative bg-gradient-to-br from-primary via-primary to-primary/80 rounded-3xl p-8 md:p-12 text-center overflow-hidden">
-          <div className="absolute inset-0 bg-grid-white/10 opacity-20" />
+          <div className="absolute inset-0 bg-card/10 opacity-20" />
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 bg-white/10 text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-primary-foreground/10 text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Smartphone className="w-4 h-4" />
               Ready to Start?
             </div>
             
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
               Join the Modern Inspection Revolution
             </h2>
             <p className="text-primary-foreground/90 text-lg mb-8 max-w-2xl mx-auto">
@@ -387,7 +387,7 @@ const Index = () => {
             </p>
             
             {user ? (
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg" asChild>
+              <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg" asChild>
                 <Link to="/dashboard">
                   <ArrowRight className="mr-2 w-4 h-4" />
                   Go to Dashboard
@@ -395,7 +395,7 @@ const Index = () => {
               </Button>
             ) : (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg" asChild>
+                <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg" asChild>
                   <Link to="/auth">
                     <ArrowRight className="mr-2 w-4 h-4" />
                     Start Free Trial

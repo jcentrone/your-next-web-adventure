@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { createReport } from "@/hooks/useLocalDraft";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +24,7 @@ const schema = z.object({
   address: z.string().min(1, "Address is required"),
   inspectionDate: z.string().min(1, "Required"),
   contactId: z.string().optional(),
+  includeStandardsOfPractice: z.boolean().default(true),
 });
 
 type Values = z.infer<typeof schema>;
@@ -55,6 +57,7 @@ const HomeInspectionNew: React.FC = () => {
       address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactId: contactId || "",
+      includeStandardsOfPractice: true,
     },
   });
 
@@ -82,6 +85,7 @@ const HomeInspectionNew: React.FC = () => {
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
             reportType: "home_inspection",
+            includeStandardsOfPractice: values.includeStandardsOfPractice,
           },
           user.id,
           organization?.id
@@ -95,6 +99,7 @@ const HomeInspectionNew: React.FC = () => {
           address: values.address,
           inspectionDate: new Date(values.inspectionDate).toISOString(),
           reportType: "home_inspection",
+          includeStandardsOfPractice: values.includeStandardsOfPractice,
         });
         toast({ title: "Home inspection report created (local draft)" });
         nav(`/reports/${report.id}`);
@@ -220,6 +225,31 @@ const HomeInspectionNew: React.FC = () => {
                 </FormItem>
               )}
             />
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-medium mb-4">Report Settings</h3>
+              <FormField
+                control={form.control}
+                name="includeStandardsOfPractice"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">
+                        Include Standards of Practice
+                      </FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Add InterNACHI Standards of Practice to the final report
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => nav('/reports/select-type')}>
                 Back

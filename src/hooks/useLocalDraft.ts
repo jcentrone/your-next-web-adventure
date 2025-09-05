@@ -61,6 +61,7 @@ export function createReport(meta: {
   address: string;
   inspectionDate: string;
   reportType?: Report["reportType"];
+  includeStandardsOfPractice?: boolean;
 }): Report {
   const id = crypto.randomUUID();
   const reportType = meta.reportType || "home_inspection";
@@ -87,6 +88,7 @@ export function createReport(meta: {
       previewTemplate: "classic",
       reportType: "home_inspection",
       sections,
+      includeStandardsOfPractice: meta.includeStandardsOfPractice ?? true,
     };
   } else if (reportType === "wind_mitigation") {
     report = {

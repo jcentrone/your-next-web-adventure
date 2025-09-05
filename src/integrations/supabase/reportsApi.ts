@@ -39,6 +39,7 @@ function toDbPayload(report: Report) {
     insurance_company: (report as any).insuranceCompany || null,
     policy_number: (report as any).policyNumber || null,
     email: (report as any).email || null,
+    include_standards_of_practice: report.includeStandardsOfPractice ?? true,
   };
 }
 
@@ -82,6 +83,7 @@ function fromDbRow(row: any): Report {
     insuranceCompany: row.insurance_company || "",
     policyNumber: row.policy_number || "",
     email: row.email || "",
+    includeStandardsOfPractice: row.include_standards_of_practice ?? true,
   };
 
   const shareTokenRow = row.report_shares?.find(
@@ -195,6 +197,7 @@ export async function dbCreateReport(meta: {
   insuranceCompany?: string;
   policyNumber?: string;
   email?: string;
+  includeStandardsOfPractice?: boolean;
 }, userId: string, organizationId?: string): Promise<Report> {
   const id = crypto.randomUUID();
 
@@ -223,6 +226,7 @@ export async function dbCreateReport(meta: {
       previewTemplate: "classic",
       reportType: "home_inspection",
       sections,
+      includeStandardsOfPractice: meta.includeStandardsOfPractice ?? true,
     };
   } else if (meta.reportType === "wind_mitigation") {
     // Wind mitigation report
