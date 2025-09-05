@@ -6,7 +6,10 @@ export const contactsApi = {
   async list(userId: string): Promise<Contact[]> {
     const { data, error } = await supabase
       .from('contacts')
-      .select('*')
+      .select(`
+        *,
+        account:accounts(id, name, type, industry)
+      `)
       .eq('user_id', userId)
       .eq('is_active', true)
       .order('last_name', { ascending: true });
@@ -18,7 +21,10 @@ export const contactsApi = {
   async get(id: string): Promise<Contact | null> {
     const { data, error } = await supabase
       .from('contacts')
-      .select('*')
+      .select(`
+        *,
+        account:accounts(id, name, type, industry, website, phone, email)
+      `)
       .eq('id', id)
       .maybeSingle();
     
@@ -75,7 +81,10 @@ export const contactsApi = {
   async search(userId: string, query: string): Promise<Contact[]> {
     const { data, error } = await supabase
       .from('contacts')
-      .select('*')
+      .select(`
+        *,
+        account:accounts(id, name, type, industry)
+      `)
       .eq('user_id', userId)
       .eq('is_active', true)
       .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,company.ilike.%${query}%`)

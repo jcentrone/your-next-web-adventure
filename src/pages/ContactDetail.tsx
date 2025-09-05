@@ -267,12 +267,30 @@ export default function ContactDetail() {
                         <span>{contact.phone}</span>
                       </div>
                     )}
-                    {contact.company && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Building2 className="h-4 w-4" />
-                        <span>{contact.company}</span>
-                      </div>
-                    )}
+                     {contact.company && (
+                       <div className="flex items-center gap-2 text-muted-foreground">
+                         <Building2 className="h-4 w-4" />
+                         <span>{contact.company}</span>
+                       </div>
+                     )}
+                     {contact.account && (
+                       <div className="flex items-center gap-2 text-muted-foreground">
+                         <Building2 className="h-4 w-4" />
+                         <div className="flex flex-col">
+                           <span className="font-medium text-foreground">
+                             <Link 
+                               to={`/accounts/${contact.account.id}`}
+                               className="hover:text-primary transition-colors"
+                             >
+                               {contact.account.name}
+                             </Link>
+                           </span>
+                           <span className="text-xs">
+                             {contact.account.type} • {contact.account.industry}
+                           </span>
+                         </div>
+                       </div>
+                     )}
                   </div>
                   <div className="space-y-2">
                     {contact.formatted_address && (

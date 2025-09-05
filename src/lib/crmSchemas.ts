@@ -24,6 +24,15 @@ export const ContactSchema = z.object({
   is_active: z.boolean().default(true),
   created_at: z.string(),
   updated_at: z.string(),
+  account: z.object({
+    id: z.string(),
+    name: z.string(),
+    type: z.string(),
+    industry: z.string().nullable(),
+    website: z.string().nullable().optional(),
+    phone: z.string().nullable().optional(),
+    email: z.string().nullable().optional(),
+  }).nullable().optional(),
 });
 
 export const CreateContactSchema = z.object({

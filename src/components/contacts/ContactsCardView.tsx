@@ -35,6 +35,23 @@ export const ContactsCardView: React.FC<ContactsCardViewProps> = ({
                       {contact.company}
                     </CardDescription>
                   )}
+                  {contact.account && (
+                    <CardDescription className="flex items-center gap-1">
+                      <div className="flex items-center gap-1">
+                        <Building className="w-3 h-3 text-blue-500" />
+                        <Link 
+                          to={`/accounts/${contact.account.id}`}
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors font-medium"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {contact.account.name}
+                        </Link>
+                        <Badge variant="outline" className="ml-1 text-xs">
+                          {contact.account.type}
+                        </Badge>
+                      </div>
+                    </CardDescription>
+                  )}
                 </div>
                 <Badge className={getContactTypeColor(contact.contact_type)}>
                   {contact.contact_type}

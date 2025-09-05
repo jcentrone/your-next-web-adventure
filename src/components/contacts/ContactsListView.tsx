@@ -48,7 +48,7 @@ export const ContactsListView: React.FC<ContactsListViewProps> = ({
           <TableRow>
             <SortableHeader field="name">Name</SortableHeader>
             <SortableHeader field="contact_type">Type</SortableHeader>
-            <SortableHeader field="company">Company</SortableHeader>
+            <SortableHeader field="company">Company/Account</SortableHeader>
             <TableHead>Contact Info</TableHead>
             <SortableHeader field="location">Location</SortableHeader>
             <TableHead className="text-right">Actions</TableHead>
@@ -75,6 +75,21 @@ export const ContactsListView: React.FC<ContactsListViewProps> = ({
                   <div className="flex items-center gap-1 text-sm">
                     <Building className="w-3 h-3" />
                     {contact.company}
+                  </div>
+                )}
+                {contact.account && (
+                  <div className="flex items-center gap-1 text-sm">
+                    <Building className="w-3 h-3 text-blue-500" />
+                    <Link 
+                      to={`/accounts/${contact.account.id}`}
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {contact.account.name}
+                    </Link>
+                    <Badge variant="outline" className="ml-1 text-xs">
+                      {contact.account.type}
+                    </Badge>
                   </div>
                 )}
               </TableCell>
