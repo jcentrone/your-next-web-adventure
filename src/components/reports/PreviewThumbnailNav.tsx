@@ -40,7 +40,7 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef})
     };
 
     return (
-        <div className="w-64 overflow-y-auto mt-[70px] h-screen fixed print:hidden border-r bg-background">
+        <div className="w-80 ps-6 overflow-y-auto mt-[70px] h-screen fixed print:hidden border-r bg-background">
             <div className="flex flex-col gap-2 p-2">
                 {pages.map((page, i) => (
                     <button
