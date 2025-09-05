@@ -7,7 +7,6 @@ interface PreviewThumbnailNavProps {
 const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef}) => {
     const [pages, setPages] = React.useState<HTMLElement[]>([]);
     const [activePage, setActivePage] = React.useState(0);
-    const [pageScales, setPageScales] = React.useState<number[]>([]);
 
     React.useEffect(() => {
         const container = containerRef.current;
@@ -15,23 +14,6 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef})
 
         const pageNodes = Array.from(container.querySelectorAll<HTMLElement>(".preview-page"));
         setPages(pageNodes);
-
-        // Calculate scale factors for each page
-        const scales = pageNodes.map(page => {
-            const rect = page.getBoundingClientRect();
-            const containerWidth = 240; // Thumbnail container width
-            const containerHeight = containerWidth * 1.414; // A4 aspect ratio
-            
-            if (rect.width === 0 || rect.height === 0) return 0.15; // fallback
-            
-            const scaleX = containerWidth / rect.width;
-            const scaleY = containerHeight / rect.height;
-            
-            // Use the smaller scale to ensure content fits within bounds
-            return Math.min(scaleX, scaleY, 0.2); // Cap at 0.2 for readability
-        });
-        
-        setPageScales(scales);
     }, [containerRef]);
 
     React.useEffect(() => {
@@ -79,15 +61,15 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef})
                         }`}
                         aria-label={`Go to page ${i + 1}`}
                     >
-                        {/* Dynamic scaling based on content dimensions */}
-                        <div className="w-full aspect-[1/1.414] relative overflow-hidden bg-white">
+                        {/* Letter size aspect ratio (8.5:11 = 0.773:1) with fixed scaling */}
+                        <div className="w-full aspect-[85/110] relative overflow-hidden bg-white">
                             <div 
                                 className="absolute top-0 left-0 pointer-events-none will-change-transform"
                                 style={{
-                                    transform: `scale(${pageScales[i] || 0.15})`,
+                                    transform: 'scale(0.39)',
                                     transformOrigin: 'top left',
-                                    width: `${100 / (pageScales[i] || 0.15)}%`,
-                                    height: `${100 / (pageScales[i] || 0.15)}%`
+                                    width: '256.41%', // 100 / 0.39
+                                    height: '256.41%'  // 100 / 0.39
                                 }}
                             >
                                 <div 
