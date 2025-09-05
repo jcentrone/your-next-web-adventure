@@ -188,7 +188,7 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                 />
 
                 {/* InterNACHI Standards of Practice */}
-                {(report as any).includeStandardsOfPractice !== false && (
+                {(report as any).includeStandardsOfPractice === true && (
                     <div className="preview-page">
                         <section className="pdf-page-break p-8 min-h-[11in]">
                             {renderInternachiStandards()}

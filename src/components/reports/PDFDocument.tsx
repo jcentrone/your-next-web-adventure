@@ -267,7 +267,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                 ))}
                 
                 {/* InterNACHI Standards of Practice */}
-                {(report as any).includeStandardsOfPractice !== false && (
+                {(report as any).includeStandardsOfPractice === true && (
                     <div className="preview-page">
                         <article className={tpl.container}>
                             <section className="pdf-page-break">
