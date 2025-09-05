@@ -501,7 +501,7 @@ const ReportPreview: React.FC = () => {
             <div className="flex mt-1 print:mt-0">
                 <PreviewThumbnailNav containerRef={pdfContainerRef}/>
                 <div className="flex-1 pt-24 flex justify-center">
-                    <div className="w-full ms-80 max-w-4xl px-4 py-10">
+                    <div className="w-full max-w-4xl px-4 py-10">
                         <PDFDocument
                             ref={pdfContainerRef}
                             report={report}
