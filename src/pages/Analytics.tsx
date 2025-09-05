@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { useState, useEffect, useCallback } from "react";
+import { format, parse } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Users, FileText, DollarSign } from "lucide-react";
@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DateRangePicker } from "@/components/DateRangePicker";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface AnalyticsData {
   totalReports: number;
@@ -46,6 +47,20 @@ const chartConfig = {
   },
 };
 
+const activityTypes = ["Report", "Contact", "Appointment"] as const;
+
+const activityColors: Record<(typeof activityTypes)[number], string> = {
+  Report: "hsl(var(--primary))",
+  Contact: "hsl(var(--secondary))",
+  Appointment: "hsl(var(--accent))",
+};
+
+const activityChartConfig = {
+  Report: { label: "Reports", color: activityColors.Report },
+  Contact: { label: "Contacts", color: activityColors.Contact },
+  Appointment: { label: "Appointments", color: activityColors.Appointment },
+};
+
 export default function Analytics() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,14 +70,9 @@ export default function Analytics() {
   }));
   const { user } = useAuth();
   const { toast } = useToast();
+  const [activeTypes, setActiveTypes] = useState<string[]>([...activityTypes]);
 
-  useEffect(() => {
-    if (user) {
-      loadAnalytics();
-    }
-  }, [user, dateRange.startDate, dateRange.endDate]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -89,11 +99,54 @@ export default function Analytics() {
         0
       );
 
+      const activityMap: Record<string, Record<string, number>> = {};
+
+      (rawData.recentActivity || []).forEach((entry) => {
+        if (!activityMap[entry.date]) activityMap[entry.date] = {};
+        activityMap[entry.date].Report = entry.count;
+      });
+
+      const { data: contactsData, error: contactsError } = await supabase
+        .from("contacts")
+        .select("created_at")
+        .eq("user_id", user!.id)
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString());
+      if (contactsError) throw contactsError;
+      contactsData?.forEach((c: { created_at: string }) => {
+        const date = format(new Date(c.created_at), "MMM yy");
+        if (!activityMap[date]) activityMap[date] = {};
+        activityMap[date].Contact = (activityMap[date].Contact || 0) + 1;
+      });
+
+      const { data: appointmentsData, error: appointmentsError } = await supabase
+        .from("appointments")
+        .select("appointment_date")
+        .eq("user_id", user!.id)
+        .gte("appointment_date", startDate.toISOString())
+        .lte("appointment_date", endDate.toISOString());
+      if (appointmentsError) throw appointmentsError;
+      appointmentsData?.forEach((a: { appointment_date: string }) => {
+        const date = format(new Date(a.appointment_date), "MMM yy");
+        if (!activityMap[date]) activityMap[date] = {};
+        activityMap[date].Appointment = (activityMap[date].Appointment || 0) + 1;
+      });
+
+      const recentActivity = Object.entries(activityMap)
+        .flatMap(([date, counts]) =>
+          Object.entries(counts).map(([type, count]) => ({ date, type, count }))
+        )
+        .sort(
+          (a, b) =>
+            parse(a.date, "MMM yy", new Date()).getTime() -
+            parse(b.date, "MMM yy", new Date()).getTime()
+        );
+
       setAnalytics({
         ...rawData,
+        recentActivity,
         totalRevenue,
-        averageRevenue:
-          totalReportCount > 0 ? totalRevenue / totalReportCount : 0,
+        averageRevenue: totalReportCount > 0 ? totalRevenue / totalReportCount : 0,
       } as AnalyticsData);
 
     } catch (error) {
@@ -106,7 +159,13 @@ export default function Analytics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, dateRange.startDate, dateRange.endDate, toast]);
+
+  useEffect(() => {
+    if (user) {
+      loadAnalytics();
+    }
+  }, [user, loadAnalytics]);
 
   if (loading) {
     return (
@@ -120,6 +179,22 @@ export default function Analytics() {
 
   const colors = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
   const rangeLabel = `${format(dateRange.startDate, 'LLL dd, y')} - ${format(dateRange.endDate, 'LLL dd, y')}`;
+  const activityData = Object.values(
+    analytics.recentActivity.reduce(
+      (acc, { date, type, count }) => {
+        if (!acc[date]) {
+          acc[date] = { date, Report: 0, Contact: 0, Appointment: 0 };
+        }
+        acc[date][type as keyof typeof activityColors] = count;
+        return acc;
+      },
+      {} as Record<string, { date: string; Report: number; Contact: number; Appointment: number }>
+    )
+  ).sort(
+    (a, b) =>
+      parse(a.date, "MMM yy", new Date()).getTime() -
+      parse(b.date, "MMM yy", new Date()).getTime()
+  );
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -281,13 +356,57 @@ export default function Analytics() {
               <CardTitle>Activity Timeline ({rangeLabel})</CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
+              <div className="flex gap-4 mb-4">
+                {activityTypes.map((type) => (
+                  <label key={type} className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={activeTypes.includes(type)}
+                      onCheckedChange={(checked) =>
+                        setActiveTypes((prev) =>
+                          checked ? [...prev, type] : prev.filter((t) => t !== type)
+                        )
+                      }
+                    />
+                    <span className="flex items-center gap-1">
+                      <span
+                        className="w-3 h-3 rounded-sm"
+                        style={{ backgroundColor: activityColors[type] }}
+                      />
+                      {type}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <ChartContainer config={activityChartConfig} className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={analytics.recentActivity}>
+                  <LineChart data={activityData}>
                     <XAxis dataKey="date" />
                     <YAxis />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line type="monotone" dataKey="count" stroke="hsl(var(--primary))" strokeWidth={2} />
+                    {activeTypes.includes("Report") && (
+                      <Line
+                        type="monotone"
+                        dataKey="Report"
+                        stroke={activityColors.Report}
+                        strokeWidth={2}
+                      />
+                    )}
+                    {activeTypes.includes("Contact") && (
+                      <Line
+                        type="monotone"
+                        dataKey="Contact"
+                        stroke={activityColors.Contact}
+                        strokeWidth={2}
+                      />
+                    )}
+                    {activeTypes.includes("Appointment") && (
+                      <Line
+                        type="monotone"
+                        dataKey="Appointment"
+                        stroke={activityColors.Appointment}
+                        strokeWidth={2}
+                      />
+                    )}
                   </LineChart>
                 </ResponsiveContainer>
               </ChartContainer>
