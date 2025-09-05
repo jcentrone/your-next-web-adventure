@@ -61,6 +61,8 @@ export type Profile = {
   last_sign_in_at: string | null;
   signature_url: string | null;
   signature_type: string | null;
+  initials_url: string | null;
+  initials_type: string | null;
   created_at: string;
   updated_at: string;
 };

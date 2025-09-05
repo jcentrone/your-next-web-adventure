@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import Seo from "@/components/Seo";
@@ -18,6 +19,7 @@ import {
   type Organization,
 } from "@/integrations/supabase/organizationsApi";
 import SignaturePad from "@/components/signature/SignaturePad";
+import InitialsPad from "@/components/signature/InitialsPad";
 
 const Account: React.FC = () => {
   const { user } = useAuth();
@@ -120,6 +122,25 @@ const Account: React.FC = () => {
     },
   });
 
+  const updateInitialsMutation = useMutation({
+    mutationFn: async ({ initialsUrl, initialsType }: { initialsUrl: string; initialsType: string }) => {
+      return updateMyProfile({
+        initials_url: initialsUrl,
+        initials_type: initialsType,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Failed to update initials",
+        description: error instanceof Error ? error.message : String(error),
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteSignatureMutation = useMutation({
     mutationFn: async () => {
       if (profile?.signature_url) {
@@ -142,6 +163,28 @@ const Account: React.FC = () => {
     },
   });
 
+  const deleteInitialsMutation = useMutation({
+    mutationFn: async () => {
+      if (profile?.initials_url) {
+        await deleteSignature(profile.initials_url);
+      }
+      return updateMyProfile({
+        initials_url: null,
+        initials_type: null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    },
+    onError: (error: unknown) => {
+      toast({
+        title: "Failed to delete initials",
+        description: error instanceof Error ? error.message : String(error),
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSaveProfile = () => {
     updateProfileMutation.mutate({
       full_name: fullName,
@@ -154,8 +197,16 @@ const Account: React.FC = () => {
     updateSignatureMutation.mutate({ signatureUrl, signatureType });
   };
 
+  const handleInitialsSave = (initialsUrl: string, initialsType: string) => {
+    updateInitialsMutation.mutate({ initialsUrl, initialsType });
+  };
+
   const handleSignatureDelete = () => {
     deleteSignatureMutation.mutate();
+  };
+
+  const handleInitialsDelete = () => {
+    deleteInitialsMutation.mutate();
   };
 
   const getInitials = (name: string | null) => {
@@ -237,14 +288,41 @@ const Account: React.FC = () => {
         </CardContent>
       </Card>
 
-      <SignaturePad
-        currentSignature={profile.signature_url || undefined}
-        currentSignatureType={profile.signature_type || undefined}
-        fullName={profile.full_name || undefined}
-        onSave={handleSignatureSave}
-        onDelete={handleSignatureDelete}
-        isLoading={updateSignatureMutation.isPending || deleteSignatureMutation.isPending}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Signature & Initials</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="signature" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="signature">Signature</TabsTrigger>
+              <TabsTrigger value="initials">Initials</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="signature" className="mt-4">
+              <SignaturePad
+                currentSignature={profile.signature_url || undefined}
+                currentSignatureType={profile.signature_type || undefined}
+                fullName={profile.full_name || undefined}
+                onSave={handleSignatureSave}
+                onDelete={handleSignatureDelete}
+                isLoading={updateSignatureMutation.isPending || deleteSignatureMutation.isPending}
+              />
+            </TabsContent>
+            
+            <TabsContent value="initials" className="mt-4">
+              <InitialsPad
+                currentInitials={profile.initials_url || undefined}
+                currentInitialsType={profile.initials_type || undefined}
+                fullName={profile.full_name || undefined}
+                onSave={handleInitialsSave}
+                onDelete={handleInitialsDelete}
+                isLoading={updateInitialsMutation.isPending || deleteInitialsMutation.isPending}
+              />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </>
   );
 };

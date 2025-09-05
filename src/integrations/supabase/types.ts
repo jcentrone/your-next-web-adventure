@@ -798,6 +798,8 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          initials_type: string | null
+          initials_url: string | null
           last_sign_in_at: string | null
           license_number: string | null
           phone: string | null
@@ -813,6 +815,8 @@ export type Database = {
           email: string
           full_name?: string | null
           id?: string
+          initials_type?: string | null
+          initials_url?: string | null
           last_sign_in_at?: string | null
           license_number?: string | null
           phone?: string | null
@@ -828,6 +832,8 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          initials_type?: string | null
+          initials_url?: string | null
           last_sign_in_at?: string | null
           license_number?: string | null
           phone?: string | null
@@ -887,6 +893,7 @@ export type Database = {
           created_at: string
           custom_colors: Json | null
           email: string | null
+          fee: number
           final_comments: string | null
           id: string
           inspection_date: string
@@ -919,6 +926,7 @@ export type Database = {
           created_at?: string
           custom_colors?: Json | null
           email?: string | null
+          fee?: number
           final_comments?: string | null
           id?: string
           inspection_date: string
@@ -951,6 +959,7 @@ export type Database = {
           created_at?: string
           custom_colors?: Json | null
           email?: string | null
+          fee?: number
           final_comments?: string | null
           id?: string
           inspection_date?: string
@@ -1290,6 +1299,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      analytics_summary: {
+        Args: { p_end_date: string; p_start_date: string; p_user_id: string }
+        Returns: Json
+      }
       get_contact_with_related_data: {
         Args: { contact_uuid: string }
         Returns: Json
