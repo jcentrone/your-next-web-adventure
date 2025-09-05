@@ -173,15 +173,15 @@ const Index = () => {
           </div>
           
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-700 via-blue-800 to-slate-900 dark:from-slate-200 dark:via-blue-200 dark:to-slate-100 bg-clip-text text-transparent">
               Inspection Reports
             </span>
             <br />
             <span className="relative">
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">
                 Made Simple
               </span>
-              <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary/80 to-accent rounded-full opacity-30"></div>
+              <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 dark:from-blue-400 dark:via-purple-400 dark:to-indigo-400 rounded-full opacity-30"></div>
             </span>
           </h1>
           
