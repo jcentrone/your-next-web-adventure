@@ -1,12 +1,25 @@
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Users, FileText, TrendingUp, DollarSign, Clock, MapPin, Activity } from "lucide-react";
+import { Calendar, Users, FileText, DollarSign } from "lucide-react";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { DateRangePicker } from "@/components/DateRangePicker";
 
 interface AnalyticsData {
   totalReports: number;
@@ -32,7 +45,10 @@ const chartConfig = {
 export default function Analytics() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState("6months");
+  const [dateRange, setDateRange] = useState<{ startDate: Date; endDate: Date}>(() => ({
+    startDate: new Date(new Date().getFullYear(), new Date().getMonth() - 6, 1),
+    endDate: new Date(),
+  }));
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -40,34 +56,35 @@ export default function Analytics() {
     if (user) {
       loadAnalytics();
     }
-  }, [user, timeRange]);
+  }, [user, dateRange.startDate, dateRange.endDate]);
 
   const loadAnalytics = async () => {
     try {
       setLoading(true);
       
-      // Calculate date range
-      const now = new Date();
-      const months = timeRange === "12months" ? 12 : 6;
-      const startDate = new Date(now.getFullYear(), now.getMonth() - months, 1);
+      // Use selected date range
+      const startDate = dateRange.startDate;
+      const endDate = dateRange.endDate;
 
       // Fetch all data in parallel
       const [reportsRes, contactsRes, appointmentsRes] = await Promise.all([
         supabase
-          .from('reports')
-          .select('*')
-          .eq('user_id', user!.id)
-          .gte('created_at', startDate.toISOString()),
+          .from("reports")
+          .select("*")
+          .eq("user_id", user!.id)
+          .gte("created_at", startDate.toISOString())
+          .lte("created_at", endDate.toISOString()),
         supabase
-          .from('contacts')
-          .select('*')
-          .eq('user_id', user!.id)
-          .eq('is_active', true),
+          .from("contacts")
+          .select("*")
+          .eq("user_id", user!.id)
+          .eq("is_active", true),
         supabase
-          .from('appointments')
-          .select('*')
-          .eq('user_id', user!.id)
-          .gte('appointment_date', startDate.toISOString())
+          .from("appointments")
+          .select("*")
+          .eq("user_id", user!.id)
+          .gte("appointment_date", startDate.toISOString())
+          .lte("appointment_date", endDate.toISOString()),
       ]);
 
       if (reportsRes.error) throw reportsRes.error;
@@ -79,20 +96,27 @@ export default function Analytics() {
       const appointments = appointmentsRes.data;
 
       // Process data
-      const monthlyData = [];
-      for (let i = months - 1; i >= 0; i--) {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthStr = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        const monthReports = reports.filter(r => {
+      const monthlyData = [] as { month: string; count: number; revenue: number }[];
+      const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+      while (current <= end) {
+        const monthStr = current.toLocaleDateString("en-US", {
+          month: "short",
+          year: "2-digit",
+        });
+        const monthReports = reports.filter((r) => {
           const reportDate = new Date(r.created_at);
-          return reportDate.getFullYear() === date.getFullYear() && 
-                 reportDate.getMonth() === date.getMonth();
+          return (
+            reportDate.getFullYear() === current.getFullYear() &&
+            reportDate.getMonth() === current.getMonth()
+          );
         });
         monthlyData.push({
           month: monthStr,
           count: monthReports.length,
-          revenue: monthReports.length * 500 // Estimate $500 per report
+          revenue: monthReports.length * 500, // Estimate $500 per report
         });
+        current.setMonth(current.getMonth() + 1);
       }
 
       // Report types analysis
@@ -109,10 +133,10 @@ export default function Analytics() {
       }));
 
       // Recent activity
-      const recentActivity = monthlyData.slice(-7).map(month => ({
+      const recentActivity = monthlyData.slice(-7).map((month) => ({
         date: month.month,
-        type: 'Reports',
-        count: month.count
+        type: "Reports",
+        count: month.count,
       }));
 
       setAnalytics({
@@ -148,6 +172,7 @@ export default function Analytics() {
   if (!analytics) return null;
 
   const colors = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+  const rangeLabel = `${format(dateRange.startDate, 'LLL dd, y')} - ${format(dateRange.endDate, 'LLL dd, y')}`;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -156,12 +181,15 @@ export default function Analytics() {
           <h1 className="text-3xl font-bold">Business Analytics</h1>
           <p className="text-muted-foreground">Track your inspection business performance and growth</p>
         </div>
-        <Tabs value={timeRange} onValueChange={setTimeRange}>
-          <TabsList>
-            <TabsTrigger value="6months">6 Months</TabsTrigger>
-            <TabsTrigger value="12months">12 Months</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <DateRangePicker
+          value={{ from: dateRange.startDate, to: dateRange.endDate }}
+          onChange={(range) =>
+            setDateRange({
+              startDate: range?.from || dateRange.startDate,
+              endDate: range?.to || dateRange.endDate,
+            })
+          }
+        />
       </div>
 
       {/* Key Metrics */}
@@ -233,7 +261,7 @@ export default function Analytics() {
           <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Monthly Reports</CardTitle>
+                <CardTitle>Monthly Reports ({rangeLabel})</CardTitle>
               </CardHeader>
               <CardContent>
                 <ChartContainer config={chartConfig} className="h-[300px]">
@@ -251,7 +279,7 @@ export default function Analytics() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Revenue Trend</CardTitle>
+                <CardTitle>Revenue Trend ({rangeLabel})</CardTitle>
               </CardHeader>
               <CardContent>
                 <ChartContainer config={chartConfig} className="h-[300px]">
@@ -272,7 +300,7 @@ export default function Analytics() {
         <TabsContent value="reports" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Report Types Distribution</CardTitle>
+              <CardTitle>Report Types Distribution ({rangeLabel})</CardTitle>
             </CardHeader>
             <CardContent>
               <ChartContainer config={chartConfig} className="h-[400px]">
@@ -303,7 +331,7 @@ export default function Analytics() {
         <TabsContent value="activity" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Activity Timeline</CardTitle>
+              <CardTitle>Activity Timeline ({rangeLabel})</CardTitle>
             </CardHeader>
             <CardContent>
               <ChartContainer config={chartConfig} className="h-[300px]">
