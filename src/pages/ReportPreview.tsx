@@ -461,8 +461,8 @@ const ReportPreview: React.FC = () => {
                 {topBar}
                 <div className="flex mt-1 print:mt-0">
                     <PreviewThumbnailNav containerRef={pdfContainerRef}/>
-                    <div className="flex-1 pt-24">
-                        <div className="max-w-4xl mx-auto px-4 py-10">
+                    <div className="flex-1 pt-24 flex justify-center">
+                        <div className="w-full max-w-4xl px-4 py-10">
                             <div ref={pdfContainerRef} style={colorVars}>
                                 <SpecializedReportPreview
                                     report={report}
@@ -500,15 +500,17 @@ const ReportPreview: React.FC = () => {
 
             <div className="flex mt-1 print:mt-0">
                 <PreviewThumbnailNav containerRef={pdfContainerRef}/>
-                <div className="flex-1 pt-24">
-                    <PDFDocument
-                        ref={pdfContainerRef}
-                        report={report}
-                        mediaUrlMap={mediaUrlMap}
-                        coverUrl={coverUrl}
-                        company={organization?.name || ""}
-                        termsHtml={termsHtml || undefined}
-                    />
+                <div className="flex-1 pt-24 flex justify-center">
+                    <div className="w-full max-w-4xl px-4 py-10">
+                        <PDFDocument
+                            ref={pdfContainerRef}
+                            report={report}
+                            mediaUrlMap={mediaUrlMap}
+                            coverUrl={coverUrl}
+                            company={organization?.name || ""}
+                            termsHtml={termsHtml || undefined}
+                        />
+                    </div>
                 </div>
             </div>
         </>

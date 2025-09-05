@@ -19,8 +19,16 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef})
 
         Promise.all(
             pageNodes.map((page) =>
-                // Increase scale for clearer thumbs (was 0.25).
-                html2canvas(page, {scale: 1}).then((canvas) => canvas.toDataURL("image/png"))
+                // Use lower scale but better options for capturing images
+                html2canvas(page, {
+                    scale: 0.3,
+                    useCORS: true,
+                    allowTaint: true,
+                    logging: false,
+                    ignoreElements: (element) => {
+                        return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
+                    }
+                }).then((canvas) => canvas.toDataURL("image/png"))
             )
         ).then(setThumbnails);
     }, [containerRef]);
