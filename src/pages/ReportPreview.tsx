@@ -1,6 +1,7 @@
 import React from "react";
 import {Button} from "@/components/ui/button";
 import {useNavigate, useParams} from "react-router-dom";
+import {ChevronLeft, ChevronRight} from "lucide-react";
 import Seo from "@/components/Seo";
 import {loadReport as loadLocalReport, saveReport as saveLocalReport} from "@/hooks/useLocalDraft";
 import {useAuth} from "@/contexts/AuthContext";
@@ -67,6 +68,11 @@ const ReportPreview: React.FC = () => {
     const [savingCoverTpl, setSavingCoverTpl] = React.useState(false);
     const [savingStyleTpl, setSavingStyleTpl] = React.useState(false);
     const [savingColorScheme, setSavingColorScheme] = React.useState(false);
+    
+    // Page navigation state
+    const [currentPage, setCurrentPage] = React.useState(0);
+    const [totalPages, setTotalPages] = React.useState(0);
+    
     const nav = useNavigate();
 
     // react-to-print
@@ -75,6 +81,82 @@ const ReportPreview: React.FC = () => {
         contentRef: pdfContainerRef,
         documentTitle: `${report?.title || "Report"} - ${report?.clientName || "Client"}`,
     });
+
+    // Page navigation functions
+    const scrollToPage = (pageIndex: number) => {
+        const container = pdfContainerRef.current;
+        if (!container) return;
+
+        const pages = Array.from(container.querySelectorAll<HTMLElement>(".preview-page"));
+        const page = pages[pageIndex];
+        if (!page) return;
+
+        const pageTop = page.offsetTop;
+        const scrollOffset = pageTop - 140; // 129px topbar + 11px padding
+
+        window.scrollTo({
+            top: Math.max(0, scrollOffset),
+            behavior: "smooth"
+        });
+    };
+
+    const handlePrevPage = () => {
+        if (currentPage > 0) {
+            const newPage = currentPage - 1;
+            setCurrentPage(newPage);
+            scrollToPage(newPage);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages - 1) {
+            const newPage = currentPage + 1;
+            setCurrentPage(newPage);
+            scrollToPage(newPage);
+        }
+    };
+
+    // Keyboard navigation
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+            
+            switch (e.key) {
+                case 'ArrowLeft':
+                case 'PageUp':
+                    e.preventDefault();
+                    handlePrevPage();
+                    break;
+                case 'ArrowRight':
+                case 'PageDown':
+                    e.preventDefault();
+                    handleNextPage();
+                    break;
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [currentPage, totalPages]);
+
+    // Update page count when container changes
+    React.useEffect(() => {
+        const container = pdfContainerRef.current;
+        if (!container) return;
+
+        const updatePageCount = () => {
+            const pages = Array.from(container.querySelectorAll<HTMLElement>(".preview-page"));
+            setTotalPages(pages.length);
+        };
+
+        updatePageCount();
+        
+        // Use MutationObserver to watch for page changes
+        const observer = new MutationObserver(updatePageCount);
+        observer.observe(container, { childList: true, subtree: true });
+        
+        return () => observer.disconnect();
+    }, [report]);
 
     const handleWindMitigationDownload = async () => {
         if (!report) return;
@@ -406,7 +488,7 @@ const ReportPreview: React.FC = () => {
     const topBar = (
         <div className="fixed top-0 right-0 left-0 h-[80px]">
             <div
-                className="z-20 bg-background shadow print-hidden"
+                className="z-50 bg-background shadow print-hidden"
                 style={{height: TOPBAR_HEIGHT}}
             >
                 <div className="mx-auto px-4 py-4 flex items-end justify-between gap-2 h-full">
@@ -418,6 +500,36 @@ const ReportPreview: React.FC = () => {
                         >
                             Close Preview
                         </Button>
+                        
+                        {/* Page Navigation */}
+                        <div className="flex items-center gap-1 border rounded-md">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handlePrevPage}
+                                disabled={currentPage === 0}
+                                aria-label="Previous page"
+                                className="h-8 w-8 p-0"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <span className="px-2 text-sm text-muted-foreground whitespace-nowrap">
+                                Page {currentPage + 1} of {totalPages}
+                            </span>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleNextPage}
+                                disabled={currentPage >= totalPages - 1}
+                                aria-label="Next page"
+                                className="h-8 w-8 p-0"
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
                         <CoverTemplateSelector
                             value={report.coverTemplate}
                             onChange={handleCoverTemplateChange}
@@ -436,6 +548,7 @@ const ReportPreview: React.FC = () => {
                             disabled={savingColorScheme}
                         />
                     </div>
+                    
                     <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
                         {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
                     </Button>
@@ -460,7 +573,11 @@ const ReportPreview: React.FC = () => {
                 />
                 {topBar}
                 <div className="flex mt-1 print:mt-0">
-                    <PreviewThumbnailNav containerRef={pdfContainerRef}/>
+                    <PreviewThumbnailNav 
+                        containerRef={pdfContainerRef}
+                        currentPage={currentPage}
+                        onPageChange={setCurrentPage}
+                    />
                     <div className="flex-1 pt-24 flex justify-center">
                         <div className="w-full ms-80 max-w-4xl px-4 py-10">
                             <div ref={pdfContainerRef} style={colorVars}>
@@ -499,7 +616,11 @@ const ReportPreview: React.FC = () => {
             {topBar}
 
             <div className="flex mt-1 print:mt-0">
-                <PreviewThumbnailNav containerRef={pdfContainerRef}/>
+                <PreviewThumbnailNav 
+                    containerRef={pdfContainerRef}
+                    currentPage={currentPage}
+                    onPageChange={setCurrentPage}
+                />
                 <div className="flex-1 pt-24 ms-80 flex justify-center">
                     <div className="w-full max-w-4xl px-4 py-10">
                         <PDFDocument

@@ -2,11 +2,17 @@ import React from "react";
 
 interface PreviewThumbnailNavProps {
     containerRef: React.RefObject<HTMLElement>;
+    currentPage?: number;
+    onPageChange?: (pageIndex: number) => void;
 }
 
-const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef}) => {
+const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
+    containerRef, 
+    currentPage, 
+    onPageChange
+}) => {
     const [pages, setPages] = React.useState<HTMLElement[]>([]);
-    const [activePage, setActivePage] = React.useState(0);
+    const [activePage, setActivePage] = React.useState(currentPage || 0);
 
     React.useEffect(() => {
         const container = containerRef.current;
@@ -16,6 +22,13 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef})
         setPages(pageNodes);
     }, [containerRef]);
 
+    // Update active page from props
+    React.useEffect(() => {
+        if (typeof currentPage === 'number') {
+            setActivePage(currentPage);
+        }
+    }, [currentPage]);
+
     React.useEffect(() => {
         if (pages.length === 0) return;
 
@@ -24,16 +37,19 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef})
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         const index = pages.indexOf(entry.target as HTMLElement);
-                        if (index !== -1) setActivePage(index);
+                        if (index !== -1) {
+                            setActivePage(index);
+                            onPageChange?.(index);
+                        }
                     }
                 });
             },
-            {threshold: 0.5, rootMargin: "-64px 0px 0px 0px"} // Account for topbar
+            {threshold: 0.5, rootMargin: "-140px 0px 0px 0px"} // Account for topbar
         );
 
         pages.forEach((p) => observer.observe(p));
         return () => observer.disconnect();
-    }, [pages]);
+    }, [pages, onPageChange]);
 
     const handleClick = (index: number) => {
         const page = pages[index];
@@ -47,6 +63,9 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef})
             top: Math.max(0, scrollOffset),
             behavior: "smooth"
         });
+        
+        setActivePage(index);
+        onPageChange?.(index);
     };
 
     return (
