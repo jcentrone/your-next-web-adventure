@@ -16,7 +16,7 @@ function setIndex(ids: string[]) {
   localStorage.setItem(INDEX_KEY, JSON.stringify(ids));
 }
 
-export function listReports(): Pick<Report, "id" | "title" | "clientName" | "inspectionDate" | "status">[] {
+export function listReports(): Pick<Report, "id" | "title" | "clientName" | "inspectionDate" | "status" | "address">[] {
   const ids = getIndex();
   return ids
     .map((id) => loadReport(id))
@@ -27,6 +27,7 @@ export function listReports(): Pick<Report, "id" | "title" | "clientName" | "ins
       clientName: r!.clientName,
       inspectionDate: r!.inspectionDate,
       status: r!.status,
+      address: r!.address,
     }));
 }
 

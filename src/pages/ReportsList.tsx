@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -29,6 +30,7 @@ import { ReportsViewToggle } from "@/components/reports/ReportsViewToggle";
 import { ReportsFilterToggle } from "@/components/reports/ReportsFilterToggle";
 import type { Report } from "@/lib/reportSchemas";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
+import { Search } from "lucide-react";
 
 const ReportsList: React.FC = () => {
   const { user } = useAuth();
@@ -38,6 +40,7 @@ const ReportsList: React.FC = () => {
   const [reportTypeFilter, setReportTypeFilter] = React.useState<Report["reportType"] | "all">("all");
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const { data: remoteItems, refetch, isLoading } = useQuery({
     queryKey: ["reports", user?.id, showArchived],
@@ -61,15 +64,31 @@ const ReportsList: React.FC = () => {
   const items = user ? remoteItems || [] : localItems;
   const archivedCount = archivedItems?.filter(item => item.archived).length || 0;
   
-  // Filter items by report type and archived status
+  // Filter items by search query, report type, and archived status
   const filteredItems = items.filter((item: any) => {
     // First filter by archived status
     if (showArchived && !item.archived) return false;
     if (!showArchived && item.archived) return false;
-    
-    // Then filter by report type
-    if (reportTypeFilter === "all") return true;
-    return item.reportType === reportTypeFilter;
+
+    // Filter by report type
+    if (reportTypeFilter !== "all" && item.reportType !== reportTypeFilter) {
+      return false;
+    }
+
+    // Finally filter by search query
+    const query = searchQuery.toLowerCase();
+    if (query) {
+      const title = item.title?.toLowerCase() || "";
+      const client = item.clientName?.toLowerCase() || "";
+      const address = item.address?.toLowerCase() || "";
+      return (
+        title.includes(query) ||
+        client.includes(query) ||
+        address.includes(query)
+      );
+    }
+
+    return true;
   });
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
@@ -80,7 +99,7 @@ const ReportsList: React.FC = () => {
 
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage, showArchived, reportTypeFilter, items]);
+  }, [itemsPerPage, showArchived, reportTypeFilter, items, searchQuery]);
 
   const onDelete = async (id: string) => {
     try {
@@ -130,8 +149,8 @@ const ReportsList: React.FC = () => {
           </h1>
           <div className="flex items-center gap-4">
             {user && (
-              <ReportsFilterToggle 
-                showArchived={showArchived} 
+              <ReportsFilterToggle
+                showArchived={showArchived}
                 onToggle={setShowArchived}
                 archivedCount={archivedCount}
                 reportType={reportTypeFilter}
@@ -144,6 +163,17 @@ const ReportsList: React.FC = () => {
             </Button>
           </div>
         </header>
+        <div className="flex items-center mb-6">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search reports..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
         {user && isLoading ? (
           <div className="rounded-lg border p-8 text-center">
             <p className="text-muted-foreground">Loading...</p>
@@ -153,6 +183,7 @@ const ReportsList: React.FC = () => {
             <p className="mb-4 text-muted-foreground">
               {showArchived ? "No archived reports." :
                reportTypeFilter !== "all" ? `No ${REPORT_TYPE_LABELS[reportTypeFilter]} reports found.` :
+               searchQuery ? "No reports match your search." :
                "No reports yet."}
             </p>
             {!showArchived && (

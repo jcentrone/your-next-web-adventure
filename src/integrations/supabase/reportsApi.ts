@@ -13,6 +13,7 @@ type ReportListItem = {
   status: "Draft" | "Final";
   reportType: Report["reportType"];
   archived?: boolean;
+  address?: string;
 };
 
 function toDbPayload(report: Report) {
@@ -323,7 +324,7 @@ export async function dbCreateReport(meta: {
 }
 
 export async function dbListReports(userId: string, includeArchived: boolean = false): Promise<ReportListItem[]> {
-  let selectQuery = "id,title,client_name,inspection_date,status,archived,report_type";
+  const selectQuery = "id,title,client_name,address,inspection_date,status,archived,report_type";
   
   const query = supabase
     .from("reports")
@@ -350,6 +351,7 @@ export async function dbListReports(userId: string, includeArchived: boolean = f
     status: r.status,
     archived: r.archived || false,
     reportType: r.report_type || "home_inspection",
+    address: r.address || "",
   }));
 }
 
