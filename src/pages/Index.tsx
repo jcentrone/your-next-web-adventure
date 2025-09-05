@@ -102,14 +102,14 @@ const features: Feature[] = [
 ];
 
 const FeatureCard = ({ Icon, title, description, bullets, color }: Feature) => (
-  <Card className="p-8 rounded-3xl border bg-white/80 backdrop-blur-sm hover:shadow-lg transition">
+  <Card className="p-8 rounded-3xl border bg-card backdrop-blur-sm hover:shadow-lg transition">
     <div className="flex flex-col h-full">
       <div
         className={`w-14 h-14 mb-6 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white`}
       >
         <Icon className="w-7 h-7" />
       </div>
-      <h3 className="font-semibold text-xl mb-4">{title}</h3>
+      <h3 className="font-semibold text-xl mb-4 text-card-foreground">{title}</h3>
       <p className="text-muted-foreground mb-6 leading-relaxed">{description}</p>
       <ul className="space-y-2 mt-auto">
         {bullets.map((item) => (
@@ -154,14 +154,14 @@ const Index = () => {
 
       {/* Hero Section */}
       <section id="hero" className="relative max-w-7xl mx-auto px-4 py-32 md:py-24 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-background to-purple-50/30 -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 -z-10" />
         <div className="absolute top-20 left-20 w-32 h-32 bg-primary/20 rounded-full blur-2xl animate-pulse -z-10"></div>
-        <div className="absolute bottom-32 right-32 w-24 h-24 bg-amber-300/30 rounded-full blur-xl animate-pulse -z-10" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-32 right-32 w-24 h-24 bg-accent/30 rounded-full blur-xl animate-pulse -z-10" style={{animationDelay: '1s'}}></div>
         
         <div className="text-center max-w-4xl mx-auto relative z-10">
           <div className="relative inline-block mb-8">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-lg"></div>
-            <div className="relative bg-white/80 backdrop-blur-sm border border-primary/20 px-6 py-3 rounded-2xl">
+            <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 px-6 py-3 rounded-2xl">
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="w-3 h-3 bg-primary rounded-full animate-ping"></div>
@@ -173,15 +173,15 @@ const Index = () => {
           </div>
           
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent">
               Inspection Reports
             </span>
             <br />
             <span className="relative">
-              <span className="bg-gradient-to-r from-primary via-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-accent bg-clip-text text-transparent">
                 Made Simple
               </span>
-              <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary via-blue-600 to-purple-600 rounded-full opacity-30"></div>
+              <div className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary/80 to-accent rounded-full opacity-30"></div>
             </span>
           </h1>
           
@@ -342,25 +342,25 @@ const Index = () => {
 
           {/* Workflow Benefits */}
           <div className="mt-12 grid md:grid-cols-3 gap-6">
-            <Card className="p-6 text-center border border-border/50">
-              <Clock className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-              <h4 className="font-semibold mb-2">Save 2+ Hours Per Report</h4>
+            <Card className="p-6 text-center border bg-card">
+              <Clock className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h4 className="font-semibold mb-2 text-card-foreground">Save 2+ Hours Per Report</h4>
               <p className="text-sm text-muted-foreground">
                 Pre-built templates and offline sync reduce administrative overhead
               </p>
             </Card>
             
-            <Card className="p-6 text-center border border-border/50">
-              <Star className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-              <h4 className="font-semibold mb-2">Professional Quality</h4>
+            <Card className="p-6 text-center border bg-card">
+              <Star className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h4 className="font-semibold mb-2 text-card-foreground">Professional Quality</h4>
               <p className="text-sm text-muted-foreground">
                 Attorney-vetted narratives and professional branding every time
               </p>
             </Card>
             
-            <Card className="p-6 text-center border border-border/50">
-              <Layers className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-              <h4 className="font-semibold mb-2">Zero Learning Curve</h4>
+            <Card className="p-6 text-center border bg-card">
+              <Layers className="w-8 h-8 text-primary mx-auto mb-3" />
+              <h4 className="font-semibold mb-2 text-card-foreground">Zero Learning Curve</h4>
               <p className="text-sm text-muted-foreground">
                 Intuitive interface designed specifically for home inspectors
               </p>
