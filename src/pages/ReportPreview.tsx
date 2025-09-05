@@ -395,37 +395,44 @@ const ReportPreview: React.FC = () => {
         );
     }
 
+    const TOPBAR_HEIGHT = 72;
+
     const topBar = (
-        <div className="max-w-4xl mx-auto px-4 py-4 print-hidden flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-                <Button
-                    variant="outline"
-                    onClick={() => nav(`/reports/${report.id}`)}
-                    aria-label="Close preview and return to editor"
-                >
-                    Close Preview
+        <div
+            className="fixed top-0 left-0 right-0 z-50 bg-background shadow print-hidden"
+            style={{height: TOPBAR_HEIGHT}}
+        >
+            <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-2 h-full">
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => nav(`/reports/${report.id}`)}
+                        aria-label="Close preview and return to editor"
+                    >
+                        Close Preview
+                    </Button>
+                    <CoverTemplateSelector
+                        value={report.coverTemplate}
+                        onChange={handleCoverTemplateChange}
+                        disabled={savingCoverTpl}
+                        data={coverPreviewData}
+                    />
+                    <StyleSelector
+                        value={report.previewTemplate}
+                        onChange={handleStyleTemplateChange}
+                        disabled={savingStyleTpl}
+                    />
+                    <ColorSchemePicker
+                        value={report.colorScheme || "default"}
+                        customColors={report.customColors}
+                        onChange={handleColorSchemeChange}
+                        disabled={savingColorScheme}
+                    />
+                </div>
+                <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
+                    {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
                 </Button>
-                <CoverTemplateSelector
-                    value={report.coverTemplate}
-                    onChange={handleCoverTemplateChange}
-                    disabled={savingCoverTpl}
-                    data={coverPreviewData}
-                />
-                <StyleSelector
-                    value={report.previewTemplate}
-                    onChange={handleStyleTemplateChange}
-                    disabled={savingStyleTpl}
-                />
-                <ColorSchemePicker
-                    value={report.colorScheme || "default"}
-                    customColors={report.customColors}
-                    onChange={handleColorSchemeChange}
-                    disabled={savingColorScheme}
-                />
             </div>
-            <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
-                {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
-            </Button>
         </div>
     );
 
@@ -444,7 +451,7 @@ const ReportPreview: React.FC = () => {
                     }}
                 />
                 {topBar}
-                <div className="flex">
+                <div className="flex mt-[72px] print:mt-0">
                     <PreviewThumbnailNav containerRef={pdfContainerRef}/>
                     <div className="flex-1">
                         <div className="max-w-4xl mx-auto px-4 py-10">
@@ -483,7 +490,7 @@ const ReportPreview: React.FC = () => {
             {/* Top bar */}
             {topBar}
 
-            <div className="flex">
+            <div className="flex mt-[72px] print:mt-0">
                 <PreviewThumbnailNav containerRef={pdfContainerRef}/>
                 <div className="flex-1">
                     <PDFDocument
