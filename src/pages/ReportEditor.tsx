@@ -1291,6 +1291,25 @@ const ReportEditor: React.FC = () => {
               ) : (
                 <p className="text-sm text-muted-foreground">No report details fields configured.</p>
               )}
+              
+              {/* Standards of Practice toggle for home inspection reports */}
+              {report.reportType === "home_inspection" && (
+                <div className="flex items-center space-x-2 pt-4 border-t">
+                  <input
+                    type="checkbox"
+                    id="includeStandardsOfPracticeDetails"
+                    checked={(report as any).includeStandardsOfPractice ?? true}
+                    onChange={(e) => setReport((prev) => (prev ? ({ ...prev, includeStandardsOfPractice: e.target.checked } as Report) : prev))}
+                    className="h-4 w-4"
+                  />
+                  <label 
+                    htmlFor="includeStandardsOfPracticeDetails"
+                    className="text-sm font-normal"
+                  >
+                    Include InterNACHI Standards of Practice in final report
+                  </label>
+                </div>
+              )}
             </section>
           )}
 
