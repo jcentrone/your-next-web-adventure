@@ -585,7 +585,9 @@ function parseContent(text: string): Node[] {
                 pushParagraph(paragraphBuf.join(" "));
                 paragraphBuf = [];
             }
-            pendingList.items.push(item.trim());
+            if (pendingList && item) {
+                pendingList.items.push(item.trim());
+            }
             continue;
         }
 
