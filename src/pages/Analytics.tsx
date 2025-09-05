@@ -80,54 +80,105 @@ export default function Analytics() {
       const startDate = dateRange.startDate;
       const endDate = dateRange.endDate;
 
-      const { data, error } = await supabase.rpc("analytics_summary", {
-        p_user_id: user!.id,
-        p_start_date: startDate.toISOString(),
-        p_end_date: endDate.toISOString(),
-      });
+      // Get reports data
+      const { data: reportsData, error: reportsError } = await supabase
+        .from("reports")
+        .select("*")
+        .eq("user_id", user!.id)
+        .gte("created_at", startDate.toISOString())
+        .lte("created_at", endDate.toISOString());
 
-      if (error) throw error;
+      if (reportsError) throw reportsError;
 
-      const rawData = data as AnalyticsResponse;
-      const monthlyReports = rawData.monthlyReports || [];
-      const totalRevenue = monthlyReports.reduce(
-        (sum: number, r: { revenue?: number }) => sum + (r.revenue || 0),
-        0
-      );
-      const totalReportCount = monthlyReports.reduce(
-        (sum: number, r: { count: number }) => sum + r.count,
-        0
-      );
-
-      const activityMap: Record<string, Record<string, number>> = {};
-
-      (rawData.recentActivity || []).forEach((entry) => {
-        if (!activityMap[entry.date]) activityMap[entry.date] = {};
-        activityMap[entry.date].Report = entry.count;
-      });
-
+      // Get contacts data
       const { data: contactsData, error: contactsError } = await supabase
         .from("contacts")
         .select("created_at")
         .eq("user_id", user!.id)
         .gte("created_at", startDate.toISOString())
         .lte("created_at", endDate.toISOString());
-      if (contactsError) throw contactsError;
-      contactsData?.forEach((c: { created_at: string }) => {
-        const date = format(new Date(c.created_at), "MMM yy");
-        if (!activityMap[date]) activityMap[date] = {};
-        activityMap[date].Contact = (activityMap[date].Contact || 0) + 1;
-      });
 
+      if (contactsError) throw contactsError;
+
+      // Get appointments data
       const { data: appointmentsData, error: appointmentsError } = await supabase
         .from("appointments")
         .select("appointment_date")
         .eq("user_id", user!.id)
         .gte("appointment_date", startDate.toISOString())
         .lte("appointment_date", endDate.toISOString());
+
       if (appointmentsError) throw appointmentsError;
-      appointmentsData?.forEach((a: { appointment_date: string }) => {
-        const date = format(new Date(a.appointment_date), "MMM yy");
+
+      // Get total contacts count
+      const { data: allContactsData, error: allContactsError } = await supabase
+        .from("contacts")
+        .select("id", { count: "exact" })
+        .eq("user_id", user!.id);
+
+      if (allContactsError) throw allContactsError;
+
+      // Process the data
+      const reports = reportsData || [];
+      const contacts = contactsData || [];
+      const appointments = appointmentsData || [];
+
+      // Calculate monthly reports
+      const monthlyMap: Record<string, { count: number; revenue: number }> = {};
+      
+      reports.forEach((report) => {
+        const month = format(new Date(report.created_at), "MMM yy");
+        if (!monthlyMap[month]) {
+          monthlyMap[month] = { count: 0, revenue: 0 };
+        }
+        monthlyMap[month].count += 1;
+        monthlyMap[month].revenue += 400; // Default revenue per report
+      });
+
+      const monthlyReports = Object.entries(monthlyMap)
+        .map(([month, data]) => ({ month, ...data }))
+        .sort((a, b) => 
+          parse(a.month, "MMM yy", new Date()).getTime() - 
+          parse(b.month, "MMM yy", new Date()).getTime()
+        );
+
+      // Calculate report types
+      const typeMap: Record<string, number> = {};
+      reports.forEach((report) => {
+        const type = report.report_type || "General";
+        typeMap[type] = (typeMap[type] || 0) + 1;
+      });
+
+      const total = Object.values(typeMap).reduce((sum, count) => sum + count, 0);
+      const reportsByType = Object.entries(typeMap).map(([type, count]) => ({
+        type,
+        count,
+        value: total > 0 ? (count / total) * 100 : 0,
+      }));
+
+      const totalRevenue = monthlyReports.reduce((sum, r) => sum + r.revenue, 0);
+      const completedReports = reports.filter(r => r.status === 'Final').length;
+
+      // Build activity map for charts
+      const activityMap: Record<string, Record<string, number>> = {};
+
+      // Add report activity
+      reports.forEach((report) => {
+        const date = format(new Date(report.created_at), "MMM yy");
+        if (!activityMap[date]) activityMap[date] = {};
+        activityMap[date].Report = (activityMap[date].Report || 0) + 1;
+      });
+
+      // Add contact activity
+      contacts.forEach((contact) => {
+        const date = format(new Date(contact.created_at), "MMM yy");
+        if (!activityMap[date]) activityMap[date] = {};
+        activityMap[date].Contact = (activityMap[date].Contact || 0) + 1;
+      });
+
+      // Add appointment activity
+      appointments.forEach((appointment) => {
+        const date = format(new Date(appointment.appointment_date), "MMM yy");
         if (!activityMap[date]) activityMap[date] = {};
         activityMap[date].Appointment = (activityMap[date].Appointment || 0) + 1;
       });
@@ -143,11 +194,16 @@ export default function Analytics() {
         );
 
       setAnalytics({
-        ...rawData,
-        recentActivity,
+        totalReports: reports.length,
+        totalContacts: allContactsData?.length || 0,
+        totalAppointments: appointments.length,
+        completedReports,
         totalRevenue,
-        averageRevenue: totalReportCount > 0 ? totalRevenue / totalReportCount : 0,
-      } as AnalyticsData);
+        averageRevenue: reports.length > 0 ? totalRevenue / reports.length : 0,
+        monthlyReports,
+        reportsByType,
+        recentActivity,
+      });
 
     } catch (error) {
       console.error('Error loading analytics:', error);
