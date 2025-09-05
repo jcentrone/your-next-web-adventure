@@ -17,7 +17,7 @@ const industries = [
   "Insurance",
   "Property Management",
   "Government",
-  "Banking/Finance",
+  "Appraisal Services",
   "Legal Services",
   "Other"
 ];
@@ -213,28 +213,7 @@ export default function AccountNew() {
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="annual_revenue">Annual Revenue</Label>
-                <Input
-                  id="annual_revenue"
-                  type="number"
-                  value={formData.annual_revenue || ""}
-                  onChange={(e) => handleInputChange("annual_revenue", e.target.value ? Number(e.target.value) : undefined)}
-                  placeholder="0"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="employee_count">Employee Count</Label>
-                <Input
-                  id="employee_count"
-                  type="number"
-                  value={formData.employee_count || ""}
-                  onChange={(e) => handleInputChange("employee_count", e.target.value ? Number(e.target.value) : undefined)}
-                  placeholder="0"
-                />
-              </div>
-            </div>
+
 
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
