@@ -13,6 +13,7 @@ import {toast} from "@/components/ui/use-toast";
 import {useReactToPrint} from "react-to-print";
 import SpecializedReportPreview from "@/components/reports/SpecializedReportPreview";
 import PDFDocument from "@/components/reports/PDFDocument";
+import PreviewThumbnailNav from "@/components/reports/PreviewThumbnailNav";
 import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
 import {getMyOrganization, getMyProfile, Organization, Profile, getTermsConditions} from "@/integrations/supabase/organizationsApi";
@@ -443,17 +444,22 @@ const ReportPreview: React.FC = () => {
                     }}
                 />
                 {topBar}
-                <div className="max-w-4xl mx-auto px-4 py-10">
-                    <div ref={pdfContainerRef} style={colorVars}>
-                        <SpecializedReportPreview
-                            report={report}
-                            inspector={inspector}
-                            organization={organization}
-                            mediaUrlMap={mediaUrlMap}
-                            coverUrl={coverUrl}
-                            className={tpl.cover}
-                            termsHtml={termsHtml}
-                        />
+                <div className="flex">
+                    <PreviewThumbnailNav containerRef={pdfContainerRef}/>
+                    <div className="flex-1">
+                        <div className="max-w-4xl mx-auto px-4 py-10">
+                            <div ref={pdfContainerRef} style={colorVars}>
+                                <SpecializedReportPreview
+                                    report={report}
+                                    inspector={inspector}
+                                    organization={organization}
+                                    mediaUrlMap={mediaUrlMap}
+                                    coverUrl={coverUrl}
+                                    className={tpl.cover}
+                                    termsHtml={termsHtml}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </>
@@ -477,14 +483,19 @@ const ReportPreview: React.FC = () => {
             {/* Top bar */}
             {topBar}
 
-            <PDFDocument
-                ref={pdfContainerRef}
-                report={report}
-                mediaUrlMap={mediaUrlMap}
-                coverUrl={coverUrl}
-                company={organization?.name || ""}
-                termsHtml={termsHtml || undefined}
-            />
+            <div className="flex">
+                <PreviewThumbnailNav containerRef={pdfContainerRef}/>
+                <div className="flex-1">
+                    <PDFDocument
+                        ref={pdfContainerRef}
+                        report={report}
+                        mediaUrlMap={mediaUrlMap}
+                        coverUrl={coverUrl}
+                        company={organization?.name || ""}
+                        termsHtml={termsHtml || undefined}
+                    />
+                </div>
+            </div>
         </>
     );
 };
