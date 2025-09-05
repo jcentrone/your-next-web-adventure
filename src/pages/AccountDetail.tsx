@@ -16,7 +16,8 @@ import { accountsApi } from "@/integrations/supabase/accountsApi";
 import { CreateAccountSchema } from "@/lib/accountSchemas";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Edit2, Save, X, Building2, Mail, Phone, MapPin, Globe, Users, DollarSign } from "lucide-react";
+import { ArrowLeft, Edit2, Save, X, Building2, Mail, Phone, MapPin, Globe, Users, DollarSign, Plus } from "lucide-react";
+import ContactAccountLinkDialog from "@/components/contacts/ContactAccountLinkDialog";
 
 export default function AccountDetail() {
   const { id } = useParams<{ id: string }>();
@@ -474,18 +475,34 @@ export default function AccountDetail() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Contacts</span>
-                  <Link to={`/contacts/new?accountId=${account.id}`}>
-                    <Button size="sm">Add Contact</Button>
-                  </Link>
+                  <div className="flex gap-2">
+                    <ContactAccountLinkDialog 
+                      accountId={account.id}
+                      accountName={account.name}
+                    />
+                    <Link to={`/contacts/new?accountId=${account.id}`}>
+                      <Button size="sm">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New
+                      </Button>
+                    </Link>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {contacts.length === 0 ? (
                   <div className="text-center py-8">
                     <p className="text-muted-foreground">No contacts linked to this account yet.</p>
-                    <Link to={`/contacts/new?accountId=${account.id}`}>
-                      <Button className="mt-4">Add First Contact</Button>
-                    </Link>
+                    <div className="flex gap-2 justify-center mt-4">
+                      <ContactAccountLinkDialog 
+                        accountId={account.id}
+                        accountName={account.name}
+                        trigger={<Button variant="outline">Link Existing Contact</Button>}
+                      />
+                      <Link to={`/contacts/new?accountId=${account.id}`}>
+                        <Button>Add New Contact</Button>
+                      </Link>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
