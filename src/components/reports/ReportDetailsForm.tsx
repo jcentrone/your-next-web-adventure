@@ -2,6 +2,7 @@ import React from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Report } from "@/lib/reportSchemas";
 
 interface Props {
@@ -68,6 +69,25 @@ const ReportDetailsForm: React.FC<Props> = ({ report, onUpdate }) => {
           </div>
         );
       })}
+      
+      {/* Standards of Practice toggle for home inspection reports */}
+      {report.reportType === "home_inspection" && (
+        <div className="flex items-center space-x-2 pt-4 border-t">
+          <Checkbox
+            id="includeStandardsOfPractice"
+            checked={(report as any).includeStandardsOfPractice ?? true}
+            onCheckedChange={(checked) => 
+              handleChange("includeStandardsOfPractice", String(checked))
+            }
+          />
+          <Label 
+            htmlFor="includeStandardsOfPractice"
+            className="text-sm font-normal"
+          >
+            Include InterNACHI Standards of Practice in final report
+          </Label>
+        </div>
+      )}
     </section>
   );
 };

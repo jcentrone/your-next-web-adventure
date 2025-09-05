@@ -7,6 +7,7 @@ import ReportDetailsSection from "./ReportDetailsSection";
 import SectionInfoDisplay from "./SectionInfoDisplay";
 import { isSupabaseUrl } from "@/integrations/supabase/storage";
 import { COVER_TEMPLATES } from "@/constants/coverTemplates";
+import { renderInternachiStandards } from "@/utils/internachiStandardsContent";
 
 
 interface PDFDocumentProps {
@@ -270,19 +271,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                     <div className="preview-page">
                         <article className={tpl.container}>
                             <section className="pdf-page-break">
-                                <h2 className={tpl.h2}>InterNACHI Standards of Practice</h2>
-                                <div className="text-sm text-muted-foreground space-y-4">
-                                    <p>This inspection was performed in accordance with the current InterNACHI Standards of Practice.</p>
-                                    <p><strong>Note:</strong> For the complete and most current version of the InterNACHI Standards of Practice, please visit: <a href="https://www.nachi.org/sop.htm" className="text-primary underline">https://www.nachi.org/sop.htm</a></p>
-                                    <div className="mt-4 p-4 bg-muted/20 rounded border">
-                                        <p className="text-xs italic">
-                                            The InterNACHI Standards of Practice define the scope and limitations of home inspections, 
-                                            establishing what inspectors are required to inspect and what they are not required to inspect. 
-                                            These standards help ensure consistency and professionalism across the industry while protecting 
-                                            both inspectors and clients by clearly defining expectations.
-                                        </p>
-                                    </div>
-                                </div>
+                                {renderInternachiStandards()}
                             </section>
                         </article>
                     </div>
