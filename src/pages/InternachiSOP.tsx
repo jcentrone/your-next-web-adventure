@@ -701,7 +701,7 @@ const InternachiSOP: React.FC = () => {
     }
 
     return (
-        <div className="flex h-screen bg-background">
+        <div className="flex h-screen bg-background overflow-hidden">
             <Seo
                 title="InterNACHI Standards of Practice"
                 description="InterNACHI standards of practice"
@@ -710,8 +710,8 @@ const InternachiSOP: React.FC = () => {
 
             {/* LEFT NAV */}
             <aside
-                className="sticky top-0 h-screen w-[22rem] shrink-0 bg-muted/20 border-r border-border overflow-y-auto">
-                <div className="p-6 pb-3">
+                className="flex flex-col h-full w-[22rem] shrink-0 bg-muted/20 border-r border-border">
+                <div className="p-6 pb-3 shrink-0">
                     <h1 className="text-2xl font-bold">InterNACHI SOP</h1>
                     <p className="text-sm text-muted-foreground mt-1">Table of Contents</p>
                     <div className="mt-4">
@@ -729,7 +729,7 @@ const InternachiSOP: React.FC = () => {
                     </div>
                 </div>
 
-                <nav className="px-2 pb-6">
+                <nav className="px-2 pb-6 flex-1 overflow-y-auto">
                     {[...grouped.entries()].map(([groupKey, items]) => (
                         <div key={groupKey} className="mb-4">
                             {groupKey !== "__ungrouped__" && (
