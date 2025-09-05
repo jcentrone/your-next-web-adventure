@@ -87,7 +87,7 @@ select jsonb_build_object(
         'date', to_char(month_start, 'Mon YY'),
         'type', 'Reports',
         'count', count
-      ) order by month_start desc limit 7
+      ) order by month_start desc
     ), '[]'::jsonb)
     from monthly_counts
   )
