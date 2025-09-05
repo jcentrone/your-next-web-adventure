@@ -38,7 +38,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="max-w-7xl mx-auto flex h-14 items-center justify-between px-4">
+      <nav className="flex h-14 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2 font-bold">
           <img 
             src="/HomeReportPro_Logo-transparent.png" 

@@ -1,11 +1,30 @@
 import React from "react";
 import Seo from "@/components/Seo";
+import {cn} from "@/lib/utils";
 
-const sections = [
-  {
-    id: "definitions",
-    title: "1. Definitions and Scope",
-    content: `1.1.  A home inspection is a non-invasive, visual examination of the accessible areas of a residential property (as delineated below), performed for a fee, which is designed to identify defects within specific systems and components defined by these Standards that are both observed and deemed material by the inspector.  The scope of work may be modified by the Client and Inspector prior to the inspection process.
+/**
+ * InterNACHI SOP page with:
+ * - Sticky TOC (left)
+ * - Structured content parser that respects headings (I./II.), sub-points (A./B.), numerals (1./2.), and bullets
+ * - Readable typography (prose)
+ */
+
+/* =========================================================================
+   DATA (add/adjust groups/titles as you like)
+   ========================================================================= */
+type Section = {
+    id: string;
+    title: string;
+    group?: string;
+    content: string;
+};
+
+const sections: Section[] = [
+    {
+        id: "definitions",
+        title: "1. Definitions and Scope",
+        group: "1. General",
+        content: `1.1.  A home inspection is a non-invasive, visual examination of the accessible areas of a residential property (as delineated below), performed for a fee, which is designed to identify defects within specific systems and components defined by these Standards that are both observed and deemed material by the inspector.  The scope of work may be modified by the Client and Inspector prior to the inspection process.
 
 The home inspection is based on the observations made on the date of the inspection, and not a prediction of future conditions.
 
@@ -13,11 +32,12 @@ The home inspection will not reveal every issue that exists or ever could exist,
 1.2.  A material defect is a specific issue with a system or component of a residential property that may have a significant, adverse impact on the value of the property, or that poses an unreasonable risk to people.  The fact that a system or component is near, at, or beyond the end of its normal, useful life is not, in itself, a material defect.
 
 1.3.  A home inspection report shall identify, in written format, defects within specific systems and components defined by these Standards that are both observed and deemed material by the inspector.  Inspection reports may include additional comments and recommendations.`
-  },
-  {
-    id: "limitations",
-    title: "2. Limitations, Exceptions and Exclusions",
-    content: `2.1. Limitations:
+    },
+    {
+        id: "limitations",
+        title: "2. Limitations, Exceptions and Exclusions",
+        group: "2. Limitations & Exclusions",
+        content: `2.1. Limitations:
 An inspection is not technically exhaustive.
 An inspection will not identify concealed or latent defects. 
 An inspection will not deal with aesthetic concerns, or what could be deemed matters of taste, cosmetic defects, etc. 
@@ -87,26 +107,22 @@ determine the age of construction or installation of any system, structure or co
 determine the insurability of a property.
 perform or offer Phase 1 or environmental audits.
 inspect any system or component that is not included in these Standards.`
-  },
-  {
-    id: "roof",
-    title: "3.1. Roof",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect from ground level or the eaves:
-
+    },
+    {
+        id: "roof",
+        title: "3.1. Roof",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect from ground level or the eaves:
 the roof-covering materials;
 the gutters;
 the downspouts;
 the vents, flashing, skylights, chimney, and other roof penetrations; and 
 the general structure of the roof from the readily accessible panels, doors or stairs.
 II. The inspector shall describe:
-
 A. the type of roof-covering materials.
 III. The inspector shall report as in need of correction:
-   A. observed indications of active roof leaks.
-
+A. observed indications of active roof leaks.
 IV. The inspector is not required to:
-
 walk on any roof surface.
 predict the service life expectancy. 
 inspect underground downspout diverter drainage pipes. 
@@ -118,13 +134,12 @@ walk on any roof areas if doing so might, in the inspector's opinion, cause dama
 perform a water test.
 warrant or certify the roof.
 confirm proper fastening or installation of any roof-covering material.`
-  },
-  {
-    id: "exterior",
-    title: "3.2. Exterior",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect:
-
+    },
+    {
+        id: "exterior",
+        title: "3.2. Exterior",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect:
 the exterior wall-covering materials; 
 the eaves, soffits and fascia;
 a representative number of windows;
@@ -140,7 +155,6 @@ the type of exterior wall-covering materials.
 III. The inspector shall report as in need of correction:
 any improper spacing between intermediate balusters, spindles and rails.
 IV. The inspector is not required to:
-
 inspect or operate screens, storm windows, shutters, awnings, fences, outbuildings, or exterior accent lighting.
 inspect items that are not visible or readily accessible from the ground, including window and door flashing. 
 inspect or identify geological, geotechnical, hydrological or soil conditions. 
@@ -157,54 +171,46 @@ inspect wastewater treatment systems, septic systems or cesspools.
 inspect irrigation or sprinkler systems. 
 inspect drainfields or dry wells. 
 determine the integrity of multiple-pane window glazing or thermal window seals.`
-  },
-  {
-    id: "basement",
-    title: "3.3. Basement, Foundation, Crawl Space and Structure",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect:
-
+    },
+    {
+        id: "basement",
+        title: "3.3. Basement, Foundation, Crawl Space and Structure",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect:
 the foundation;
 the basement;
 the crawl space; and
 structural components.
 II. The inspector shall describe:
-
 the type of foundation; and
 the location of the access to the under-floor crawl space.
 III. The inspector shall report as in need of correction:
-
 observed indications of wood in contact with or near soil;
 observed indications of active water penetration; 
 observed indications of possible foundation movement, such as sheetrock cracks, brick cracks, out-of-square door frames, and unlevel floors; and
 any observed cutting, notching and boring of framing members that may, in the inspector's opinion, present a structural or safety concern.
 IV. The inspector is not required to:
-
 enter any crawl space that is not readily accessible, or where entry could cause damage or pose a hazard to the inspector.
 move stored items or debris. 
 operate sump pumps with inaccessible floats. 
 identify the size, spacing, span or location or determine the adequacy of foundation bolting, bracing, joists, joist spans or support systems. 
 provide any engineering or architectural service. 
 report on the adequacy of any structural system or component.`
-  },
-  {
-    id: "heating",
-    title: "3.4. Heating",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect:
-
+    },
+    {
+        id: "heating",
+        title: "3.4. Heating",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect:
 the heating system, using normal operating controls.
 II. The inspector shall describe:
-
 the location of the thermostat for the heating system;
 the energy source; and
 the heating method.
 III. The inspector shall report as in need of correction:
-
 any heating system that did not operate; and
 if the heating system was deemed inaccessible.
 IV. The inspector is not required to:
-
 inspect, measure, or evaluate the interior of flues or chimneys, fire chambers, heat exchangers, combustion air systems, fresh-air intakes, makeup air, humidifiers, dehumidifiers, electronic air filters, geothermal systems, or solar heating systems.
 inspect fuel tanks or underground or concealed fuel supply systems. 
 determine the uniformity, temperature, flow, balance, distribution, size, capacity, BTU, or supply adequacy of the heating system. 
@@ -214,36 +220,31 @@ override electronic thermostats.
 evaluate fuel quality.
 verify thermostat calibration, heat anticipation, or automatic setbacks, timers, programs or clocks.
 measure or calculate the air for combustion, ventilation, or dilution of flue gases for appliances.`
-  },
-  {
-    id: "cooling",
-    title: "3.5. Cooling",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect:
-
+    },
+    {
+        id: "cooling",
+        title: "3.5. Cooling",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect:
 the cooling system, using normal operating controls.
 II. The inspector shall describe:
-
 the location of the thermostat for the cooling system; and
 the cooling method.
 III. The inspector shall report as in need of correction:
-
 any cooling system that did not operate; and
 if the cooling system was deemed inaccessible.
 IV. The inspector is not required to:
-
 determine the uniformity, temperature, flow, balance, distribution, size, capacity, BTU, or supply adequacy of the cooling system.
 inspect portable window units, through-wall units, or electronic air filters. 
 operate equipment or systems if the exterior temperature is below 65° Fahrenheit, or when other circumstances are not conducive to safe operation or may damage the equipment. 
 inspect or determine thermostat calibration, cooling anticipation, or automatic setbacks or clocks. 
 examine electrical current, coolant fluids or gases, or coolant leakage.`
-  },
-  {
-    id: "plumbing",
-    title: "3.6. Plumbing",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect:
-
+    },
+    {
+        id: "plumbing",
+        title: "3.6. Plumbing",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect:
 the main water supply shut-off valve;
 the main fuel supply shut-off valve;
 the water heating equipment, including the energy source, venting connections, temperature/pressure-relief (TPR) valves, Watts 210 valves, and seismic bracing;
@@ -253,20 +254,17 @@ all sinks, tubs and showers for functional drainage;
 the drain, waste and vent system; and
 drainage sump pumps with accessible floats.
 II. The inspector shall describe:
-
 whether the water supply is public or private based upon observed evidence;
 the location of the main water supply shut-off valve;
 the location of the main fuel supply shut-off valve;
 the location of any observed fuel-storage system; and
 the capacity of the water heating equipment, if labeled.
 III. The inspector shall report as in need of correction:
-
 deficiencies in the water supply by viewing the functional flow in two fixtures operated simultaneously;
 deficiencies in the installation of hot and cold water faucets;
 active plumbing water leaks that were observed during the inspection; and  
 toilets that were damaged, had loose connections to the floor, were leaking, or had tank components that did not operate.
 IV. The inspector is not required to:
-
 light or ignite pilot flames.
 measure the capacity, temperature, age, life expectancy or adequacy of the water heater. 
 inspect the interior of flues or chimneys, combustion air systems, water softener or filtering systems, well pumps or tanks, safety or shut-off valves, floor drains, lawn sprinkler systems, or fire sprinkler systems. 
@@ -289,13 +287,12 @@ test, operate, open or close: safety controls, manual stop valves, temperature/p
 examine ancillary or auxiliary systems or components, such as, but not limited to, those related to solar water heating and hot water circulation.
 determine the existence or condition of polybutylene, polyethylene, or similar plastic piping.
 inspect or test for gas or fuel leaks, or indications thereof.`
-  },
-  {
-    id: "electrical",
-    title: "3.7. Electrical",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect:
-
+    },
+    {
+        id: "electrical",
+        title: "3.7. Electrical",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect:
 the service drop;
 the overhead service conductors and attachment point;
 the service head, gooseneck and drip loops;
@@ -309,7 +306,6 @@ a representative number of switches, lighting fixtures and receptacles, includin
 all ground-fault circuit interrupter receptacles and circuit breakers observed and deemed to be GFCIs using a GFCI tester, where possible; and
 for the presence of smoke and carbon monoxide detectors.
 II. The inspector shall describe:
-
 the main service disconnect's amperage rating, if labeled; and 
 the type of wiring observed.
 III. The inspector shall report as in need of correction:
@@ -319,7 +315,6 @@ the presence of solid conductor aluminum branch-circuit wiring, if readily visib
 any tested receptacle in which power was not present, polarity was incorrect, the cover was not in place, the GFCI devices were not properly installed or did not operate properly, evidence of arcing or excessive heat, and where the receptacle was not grounded or was not secured to the wall; and
 the absence of smoke and/or carbon monoxide detectors.
 IV. The inspector is not required to:
-
 insert any tool, probe or device into the main panelboard, sub-panels, distribution panelboards, or electrical fixtures.
 operate electrical systems that are shut down. 
 remove panelboard cabinet covers or dead fronts.
@@ -337,13 +332,12 @@ inspect or test de-icing equipment.
 conduct voltage-drop calculations. 
 determine the accuracy of labeling.
 inspect exterior lighting.`
-  },
-  {
-    id: "fireplace",
-    title: "3.8. Fireplace",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect:
-
+    },
+    {
+        id: "fireplace",
+        title: "3.8. Fireplace",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect:
 readily accessible and visible portions of the fireplaces and chimneys;
 lintels above the fireplace openings;
 damper doors by opening and closing them, if readily accessible and manually operable; and
@@ -357,7 +351,6 @@ the lack of a smoke detector in the same room as the fireplace;
 the lack of a carbon monoxide detector in the same room as the fireplace; and
 cleanouts not made of metal, pre-cast cement, or other non-combustible material.
 IV. The inspector is not required to:
-
 inspect the flue or vent system.
 inspect the interior of chimneys or flues, fire doors or screens, seals or gaskets, or mantels. 
 determine the need for a chimney sweep. 
@@ -374,13 +367,12 @@ perform a smoke test.
 dismantle or remove any component.
 perform a National Fire Protection Association (NFPA)-style inspection.
 perform a Phase I fireplace and chimney inspection.`
-  },
-  {
-    id: "attic",
-    title: "3.9. Attic, Insulation and Ventilation",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect:
-
+    },
+    {
+        id: "attic",
+        title: "3.9. Attic, Insulation and Ventilation",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect:
 insulation in unfinished spaces, including attics, crawl spaces and foundation areas;
 ventilation of unfinished spaces, including attics, crawl spaces and foundation areas; and
 mechanical exhaust systems in the kitchen, bathrooms and laundry area.
@@ -390,7 +382,6 @@ the approximate average depth of insulation observed at the unfinished attic flo
 III. The inspector shall report as in need of correction:
 the general absence of insulation or ventilation in unfinished spaces.
 IV. The inspector is not required to:
-
 enter the attic or any unfinished spaces that are not readily accessible, or where entry could cause damage or, in the inspector's opinion, pose a safety hazard.
 move, touch or disturb insulation. 
 move, touch or disturb vapor retarders. 
@@ -399,13 +390,12 @@ identify the composition or R-value of insulation material.
 activate thermostatically operated fans. 
 determine the types of materials used in insulation or wrapping of pipes, ducts, jackets, boilers or wiring.
 determine the adequacy of ventilation.`
-  },
-  {
-    id: "doors",
-    title: "3.10. Doors, Windows and Interior",
-    group: "3. Standards of Practice",
-    content: `I. The inspector shall inspect:
-
+    },
+    {
+        id: "doors",
+        title: "3.10. Doors, Windows and Interior",
+        group: "3. Standards of Practice",
+        content: `I. The inspector shall inspect:
 a representative number of doors and windows by opening and closing them;
 floors, walls and ceilings;
 stairs, steps, landings, stairways and ramps;
@@ -418,7 +408,6 @@ improper spacing between intermediate balusters, spindles and rails for steps, s
 photo-electric safety sensors that did not operate properly; and
 any window that was obviously fogged or displayed other evidence of broken seals.
 IV. The inspector is not required to:
-
 inspect paint, wallpaper, window treatments or finish treatments.
 inspect floor coverings or carpeting.
 inspect central vacuum systems. 
@@ -443,11 +432,12 @@ discover firewall compromises.
 inspect pools, spas or fountains.
 determine the adequacy of whirlpool or spa jets, water force, or bubble effects. 
 determine the structural integrity or leakage of pools or spas.`
-  },
-  {
-    id: "glossary",
-    title: "4. Glossary of Terms",
-    content: `accessible:  In the opinion of the inspector, can be approached or entered safely, without difficulty, fear or danger.
+    },
+    {
+        id: "glossary",
+        title: "4. Glossary of Terms",
+        group: "4. Glossary",
+        content: `accessible:  In the opinion of the inspector, can be approached or entered safely, without difficulty, fear or danger.
 activate:  To turn on, supply power, or enable systems, equipment or devices to become active by normal operating controls. Examples include turning on the gas or water supply valves to the fixtures and appliances, and activating electrical breakers or fuses.
 adversely affect:  To constitute, or potentially constitute, a negative or destructive impact.
 alarm system:  Warning devices, installed or freestanding, including, but not limited to: carbon monoxide detectors, flue gas and other spillage detectors, security equipment, ejector pumps, and smoke alarms.
@@ -498,48 +488,321 @@ system:  An assembly of various components which function as a whole.
 technically exhaustive:  A comprehensive and detailed examination beyond the scope of a real estate home inspection that would involve or include, but would not be limited to:  dismantling, specialized knowledge or training, special equipment, measurements, calculations, testing, research, analysis, or other means.
 unsafe:  In the inspector's opinion, a condition of an area, system, component or procedure that is judged to be a significant risk of injury during normal, day-to-day use. The risk may be due to damage, deterioration, improper installation, or a change in accepted residential construction standards.
 verify:  To confirm or substantiate.`
-  }
+    }
 ];
 
-const InternachiSOP: React.FC = () => {
-  const [current, setCurrent] = React.useState(sections[0].id);
-  const currentSection = sections.find((s) => s.id === current);
+/* =========================================================================
+   PARSER – builds structure from raw SOP text
+   ========================================================================= */
+type Node =
+    | { kind: "h"; level: 2 | 3; text: string; children: Node[] }
+    | { kind: "ol"; items: string[] }
+    | { kind: "ul"; items: string[] }
+    | { kind: "p"; text: string };
 
-  return (
-    <div className="flex h-screen bg-background">
-      <Seo title="InterNACHI Standards of Practice" description="InterNACHI standards of practice" canonical="/internachi-standards" />
-      <div className="w-64 bg-muted/30 border-r border-border overflow-auto">
-        <div className="p-6">
-          <h1 className="text-2xl font-bold">InterNACHI SOP</h1>
-          <p className="text-sm text-muted-foreground mt-1">Table of Contents</p>
+const RX = {
+    headingTop: /^([IVXLC]+\.|\d+\.)\s+(.+?):\s*$/i, // e.g., "I. The inspector shall inspect:"
+    romanItem: /^([IVXLC]+)\.\s+(.*)$/i,             // I. item
+    alphaItem: /^([A-Z])\.\s+(.*)$/,                 // A. item
+    numItem: /^(\d+)\.\s+(.*)$/,                     // 1. item
+    bullet: /^[-–•]\s+(.*)$/,                        // - item
+};
+
+function parseContent(text: string): Node[] {
+    const lines = text.split("\n").map((l) => l.trim());
+    const nodes: Node[] = [];
+    let curHeading: Node | null = null; // last "h"
+    let pendingList: { kind: "ol" | "ul"; items: string[] } | null = null;
+
+    const flushList = () => {
+        if (!pendingList) return;
+        if (curHeading && curHeading.kind === "h") {
+            curHeading.children.push({kind: pendingList.kind, items: pendingList.items});
+        } else {
+            nodes.push({kind: pendingList.kind, items: pendingList.items});
+        }
+        pendingList = null;
+    };
+
+    const pushParagraph = (txt: string) => {
+        if (!txt) return;
+        flushList();
+        const p: Node = {kind: "p", text: txt};
+        if (curHeading && curHeading.kind === "h") curHeading.children.push(p);
+        else nodes.push(p);
+    };
+
+    const startHeading = (text: string, level: 2 | 3) => {
+        flushList();
+        curHeading = {kind: "h", level, text, children: []};
+        nodes.push(curHeading);
+    };
+
+    // If a line ends with ";" and not a heading, treat as list-ish content
+    const looksLikeLooseList = (s: string) =>
+        !!s && !RX.headingTop.test(s) && (/[;•]$/.test(s) || RX.bullet.test(s));
+
+    let paragraphBuf: string[] = [];
+
+    for (const raw of lines) {
+        const line = raw;
+
+        if (!line) {
+            // blank line: end of paragraph/list
+            pushParagraph(paragraphBuf.join(" "));
+            paragraphBuf = [];
+            flushList();
+            continue;
+        }
+
+        // Top-level mini-headings (I./1.) ending with colon
+        const mTop = line.match(RX.headingTop);
+        if (mTop) {
+            const headingText = mTop[2].trim();
+            // treat as level-2 subheading within the section
+            startHeading(headingText, 2);
+            continue;
+        }
+
+        // List item flavors (roman/alpha/number/bullet)
+        const mRoman = line.match(RX.romanItem);
+        const mAlpha = line.match(RX.alphaItem);
+        const mNum = line.match(RX.numItem);
+        const mBullet = line.match(RX.bullet);
+
+        if (mRoman || mAlpha || mNum || mBullet || looksLikeLooseList(line)) {
+            if (!pendingList) {
+                pendingList = {kind: mBullet ? "ul" : "ol", items: []};
+            }
+            const item =
+                (mRoman && mRoman[2]) ||
+                (mAlpha && mAlpha[2]) ||
+                (mNum && mNum[2]) ||
+                (mBullet && mBullet[1]) ||
+                line.replace(/[;•]$/, "");
+            if (paragraphBuf.length) {
+                // flush any paragraph before list item begins
+                pushParagraph(paragraphBuf.join(" "));
+                paragraphBuf = [];
+            }
+            pendingList.items.push(item.trim());
+            continue;
+        }
+
+        // Fallback: accumulate into paragraph buffer
+        paragraphBuf.push(line);
+    }
+
+    // flush any remaining buffers
+    pushParagraph(paragraphBuf.join(" "));
+    flushList();
+
+    return nodes;
+}
+
+/* =========================================================================
+   RENDERERS
+   ========================================================================= */
+function RenderNodes({nodes}: { nodes: Node[] }) {
+    return (
+        <div className="prose prose-sm dark:prose-invert max-w-none">
+            {nodes.map((n, i) => {
+                if (n.kind === "h") {
+                    const H = n.level === 2 ? "h4" : "h5";
+                    return (
+                        <div key={i} className="mt-6">
+                            <H className={cn(n.level === 2 ? "text-base font-semibold" : "text-sm font-semibold text-foreground/90")}>
+                                {n.text}
+                            </H>
+                            {n.children.length > 0 && <RenderNodes nodes={n.children}/>}
+                        </div>
+                    );
+                }
+                if (n.kind === "ol") {
+                    return (
+                        <ol key={i} className="list-decimal pl-6 space-y-1">
+                            {n.items.map((it, idx) => (
+                                <li key={idx}>{it}</li>
+                            ))}
+                        </ol>
+                    );
+                }
+                if (n.kind === "ul") {
+                    return (
+                        <ul key={i} className="list-disc pl-6 space-y-1">
+                            {n.items.map((it, idx) => (
+                                <li key={idx}>{it}</li>
+                            ))}
+                        </ul>
+                    );
+                }
+                return (
+                    <p key={i} className="leading-7">
+                        {n.text}
+                    </p>
+                );
+            })}
         </div>
-        <nav className="px-3 pb-4">
-          {sections.map((item, index) => (
-            <div key={item.id}>
-              {item.group && (index === 0 || sections[index - 1].group !== item.group) && (
-                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">{item.group}</div>
-              )}
-              <button
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                  current === item.id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                }`}
-                onClick={() => setCurrent(item.id)}
-              >
-                {item.title}
-              </button>
+    );
+}
+
+function groupBy<T extends { group?: string }>(items: T[]) {
+    const map = new Map<string, T[]>();
+    for (const it of items) {
+        const key = it.group ?? "__ungrouped__";
+        if (!map.has(key)) map.set(key, []);
+        map.get(key)!.push(it);
+    }
+    return map;
+}
+
+/* =========================================================================
+   PAGE
+   ========================================================================= */
+const InternachiSOP: React.FC = () => {
+    const hasSections = sections.length > 0;
+    const [current, setCurrent] = React.useState<string | null>(hasSections ? sections[0].id : null);
+    const currentSection = hasSections ? sections.find((s) => s.id === current) ?? sections[0] : null;
+
+    const grouped = React.useMemo(() => groupBy(sections), []);
+    const parsedCache = React.useRef<Record<string, Node[]>>({});
+
+    const ensureParsed = (s: Section) => {
+        if (!parsedCache.current[s.id]) {
+            parsedCache.current[s.id] = parseContent(s.content);
+        }
+        return parsedCache.current[s.id];
+    };
+
+    // Arrow key nav through TOC
+    React.useEffect(() => {
+        const ids = sections.map((s) => s.id);
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+            e.preventDefault();
+            const idx = current ? ids.indexOf(current) : 0;
+            const nextIdx = e.key === "ArrowDown" ? Math.min(idx + 1, ids.length - 1) : Math.max(idx - 1, 0);
+            const next = ids[nextIdx];
+            setCurrent(next);
+            document.getElementById(next)?.scrollIntoView({behavior: "smooth", block: "start"});
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [current]);
+
+    if (!hasSections) {
+        return (
+            <div className="flex h-screen items-center justify-center text-sm text-muted-foreground">
+                No sections to display.
             </div>
-          ))}
-        </nav>
-      </div>
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
-          <h2 className="text-xl font-semibold mb-4">{currentSection?.title}</h2>
-          <div className="space-y-4 text-sm whitespace-pre-line">{currentSection?.content}</div>
+        );
+    }
+
+    return (
+        <div className="flex h-screen bg-background">
+            <Seo
+                title="InterNACHI Standards of Practice"
+                description="InterNACHI standards of practice"
+                canonical="/internachi-standards"
+            />
+
+            {/* LEFT NAV */}
+            <aside
+                className="sticky top-0 h-screen w-[22rem] shrink-0 bg-muted/20 border-r border-border overflow-y-auto">
+                <div className="p-6 pb-3">
+                    <h1 className="text-2xl font-bold">InterNACHI SOP</h1>
+                    <p className="text-sm text-muted-foreground mt-1">Table of Contents</p>
+                    <div className="mt-4">
+                        <input
+                            type="text"
+                            placeholder="Search sections…"
+                            className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            onChange={(e) => {
+                                const q = e.target.value.toLowerCase().trim();
+                                if (!q) return;
+                                const hit = sections.find((s) => s.title.toLowerCase().includes(q));
+                                if (hit) setCurrent(hit.id);
+                            }}
+                        />
+                    </div>
+                </div>
+
+                <nav className="px-2 pb-6">
+                    {[...grouped.entries()].map(([groupKey, items]) => (
+                        <div key={groupKey} className="mb-4">
+                            {groupKey !== "__ungrouped__" && (
+                                <div className="px-3 py-2 text-[0.8rem] font-semibold text-foreground/80 tracking-wide">
+                                    {groupKey}
+                                </div>
+                            )}
+
+                            <ul className="space-y-1">
+                                {items.map((item) => {
+                                    const active = current === item.id;
+                                    return (
+                                        <li key={item.id}>
+                                            <button
+                                                onClick={() => {
+                                                    setCurrent(item.id);
+                                                    document.getElementById(item.id)?.scrollIntoView({
+                                                        behavior: "smooth",
+                                                        block: "start"
+                                                    });
+                                                }}
+                                                className={cn(
+                                                    "group w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                                                    active ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+                                                )}
+                                            >
+                        <span
+                            className={cn(
+                                "h-4 w-1 rounded-sm transition-colors",
+                                active ? "bg-primary-foreground" : "bg-transparent group-hover:bg-foreground/30"
+                            )}
+                        />
+                                                <span className="truncate">{item.title}</span>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    ))}
+                </nav>
+            </aside>
+
+            {/* CONTENT */}
+            <main className="flex-1 overflow-y-auto">
+                <div className="max-w-5xl mx-auto p-8 lg:p-10">
+                    <header className="mb-6">
+                        <h2 className="text-3xl font-semibold tracking-tight">{currentSection?.title}</h2>
+                        {currentSection?.group && (
+                            <p className="text-sm text-muted-foreground mt-1">{currentSection.group}</p>
+                        )}
+                    </header>
+
+                    <div className="space-y-12">
+                        {sections.map((s) => {
+                            const parsed = ensureParsed(s);
+                            return (
+                                <section key={s.id} id={s.id} className="scroll-mt-20">
+                                    <h3
+                                        className={cn(
+                                            "text-2xl font-semibold mb-3",
+                                            s.id === current && "text-primary"
+                                        )}
+                                    >
+                                        {s.title}
+                                    </h3>
+                                    <RenderNodes nodes={parsed}/>
+                                </section>
+                            );
+                        })}
+                    </div>
+                </div>
+            </main>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default InternachiSOP;
-
