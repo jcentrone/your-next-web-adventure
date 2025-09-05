@@ -8,12 +8,18 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { accountsApi } from "@/integrations/supabase/accountsApi";
 import { useAuth } from "@/contexts/AuthContext";
+import { AccountsViewToggle } from "@/components/accounts/AccountsViewToggle";
+import { AccountsFilter } from "@/components/accounts/AccountsFilter";
+import { AccountsListView } from "@/components/accounts/AccountsListView";
 import type { Account } from "@/lib/accountSchemas";
 
 export default function Accounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [filteredAccounts, setFilteredAccounts] = useState<Account[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [view, setView] = useState<"list" | "card">("card");
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -26,7 +32,7 @@ export default function Accounts() {
 
   useEffect(() => {
     filterAccounts();
-  }, [accounts, searchTerm]);
+  }, [accounts, searchTerm, selectedType, selectedIndustry]);
 
   const loadAccounts = async () => {
     try {
@@ -45,18 +51,31 @@ export default function Accounts() {
   };
 
   const filterAccounts = () => {
-    if (!searchTerm.trim()) {
-      setFilteredAccounts(accounts);
-      return;
+    let filtered = accounts;
+
+    // Text search filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(account =>
+        account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        account.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        account.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
-    const filtered = accounts.filter(account =>
-      account.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      account.industry?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      account.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Type filter
+    if (selectedType) {
+      filtered = filtered.filter(account => account.type === selectedType);
+    }
+
+    // Industry filter
+    if (selectedIndustry) {
+      filtered = filtered.filter(account => account.industry === selectedIndustry);
+    }
+
     setFilteredAccounts(filtered);
   };
+
+  const availableIndustries = [...new Set(accounts.map(account => account.industry).filter(Boolean))] as string[];
 
   const formatRevenue = (revenue?: number) => {
     if (!revenue) return null;
@@ -90,16 +109,26 @@ export default function Accounts() {
         </Button>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search accounts..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+      <div className="flex items-center justify-between space-x-4">
+        <div className="flex items-center space-x-2 flex-1">
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search accounts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <AccountsFilter
+            selectedType={selectedType}
+            selectedIndustry={selectedIndustry}
+            onTypeChange={setSelectedType}
+            onIndustryChange={setSelectedIndustry}
+            availableIndustries={availableIndustries}
           />
         </div>
+        <AccountsViewToggle view={view} onViewChange={setView} />
       </div>
 
       {filteredAccounts.length === 0 ? (
@@ -122,6 +151,11 @@ export default function Accounts() {
             </div>
           </CardContent>
         </Card>
+      ) : view === "list" ? (
+        <AccountsListView 
+          accounts={filteredAccounts} 
+          formatRevenue={formatRevenue}
+        />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredAccounts.map((account) => (

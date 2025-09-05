@@ -70,6 +70,7 @@ const App = () => (
         <Route path="/contacts/:id" element={lazyLoad(() => import("./pages/ContactDetail"))} />
         <Route path="/accounts" element={lazyLoad(() => import("./pages/Accounts"))} />
         <Route path="/accounts/new" element={lazyLoad(() => import("./pages/AccountNew"))} />
+        <Route path="/accounts/:id" element={lazyLoad(() => import("./pages/AccountDetail"))} />
         <Route path="/analytics" element={lazyLoad(() => import("./pages/Analytics"))} />
               <Route path="/calendar" element={lazyLoad(() => import("./pages/Calendar"))} />
               <Route path="/tasks" element={lazyLoad(() => import("./pages/Tasks"))} />
