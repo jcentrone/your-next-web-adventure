@@ -245,3 +245,11 @@
   background: #fff;
   box-shadow: 0 0 4px rgba(0,0,0,.1);
 }
+
+/* Thumbnails used in the preview sidebar */
+.thumbnail-image {
+  width: 400%;
+  height: auto;
+  transform: scale(0.25);
+  transform-origin: top left;
+}
