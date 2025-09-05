@@ -1,13 +1,13 @@
 import React from "react";
 import {Report} from "@/lib/reportSchemas";
 import {PREVIEW_TEMPLATES} from "@/constants/previewTemplates";
-import { COLOR_SCHEMES } from "@/components/ui/color-scheme-picker";
+import {COLOR_SCHEMES} from "@/components/ui/color-scheme-picker";
 import {AlertCircle, AlertOctagon, AlertTriangle, Info, MinusCircle, Wrench} from "lucide-react";
 import ReportDetailsSection from "./ReportDetailsSection";
 import SectionInfoDisplay from "./SectionInfoDisplay";
-import { isSupabaseUrl } from "@/integrations/supabase/storage";
-import { COVER_TEMPLATES } from "@/constants/coverTemplates";
-import { renderInternachiStandards } from "@/utils/internachiStandardsContent";
+import {isSupabaseUrl} from "@/integrations/supabase/storage";
+import {COVER_TEMPLATES} from "@/constants/coverTemplates";
+import {renderInternachiStandards} from "@/utils/internachiStandardsContent";
 
 
 interface PDFDocumentProps {
@@ -37,9 +37,9 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
         const colorVars =
             report.colorScheme === "custom" && report.customColors
                 ? {
-                      "--heading-text-color": `hsl(${report.customColors.headingText || DEFAULT_TEXT_COLOR})`,
-                      "--body-text-color": `hsl(${report.customColors.bodyText || DEFAULT_TEXT_COLOR})`,
-                  }
+                    "--heading-text-color": `hsl(${report.customColors.headingText || DEFAULT_TEXT_COLOR})`,
+                    "--body-text-color": `hsl(${report.customColors.bodyText || DEFAULT_TEXT_COLOR})`,
+                }
                 : undefined;
 
         const summary = report.sections.flatMap((s) =>
@@ -82,8 +82,8 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
 
         return (
             <div ref={ref} className="pdf-document" style={colorVars as any}>
-                <div className="preview-page">
-                    <section className="pdf-page-break">
+                <div className="preview-page pdf-page-break">
+                    <div className="h-[1056px]">
                         <CoverComponent
                             reportTitle={report.title}
                             clientName={report.clientName}
@@ -93,20 +93,20 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                             colorScheme={
                                 report.colorScheme === "custom" && report.customColors
                                     ? {
-                                          primary: report.customColors.primary || "220 87% 56%",
-                                          secondary: report.customColors.secondary || "220 70% 40%", 
-                                          accent: report.customColors.accent || "220 90% 70%"
-                                      }
+                                        primary: report.customColors.primary || "220 87% 56%",
+                                        secondary: report.customColors.secondary || "220 70% 40%",
+                                        accent: report.customColors.accent || "220 90% 70%"
+                                    }
                                     : report.colorScheme && report.colorScheme !== "default"
-                                    ? {
-                                          primary: COLOR_SCHEMES[report.colorScheme].primary,
-                                          secondary: COLOR_SCHEMES[report.colorScheme].secondary,
-                                          accent: COLOR_SCHEMES[report.colorScheme].accent,
-                                      }
-                                    : undefined
+                                        ? {
+                                            primary: COLOR_SCHEMES[report.colorScheme].primary,
+                                            secondary: COLOR_SCHEMES[report.colorScheme].secondary,
+                                            accent: COLOR_SCHEMES[report.colorScheme].accent,
+                                        }
+                                        : undefined
                             }
                         />
-                    </section>
+                    </div>
                 </div>
 
                 <div className="preview-page">
@@ -265,7 +265,7 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                         </article>
                     </div>
                 ))}
-                
+
                 {/* InterNACHI Standards of Practice */}
                 {(report as any).includeStandardsOfPractice === true && (
                     <div className="preview-page">
@@ -276,11 +276,11 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                         </article>
                     </div>
                 )}
-                
+
                 {termsHtml && (
                     <div className="preview-page">
                         <article className={tpl.container}>
-                            <section className="pdf-page-break" dangerouslySetInnerHTML={{ __html: termsHtml }} />
+                            <section className="pdf-page-break" dangerouslySetInnerHTML={{__html: termsHtml}}/>
                         </article>
                     </div>
                 )}

@@ -224,17 +224,6 @@
   color: black;
 }
 
-.pdf-document .pdf-page-break {
-  margin-bottom: 2rem;
-  border-bottom: 2px dashed #e5e7eb;
-  padding-bottom: 2rem;
-}
-
-  .pdf-document .pdf-page-break:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-  }
 
 /* Preview page wrapper */
 .preview-page {
