@@ -65,9 +65,12 @@ const App = () => (
               <Route path="/reports/:id" element={lazyLoad(() => import("./pages/ReportEditor"))} />
               <Route path="/reports/:id/preview" element={lazyLoad(() => import("./pages/ReportPreview"))} />
               <Route path="/reports/:reportId/findings/:findingId/media/:mediaId/annotate" element={lazyLoad(() => import("./pages/ImageAnnotation"))} />
-              <Route path="/contacts" element={lazyLoad(() => import("./pages/Contacts"))} />
-              <Route path="/contacts/new" element={lazyLoad(() => import("./pages/ContactNew"))} />
-              <Route path="/contacts/:id" element={lazyLoad(() => import("./pages/ContactDetail"))} />
+        <Route path="/contacts" element={lazyLoad(() => import("./pages/Contacts"))} />
+        <Route path="/contacts/new" element={lazyLoad(() => import("./pages/ContactNew"))} />
+        <Route path="/contacts/:id" element={lazyLoad(() => import("./pages/ContactDetail"))} />
+        <Route path="/accounts" element={lazyLoad(() => import("./pages/Accounts"))} />
+        <Route path="/accounts/new" element={lazyLoad(() => import("./pages/AccountNew"))} />
+        <Route path="/analytics" element={lazyLoad(() => import("./pages/Analytics"))} />
               <Route path="/calendar" element={lazyLoad(() => import("./pages/Calendar"))} />
               <Route path="/tasks" element={lazyLoad(() => import("./pages/Tasks"))} />
               <Route path="/support" element={lazyLoad(() => import("./pages/ContactSupport"))} />

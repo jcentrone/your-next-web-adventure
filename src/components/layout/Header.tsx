@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { Menu, X, Download, Home, FileText, Users, Calendar, CheckSquare, Settings } from "lucide-react";
+import { Menu, X, Download, Home, FileText, Users, Calendar, CheckSquare, Settings, Building2, BarChart3 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 
@@ -63,9 +63,17 @@ const Header: React.FC = () => {
                 <Users className="h-4 w-4" />
                 Contacts
               </Link>
+              <Link to="/accounts" className="flex items-center gap-2 transition-colors hover:text-primary">
+                <Building2 className="h-4 w-4" />
+                Accounts
+              </Link>
               <Link to="/calendar" className="flex items-center gap-2 transition-colors hover:text-primary">
                 <Calendar className="h-4 w-4" />
                 Calendar
+              </Link>
+              <Link to="/analytics" className="flex items-center gap-2 transition-colors hover:text-primary">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
               </Link>
               <Link to="/tasks" className="flex items-center gap-2 transition-colors hover:text-primary">
                 <CheckSquare className="h-4 w-4" />
@@ -136,11 +144,25 @@ const Header: React.FC = () => {
                       Contacts
                     </Link>
                     <Link 
+                      to="/accounts" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Accounts
+                    </Link>
+                    <Link 
                       to="/calendar" 
                       className="text-foreground hover:text-primary transition-colors py-2"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Calendar
+                    </Link>
+                    <Link 
+                      to="/analytics" 
+                      className="text-foreground hover:text-primary transition-colors py-2"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Analytics
                     </Link>
                     <Link 
                       to="/tasks" 

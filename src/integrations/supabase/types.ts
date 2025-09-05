@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          address: string | null
+          annual_revenue: number | null
+          city: string | null
+          created_at: string
+          email: string | null
+          employee_count: number | null
+          id: string
+          industry: string | null
+          is_active: boolean
+          name: string
+          notes: string | null
+          organization_id: string | null
+          phone: string | null
+          state: string | null
+          type: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          annual_revenue?: number | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          employee_count?: number | null
+          id?: string
+          industry?: string | null
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          state?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          annual_revenue?: number | null
+          city?: string | null
+          created_at?: string
+          email?: string | null
+          employee_count?: number | null
+          id?: string
+          industry?: string | null
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          state?: string | null
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       activities: {
         Row: {
           activity_type: Database["public"]["Enums"]["activity_type"]
@@ -333,6 +399,7 @@ export type Database = {
       }
       contacts: {
         Row: {
+          account_id: string | null
           address: string | null
           address_components: Json | null
           city: string | null
@@ -357,6 +424,7 @@ export type Database = {
           zip_code: string | null
         }
         Insert: {
+          account_id?: string | null
           address?: string | null
           address_components?: Json | null
           city?: string | null
@@ -381,6 +449,7 @@ export type Database = {
           zip_code?: string | null
         }
         Update: {
+          account_id?: string | null
           address?: string | null
           address_components?: Json | null
           city?: string | null
@@ -404,7 +473,15 @@ export type Database = {
           user_id?: string
           zip_code?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contacts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cover_page_assignments: {
         Row: {
