@@ -1,12 +1,10 @@
 import React from "react";
-import html2canvas from "html2canvas";
 
 interface PreviewThumbnailNavProps {
     containerRef: React.RefObject<HTMLElement>;
 }
 
 const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef}) => {
-    const [thumbnails, setThumbnails] = React.useState<string[]>([]);
     const [pages, setPages] = React.useState<HTMLElement[]>([]);
     const [activePage, setActivePage] = React.useState(0);
 
@@ -16,21 +14,6 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef})
 
         const pageNodes = Array.from(container.querySelectorAll<HTMLElement>(".preview-page"));
         setPages(pageNodes);
-
-        Promise.all(
-            pageNodes.map((page) =>
-                // Use lower scale but better options for capturing images
-                html2canvas(page, {
-                    scale: 0.3,
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false,
-                    ignoreElements: (element) => {
-                        return element.tagName === 'SCRIPT' || element.tagName === 'STYLE';
-                    }
-                }).then((canvas) => canvas.toDataURL("image/png"))
-            )
-        ).then(setThumbnails);
     }, [containerRef]);
 
     React.useEffect(() => {
@@ -57,23 +40,33 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({containerRef})
     };
 
     return (
-        <div className="w-64 overflow-y-auto mt-[70px] h-screen fixed print:hidden border-r">
+        <div className="w-64 overflow-y-auto mt-[70px] h-screen fixed print:hidden border-r bg-background">
             <div className="flex flex-col gap-2 p-2">
-                {thumbnails.map((src, i) => (
+                {pages.map((page, i) => (
                     <button
                         key={i}
                         onClick={() => handleClick(i)}
-                        className={`border rounded w-full overflow-hidden ${activePage === i ? "border-primary" : "border-transparent"}`}
+                        className={`border rounded w-full overflow-hidden transition-colors ${
+                            activePage === i ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                        }`}
                         aria-label={`Go to page ${i + 1}`}
                     >
                         {/* Make a predictable box; A-series portrait ≈ 1 : 1.414 */}
-                        <div className="w-full aspect-[1/1.414]">
-                            <img
-                                src={src}
-                                alt={`Page ${i + 1}`}
-                                className="block w-full h-full object-contain"
-                                draggable={false}
-                            />
+                        <div className="w-full aspect-[1/1.414] relative overflow-hidden">
+                            <div 
+                                className="absolute top-0 left-0 pointer-events-none will-change-transform"
+                                style={{
+                                    transform: 'scale(0.15)',
+                                    transformOrigin: 'top left',
+                                    width: `${100 / 0.15}%`,
+                                    height: `${100 / 0.15}%`
+                                }}
+                            >
+                                <div 
+                                    dangerouslySetInnerHTML={{ __html: page.innerHTML }}
+                                    className="bg-white"
+                                />
+                            </div>
                         </div>
                     </button>
                 ))}
