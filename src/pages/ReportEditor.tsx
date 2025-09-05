@@ -1295,13 +1295,32 @@ const ReportEditor: React.FC = () => {
           )}
 
           {activeSection.key === "finalize" && (
-            <section className="rounded-md border p-3 space-y-3">
-              <div className="text-sm font-medium">Additional comments</div>
-              <Textarea
-                placeholder="Any final notes..."
-                value={(report as any).finalComments || ""}
-                onChange={(e) => setReport((prev) => (prev ? ({ ...prev, finalComments: e.target.value } as Report) : prev))}
-              />
+            <section className="rounded-md border p-3 space-y-4">
+              <div className="space-y-3">
+                <div className="text-sm font-medium">Include Standards of Practice</div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="includeStandardsOfPractice"
+                    checked={(report as any).includeStandardsOfPractice ?? true}
+                    onChange={(e) => setReport((prev) => (prev ? ({ ...prev, includeStandardsOfPractice: e.target.checked } as Report) : prev))}
+                    className="h-4 w-4"
+                  />
+                  <label htmlFor="includeStandardsOfPractice" className="text-sm">
+                    Include InterNACHI Standards of Practice in final report
+                  </label>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="text-sm font-medium">Additional comments</div>
+                <Textarea
+                  placeholder="Any final notes..."
+                  value={(report as any).finalComments || ""}
+                  onChange={(e) => setReport((prev) => (prev ? ({ ...prev, finalComments: e.target.value } as Report) : prev))}
+                />
+              </div>
+              
               <Button onClick={finalize} disabled={report.status === "Final"}>
                 {report.status === "Final" ? "Finalized" : "Finalize"}
               </Button>

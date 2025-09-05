@@ -186,6 +186,29 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                     mediaUrlMap={mediaUrlMap}
                 />
 
+                {/* InterNACHI Standards of Practice */}
+                {(report as any).includeStandardsOfPractice !== false && (
+                    <div className="preview-page">
+                        <section className="pdf-page-break p-8 min-h-[11in]">
+                            <h2 className="text-2xl font-bold mb-6" style={{ color: `hsl(${coverColorScheme?.primary || "220 87% 56%"})` }}>
+                                InterNACHI Standards of Practice
+                            </h2>
+                            <div className="text-sm space-y-4">
+                                <p>This inspection was performed in accordance with the current InterNACHI Standards of Practice.</p>
+                                <p><strong>Note:</strong> For the complete and most current version of the InterNACHI Standards of Practice, please visit: <a href="https://www.nachi.org/sop.htm" className="text-blue-600 underline">https://www.nachi.org/sop.htm</a></p>
+                                <div className="mt-4 p-4 bg-gray-50 rounded border">
+                                    <p className="text-xs italic text-gray-700">
+                                        The InterNACHI Standards of Practice define the scope and limitations of home inspections, 
+                                        establishing what inspectors are required to inspect and what they are not required to inspect. 
+                                        These standards help ensure consistency and professionalism across the industry while protecting 
+                                        both inspectors and clients by clearly defining expectations.
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                )}
+
                 {/* Terms and Conditions Page */}
                 {termsHtml && (
                     <div className="preview-page">

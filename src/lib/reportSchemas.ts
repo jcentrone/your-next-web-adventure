@@ -55,6 +55,7 @@ export const BaseReportSchema = z.object({
     status: z.enum(["Draft", "Final"]).default("Draft"),
     finalComments: z.string().optional().default(""),
     termsHtml: z.string().optional(),
+    includeStandardsOfPractice: z.boolean().default(true),
     coverImage: z.string().optional().default(""),
     coverTemplate: z
         .enum(["templateOne", "templateTwo", "templateThree", "templateFour", "templateFive", "templateSix",
