@@ -104,8 +104,8 @@ const Header: React.FC = () => {
                             <Link to="#features" className="transition-colors hover:text-primary">
                                 Features
                             </Link>
-                            <Link to="/#templates" className="transition-colors hover:text-primary">
-                                Templates
+                            <Link to="/sample-reports" className="transition-colors hover:text-primary">
+                                Sample Reports
                             </Link>
                         </>
                     )}
@@ -227,10 +227,10 @@ const Header: React.FC = () => {
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Features
                                         </Link>
-                                        <Link to="/#templates"
+                                        <Link to="/sample-reports"
                                               className="text-foreground hover:text-primary transition-colors py-2"
                                               onClick={() => setMobileMenuOpen(false)}>
-                                            Templates
+                                            Sample Reports
                                         </Link>
                                         <div className="border-t pt-4 mt-4 space-y-2">
                                             <Button variant="outline" className="w-full" asChild>

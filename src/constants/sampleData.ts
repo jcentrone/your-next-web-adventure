@@ -168,9 +168,9 @@ export const SAMPLE_REPORTS: SampleReport[] = [
     coverTemplate: "templateOne",
     previewTemplate: "classic",
     colorScheme: {
-      primary: "#1e3a8a",
-      secondary: "#3b82f6",
-      accent: "#fcd34d"
+      primary: "220 85% 33%",
+      secondary: "217 91% 60%", 
+      accent: "45 93% 72%"
     }
   },
   {
@@ -184,9 +184,9 @@ export const SAMPLE_REPORTS: SampleReport[] = [
     coverTemplate: "templateFive",
     previewTemplate: "modern",
     colorScheme: {
-      primary: "#166534",
-      secondary: "#22c55e",
-      accent: "#d9f99d"
+      primary: "142 69% 24%",
+      secondary: "142 76% 47%",
+      accent: "83 77% 80%"
     }
   },
   {
@@ -200,9 +200,9 @@ export const SAMPLE_REPORTS: SampleReport[] = [
     coverTemplate: "templateNine",
     previewTemplate: "minimal",
     colorScheme: {
-      primary: "#7c3aed",
-      secondary: "#c4b5fd",
-      accent: "#f9a8d4"
+      primary: "262 83% 58%",
+      secondary: "262 90% 84%",
+      accent: "322 85% 83%"
     }
   },
   // Wind Mitigation Templates
@@ -217,9 +217,9 @@ export const SAMPLE_REPORTS: SampleReport[] = [
     coverTemplate: "templateThree",
     previewTemplate: "classic",
     colorScheme: {
-      primary: "#f97316",
-      secondary: "#fb923c",
-      accent: "#f43f5e"
+      primary: "21 95% 52%",
+      secondary: "27 96% 61%",
+      accent: "348 83% 47%"
     }
   },
   {
@@ -233,9 +233,9 @@ export const SAMPLE_REPORTS: SampleReport[] = [
     coverTemplate: "templateSeven",
     previewTemplate: "modern",
     colorScheme: {
-      primary: "#be123c",
-      secondary: "#fda4af",
-      accent: "#f87171"
+      primary: "343 81% 41%",
+      secondary: "351 95% 82%",
+      accent: "3 87% 71%"
     }
   },
   // 4-Point Inspection
@@ -250,9 +250,9 @@ export const SAMPLE_REPORTS: SampleReport[] = [
     coverTemplate: "templateEleven",
     previewTemplate: "classic",
     colorScheme: {
-      primary: "#0f172a",
-      secondary: "#334155",
-      accent: "#64748b"
+      primary: "222 84% 12%",
+      secondary: "215 25% 27%",
+      accent: "215 16% 47%"
     }
   },
   // Wildfire Assessment
@@ -267,9 +267,9 @@ export const SAMPLE_REPORTS: SampleReport[] = [
     coverTemplate: "templateFifteen",
     previewTemplate: "modern",
     colorScheme: {
-      primary: "#f97316",
-      secondary: "#fb923c",
-      accent: "#fed7aa"
+      primary: "21 95% 52%",
+      secondary: "27 96% 61%",
+      accent: "33 100% 83%"
     }
   },
   // Roof Certification
@@ -284,9 +284,9 @@ export const SAMPLE_REPORTS: SampleReport[] = [
     coverTemplate: "templateSix",
     previewTemplate: "minimal",
     colorScheme: {
-      primary: "#1e40af",
-      secondary: "#60a5fa",
-      accent: "#dbeafe"
+      primary: "224 76% 40%",
+      secondary: "213 93% 68%",
+      accent: "214 95% 93%"
     }
   }
 ];
