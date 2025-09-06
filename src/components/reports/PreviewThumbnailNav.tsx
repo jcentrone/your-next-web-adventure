@@ -287,10 +287,11 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
     };
 
     return (
-        <div className="w-80 ps-6 overflow-y-auto mt-[70px] h-screen fixed print:hidden border-r bg-background">
-            <div className="flex flex-col gap-4 p-4">
+        <div className="w-80 ps-6 overflow-hidden mt-[70px] h-[calc(100vh-70px)] fixed print:hidden border-r bg-background flex flex-col">
+            {/* Fixed header with section dropdown and label */}
+            <div className="sticky top-0 bg-background z-10 p-4 border-b border-border">
                 {/* Section Dropdown */}
-                <div className="mb-2">
+                <div className="mb-4">
                     <label className="text-sm font-medium text-muted-foreground mb-2 block">Jump to Section</label>
                     <Select onValueChange={handleSectionChange}>
                         <SelectTrigger className="w-full text-sm bg-background">
@@ -308,8 +309,10 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
 
                 {/* Pages Label */}
                 <label className="text-sm font-medium text-muted-foreground">Page Thumbnails</label>
-                
-                 {/* Page Thumbnails */}
+            </div>
+
+            {/* Scrollable thumbnails area */}
+            <div className="flex-1 overflow-y-auto p-4 pt-2">
                 <div className="flex flex-col gap-2">
                     {pages.map((page, i) => (
                         <button
