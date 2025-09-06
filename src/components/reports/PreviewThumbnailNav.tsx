@@ -11,20 +11,28 @@ const ThumbnailContent: React.FC<{ page: HTMLElement; refreshKey?: string }> = (
 
     // Measure actual container dimensions
     React.useEffect(() => {
-        if (!containerRef.current) return;
-        
         const updateContainerSize = () => {
-            const rect = containerRef.current!.getBoundingClientRect();
-            setContainerSize({ width: rect.width, height: rect.height });
+            if (!containerRef.current) return;
+            const rect = containerRef.current.getBoundingClientRect();
+            // Only update if we have valid dimensions
+            if (rect.width > 0 && rect.height > 0) {
+                setContainerSize({ width: rect.width, height: rect.height });
+            }
         };
 
-        updateContainerSize();
+        // Use a slight delay to ensure the container is fully rendered
+        const timer = setTimeout(updateContainerSize, 100);
         
-        // Create ResizeObserver to track container size changes
+        // Also update on resize
         const resizeObserver = new ResizeObserver(updateContainerSize);
-        resizeObserver.observe(containerRef.current);
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
         
-        return () => resizeObserver.disconnect();
+        return () => {
+            clearTimeout(timer);
+            resizeObserver.disconnect();
+        };
     }, []);
 
     React.useEffect(() => {
@@ -104,19 +112,27 @@ const ThumbnailContent: React.FC<{ page: HTMLElement; refreshKey?: string }> = (
 
     // Calculate optimal scale based on actual container dimensions
     const getOptimalScale = () => {
-        if (!dimensions.width || !dimensions.height || !containerSize.width || !containerSize.height) {
-            return 0.39; // Fallback scale
+        if (!dimensions.width || !dimensions.height) {
+            return 0.3; // Fallback scale
         }
         
-        // Use actual measured container dimensions
-        const containerWidth = containerSize.width;
-        const containerHeight = containerSize.height;
+        // Use measured container dimensions, with fallback to aspect ratio calculation
+        let containerWidth = containerSize.width;
+        let containerHeight = containerSize.height;
+        
+        // If container size isn't measured yet, calculate from aspect ratio
+        if (!containerWidth || !containerHeight) {
+            // The container uses aspect-[85/110], so width:height = 85:110
+            // Assume a reasonable width based on sidebar (around 240px)
+            containerWidth = 240;
+            containerHeight = (240 * 110) / 85; // ~310
+        }
         
         const scaleX = containerWidth / dimensions.width;
         const scaleY = containerHeight / dimensions.height;
         
-        // Use the smaller scale to ensure content fits perfectly without white space
-        return Math.min(scaleX, scaleY, 0.5); // Cap at 0.5 for readability
+        // Use the smaller scale to ensure content fits without overflow
+        return Math.min(scaleX, scaleY, 0.4); // Cap for readability
     };
 
     const scale = getOptimalScale();
@@ -124,15 +140,18 @@ const ThumbnailContent: React.FC<{ page: HTMLElement; refreshKey?: string }> = (
     return (
         <div 
             ref={containerRef}
-            className="bg-white w-full h-full overflow-hidden flex items-center justify-center"
+            className="bg-white w-full h-full overflow-hidden relative"
         >
             <div 
                 dangerouslySetInnerHTML={{ __html: content }}
                 style={{
                     transform: `scale(${scale})`,
-                    transformOrigin: 'center center',
-                    width: dimensions.width || 'auto',
-                    height: dimensions.height || 'auto',
+                    transformOrigin: 'top left',
+                    width: dimensions.width,
+                    height: dimensions.height,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
                 }}
             />
         </div>
