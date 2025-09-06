@@ -72,7 +72,7 @@ const Pricing = () => {
             </div>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
               One affordable plan with everything you need to run a successful home inspection business. 
-              No hidden fees, no limits on reports.
+              Start with 5 free reports, then unlimited access for just $25/month.
             </p>
           </div>
         </section>
@@ -95,7 +95,7 @@ const Pricing = () => {
                   <span className="text-muted-foreground text-xl">/month</span>
                 </div>
                 <p className="text-muted-foreground text-lg">
-                  Everything you need for unlimited inspections
+                  Start with 5 free reports, then unlimited access
                 </p>
               </CardHeader>
 
@@ -174,7 +174,7 @@ const Pricing = () => {
                 <div className="mt-8 pt-6 border-t border-muted text-center">
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Button asChild size="lg" className="text-lg px-8">
-                      <Link to="/auth?mode=signup">Start Free Trial</Link>
+                      <Link to="/auth?mode=signup">Get 5 Free Reports</Link>
                     </Button>
                     <Button asChild variant="outline" size="lg" className="text-lg px-8">
                       <Link to="/features">View All Features</Link>
@@ -234,7 +234,7 @@ const Pricing = () => {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">Is there a free trial?</h3>
                   <p className="text-muted-foreground">
-                    Yes! We offer a 30-day free trial with full access to all features. No credit card required to start.
+                    Yes! You get 5 free reports to try out all our features. After that, it's just $25/month for unlimited access.
                   </p>
                 </CardContent>
               </Card>
@@ -252,7 +252,7 @@ const Pricing = () => {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">Is there a limit on reports?</h3>
                   <p className="text-muted-foreground">
-                    No limits! Create unlimited inspection reports, store unlimited photos, and manage unlimited contacts for one flat monthly fee.
+                    You start with 5 free reports, then get unlimited inspection reports, photos, and contacts for one flat monthly fee of $25.
                   </p>
                 </CardContent>
               </Card>
@@ -277,10 +277,10 @@ const Pricing = () => {
                 <h2 className="text-3xl font-bold mb-4">Ready to Streamline Your Business?</h2>
                 <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
                   Join thousands of home inspectors who have transformed their business with Home Report Pro. 
-                  Start your free trial today!
+                  Get started with 5 free reports today!
                 </p>
                 <Button asChild size="lg" className="text-lg px-8">
-                  <Link to="/auth?mode=signup">Start Free Trial - No Credit Card Required</Link>
+                  <Link to="/auth?mode=signup">Get 5 Free Reports - No Credit Card Required</Link>
                 </Button>
               </CardContent>
             </Card>
