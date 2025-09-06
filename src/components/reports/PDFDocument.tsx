@@ -13,13 +13,13 @@ import {calculatePageLayout} from "@/utils/paginationUtils";
 
 
 interface PDFDocumentProps {
-  report: Report;
-  mediaUrlMap: Record<string, string>;
-  coverUrl: string;
-  company?: string;
-  termsHtml?: string;
-  inspector?: any;
-  organization?: any;
+    report: Report;
+    mediaUrlMap: Record<string, string>;
+    coverUrl: string;
+    company?: string;
+    termsHtml?: string;
+    inspector?: any;
+    organization?: any;
 }
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
@@ -187,8 +187,8 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                                 if (!section) return null;
 
                                 return (
-                                    <section 
-                                        key={section.id} 
+                                    <section
+                                        key={section.id}
                                         className={`${tpl.sectionWrapper} ${index > 0 ? 'mt-8 pt-6 border-t border-gray-200' : ''}`}
                                     >
                                         <h2 className={tpl.h2}>{section.title}</h2>
@@ -284,18 +284,14 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                 ))}
 
                 {/* Inspector Certification Page */}
-                <div className="preview-page">
-                    <article className={tpl.container}>
-                        <section className="pdf-page-break">
-                            <InspectorCertificationPage
-                                inspector={inspector}
-                                organization={organization}
-                                report={report}
-                                mediaUrlMap={mediaUrlMap}
-                            />
-                        </section>
-                    </article>
-                </div>
+
+                <InspectorCertificationPage
+                    inspector={inspector}
+                    organization={organization}
+                    report={report}
+                    mediaUrlMap={mediaUrlMap}
+                />
+
 
                 {/* InterNACHI Standards of Practice */}
                 {renderInternachiStandards()}
