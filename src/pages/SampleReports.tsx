@@ -45,31 +45,56 @@ const SampleReports = () => {
 
   const handleDownload = async (report: SampleReport) => {
     try {
-      // Create a link element to download the sample PDF
-      const link = document.createElement('a');
-      link.href = `/templates/${report.reportType.toLowerCase().replace('_', '_')}_template.pdf`;
-      link.download = `${report.title.replace(/\s+/g, '_')}_Sample.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Error downloading sample report:', error);
-      // Fallback: Generate a sample PDF with basic content
+      const { SampleReportGenerator } = await import('@/components/samples/SampleReportGenerator');
       const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
+      const html2canvas = (await import('html2canvas')).default;
       
-      // Add basic content
-      doc.setFontSize(20);
-      doc.text(report.title, 20, 30);
-      doc.setFontSize(12);
-      doc.text(`Sample ${report.reportType.replace('_', ' ')} Report`, 20, 50);
-      doc.text(`Organization: ${report.organization.name}`, 20, 70);
-      doc.text(`Inspector: ${report.inspector.name}`, 20, 90);
-      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 110);
-      doc.text('This is a sample report template. Sign up to create custom reports.', 20, 140);
+      // Create temporary container
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.width = '8.5in';
+      container.style.backgroundColor = 'white';
+      document.body.appendChild(container);
       
-      // Save the PDF
-      doc.save(`${report.title.replace(/\s+/g, '_')}_Sample.pdf`);
+      // Generate report content  
+      const { createRoot } = await import('react-dom/client');
+      const root = createRoot(container);
+      
+      await new Promise<void>((resolve) => {
+        root.render(
+          React.createElement(SampleReportGenerator, {
+            report,
+            onGenerated: async (element: HTMLElement) => {
+              try {
+                // Convert to PDF
+                const canvas = await html2canvas(element, {
+                  scale: 2,
+                  useCORS: true,
+                  backgroundColor: '#ffffff'
+                });
+                
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.save(`${report.title.replace(/\s+/g, '_')}_Sample.pdf`);
+                
+                // Cleanup
+                document.body.removeChild(container);
+                resolve();
+              } catch (error) {
+                console.error('PDF generation error:', error);
+                document.body.removeChild(container);
+                resolve();
+              }
+            }
+          })
+        );
+      });
+    } catch (error) {
+      console.error('Error generating sample report:', error);
     }
   };
 
