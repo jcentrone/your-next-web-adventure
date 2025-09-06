@@ -622,8 +622,8 @@ const ReportPreview: React.FC = () => {
                     onPageChange={setCurrentPage}
                     report={report}
                 />
-                <div className="flex-1 pt-24 ms-80 flex justify-center">
-                    <div className="w-full max-w-4xl px-4 py-10">
+                <div className="flex-1 pt-24 ms-80 flex justify-center relative z-10">
+                    <div className="w-full max-w-4xl px-4 py-10 relative z-10">
                         <PDFDocument
                             ref={pdfContainerRef}
                             report={report}
