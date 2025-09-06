@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {Button} from "@/components/ui/button";
 import {useNavigate, useParams} from "react-router-dom";
 import {ChevronLeft, ChevronRight} from "lucide-react";
@@ -17,6 +17,7 @@ import PDFDocument from "@/components/reports/PDFDocument";
 import PreviewThumbnailNav from "@/components/reports/PreviewThumbnailNav";
 import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
+import {calculatePageLayout} from "@/utils/paginationUtils";
 import {
     getMyOrganization,
     getMyProfile,
@@ -63,6 +64,14 @@ const ReportPreview: React.FC = () => {
     const [organization, setOrganization] = React.useState<Organization | null>(null);
     const [inspector, setInspector] = React.useState<Profile | null>(null);
     const [termsHtml, setTermsHtml] = React.useState<string | null>(null);
+    
+    // Calculate smart pagination for home inspection reports
+    const pageGroups = useMemo(() => {
+        if (report?.reportType === "home_inspection" && "sections" in report) {
+            return calculatePageLayout(report.sections);
+        }
+        return undefined;
+    }, [report]);
 
     const [isGeneratingPDF, setIsGeneratingPDF] = React.useState(false);
     const [savingCoverTpl, setSavingCoverTpl] = React.useState(false);
@@ -621,6 +630,7 @@ const ReportPreview: React.FC = () => {
                     currentPage={currentPage}
                     onPageChange={setCurrentPage}
                     report={report}
+                    pageGroups={pageGroups}
                 />
                 <div className="flex-1 pt-24 ms-80 flex justify-center">
                     <div className="w-full max-w-4xl px-4 py-10">

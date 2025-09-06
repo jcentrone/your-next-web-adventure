@@ -1,18 +1,21 @@
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageGroup } from "@/utils/paginationUtils";
 
 interface PreviewThumbnailNavProps {
     containerRef: React.RefObject<HTMLElement>;
     currentPage?: number;
     onPageChange?: (pageIndex: number) => void;
     report?: any;
+    pageGroups?: PageGroup[];
 }
 
 const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
     containerRef, 
     currentPage, 
     onPageChange,
-    report
+    report,
+    pageGroups
 }) => {
     const [pages, setPages] = React.useState<HTMLElement[]>([]);
     const [activePage, setActivePage] = React.useState(currentPage || 0);
@@ -43,8 +46,29 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
             currentPageIndex++;
         }
 
-        // Report sections
-        if (report?.sections?.length > 0) {
+        // Report sections (using smart pagination)
+        if (pageGroups && pageGroups.length > 0) {
+            pageGroups.forEach((pageGroup) => {
+                if (pageGroup.sections.length === 1) {
+                    // Single section per page
+                    sectionMapping.push({ 
+                        name: pageGroup.sections[0].title, 
+                        startPage: currentPageIndex, 
+                        endPage: currentPageIndex 
+                    });
+                } else {
+                    // Multiple sections per page
+                    const sectionTitles = pageGroup.sections.map(s => s.title);
+                    sectionMapping.push({ 
+                        name: `${sectionTitles[0]} + ${sectionTitles.length - 1} more`, 
+                        startPage: currentPageIndex, 
+                        endPage: currentPageIndex 
+                    });
+                }
+                currentPageIndex++;
+            });
+        } else if (report?.sections?.length > 0) {
+            // Fallback to old pagination if pageGroups not available
             report.sections.forEach((section: any) => {
                 if (section.key !== 'report_details') {
                     sectionMapping.push({ 

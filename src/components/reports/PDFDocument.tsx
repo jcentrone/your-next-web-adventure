@@ -9,6 +9,7 @@ import {isSupabaseUrl} from "@/integrations/supabase/storage";
 import {COVER_TEMPLATES} from "@/constants/coverTemplates";
 import {renderInternachiStandards} from "@/utils/internachiStandardsContent";
 import InspectorCertificationPage from "./InspectorCertificationPage";
+import {calculatePageLayout} from "@/utils/paginationUtils";
 
 
 interface PDFDocumentProps {
@@ -82,6 +83,9 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
             }
             return acc;
         }, [] as { sectionTitle: string; counts: Record<string, number> }[]);
+
+        // Calculate smart pagination layout
+        const pageGroups = calculatePageLayout(report.sections);
 
         return (
             <div ref={ref} className="pdf-document relative" style={colorVars as any}>
@@ -174,97 +178,107 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                     </div>
                 )}
 
-                {/* Sections */}
-                {report.sections.filter(sec => sec.key !== 'report_details').map((sec) => (
-                    <div key={sec.id} className="preview-page">
+                {/* Smart Paginated Sections */}
+                {pageGroups.map((pageGroup) => (
+                    <div key={pageGroup.pageId} className="preview-page">
                         <article className={tpl.container}>
-                            <section className={tpl.sectionWrapper}>
-                                <h2 className={tpl.h2}>{sec.title}</h2>
+                            {pageGroup.sections.map((sectionAnalysis, index) => {
+                                const section = report.sections.find(s => s.id === sectionAnalysis.sectionId);
+                                if (!section) return null;
 
-                                {/* Section Information */}
-                                <SectionInfoDisplay
-                                    sectionKey={sec.key}
-                                    sectionInfo={sec.info || {}}
-                                    className={tpl.sectionInfo}
-                                />
+                                return (
+                                    <section 
+                                        key={section.id} 
+                                        className={`${tpl.sectionWrapper} ${index > 0 ? 'mt-8 pt-6 border-t border-gray-200' : ''}`}
+                                    >
+                                        <h2 className={tpl.h2}>{section.title}</h2>
 
-                                {sec.findings.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground">No material defects noted.</p>
-                                ) : (
-                                    sec.findings.map((f) => {
-                                        const Icon = SEVERITY_ICONS[f.severity];
-                                        const badgeConfig = tpl.severityBadge[f.severity];
-                                        const badgeClasses = typeof badgeConfig === 'string'
-                                            ? badgeConfig
-                                            : (badgeConfig as { className?: string })?.className || '';
+                                        {/* Section Information */}
+                                        <SectionInfoDisplay
+                                            sectionKey={section.key}
+                                            sectionInfo={section.info || {}}
+                                            className={tpl.sectionInfo}
+                                        />
 
-                                        return (
-                                            <article key={f.id} className={tpl.findingWrapper}>
-                                                <h3 className={tpl.h3}>
-                                                    <span
-                                                        aria-label={`${f.severity} issue`}
-                                                        className={`inline-flex items-center gap-1 px-2 py-0.5 mr-2 rounded ${badgeClasses}`}
-                                                    >
-                                                        <Icon size={14}/>
-                                                        {f.severity}
-                                                    </span>
-                                                    {f.title}
-                                                </h3>
-                                                {f.narrative &&
-                                                    <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
-                                                {f.recommendation && (
-                                                    <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>
-                                                )}
-                                                {f.media.length > 0 && (
-                                                    <div className="mt-2 grid grid-cols-2 gap-3">
-                                                        {f.media.map((m) => {
-                                                            const hasSignedUrl = !isSupabaseUrl(m.url) || !!mediaUrlMap[m.id];
-                                                            if (!hasSignedUrl) {
-                                                                return (
-                                                                    <figure key={m.id}>
-                                                                        <div
-                                                                            className="w-full h-32 bg-gray-100 rounded border"/>
-                                                                        {m.caption && (
-                                                                            <figcaption
-                                                                                className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
-                                                                        )}
-                                                                    </figure>
-                                                                );
-                                                            }
-                                                            const resolvedUrl = mediaUrlMap[m.id] || m.url;
-                                                            return (
-                                                                <figure key={m.id}>
-                                                                    {m.type === "image" ? (
-                                                                        <img
-                                                                            src={resolvedUrl}
-                                                                            alt={m.caption || f.title}
-                                                                            className="w-full max-h-64 object-contain rounded border pdf-image"
-                                                                        />
-                                                                    ) : m.type === "video" ? (
-                                                                        <div
-                                                                            className="w-full h-32 bg-gray-100 rounded border flex items-center justify-center">
-                                                                            <p className="text-sm text-gray-500">Video: {m.caption || f.title}</p>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div
-                                                                            className="w-full h-16 bg-gray-100 rounded border flex items-center justify-center">
-                                                                            <p className="text-xs text-gray-500">Audio: {m.caption || f.title}</p>
-                                                                        </div>
-                                                                    )}
-                                                                    {m.caption && (
-                                                                        <figcaption
-                                                                            className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
-                                                                    )}
-                                                                </figure>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
-                                            </article>
-                                        );
-                                    })
-                                )}
-                            </section>
+                                        {section.findings.length === 0 ? (
+                                            <p className="text-sm text-muted-foreground">No material defects noted.</p>
+                                        ) : (
+                                            section.findings.map((f) => {
+                                                const Icon = SEVERITY_ICONS[f.severity];
+                                                const badgeConfig = tpl.severityBadge[f.severity];
+                                                const badgeClasses = typeof badgeConfig === 'string'
+                                                    ? badgeConfig
+                                                    : (badgeConfig as { className?: string })?.className || '';
+
+                                                return (
+                                                    <article key={f.id} className={tpl.findingWrapper}>
+                                                        <h3 className={tpl.h3}>
+                                                            <span
+                                                                aria-label={`${f.severity} issue`}
+                                                                className={`inline-flex items-center gap-1 px-2 py-0.5 mr-2 rounded ${badgeClasses}`}
+                                                            >
+                                                                <Icon size={14}/>
+                                                                {f.severity}
+                                                            </span>
+                                                            {f.title}
+                                                        </h3>
+                                                        {f.narrative &&
+                                                            <p className="text-sm mt-1 whitespace-pre-wrap">{f.narrative}</p>}
+                                                        {f.recommendation && (
+                                                            <p className="text-sm mt-1 italic">Recommendation: {f.recommendation}</p>
+                                                        )}
+                                                        {f.media.length > 0 && (
+                                                            <div className="mt-2 grid grid-cols-2 gap-3">
+                                                                {f.media.map((m) => {
+                                                                    const hasSignedUrl = !isSupabaseUrl(m.url) || !!mediaUrlMap[m.id];
+                                                                    if (!hasSignedUrl) {
+                                                                        return (
+                                                                            <figure key={m.id}>
+                                                                                <div
+                                                                                    className="w-full h-32 bg-gray-100 rounded border"/>
+                                                                                {m.caption && (
+                                                                                    <figcaption
+                                                                                        className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
+                                                                                )}
+                                                                            </figure>
+                                                                        );
+                                                                    }
+                                                                    const resolvedUrl = mediaUrlMap[m.id] || m.url;
+                                                                    return (
+                                                                        <figure key={m.id}>
+                                                                            {m.type === "image" ? (
+                                                                                <img
+                                                                                    src={resolvedUrl}
+                                                                                    alt={m.caption || f.title}
+                                                                                    className="w-full max-h-64 object-contain rounded border pdf-image"
+                                                                                />
+                                                                            ) : m.type === "video" ? (
+                                                                                <div
+                                                                                    className="w-full h-32 bg-gray-100 rounded border flex items-center justify-center">
+                                                                                    <p className="text-sm text-gray-500">Video: {m.caption || f.title}</p>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div
+                                                                                    className="w-full h-16 bg-gray-100 rounded border flex items-center justify-center">
+                                                                                    <p className="text-xs text-gray-500">Audio: {m.caption || f.title}</p>
+                                                                                </div>
+                                                                            )}
+                                                                            {m.caption && (
+                                                                                <figcaption
+                                                                                    className="text-xs text-muted-foreground mt-1">{m.caption}</figcaption>
+                                                                            )}
+                                                                        </figure>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                    </article>
+                                                );
+                                            })
+                                        )}
+                                    </section>
+                                );
+                            })}
                         </article>
                     </div>
                 ))}
