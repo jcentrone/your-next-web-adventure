@@ -37,7 +37,7 @@ export const useDynamicSidebarHeight = ({
             
             // Calculate proportional height reduction
             const reductionRatio = Math.min(visibleBottom / 200, 1); // 200px threshold for smooth transition
-            const heightReduction = reductionRatio * 100; // Max 100px reduction
+            const heightReduction = reductionRatio * 105; // Max 105px reduction
             
             setSidebarHeight(`calc(${baseHeight} - ${heightReduction}px)`);
           } else {
@@ -67,7 +67,7 @@ export const useDynamicSidebarHeight = ({
       if (containerBottom < viewportHeight) {
         const visibleBottom = Math.max(0, viewportHeight - containerBottom);
         const reductionRatio = Math.min(visibleBottom / 200, 1);
-        const heightReduction = reductionRatio * 100;
+        const heightReduction = reductionRatio * 105;
         
         setSidebarHeight(`calc(${baseHeight} - ${heightReduction}px)`);
       } else {
