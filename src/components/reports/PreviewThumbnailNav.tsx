@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PageGroup } from "@/utils/paginationUtils";
 
 // Enhanced thumbnail content component with dynamic scaling and content awareness
-const ThumbnailContent: React.FC<{ page: HTMLElement }> = ({ page }) => {
+const ThumbnailContent: React.FC<{ page: HTMLElement; refreshKey?: string }> = ({ page, refreshKey }) => {
     const [content, setContent] = React.useState('');
     const [dimensions, setDimensions] = React.useState({ width: 0, height: 0 });
 
@@ -78,7 +78,7 @@ const ThumbnailContent: React.FC<{ page: HTMLElement }> = ({ page }) => {
 
         applyStyleOverrides(clonedPage);
         setContent(clonedPage.innerHTML);
-    }, [page]);
+    }, [page, refreshKey]);
 
     // Calculate optimal scale based on content dimensions
     const getOptimalScale = () => {
@@ -128,6 +128,11 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
     const [pages, setPages] = React.useState<HTMLElement[]>([]);
     const [activePage, setActivePage] = React.useState(currentPage || 0);
     const [sections, setSections] = React.useState<Array<{name: string, startPage: number, endPage: number}>>([]);
+    
+    // Create composite refresh key for template changes
+    const refreshKey = React.useMemo(() => {
+        return `${report?.previewTemplate || ''}-${report?.coverTemplate || ''}-${report?.colorScheme || ''}-${JSON.stringify(report?.customColors || {})}`;
+    }, [report?.previewTemplate, report?.coverTemplate, report?.colorScheme, report?.customColors]);
 
     // Capture page elements with content synchronization
     React.useEffect(() => {
@@ -231,7 +236,7 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
         });
 
         return () => observer.disconnect();
-    }, [containerRef, report, pageGroups, report?.previewTemplate, report?.coverTemplate, report?.colorScheme, report?.customColors]);
+    }, [containerRef, report, pageGroups, refreshKey]);
 
     // Update active page from props
     React.useEffect(() => {
@@ -326,7 +331,7 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
                             {/* Enhanced thumbnail container with proper content fitting */}
                             <div className="w-full aspect-[85/110] relative overflow-hidden bg-white">
                                 <div className="absolute inset-0">
-                                    <ThumbnailContent page={page} />
+                                    <ThumbnailContent key={`${i}-${refreshKey}`} page={page} refreshKey={refreshKey} />
                                 </div>
                                 {/* Page number overlay */}
                                 <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
