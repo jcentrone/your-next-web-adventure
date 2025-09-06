@@ -129,13 +129,19 @@ function getEmailSubject(emailActionType: string, organizationName: string): str
 }
 
 Deno.serve(async (req) => {
+  console.log('=== Send Email Function Called ===');
+  console.log('Method:', req.method);
+  console.log('Headers:', Object.fromEntries(req.headers.entries()));
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
     return new Response(null, { headers: corsHeaders });
   }
 
   // Only allow POST requests
   if (req.method !== 'POST') {
+    console.log('Method not allowed:', req.method);
     return new Response('Method not allowed', { 
       status: 405, 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
