@@ -6,8 +6,30 @@ import { PageGroup } from "@/utils/paginationUtils";
 const ThumbnailContent: React.FC<{ page: HTMLElement; refreshKey?: string }> = ({ page, refreshKey }) => {
     const [content, setContent] = React.useState('');
     const [dimensions, setDimensions] = React.useState({ width: 0, height: 0 });
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const [containerSize, setContainerSize] = React.useState({ width: 0, height: 0 });
+
+    // Measure actual container dimensions
+    React.useEffect(() => {
+        if (!containerRef.current) return;
+        
+        const updateContainerSize = () => {
+            const rect = containerRef.current!.getBoundingClientRect();
+            setContainerSize({ width: rect.width, height: rect.height });
+        };
+
+        updateContainerSize();
+        
+        // Create ResizeObserver to track container size changes
+        const resizeObserver = new ResizeObserver(updateContainerSize);
+        resizeObserver.observe(containerRef.current);
+        
+        return () => resizeObserver.disconnect();
+    }, []);
 
     React.useEffect(() => {
+        if (!page) return;
+        
         // Get actual rendered dimensions of the page
         const rect = page.getBoundingClientRect();
         setDimensions({ width: rect.width, height: rect.height });
@@ -80,17 +102,20 @@ const ThumbnailContent: React.FC<{ page: HTMLElement; refreshKey?: string }> = (
         setContent(clonedPage.innerHTML);
     }, [page, refreshKey]);
 
-    // Calculate optimal scale based on content dimensions
+    // Calculate optimal scale based on actual container dimensions
     const getOptimalScale = () => {
-        const containerWidth = 240; // Approximate thumbnail container width
-        const containerHeight = 310; // Approximate thumbnail container height
+        if (!dimensions.width || !dimensions.height || !containerSize.width || !containerSize.height) {
+            return 0.39; // Fallback scale
+        }
         
-        if (dimensions.width === 0 || dimensions.height === 0) return 0.39;
+        // Use actual measured container dimensions
+        const containerWidth = containerSize.width;
+        const containerHeight = containerSize.height;
         
         const scaleX = containerWidth / dimensions.width;
         const scaleY = containerHeight / dimensions.height;
         
-        // Use the smaller scale to ensure content fits
+        // Use the smaller scale to ensure content fits perfectly without white space
         return Math.min(scaleX, scaleY, 0.5); // Cap at 0.5 for readability
     };
 
@@ -98,15 +123,19 @@ const ThumbnailContent: React.FC<{ page: HTMLElement; refreshKey?: string }> = (
 
     return (
         <div 
-            dangerouslySetInnerHTML={{ __html: content }}
-            className="bg-white w-full h-full overflow-hidden"
-            style={{
-                transform: `scale(${scale})`,
-                transformOrigin: 'top left',
-                width: `${100 / scale}%`,
-                height: `${100 / scale}%`
-            }}
-        />
+            ref={containerRef}
+            className="bg-white w-full h-full overflow-hidden flex items-center justify-center"
+        >
+            <div 
+                dangerouslySetInnerHTML={{ __html: content }}
+                style={{
+                    transform: `scale(${scale})`,
+                    transformOrigin: 'center center',
+                    width: dimensions.width || 'auto',
+                    height: dimensions.height || 'auto',
+                }}
+            />
+        </div>
     );
 };
 
