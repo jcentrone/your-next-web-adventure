@@ -12,6 +12,11 @@ import EmailChangeEmail from "./_templates/email-change.tsx";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
 const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 // Initialize Supabase client for fetching organization data
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
@@ -124,6 +129,19 @@ function getEmailSubject(emailActionType: string, organizationName: string): str
 }
 
 Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { 
+      status: 405, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
   try {
     console.log('Processing email request...');
     
@@ -184,7 +202,7 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error('Send email error:', err);
@@ -197,7 +215,7 @@ Deno.serve(async (req) => {
     };
     return new Response(JSON.stringify(body), {
       status: error.code ?? 500,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
