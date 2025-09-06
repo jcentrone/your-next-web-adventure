@@ -31,7 +31,7 @@ export const EmailChangeEmail = ({
   secondaryColor = '#64748b',
   userName = 'there',
 }: EmailChangeEmailProps) => {
-  const confirmUrl = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=email_change&redirect_to=${redirect_to}`
+  const confirmationUrl = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=email_change&redirect_to=${redirect_to}`
   
   return (
     <Html>
@@ -46,15 +46,15 @@ export const EmailChangeEmail = ({
               style={logo}
             />
           )}
-          <Heading style={{...h1, color: primaryColor}}>Confirm Email Change</Heading>
+          <Heading style={{...h1, color: primaryColor}}>Confirm Your New Email</Heading>
           <Text style={text}>
             Hi {userName},
           </Text>
           <Text style={text}>
-            We received a request to change the email address for your {organizationName} account. Click the button below to confirm this change.
+            We received a request to change your email address for your {organizationName} account. Please confirm your new email address by clicking the button below.
           </Text>
           <Link
-            href={confirmUrl}
+            href={confirmationUrl}
             target="_blank"
             style={{
               ...button,
@@ -65,13 +65,10 @@ export const EmailChangeEmail = ({
             Confirm New Email
           </Link>
           <Text style={text}>
-            If the button doesn't work, you can also click this link: {confirmUrl}
-          </Text>
-          <Text style={text}>
-            This email change confirmation link will expire in 1 hour for security reasons.
+            If the button doesn't work, you can also click this link: {confirmationUrl}
           </Text>
           <Text style={footer}>
-            If you didn't request this email change, please contact our support team immediately. Your account security is important to us.
+            If you didn't request this email change, please contact us immediately as someone may be trying to access your account.
           </Text>
           <Text style={footer}>
             © 2025 {organizationName}. All rights reserved.

@@ -31,12 +31,12 @@ export const PasswordRecoveryEmail = ({
   secondaryColor = '#64748b',
   userName = 'there',
 }: PasswordRecoveryEmailProps) => {
-  const recoveryUrl = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=recovery&redirect_to=${redirect_to}`
+  const resetUrl = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=recovery&redirect_to=${redirect_to}`
   
   return (
     <Html>
       <Head />
-      <Preview>Reset your {organizationName} password</Preview>
+      <Preview>Reset your password for {organizationName}</Preview>
       <Body style={main}>
         <Container style={container}>
           {organizationLogo && (
@@ -51,10 +51,10 @@ export const PasswordRecoveryEmail = ({
             Hi {userName},
           </Text>
           <Text style={text}>
-            We received a request to reset your password for your {organizationName} account. Click the button below to create a new password.
+            We received a request to reset your password for your {organizationName} account. Click the button below to choose a new password.
           </Text>
           <Link
-            href={recoveryUrl}
+            href={resetUrl}
             target="_blank"
             style={{
               ...button,
@@ -65,13 +65,10 @@ export const PasswordRecoveryEmail = ({
             Reset Password
           </Link>
           <Text style={text}>
-            If the button doesn't work, you can also click this link: {recoveryUrl}
-          </Text>
-          <Text style={text}>
-            This password reset link will expire in 1 hour for security reasons.
+            If the button doesn't work, you can also click this link: {resetUrl}
           </Text>
           <Text style={footer}>
-            If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+            If you didn't request a password reset, you can safely ignore this email. Your password will not be changed.
           </Text>
           <Text style={footer}>
             © 2025 {organizationName}. All rights reserved.

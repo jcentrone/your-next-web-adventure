@@ -18,6 +18,7 @@ interface InviteEmailProps {
   organizationLogo?: string
   primaryColor?: string
   secondaryColor?: string
+  userName?: string
   inviterName?: string
   inviteeEmail?: string
 }
@@ -30,8 +31,9 @@ export const InviteEmail = ({
   organizationLogo,
   primaryColor = '#2563eb',
   secondaryColor = '#64748b',
-  inviterName = 'Your colleague',
-  inviteeEmail = 'there',
+  userName = 'there',
+  inviterName = 'the team',
+  inviteeEmail,
 }: InviteEmailProps) => {
   const inviteUrl = `${supabase_url}/auth/v1/verify?token=${token_hash}&type=invite&redirect_to=${redirect_to}`
   
@@ -50,13 +52,10 @@ export const InviteEmail = ({
           )}
           <Heading style={{...h1, color: primaryColor}}>You're Invited!</Heading>
           <Text style={text}>
-            Hi there,
+            Hi {userName},
           </Text>
           <Text style={text}>
-            {inviterName} has invited you to join {organizationName}, a professional home inspection platform.
-          </Text>
-          <Text style={text}>
-            Click the button below to accept the invitation and set up your account:
+            {inviterName} has invited you to join {organizationName}. Click the button below to accept your invitation and create your account.
           </Text>
           <Link
             href={inviteUrl}
@@ -72,8 +71,13 @@ export const InviteEmail = ({
           <Text style={text}>
             If the button doesn't work, you can also click this link: {inviteUrl}
           </Text>
-          <Text style={text}>
-            This invitation was sent to {inviteeEmail}. If you weren't expecting this invitation, you can safely ignore this email.
+          {inviteeEmail && (
+            <Text style={text}>
+              This invitation was sent to {inviteeEmail}.
+            </Text>
+          )}
+          <Text style={footer}>
+            If you weren't expecting this invitation, you can safely ignore this email.
           </Text>
           <Text style={footer}>
             © 2025 {organizationName}. All rights reserved.
