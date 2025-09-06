@@ -78,7 +78,7 @@ async function getOrganizationBranding(userEmail: string) {
         primaryColor: org.primary_color || '#2563eb',
         secondaryColor: org.secondary_color || '#64748b',
         emailFromName: org.email_from_name || org.name,
-        emailFromAddress: org.email_from_address || 'noreply@homeexpertpro.com',
+        emailFromAddress: org.email_from_address || 'noreply@homereportpro.com',
         userName: profile.full_name || 'there',
       };
     }
@@ -93,7 +93,7 @@ async function getOrganizationBranding(userEmail: string) {
     primaryColor: '#2563eb',
     secondaryColor: '#64748b',
     emailFromName: 'HomeReportPro',
-    emailFromAddress: 'noreply@homeexpertpro.com',
+    emailFromAddress: 'noreply@homereportpro.com',
     userName: 'there',
   };
 }

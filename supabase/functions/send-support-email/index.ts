@@ -54,8 +54,8 @@ ${logsSection}
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "HomeReportPro Support <noreply@homeexpertpro.com>",
-      to: ["support@homeexpertpro.com"],
+      from: "HomeReportPro Support <noreply@homereportpro.com>",
+      to: ["support@homereportpro.com"],
       reply_to: email,
       subject: `Support Request: ${subject}`,
       text: emailBody,
