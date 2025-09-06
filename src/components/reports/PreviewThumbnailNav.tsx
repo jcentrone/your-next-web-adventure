@@ -2,6 +2,59 @@ import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageGroup } from "@/utils/paginationUtils";
 
+// Enhanced thumbnail content component with better text alignment handling
+const ThumbnailContent: React.FC<{ page: HTMLElement }> = ({ page }) => {
+    const [content, setContent] = React.useState('');
+
+    React.useEffect(() => {
+        // Clone the page content and apply stronger overrides
+        const clonedPage = page.cloneNode(true) as HTMLElement;
+        
+        // Apply comprehensive styling overrides to ensure proper alignment
+        const applyStyleOverrides = (element: HTMLElement) => {
+            // Reset text alignment for all elements
+            element.style.textAlign = 'left';
+            
+            // Handle specific classes that should maintain their alignment
+            if (element.classList.contains('text-center') || 
+                element.tagName === 'H1' || 
+                element.tagName === 'H2') {
+                element.style.textAlign = 'center';
+            }
+            if (element.classList.contains('text-right')) {
+                element.style.textAlign = 'right';
+            }
+            if (element.classList.contains('justify-center')) {
+                element.style.justifyContent = 'center';
+            }
+            if (element.classList.contains('items-center')) {
+                element.style.alignItems = 'center';
+            }
+            if (element.classList.contains('mx-auto')) {
+                element.style.marginLeft = 'auto';
+                element.style.marginRight = 'auto';
+            }
+            
+            // Recursively apply to children
+            Array.from(element.children).forEach(child => {
+                if (child instanceof HTMLElement) {
+                    applyStyleOverrides(child);
+                }
+            });
+        };
+
+        applyStyleOverrides(clonedPage);
+        setContent(clonedPage.innerHTML);
+    }, [page]);
+
+    return (
+        <div 
+            dangerouslySetInnerHTML={{ __html: content }}
+            className="bg-white"
+        />
+    );
+};
+
 interface PreviewThumbnailNavProps {
     containerRef: React.RefObject<HTMLElement>;
     currentPage?: number;
@@ -21,89 +74,109 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
     const [activePage, setActivePage] = React.useState(currentPage || 0);
     const [sections, setSections] = React.useState<Array<{name: string, startPage: number, endPage: number}>>([]);
 
+    // Capture page elements with content synchronization
     React.useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
 
-        const pageNodes = Array.from(container.querySelectorAll<HTMLElement>(".preview-page"));
-        setPages(pageNodes);
+        const capturePages = () => {
+            const pageNodes = Array.from(container.querySelectorAll<HTMLElement>(".preview-page"));
+            setPages(pageNodes);
+            
+            // Create section mapping after pages are captured
+            const sectionMapping = [];
+            let currentPageIndex = 0;
 
-        // Create section mapping
-        const sectionMapping = [];
-        let currentPageIndex = 0;
-
-        // Cover page
-        sectionMapping.push({ name: 'Cover', startPage: currentPageIndex, endPage: currentPageIndex });
-        currentPageIndex++;
-
-        // Report details
-        sectionMapping.push({ name: 'Report Details', startPage: currentPageIndex, endPage: currentPageIndex });
-        currentPageIndex++;
-
-        // Summary (if exists)
-        if (report?.sections?.some((s: any) => s.findings?.length > 0)) {
-            sectionMapping.push({ name: 'Summary', startPage: currentPageIndex, endPage: currentPageIndex });
+            // Cover page
+            sectionMapping.push({ name: 'Cover', startPage: currentPageIndex, endPage: currentPageIndex });
             currentPageIndex++;
-        }
 
-        // Report sections (using smart pagination)
-        if (pageGroups && pageGroups.length > 0) {
-            pageGroups.forEach((pageGroup) => {
-                if (pageGroup.sections.length === 1) {
-                    // Single section per page
-                    sectionMapping.push({ 
-                        name: pageGroup.sections[0].title, 
-                        startPage: currentPageIndex, 
-                        endPage: currentPageIndex 
-                    });
-                } else {
-                    // Multiple sections per page
-                    const sectionTitles = pageGroup.sections.map(s => s.title);
-                    sectionMapping.push({ 
-                        name: `${sectionTitles[0]} + ${sectionTitles.length - 1} more`, 
-                        startPage: currentPageIndex, 
-                        endPage: currentPageIndex 
-                    });
-                }
+            // Report details
+            sectionMapping.push({ name: 'Report Details', startPage: currentPageIndex, endPage: currentPageIndex });
+            currentPageIndex++;
+
+            // Summary (if exists)
+            if (report?.sections?.some((s: any) => s.findings?.length > 0)) {
+                sectionMapping.push({ name: 'Summary', startPage: currentPageIndex, endPage: currentPageIndex });
                 currentPageIndex++;
-            });
-        } else if (report?.sections?.length > 0) {
-            // Fallback to old pagination if pageGroups not available
-            report.sections.forEach((section: any) => {
-                if (section.key !== 'report_details') {
-                    sectionMapping.push({ 
-                        name: section.title || section.name, 
-                        startPage: currentPageIndex, 
-                        endPage: currentPageIndex 
-                    });
+            }
+
+            // Report sections (using smart pagination)
+            if (pageGroups && pageGroups.length > 0) {
+                pageGroups.forEach((pageGroup) => {
+                    if (pageGroup.sections.length === 1) {
+                        // Single section per page
+                        sectionMapping.push({ 
+                            name: pageGroup.sections[0].title, 
+                            startPage: currentPageIndex, 
+                            endPage: currentPageIndex 
+                        });
+                    } else {
+                        // Multiple sections per page
+                        const sectionTitles = pageGroup.sections.map(s => s.title);
+                        sectionMapping.push({ 
+                            name: `${sectionTitles[0]} + ${sectionTitles.length - 1} more`, 
+                            startPage: currentPageIndex, 
+                            endPage: currentPageIndex 
+                        });
+                    }
                     currentPageIndex++;
-                }
-            });
-        }
+                });
+            } else if (report?.sections?.length > 0) {
+                // Fallback to old pagination if pageGroups not available
+                report.sections.forEach((section: any) => {
+                    if (section.key !== 'report_details') {
+                        sectionMapping.push({ 
+                            name: section.title || section.name, 
+                            startPage: currentPageIndex, 
+                            endPage: currentPageIndex 
+                        });
+                        currentPageIndex++;
+                    }
+                });
+            }
 
-        // Inspector certification
-        sectionMapping.push({ name: 'Inspector Certification', startPage: currentPageIndex, endPage: currentPageIndex });
-        currentPageIndex++;
+            // Inspector certification
+            sectionMapping.push({ name: 'Inspector Certification', startPage: currentPageIndex, endPage: currentPageIndex });
+            currentPageIndex++;
 
-        // Standards of practice (only for home inspection reports)
-        if (report?.reportType === 'home_inspection') {
-            const standardsStartPage = currentPageIndex;
-            const estimatedStandardsPages = 3; // Estimate based on content
-            sectionMapping.push({ 
-                name: 'Standards of Practice', 
-                startPage: standardsStartPage, 
-                endPage: standardsStartPage + estimatedStandardsPages - 1
-            });
-            currentPageIndex += estimatedStandardsPages;
-        }
+            // Standards of practice (only for home inspection reports)
+            if (report?.reportType === 'home_inspection') {
+                const standardsStartPage = currentPageIndex;
+                const estimatedStandardsPages = 3; // Estimate based on content
+                sectionMapping.push({ 
+                    name: 'Standards of Practice', 
+                    startPage: standardsStartPage, 
+                    endPage: standardsStartPage + estimatedStandardsPages - 1
+                });
+                currentPageIndex += estimatedStandardsPages;
+            }
 
-        // Terms (if exists)
-        if (pageNodes.length > currentPageIndex) {
-            sectionMapping.push({ name: 'Terms & Conditions', startPage: pageNodes.length - 1, endPage: pageNodes.length - 1 });
-        }
+            // Terms (if exists)
+            if (pageNodes.length > currentPageIndex) {
+                sectionMapping.push({ name: 'Terms & Conditions', startPage: pageNodes.length - 1, endPage: pageNodes.length - 1 });
+            }
 
-        setSections(sectionMapping);
-    }, [containerRef, report]);
+            setSections(sectionMapping);
+        };
+
+        // Initial capture
+        capturePages();
+
+        // Set up mutation observer to detect content changes
+        const observer = new MutationObserver(() => {
+            setTimeout(capturePages, 100); // Debounce updates
+        });
+
+        observer.observe(container, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            characterData: true
+        });
+
+        return () => observer.disconnect();
+    }, [containerRef, report, pageGroups]);
 
     // Update active page from props
     React.useEffect(() => {
@@ -203,10 +276,7 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
                                         height: '256.41%'  // 100 / 0.39
                                     }}
                                 >
-                                    <div 
-                                        dangerouslySetInnerHTML={{ __html: page.innerHTML }}
-                                        className="bg-white [&_*]:!text-left!important [&_h1]:!text-center!important [&_h2]:!text-center!important [&_.text-center]:!text-center!important [&_.justify-center]:!justify-center!important [&_.items-center]:!items-center!important [&_.mx-auto]:!mx-auto!important [&_.text-right]:!text-right!important"
-                                    />
+                                    <ThumbnailContent page={page} />
                                 </div>
                             </div>
                         </button>

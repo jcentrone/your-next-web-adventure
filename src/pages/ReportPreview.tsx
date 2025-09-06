@@ -586,6 +586,8 @@ const ReportPreview: React.FC = () => {
                         containerRef={pdfContainerRef}
                         currentPage={currentPage}
                         onPageChange={setCurrentPage}
+                        report={report}
+                        pageGroups={[]}
                     />
                     <div className="flex-1 pt-24 flex justify-center">
                         <div className="w-full ms-80 max-w-4xl px-4 py-10">
