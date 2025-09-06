@@ -2,20 +2,28 @@ import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageGroup } from "@/utils/paginationUtils";
 
-// Enhanced thumbnail content component with better text alignment handling
+// Enhanced thumbnail content component with dynamic scaling and content awareness
 const ThumbnailContent: React.FC<{ page: HTMLElement }> = ({ page }) => {
     const [content, setContent] = React.useState('');
+    const [dimensions, setDimensions] = React.useState({ width: 0, height: 0 });
 
     React.useEffect(() => {
-        // Clone the page content and apply stronger overrides
+        // Get actual rendered dimensions of the page
+        const rect = page.getBoundingClientRect();
+        setDimensions({ width: rect.width, height: rect.height });
+
+        // Clone and prepare content with smart cropping
         const clonedPage = page.cloneNode(true) as HTMLElement;
         
-        // Apply comprehensive styling overrides to ensure proper alignment
+        // Apply styling overrides with better content preservation
         const applyStyleOverrides = (element: HTMLElement) => {
-            // Reset text alignment for all elements
-            element.style.textAlign = 'left';
+            // Preserve original text alignment but ensure visibility
+            const computedStyle = window.getComputedStyle(element);
+            element.style.textAlign = computedStyle.textAlign || 'left';
+            element.style.color = computedStyle.color || '#000';
+            element.style.backgroundColor = computedStyle.backgroundColor || 'transparent';
             
-            // Handle specific classes that should maintain their alignment
+            // Handle specific alignment classes
             if (element.classList.contains('text-center') || 
                 element.tagName === 'H1' || 
                 element.tagName === 'H2') {
@@ -23,6 +31,11 @@ const ThumbnailContent: React.FC<{ page: HTMLElement }> = ({ page }) => {
             }
             if (element.classList.contains('text-right')) {
                 element.style.textAlign = 'right';
+            }
+            
+            // Ensure flex layouts work properly
+            if (element.classList.contains('flex')) {
+                element.style.display = 'flex';
             }
             if (element.classList.contains('justify-center')) {
                 element.style.justifyContent = 'center';
@@ -47,10 +60,32 @@ const ThumbnailContent: React.FC<{ page: HTMLElement }> = ({ page }) => {
         setContent(clonedPage.innerHTML);
     }, [page]);
 
+    // Calculate optimal scale based on content dimensions
+    const getOptimalScale = () => {
+        const containerWidth = 240; // Approximate thumbnail container width
+        const containerHeight = 310; // Approximate thumbnail container height
+        
+        if (dimensions.width === 0 || dimensions.height === 0) return 0.39;
+        
+        const scaleX = containerWidth / dimensions.width;
+        const scaleY = containerHeight / dimensions.height;
+        
+        // Use the smaller scale to ensure content fits
+        return Math.min(scaleX, scaleY, 0.5); // Cap at 0.5 for readability
+    };
+
+    const scale = getOptimalScale();
+
     return (
         <div 
             dangerouslySetInnerHTML={{ __html: content }}
-            className="bg-white"
+            className="bg-white w-full h-full overflow-hidden"
+            style={{
+                transform: `scale(${scale})`,
+                transformOrigin: 'top left',
+                width: `${100 / scale}%`,
+                height: `${100 / scale}%`
+            }}
         />
     );
 };
@@ -265,18 +300,14 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
                             }`}
                             aria-label={`Go to page ${i + 1}`}
                         >
-                            {/* Letter size aspect ratio (8.5:11 = 0.773:1) with fixed scaling */}
+                            {/* Enhanced thumbnail container with proper content fitting */}
                             <div className="w-full aspect-[85/110] relative overflow-hidden bg-white">
-                                <div 
-                                    className="absolute top-0 left-0 pointer-events-none will-change-transform"
-                                    style={{
-                                        transform: 'scale(0.39)',
-                                        transformOrigin: 'top left',
-                                        width: '256.41%', // 100 / 0.39
-                                        height: '256.41%'  // 100 / 0.39
-                                    }}
-                                >
+                                <div className="absolute inset-0">
                                     <ThumbnailContent page={page} />
+                                </div>
+                                {/* Page number overlay */}
+                                <div className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                                    {i + 1}
                                 </div>
                             </div>
                         </button>
