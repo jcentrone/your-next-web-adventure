@@ -53,6 +53,8 @@ export const BaseReportSchema = z.object({
     inspectionDate: z.string(), // ISO
     weatherConditions: z.string().optional(),
     status: z.enum(["Draft", "Final"]).default("Draft"),
+    contactId: z.string().optional(), // Deprecated, use contactIds
+    contactIds: z.array(z.string()).optional().default([]),
     finalComments: z.string().optional().default(""),
     termsHtml: z.string().optional(),
     includeStandardsOfPractice: z.boolean().default(true),

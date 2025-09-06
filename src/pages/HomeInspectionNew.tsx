@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,8 +8,7 @@ import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { createReport } from "@/hooks/useLocalDraft";
 import { toast } from "@/components/ui/use-toast";
@@ -17,13 +16,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
 import { contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
+import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
+import type { Contact } from "@/lib/crmSchemas";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
   clientName: z.string().min(1, "Required"),
   address: z.string().min(1, "Address is required"),
   inspectionDate: z.string().min(1, "Required"),
-  contactId: z.string().optional(),
+  contactIds: z.array(z.string()).optional().default([]),
   includeStandardsOfPractice: z.boolean().default(true),
 });
 
@@ -34,6 +35,7 @@ const HomeInspectionNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
+  const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
 
   // Get all contacts for lookup
   const { data: contacts = [] } = useQuery({
@@ -56,22 +58,35 @@ const HomeInspectionNew: React.FC = () => {
       clientName: "",
       address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
-      contactId: contactId || "",
+      contactIds: contactId ? [contactId] : [],
       includeStandardsOfPractice: true,
     },
   });
 
   // Update form when contact data loads
   useEffect(() => {
-    if (contact) {
+    if (contact && contactId) {
+      form.setValue('contactIds', [contactId]);
       form.setValue('clientName', `${contact.first_name} ${contact.last_name}`);
       const contactAddress = contact.formatted_address || contact.address || "";
       if (contactAddress) {
         form.setValue('address', contactAddress);
       }
     }
-  }, [contact, form]);
+  }, [contact, contactId, form]);
 
+  // Update client name and address when contacts change
+  useEffect(() => {
+    if (selectedContacts.length > 0) {
+      const primaryContact = selectedContacts[0];
+      form.setValue('clientName', `${primaryContact.first_name} ${primaryContact.last_name}`);
+      
+      const contactAddress = primaryContact.formatted_address || primaryContact.address || "";
+      if (contactAddress) {
+        form.setValue('address', contactAddress);
+      }
+    }
+  }, [selectedContacts, form]);
 
   const onSubmit = async (values: Values) => {
     try {
@@ -83,7 +98,7 @@ const HomeInspectionNew: React.FC = () => {
             clientName: values.clientName,
             address: values.address,
             inspectionDate: values.inspectionDate,
-            contact_id: values.contactId,
+            contactIds: values.contactIds || [],
             reportType: "home_inspection",
             includeStandardsOfPractice: values.includeStandardsOfPractice,
           },
@@ -100,6 +115,7 @@ const HomeInspectionNew: React.FC = () => {
           inspectionDate: new Date(values.inspectionDate).toISOString(),
           reportType: "home_inspection",
           includeStandardsOfPractice: values.includeStandardsOfPractice,
+          contactIds: values.contactIds || [],
         });
         toast({ title: "Home inspection report created (local draft)" });
         nav(`/reports/${report.id}`);
@@ -137,59 +153,33 @@ const HomeInspectionNew: React.FC = () => {
             />
             <FormField
               control={form.control}
-              name="contactId"
+              name="contactIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Contact</FormLabel>
+                  <FormLabel>Client Contacts</FormLabel>
                   <FormControl>
-                    <div className="space-y-2">
-                      <Select
-                        value={field.value}
-                        onValueChange={(contactId) => {
-                          field.onChange(contactId);
-                          const selectedContact = contacts.find(c => c.id === contactId);
-                          if (selectedContact) {
-                            form.setValue('clientName', `${selectedContact.first_name} ${selectedContact.last_name}`);
-                            const contactAddress = selectedContact.formatted_address || selectedContact.address || "";
-                            if (contactAddress) {
-                              form.setValue('address', contactAddress);
-                            }
-                          }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a contact or add new...">
-                            {field.value && contacts.length > 0 ? 
-                              (() => {
-                                const contact = contacts.find(c => c.id === field.value);
-                                return contact ? `${contact.first_name} ${contact.last_name}` : field.value;
-                              })() : "Select a contact..."
-                            }
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="add-new" className="font-medium text-primary">
-                            + Add New Contact
-                          </SelectItem>
-                          {contacts.map((contact) => (
-                            <SelectItem key={contact.id} value={contact.id}>
-                              {contact.first_name} {contact.last_name}
-                              {contact.email && <span className="text-muted-foreground ml-2">({contact.email})</span>}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {field.value === "add-new" && (
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => nav('/contacts/new')}
-                        >
-                          Go to Add New Contact
-                        </Button>
-                      )}
-                    </div>
+                    <ContactMultiSelect
+                      contacts={contacts}
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      onSelectedContactsChange={setSelectedContacts}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Search and select contacts who will be attending the inspection
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="clientName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Client Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter client name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

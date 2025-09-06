@@ -887,6 +887,7 @@ export type Database = {
           client_name: string
           color_scheme: string | null
           contact_id: string | null
+          contact_ids: Json | null
           county: string | null
           cover_image: string | null
           cover_template: string | null
@@ -920,6 +921,7 @@ export type Database = {
           client_name: string
           color_scheme?: string | null
           contact_id?: string | null
+          contact_ids?: Json | null
           county?: string | null
           cover_image?: string | null
           cover_template?: string | null
@@ -953,6 +955,7 @@ export type Database = {
           client_name?: string
           color_scheme?: string | null
           contact_id?: string | null
+          contact_ids?: Json | null
           county?: string | null
           cover_image?: string | null
           cover_template?: string | null

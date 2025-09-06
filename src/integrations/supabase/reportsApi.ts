@@ -32,6 +32,8 @@ function toDbPayload(report: Report) {
     custom_colors: report.customColors || null,
     report_type: report.reportType,
     report_data: report.reportType === "home_inspection" ? null : (report as any).reportData || null,
+    contact_id: (report as any).contactId || null,
+    contact_ids: (report as any).contactIds || [],
     county: (report as any).county || null,
     ofStories: (report as any).ofStories || null,
     phone_home: (report as any).phoneHome || null,
@@ -75,6 +77,8 @@ function fromDbRow(row: any): Report {
     previewTemplate: row.preview_template || "classic",
     colorScheme: row.color_scheme || "default",
     customColors: row.custom_colors || undefined,
+    contactId: row.contact_id || undefined,
+    contactIds: row.contact_ids || [],
     reportData: row.report_data ?? {},
     reportType,
     phoneHome: row.phone_home || "",
@@ -188,6 +192,7 @@ export async function dbCreateReport(meta: {
   address: string;
   inspectionDate: string; // 'YYYY-MM-DD' or ISO
   contact_id?: string;
+  contactIds?: string[];
   reportType: Report["reportType"];
   county?: string;
   ofStories?: string;

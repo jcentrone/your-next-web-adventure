@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ReportContactCards } from "@/components/reports/ReportContactCards";
 import type { Report } from "@/lib/reportSchemas";
 
 interface Props {
@@ -88,6 +89,14 @@ const ReportDetailsForm: React.FC<Props> = ({ report, onUpdate }) => {
           </Label>
         </div>
       )}
+      
+      {/* Contact Cards Section */}
+      <div className="pt-6 border-t">
+        <ReportContactCards
+          contactIds={report.contactIds || []}
+          onContactsChange={(contactIds) => onUpdate({ ...report, contactIds } as Report)}
+        />
+      </div>
     </section>
   );
 };
