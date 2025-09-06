@@ -93,7 +93,7 @@ const AuthPage: React.FC = () => {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: { 
+        options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             full_name: fullName,
@@ -108,7 +108,12 @@ const AuthPage: React.FC = () => {
         },
       });
 
-      if (authError) throw authError;
+      console.log("Supabase signUp response", { authData, authError });
+
+      if (authError) {
+        toast({ title: "Sign up failed", description: authError.message });
+        return;
+      }
 
       if (authData.user && !authData.user.email_confirmed_at) {
         // User needs to verify email first
@@ -126,6 +131,7 @@ const AuthPage: React.FC = () => {
         setMode("signin");
       }
     } catch (error: any) {
+      console.error("Unexpected sign up error", error);
       toast({ title: "Sign up failed", description: error.message });
     } finally {
       setBusy(false);
