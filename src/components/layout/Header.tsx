@@ -101,8 +101,11 @@ const Header: React.FC = () => {
                         </>
                     ) : (
                         <>
-                            <Link to="#features" className="transition-colors hover:text-primary">
+                            <Link to="/features" className="transition-colors hover:text-primary">
                                 Features
+                            </Link>
+                            <Link to="/pricing" className="transition-colors hover:text-primary">
+                                Pricing
                             </Link>
                             <Link to="/sample-reports" className="transition-colors hover:text-primary">
                                 Sample Reports
@@ -222,10 +225,15 @@ const Header: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <Link to="#features"
+                                        <Link to="/features"
                                               className="text-foreground hover:text-primary transition-colors py-2"
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Features
+                                        </Link>
+                                        <Link to="/pricing"
+                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              onClick={() => setMobileMenuOpen(false)}>
+                                            Pricing
                                         </Link>
                                         <Link to="/sample-reports"
                                               className="text-foreground hover:text-primary transition-colors py-2"

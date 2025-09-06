@@ -49,6 +49,8 @@ const App = () => (
               <Route path="/book/:slug" element={lazyLoad(() => import("./pages/BookingPage"))} />
               <Route element={<RootLayout />}>
                 <Route path="/" element={<Index />} />
+                <Route path="/features" element={lazyLoad(() => import("./pages/Features"))} />
+                <Route path="/pricing" element={lazyLoad(() => import("./pages/Pricing"))} />
               <Route path="/dashboard" element={lazyLoad(() => import("./pages/Dashboard"))} />
               <Route path="/auth" element={lazyLoad(() => import("./pages/Auth"))} />
               <Route path="/reports" element={lazyLoad(() => import("./pages/ReportsList"))} />
