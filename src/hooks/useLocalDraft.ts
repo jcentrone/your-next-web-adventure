@@ -63,6 +63,7 @@ export function createReport(meta: {
   inspectionDate: string;
   reportType?: Report["reportType"];
   includeStandardsOfPractice?: boolean;
+  contactIds?: string[];
 }): Report {
   const id = crypto.randomUUID();
   const reportType = meta.reportType || "home_inspection";
@@ -90,6 +91,7 @@ export function createReport(meta: {
       reportType: "home_inspection",
       sections,
       includeStandardsOfPractice: meta.includeStandardsOfPractice ?? true,
+      contactIds: meta.contactIds || [],
     };
   } else if (reportType === "wind_mitigation") {
     report = {
@@ -103,6 +105,7 @@ export function createReport(meta: {
       coverImage: "",
       previewTemplate: "classic",
       reportType: "wind_mitigation",
+      contactIds: meta.contactIds || [],
       reportData: {
         "1_building_code": {},
         "2_roof_covering": {},
@@ -125,6 +128,7 @@ export function createReport(meta: {
       coverImage: "",
       previewTemplate: "classic",
       reportType,
+      contactIds: meta.contactIds || [],
       reportData: {},
     };
   }
