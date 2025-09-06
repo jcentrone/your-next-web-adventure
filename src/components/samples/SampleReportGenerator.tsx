@@ -18,6 +18,25 @@ export const SampleReportGenerator: React.FC<SampleReportGeneratorProps> = ({ re
     }
   }, [onGenerated]);
 
+  // Map SampleInspector to Profile format
+  const mapInspectorToProfile = (inspector: any) => ({
+    id: inspector.id,
+    user_id: inspector.id,
+    full_name: inspector.name,
+    email: inspector.email,
+    phone: inspector.phone,
+    license_number: inspector.license_number,
+    avatar_url: null,
+    provider: 'email',
+    last_sign_in_at: new Date().toISOString(),
+    signature_url: null,
+    signature_type: null,
+    initials_url: null,
+    initials_type: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  });
+
   // Convert sample data to report format
   const mockReport = {
     id: report.id,
@@ -56,7 +75,7 @@ export const SampleReportGenerator: React.FC<SampleReportGeneratorProps> = ({ re
           mediaUrlMap={mediaUrlMap}
           coverUrl={coverUrl}
           organization={report.organization}
-          inspector={report.inspector}
+          inspector={mapInspectorToProfile(report.inspector)}
         />
       </div>
     );
@@ -69,7 +88,7 @@ export const SampleReportGenerator: React.FC<SampleReportGeneratorProps> = ({ re
         mediaUrlMap={mediaUrlMap}
         coverUrl={coverUrl}
         organization={report.organization}
-        inspector={report.inspector}
+        inspector={mapInspectorToProfile(report.inspector)}
       />
     </div>
   );
