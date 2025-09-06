@@ -1,6 +1,7 @@
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageGroup } from "@/utils/paginationUtils";
+import { useDynamicSidebarHeight } from "@/hooks/useDynamicSidebarHeight";
 
 // Enhanced thumbnail content component with dynamic scaling and content awareness
 const ThumbnailContent: React.FC<{ page: HTMLElement; refreshKey?: string }> = ({ page, refreshKey }) => {
@@ -177,6 +178,13 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
     const [activePage, setActivePage] = React.useState(currentPage || 0);
     const [sections, setSections] = React.useState<Array<{name: string, startPage: number, endPage: number}>>([]);
     
+    // Dynamic height based on content visibility
+    const dynamicHeight = useDynamicSidebarHeight({
+        containerRef,
+        baseHeight: '100vh - 129px',
+        topOffset: 129
+    });
+    
     // Create composite refresh key for template changes
     const refreshKey = React.useMemo(() => {
         return `${report?.previewTemplate || ''}-${report?.coverTemplate || ''}-${report?.colorScheme || ''}-${JSON.stringify(report?.customColors || {})}`;
@@ -340,7 +348,10 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
     };
 
     return (
-        <div className="w-80 ps-6 overflow-hidden top-[129px] h-[calc(100vh-129px)] fixed left-0 print:hidden border-r bg-background flex flex-col">
+        <div 
+            className="w-80 ps-6 overflow-hidden top-[129px] fixed left-0 print:hidden border-r bg-background flex flex-col transition-all duration-300 ease-in-out"
+            style={{ height: `calc(${dynamicHeight})` }}
+        >
             {/* Fixed header with section dropdown and label */}
             <div className="sticky top-0 bg-background z-10 p-4 border-b border-border">
                 {/* Section Dropdown */}
