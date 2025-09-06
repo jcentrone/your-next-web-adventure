@@ -181,7 +181,7 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
     // Dynamic height based on content visibility
     const dynamicHeight = useDynamicSidebarHeight({
         containerRef,
-        baseHeight: 'calc(100vh - 129px)',
+        baseHeight: 'calc(100vh - 140px)',
         topOffset: 129
     });
     
