@@ -369,6 +369,73 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Templates Showcase Section */}
+      <section id="templates" className="max-w-7xl mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">Professional Report Templates</h2>
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            See exactly how your reports will look with our collection of professional templates. 
+            Custom branding, multiple layouts, and full InterNACHI compliance.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
+          <Card className="p-6 text-center hover:shadow-lg transition">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">16 Cover Templates</h3>
+            <p className="text-muted-foreground mb-4">
+              Choose from professional cover designs that match your brand and inspection type
+            </p>
+            <div className="flex justify-center gap-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            </div>
+          </Card>
+
+          <Card className="p-6 text-center hover:shadow-lg transition">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Layers className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Multiple Layouts</h3>
+            <p className="text-muted-foreground mb-4">
+              Classic, modern, and minimal styles to suit your professional preferences
+            </p>
+            <div className="flex justify-center gap-1">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-pink-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-rose-500 rounded-full"></div>
+            </div>
+          </Card>
+
+          <Card className="p-6 text-center hover:shadow-lg transition">
+            <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-white" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Custom Branding</h3>
+            <p className="text-muted-foreground mb-4">
+              Add your logo, colors, and company details to create a unique professional look
+            </p>
+            <div className="flex justify-center gap-1">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+            </div>
+          </Card>
+        </div>
+
+        <div className="text-center">
+          <Button size="lg" asChild className="bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90">
+            <Link to="/sample-reports">
+              <ArrowRight className="mr-2 w-4 h-4" />
+              View All Templates
+            </Link>
+          </Button>
+        </div>
+      </section>
+
       {/* Enhanced Call to Action */}
       <section className="max-w-7xl mx-auto px-4 py-16">
         <div className="relative bg-gradient-to-br from-primary via-primary to-primary/80 rounded-3xl p-8 md:p-12 text-center overflow-hidden">

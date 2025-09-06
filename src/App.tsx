@@ -80,6 +80,7 @@ const App = () => (
               <Route path="/defects-admin" element={lazyLoad(() => import("./pages/DefectsAdmin"))} />
               <Route path="/section-manager" element={lazyLoad(() => import("./pages/SectionManager"))} />
               <Route path="/settings/*" element={lazyLoad(() => import("./pages/Settings"))} />
+              <Route path="/sample-reports" element={lazyLoad(() => import("./pages/SampleReports"))} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Route>
