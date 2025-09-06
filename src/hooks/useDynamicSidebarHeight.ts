@@ -37,7 +37,7 @@ export const useDynamicSidebarHeight = ({
             
             // Calculate proportional height reduction
             const reductionRatio = Math.min(visibleBottom / 200, 1); // 200px threshold for smooth transition
-            const heightReduction = reductionRatio * 105; // Max 105px reduction
+            const heightReduction = reductionRatio * 121; // Max 121px reduction
             
             setSidebarHeight(`calc(${baseHeight} - ${heightReduction}px)`);
           } else {
