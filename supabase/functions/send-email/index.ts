@@ -16,11 +16,8 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
 const DEFAULT_FROM_EMAIL =
   Deno.env.get("RESEND_FROM_EMAIL") ?? "team@homereportpro.com";
 
-// Extract the Base64 part from the webhook secret (remove v1,whsec_ prefix if present)
-const rawHookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
-const hookSecret = rawHookSecret.startsWith("v1,whsec_") 
-  ? rawHookSecret.substring(9) // Remove "v1,whsec_" prefix
-  : rawHookSecret;
+// Use the full webhook secret as provided (standardwebhooks library expects the full format)
+const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
 
 console.log("Environment check:", {
   hasResendKey: !!Deno.env.get("RESEND_API_KEY"),
