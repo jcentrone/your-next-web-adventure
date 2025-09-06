@@ -125,17 +125,19 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                     </div>
                 </div>
 
+                {/* Table of Contents Page */}
+                <div className="preview-page">
+                    <section className="pdf-page-break p-8 min-h-[11in]">
+                        <TableOfContents
+                            report={report}
+                        />
+                    </section>
+                </div>
+
                 {/* Content Page - All form fields without images */}
                 <div className="preview-page">
                     <section className="pdf-page-break p-8 min-h-[11in]">
                         <h1 className="text-3xl font-bold mb-8 text-primary">{report.title}</h1>
-                        
-                        {/* Table of Contents */}
-                        <div className="mb-8">
-                            <TableOfContents
-                                report={report}
-                            />
-                        </div>
                         {config.sections.filter(section => section.name.toLowerCase() !== 'photos' && section.name.toLowerCase() !== 'images').map((section, sectionIndex) => (
                             <div key={section.name} className={sectionIndex > 0 ? "mt-8" : ""}>
                                 <h2 className="text-2xl font-bold mb-4 capitalize text-primary border-b border-gray-300 pb-2">

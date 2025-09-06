@@ -130,6 +130,18 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                     </div>
                 </div>
 
+                {/* Table of Contents Page */}
+                <div className="preview-page">
+                    <article className={tpl.container}>
+                        <section className="pdf-page-break">
+                            <TableOfContents
+                                report={report}
+                                pageGroups={pageGroups}
+                            />
+                        </section>
+                    </article>
+                </div>
+
                 <div className="preview-page">
                     <article className={tpl.container}>
                         {/* Report Details */}
@@ -138,14 +150,6 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                                 report={report}
                                 sectionInfo={report.sections.find(s => s.key === 'report_details')?.info || {}}
                             />
-                            
-                            {/* Table of Contents */}
-                            <div className="mt-8">
-                                <TableOfContents
-                                    report={report}
-                                    pageGroups={pageGroups}
-                                />
-                            </div>
                         </section>
                     </article>
                 </div>
