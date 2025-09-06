@@ -17,23 +17,39 @@ const ThumbnailContent: React.FC<{ page: HTMLElement }> = ({ page }) => {
         
         // Apply styling overrides with better content preservation
         const applyStyleOverrides = (element: HTMLElement) => {
-            // Preserve original text alignment but ensure visibility
+            // Preserve original computed styles more comprehensively
             const computedStyle = window.getComputedStyle(element);
-            element.style.textAlign = computedStyle.textAlign || 'left';
-            element.style.color = computedStyle.color || '#000';
-            element.style.backgroundColor = computedStyle.backgroundColor || 'transparent';
             
-            // Handle specific alignment classes
-            if (element.classList.contains('text-center') || 
-                element.tagName === 'H1' || 
-                element.tagName === 'H2') {
+            // Enhanced background preservation
+            const background = computedStyle.background;
+            const backgroundColor = computedStyle.backgroundColor;
+            const backgroundImage = computedStyle.backgroundImage;
+            const backgroundGradient = computedStyle.background;
+            
+            if (background && background !== 'rgba(0, 0, 0, 0)' && background !== 'transparent') {
+                element.style.background = background;
+            }
+            if (backgroundColor && backgroundColor !== 'rgba(0, 0, 0, 0)' && backgroundColor !== 'transparent') {
+                element.style.backgroundColor = backgroundColor;
+            }
+            if (backgroundImage && backgroundImage !== 'none') {
+                element.style.backgroundImage = backgroundImage;
+            }
+            
+            // Conservative text alignment - only center if explicitly set
+            const textAlign = computedStyle.textAlign;
+            if (textAlign === 'center' || element.classList.contains('text-center')) {
                 element.style.textAlign = 'center';
-            }
-            if (element.classList.contains('text-right')) {
+            } else if (textAlign === 'right' || element.classList.contains('text-right')) {
                 element.style.textAlign = 'right';
+            } else {
+                element.style.textAlign = 'left';
             }
             
-            // Ensure flex layouts work properly
+            // Color preservation
+            element.style.color = computedStyle.color || '#000';
+            
+            // Preserve layout properties
             if (element.classList.contains('flex')) {
                 element.style.display = 'flex';
             }
@@ -47,6 +63,10 @@ const ThumbnailContent: React.FC<{ page: HTMLElement }> = ({ page }) => {
                 element.style.marginLeft = 'auto';
                 element.style.marginRight = 'auto';
             }
+            
+            // Preserve padding and margins for proper spacing
+            element.style.padding = computedStyle.padding;
+            element.style.margin = computedStyle.margin;
             
             // Recursively apply to children
             Array.from(element.children).forEach(child => {
