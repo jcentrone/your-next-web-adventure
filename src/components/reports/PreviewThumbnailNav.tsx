@@ -340,7 +340,7 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
     };
 
     return (
-        <div className="w-80 ps-6 overflow-hidden top-[129px] h-[calc(100vh-129px-80px)] fixed left-0 print:hidden border-r bg-background flex flex-col">
+        <div className="w-80 ps-6 overflow-hidden top-[129px] h-[calc(100vh-129px)] fixed left-0 print:hidden border-r bg-background flex flex-col">
             {/* Fixed header with section dropdown and label */}
             <div className="sticky top-0 bg-background z-10 p-4 border-b border-border">
                 {/* Section Dropdown */}
