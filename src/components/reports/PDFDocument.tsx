@@ -8,18 +8,21 @@ import SectionInfoDisplay from "./SectionInfoDisplay";
 import {isSupabaseUrl} from "@/integrations/supabase/storage";
 import {COVER_TEMPLATES} from "@/constants/coverTemplates";
 import {renderInternachiStandards} from "@/utils/internachiStandardsContent";
+import InspectorCertificationPage from "./InspectorCertificationPage";
 
 
 interface PDFDocumentProps {
-    report: Report;
-    mediaUrlMap: Record<string, string>;
-    coverUrl: string;
-    company?: string;
-    termsHtml?: string;
+  report: Report;
+  mediaUrlMap: Record<string, string>;
+  coverUrl: string;
+  company?: string;
+  termsHtml?: string;
+  inspector?: any;
+  organization?: any;
 }
 
 const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
-    ({report, mediaUrlMap, coverUrl, company, termsHtml}, ref) => {
+    ({report, mediaUrlMap, coverUrl, company, termsHtml, inspector, organization}, ref) => {
         // This component now only handles home inspection reports
         if (report.reportType !== "home_inspection" || !("sections" in report)) {
             return (
@@ -266,16 +269,22 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                     </div>
                 ))}
 
+                {/* Inspector Certification Page */}
+                <div className="preview-page">
+                    <article className={tpl.container}>
+                        <section className="pdf-page-break">
+                            <InspectorCertificationPage
+                                inspector={inspector}
+                                organization={organization}
+                                report={report}
+                                mediaUrlMap={mediaUrlMap}
+                            />
+                        </section>
+                    </article>
+                </div>
+
                 {/* InterNACHI Standards of Practice */}
-                {(report as any).includeStandardsOfPractice === true && (
-                    <div className="preview-page">
-                        <article className={tpl.container}>
-                            <section className="pdf-page-break">
-                                {renderInternachiStandards()}
-                            </section>
-                        </article>
-                    </div>
-                )}
+                {renderInternachiStandards()}
 
                 {termsHtml && (
                     <div className="preview-page">

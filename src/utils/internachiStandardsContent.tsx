@@ -153,6 +153,14 @@ const internachiSections = [
 
 // Render the full standards content for inclusion in reports
 export const renderInternachiStandards = () => {
+  // Split sections into multiple pages for better pagination
+  const sectionsPerPage = 1; // One section per page for better readability
+  const pageGroups = [];
+  
+  for (let i = 0; i < internachiSections.length; i += sectionsPerPage) {
+    pageGroups.push(internachiSections.slice(i, i + sectionsPerPage));
+  }
+
   const renderContent = (content: any) => {
     return content.map((item: any, idx: number) => {
       if (item.number && item.text) {
@@ -205,37 +213,47 @@ export const renderInternachiStandards = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold mb-4">
-          InterNACHI Standards of Practice
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          International Association of Certified Home Inspectors
-        </p>
-        <p className="text-xs text-muted-foreground mt-2">
-          This inspection was performed in accordance with these standards.
-        </p>
-      </div>
+    <>
+      {pageGroups.map((pageGroup, pageIndex) => (
+        <div key={pageIndex} className="preview-page pdf-page-break bg-white p-8 min-h-[11in] flex flex-col">
+          {pageIndex === 0 && (
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold mb-4">
+                InterNACHI Standards of Practice
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                International Association of Certified Home Inspectors
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                This inspection was performed in accordance with these standards.
+              </p>
+            </div>
+          )}
 
-      {internachiSections.map((section) => (
-        <div key={section.id} className="space-y-4">
-          <h2 className="text-lg font-semibold border-b pb-2">
-            {section.title}
-          </h2>
-          <div className="text-sm space-y-2">
-            {renderContent(section.content)}
+          <div className="space-y-8 flex-1">
+            {pageGroup.map((section) => (
+              <div key={section.id} className="space-y-4">
+                <h2 className="text-lg font-semibold border-b pb-2">
+                  {section.title}
+                </h2>
+                <div className="text-sm space-y-2">
+                  {renderContent(section.content)}
+                </div>
+              </div>
+            ))}
           </div>
+
+          {pageIndex === pageGroups.length - 1 && (
+            <div className="mt-8 p-4 bg-muted/20 rounded border text-center">
+              <p className="text-xs text-muted-foreground">
+                For the most current version of the InterNACHI Standards of Practice, 
+                visit: <span className="font-mono">https://www.nachi.org/sop.htm</span>
+              </p>
+            </div>
+          )}
         </div>
       ))}
-
-      <div className="mt-8 p-4 bg-muted/20 rounded border text-center">
-        <p className="text-xs text-muted-foreground">
-          For the most current version of the InterNACHI Standards of Practice, 
-          visit: <span className="font-mono">https://www.nachi.org/sop.htm</span>
-        </p>
-      </div>
-    </div>
+    </>
   );
 };
 

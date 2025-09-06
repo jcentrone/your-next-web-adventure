@@ -1,18 +1,22 @@
 import React from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PreviewThumbnailNavProps {
     containerRef: React.RefObject<HTMLElement>;
     currentPage?: number;
     onPageChange?: (pageIndex: number) => void;
+    report?: any;
 }
 
 const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
     containerRef, 
     currentPage, 
-    onPageChange
+    onPageChange,
+    report
 }) => {
     const [pages, setPages] = React.useState<HTMLElement[]>([]);
     const [activePage, setActivePage] = React.useState(currentPage || 0);
+    const [sections, setSections] = React.useState<Array<{name: string, startPage: number, endPage: number}>>([]);
 
     React.useEffect(() => {
         const container = containerRef.current;
@@ -20,7 +24,60 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
 
         const pageNodes = Array.from(container.querySelectorAll<HTMLElement>(".preview-page"));
         setPages(pageNodes);
-    }, [containerRef]);
+
+        // Create section mapping
+        const sectionMapping = [];
+        let currentPageIndex = 0;
+
+        // Cover page
+        sectionMapping.push({ name: 'Cover', startPage: currentPageIndex, endPage: currentPageIndex });
+        currentPageIndex++;
+
+        // Report details
+        sectionMapping.push({ name: 'Report Details', startPage: currentPageIndex, endPage: currentPageIndex });
+        currentPageIndex++;
+
+        // Summary (if exists)
+        if (report?.sections?.some((s: any) => s.findings?.length > 0)) {
+            sectionMapping.push({ name: 'Summary', startPage: currentPageIndex, endPage: currentPageIndex });
+            currentPageIndex++;
+        }
+
+        // Report sections
+        if (report?.sections?.length > 0) {
+            report.sections.forEach((section: any) => {
+                if (section.key !== 'report_details') {
+                    sectionMapping.push({ 
+                        name: section.title || section.name, 
+                        startPage: currentPageIndex, 
+                        endPage: currentPageIndex 
+                    });
+                    currentPageIndex++;
+                }
+            });
+        }
+
+        // Inspector certification
+        sectionMapping.push({ name: 'Inspector Certification', startPage: currentPageIndex, endPage: currentPageIndex });
+        currentPageIndex++;
+
+        // Standards of practice (estimate pages based on sections)
+        const standardsStartPage = currentPageIndex;
+        const estimatedStandardsPages = 3; // Estimate based on content
+        sectionMapping.push({ 
+            name: 'Standards of Practice', 
+            startPage: standardsStartPage, 
+            endPage: standardsStartPage + estimatedStandardsPages - 1
+        });
+        currentPageIndex += estimatedStandardsPages;
+
+        // Terms (if exists)
+        if (pageNodes.length > currentPageIndex) {
+            sectionMapping.push({ name: 'Terms & Conditions', startPage: pageNodes.length - 1, endPage: pageNodes.length - 1 });
+        }
+
+        setSections(sectionMapping);
+    }, [containerRef, report]);
 
     // Update active page from props
     React.useEffect(() => {
@@ -68,37 +125,67 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
         onPageChange?.(index);
     };
 
+    const handleSectionChange = (sectionName: string) => {
+        const section = sections.find(s => s.name === sectionName);
+        if (section) {
+            handleClick(section.startPage);
+        }
+    };
+
     return (
         <div className="w-80 ps-6 overflow-y-auto mt-[70px] h-screen fixed print:hidden border-r bg-background">
-            <div className="flex flex-col gap-2 p-2">
-                {pages.map((page, i) => (
-                    <button
-                        key={i}
-                        onClick={() => handleClick(i)}
-                        className={`border rounded w-full overflow-hidden transition-colors ${
-                            activePage === i ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                        }`}
-                        aria-label={`Go to page ${i + 1}`}
-                    >
-                        {/* Letter size aspect ratio (8.5:11 = 0.773:1) with fixed scaling */}
-                        <div className="w-full aspect-[85/110] relative overflow-hidden bg-white">
-                            <div 
-                                className="absolute top-0 left-0 pointer-events-none will-change-transform"
-                                style={{
-                                    transform: 'scale(0.39)',
-                                    transformOrigin: 'top left',
-                                    width: '256.41%', // 100 / 0.39
-                                    height: '256.41%'  // 100 / 0.39
-                                }}
-                            >
+            <div className="flex flex-col gap-4 p-4">
+                {/* Section Dropdown */}
+                <div className="mb-2">
+                    <label className="text-sm font-medium text-muted-foreground mb-2 block">Jump to Section</label>
+                    <Select onValueChange={handleSectionChange}>
+                        <SelectTrigger className="w-full text-sm bg-background">
+                            <SelectValue placeholder="Select section..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border shadow-lg z-50 max-h-[300px]">
+                            {sections.map((section) => (
+                                <SelectItem key={section.name} value={section.name} className="text-sm">
+                                    {section.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Pages Label */}
+                <label className="text-sm font-medium text-muted-foreground">Page Thumbnails</label>
+                
+                 {/* Page Thumbnails */}
+                <div className="flex flex-col gap-2">
+                    {pages.map((page, i) => (
+                        <button
+                            key={i}
+                            onClick={() => handleClick(i)}
+                            className={`border rounded w-full overflow-hidden transition-colors ${
+                                activePage === i ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                            }`}
+                            aria-label={`Go to page ${i + 1}`}
+                        >
+                            {/* Letter size aspect ratio (8.5:11 = 0.773:1) with fixed scaling */}
+                            <div className="w-full aspect-[85/110] relative overflow-hidden bg-white">
                                 <div 
-                                    dangerouslySetInnerHTML={{ __html: page.innerHTML }}
-                                    className="bg-white"
-                                />
+                                    className="absolute top-0 left-0 pointer-events-none will-change-transform"
+                                    style={{
+                                        transform: 'scale(0.39)',
+                                        transformOrigin: 'top left',
+                                        width: '256.41%', // 100 / 0.39
+                                        height: '256.41%'  // 100 / 0.39
+                                    }}
+                                >
+                                    <div 
+                                        dangerouslySetInnerHTML={{ __html: page.innerHTML }}
+                                        className="bg-white"
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    </button>
-                ))}
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );

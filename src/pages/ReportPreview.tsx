@@ -620,6 +620,7 @@ const ReportPreview: React.FC = () => {
                     containerRef={pdfContainerRef}
                     currentPage={currentPage}
                     onPageChange={setCurrentPage}
+                    report={report}
                 />
                 <div className="flex-1 pt-24 ms-80 flex justify-center">
                     <div className="w-full max-w-4xl px-4 py-10">
@@ -630,6 +631,8 @@ const ReportPreview: React.FC = () => {
                             coverUrl={coverUrl}
                             company={organization?.name || ""}
                             termsHtml={termsHtml || undefined}
+                            inspector={inspector}
+                            organization={organization}
                         />
                     </div>
                 </div>
