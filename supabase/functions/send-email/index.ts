@@ -10,7 +10,11 @@ import InviteEmail from "./_templates/invite.tsx";
 import EmailChangeEmail from "./_templates/email-change.tsx";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
-const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
+// Extract the base64 part from Supabase webhook secret format
+const rawHookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
+const hookSecret = rawHookSecret.startsWith("v1,whsec_") 
+  ? rawHookSecret.replace("v1,whsec_", "")
+  : rawHookSecret;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
