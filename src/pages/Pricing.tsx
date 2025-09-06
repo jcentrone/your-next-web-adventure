@@ -243,7 +243,7 @@ const Pricing = () => {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">Can I cancel anytime?</h3>
                   <p className="text-muted-foreground">
-                    Absolutely. You can cancel your subscription at any time with no cancellation fees. Your data remains accessible until the end of your billing period.
+                    Absolutely. You can cancel your subscription at any time with no cancellation fees. Your data remains accessible for 3 months after the end of your subscription.
                   </p>
                 </CardContent>
               </Card>
