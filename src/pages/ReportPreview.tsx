@@ -581,16 +581,16 @@ const ReportPreview: React.FC = () => {
                     }}
                 />
                 {topBar}
-                <div className="flex mt-1 print:mt-0">
-                    <PreviewThumbnailNav 
-                        containerRef={pdfContainerRef}
-                        currentPage={currentPage}
-                        onPageChange={setCurrentPage}
-                        report={report}
-                        pageGroups={[]}
-                    />
-                    <div className="flex-1 pt-24 flex justify-center">
-                        <div className="w-full ms-80 max-w-4xl px-4 py-10">
+            <div className="flex print:mt-0">
+                <PreviewThumbnailNav 
+                    containerRef={pdfContainerRef}
+                    currentPage={currentPage}
+                    onPageChange={setCurrentPage}
+                    report={report}
+                    pageGroups={[]}
+                />
+                <div className="flex-1 ml-80 pt-[129px] flex justify-center">
+                    <div className="w-full max-w-4xl px-4 py-10">
                             <div ref={pdfContainerRef} style={colorVars}>
                                 <SpecializedReportPreview
                                     report={report}
@@ -626,7 +626,7 @@ const ReportPreview: React.FC = () => {
             {/* Top bar */}
             {topBar}
 
-            <div className="flex mt-1 print:mt-0">
+            <div className="flex print:mt-0">
                 <PreviewThumbnailNav 
                     containerRef={pdfContainerRef}
                     currentPage={currentPage}
@@ -634,7 +634,7 @@ const ReportPreview: React.FC = () => {
                     report={report}
                     pageGroups={pageGroups}
                 />
-                <div className="flex-1 pt-24 ms-80 flex justify-center">
+                <div className="flex-1 ml-80 pt-[129px] flex justify-center">
                     <div className="w-full max-w-4xl px-4 py-10">
                         <PDFDocument
                             ref={pdfContainerRef}
