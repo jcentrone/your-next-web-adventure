@@ -58,7 +58,7 @@ const CoverTemplateOne: React.FC<CoverTemplateProps> = ({
             {/* Bottom section */}
             <div className="mt-[120px] w-full">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl text-left text-sm mx-auto">
-                    <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                    <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm z-10">
                         <h2 className="font-semibold mb-2 text-white">Inspector</h2>
                         {inspectorName && <p className="text-white/90">Name: {inspectorName}</p>}
                         {inspectorLicenseNumber && <p className="text-white/90">License: {inspectorLicenseNumber}</p>}
