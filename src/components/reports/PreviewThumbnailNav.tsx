@@ -203,7 +203,7 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
                                 >
                                     <div 
                                         dangerouslySetInnerHTML={{ __html: page.innerHTML }}
-                                        className="bg-white"
+                                        className="bg-white [&_*]:!text-left [&_h1]:!text-center [&_h2]:!text-center [&_.text-center]:!text-center"
                                     />
                                 </div>
                             </div>

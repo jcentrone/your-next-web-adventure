@@ -29,7 +29,7 @@ const InspectorCertificationPage: React.FC<InspectorCertificationPageProps> = ({
   return (
     <div className="preview-page">
       <section className="pdf-page-break p-8 min-h-[11in] flex flex-col justify-center">
-        <div className="max-w-2xl mx-auto text-center space-y-8">
+        <div className="w-full text-center space-y-8">
           <h1 className="text-3xl font-bold text-primary mb-12">
             Inspector Certification
           </h1>
