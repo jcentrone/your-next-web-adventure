@@ -11,6 +11,11 @@ import EmailChangeEmail from "./_templates/email-change.tsx";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
 
+// Fallback email address when an organization doesn't define one.
+// Ensure this address uses a domain that has been verified in Resend.
+const DEFAULT_FROM_EMAIL =
+  Deno.env.get("RESEND_FROM_EMAIL") ?? "team@homereportpro.com";
+
 // Process webhook secret with proper format handling
 function processWebhookSecret(rawSecret: string): string {
   if (!rawSecret) {
@@ -56,7 +61,8 @@ console.log("Environment check:", {
   hasResendKey: !!Deno.env.get("RESEND_API_KEY"),
   hasHookSecret: !!Deno.env.get("SEND_EMAIL_HOOK_SECRET"),
   hasSupabaseUrl: !!Deno.env.get("SUPABASE_URL"),
-  hasServiceRoleKey: !!Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+  hasServiceRoleKey: !!Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
+  hasResendFromEmail: !!Deno.env.get("RESEND_FROM_EMAIL"),
 });
 
 const corsHeaders = {
@@ -121,7 +127,7 @@ async function getOrganizationBranding(userEmail: string) {
         primaryColor: org.primary_color || '#2563eb',
         secondaryColor: org.secondary_color || '#64748b',
         emailFromName: org.email_from_name || org.name,
-        emailFromAddress: org.email_from_address || 'noreply@homereportpro.com',
+        emailFromAddress: org.email_from_address || DEFAULT_FROM_EMAIL,
         userName: profile.full_name || 'there',
       };
     }
@@ -136,12 +142,15 @@ async function getOrganizationBranding(userEmail: string) {
     primaryColor: '#2563eb',
     secondaryColor: '#64748b',
     emailFromName: 'HomeReportPro',
-    emailFromAddress: 'noreply@homereportpro.com',
+    emailFromAddress: DEFAULT_FROM_EMAIL,
     userName: 'there',
   };
 }
 
-function getEmailTemplate(emailActionType: string, props: any) {
+function getEmailTemplate(
+  emailActionType: string,
+  props: Record<string, unknown>
+) {
   switch (emailActionType) {
     case 'signup':
     case 'confirmation':
