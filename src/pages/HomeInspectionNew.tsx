@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
 import { contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
-import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
+import { ContactSearchDropdown } from "@/components/contacts/ContactSearchDropdown";
 import type { Contact } from "@/lib/crmSchemas";
 
 const schema = z.object({
@@ -156,17 +156,18 @@ const HomeInspectionNew: React.FC = () => {
               name="contactIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Contacts</FormLabel>
+                  <FormLabel>In Attendance</FormLabel>
                   <FormControl>
-                    <ContactMultiSelect
+                    <ContactSearchDropdown
                       contacts={contacts}
                       value={field.value || []}
                       onChange={field.onChange}
                       onSelectedContactsChange={setSelectedContacts}
+                      placeholder="Select attendees..."
                     />
                   </FormControl>
                   <FormDescription>
-                    Search and select contacts who will be attending the inspection
+                    Search and select who will be attending the inspection
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
