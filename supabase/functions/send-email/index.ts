@@ -16,46 +16,8 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY") ?? "");
 const DEFAULT_FROM_EMAIL =
   Deno.env.get("RESEND_FROM_EMAIL") ?? "team@homereportpro.com";
 
-// Process webhook secret with proper format handling
-function processWebhookSecret(rawSecret: string): string {
-  if (!rawSecret) {
-    throw new Error('SEND_EMAIL_HOOK_SECRET environment variable not set');
-  }
-
-  console.log('Raw secret format info:', {
-    length: rawSecret.length,
-    startsWithV1: rawSecret.startsWith('v1,'),
-    startsWithWhsec: rawSecret.includes('whsec_'),
-    firstFewChars: rawSecret.substring(0, 10) + '...'
-  });
-
-  // Handle different possible formats
-  let processedSecret = rawSecret;
-  
-  // Remove v1, prefix if present
-  if (processedSecret.startsWith('v1,')) {
-    processedSecret = processedSecret.substring(3);
-    console.log('Removed v1, prefix');
-  }
-  
-  // Remove whsec_ prefix if present
-  if (processedSecret.startsWith('whsec_')) {
-    processedSecret = processedSecret.substring(6);
-    console.log('Removed whsec_ prefix');
-  }
-  
-  // Validate base64 format
-  try {
-    atob(processedSecret);
-    console.log('Secret is valid base64');
-  } catch (e) {
-    console.log('Secret is not valid base64, using as-is');
-  }
-  
-  return processedSecret;
-}
-
-const hookSecret = processWebhookSecret(Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "");
+// Use webhook secret exactly as provided in the environment
+const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
 
 console.log("Environment check:", {
   hasResendKey: !!Deno.env.get("RESEND_API_KEY"),
@@ -222,36 +184,12 @@ Deno.serve(async (req) => {
     if (!hookSecret) {
       throw new Error('SEND_EMAIL_HOOK_SECRET environment variable not set');
     }
-    
-    let wh;
-    try {
-      wh = new Webhook(hookSecret);
-    } catch (secretError) {
-      console.error('Failed to create Webhook with processed secret:', secretError);
-      // Try with original secret as fallback
-      const originalSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
-      console.log('Trying with original secret format');
-      wh = new Webhook(originalSecret);
-    }
 
-    let verificationResult;
-    try {
-      verificationResult = wh.verify(payload, headers) as {
-        user: User;
-        email_data: EmailData;
-      };
-    } catch (verifyError) {
-      console.error('Webhook verification failed:', verifyError);
-      console.log('Attempting alternative verification methods...');
-      
-      // Try with raw secret without any processing
-      const rawSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET") ?? "";
-      const fallbackWh = new Webhook(rawSecret);
-      verificationResult = fallbackWh.verify(payload, headers) as {
-        user: User;
-        email_data: EmailData;
-      };
-    }
+    const wh = new Webhook(hookSecret);
+    const verificationResult = wh.verify(payload, headers) as {
+      user: User;
+      email_data: EmailData;
+    };
 
     const { user, email_data } = verificationResult;
 
