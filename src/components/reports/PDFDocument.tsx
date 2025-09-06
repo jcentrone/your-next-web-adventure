@@ -84,9 +84,9 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
         }, [] as { sectionTitle: string; counts: Record<string, number> }[]);
 
         return (
-            <div ref={ref} className="pdf-document relative z-10" style={colorVars as any}>
-                <div className="preview-page pdf-page-break relative z-10">
-                    <div className="h-[1056px] relative z-10">
+            <div ref={ref} className="pdf-document relative" style={colorVars as any}>
+                <div className="preview-page pdf-page-break relative">
+                    <div className="h-[1056px] relative">
                         <CoverComponent
                             reportTitle={report.title}
                             clientName={report.clientName}

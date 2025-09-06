@@ -486,9 +486,9 @@ const ReportPreview: React.FC = () => {
     const TOPBAR_HEIGHT = 129;
 
     const topBar = (
-        <div className="fixed top-0 right-0 left-0 h-[80px]">
+        <div className="fixed top-0 right-0 left-0 h-[80px] z-50">
             <div
-                className="z-50 bg-background shadow print-hidden"
+                className="bg-background shadow print-hidden relative z-50"
                 style={{height: TOPBAR_HEIGHT}}
             >
                 <div className="mx-auto px-4 py-4 flex items-end justify-between gap-2 h-full">
@@ -622,8 +622,8 @@ const ReportPreview: React.FC = () => {
                     onPageChange={setCurrentPage}
                     report={report}
                 />
-                <div className="flex-1 pt-24 ms-80 flex justify-center relative z-10">
-                    <div className="w-full max-w-4xl px-4 py-10 relative z-10">
+                <div className="flex-1 pt-24 ms-80 flex justify-center">
+                    <div className="w-full max-w-4xl px-4 py-10">
                         <PDFDocument
                             ref={pdfContainerRef}
                             report={report}
