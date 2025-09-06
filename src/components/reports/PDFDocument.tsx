@@ -4,6 +4,7 @@ import {PREVIEW_TEMPLATES} from "@/constants/previewTemplates";
 import {COLOR_SCHEMES} from "@/components/ui/color-scheme-picker";
 import {AlertCircle, AlertOctagon, AlertTriangle, Info, MinusCircle, Wrench} from "lucide-react";
 import ReportDetailsSection from "./ReportDetailsSection";
+import TableOfContents from "./TableOfContents";
 import SectionInfoDisplay from "./SectionInfoDisplay";
 import {isSupabaseUrl} from "@/integrations/supabase/storage";
 import {COVER_TEMPLATES} from "@/constants/coverTemplates";
@@ -94,9 +95,22 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                         <CoverComponent
                             reportTitle={report.title}
                             clientName={report.clientName}
+                            clientAddress={report.address}
+                            clientEmail={report.clientEmail || ""}
+                            clientPhone={report.clientPhone || ""}
                             coverImage={coverUrl}
-                            organizationName={company}
+                            organizationName={organization?.name || company || ""}
+                            organizationAddress={organization?.address || ""}
+                            organizationPhone={organization?.phone || ""}
+                            organizationEmail={organization?.email || ""}
+                            organizationWebsite={organization?.website || ""}
+                            organizationLogo={organization?.logo_url || ""}
+                            inspectorName={inspector?.full_name || ""}
+                            inspectorLicenseNumber={inspector?.license_number || ""}
+                            inspectorPhone={inspector?.phone || ""}
+                            inspectorEmail={inspector?.email || ""}
                             inspectionDate={report.inspectionDate}
+                            weatherConditions={report.weatherConditions || ""}
                             colorScheme={
                                 report.colorScheme === "custom" && report.customColors
                                     ? {
@@ -124,6 +138,14 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                                 report={report}
                                 sectionInfo={report.sections.find(s => s.key === 'report_details')?.info || {}}
                             />
+                            
+                            {/* Table of Contents */}
+                            <div className="mt-8">
+                                <TableOfContents
+                                    report={report}
+                                    pageGroups={pageGroups}
+                                />
+                            </div>
                         </section>
                     </article>
                 </div>

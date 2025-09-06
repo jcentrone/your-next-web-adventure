@@ -9,6 +9,7 @@ import {ROOF_CERTIFICATION_QUESTIONS} from "@/constants/roofCertificationQuestio
 import {COVER_TEMPLATES} from "@/constants/coverTemplates.ts";
 import {Profile} from "@/integrations/supabase/organizationsApi.ts";
 import InspectorCertificationPage from "./InspectorCertificationPage";
+import TableOfContents from "./TableOfContents";
 import { renderInternachiStandards } from "@/utils/internachiStandardsContent";
 
 const QUESTION_CONFIGS: Partial<Record<Report["reportType"], { sections: readonly any[] }>> = {
@@ -128,6 +129,13 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                 <div className="preview-page">
                     <section className="pdf-page-break p-8 min-h-[11in]">
                         <h1 className="text-3xl font-bold mb-8 text-primary">{report.title}</h1>
+                        
+                        {/* Table of Contents */}
+                        <div className="mb-8">
+                            <TableOfContents
+                                report={report}
+                            />
+                        </div>
                         {config.sections.filter(section => section.name.toLowerCase() !== 'photos' && section.name.toLowerCase() !== 'images').map((section, sectionIndex) => (
                             <div key={section.name} className={sectionIndex > 0 ? "mt-8" : ""}>
                                 <h2 className="text-2xl font-bold mb-4 capitalize text-primary border-b border-gray-300 pb-2">
