@@ -21,7 +21,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({
   pageGroups = [], 
   className = "" 
 }) => {
-  // Calculate page numbers based on the structure
+  // Calculate page numbers based on the correct structure
   let currentPage = 1;
   const tocEntries: TocEntry[] = [];
 
@@ -32,18 +32,18 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({
     icon: FileText,
   });
 
-  // Report Details
-  tocEntries.push({
-    title: "Report Details",
-    pageNumber: currentPage++,
-    icon: FileCheck,
-  });
-
   // Table of Contents (this page)
   tocEntries.push({
     title: "Table of Contents",
     pageNumber: currentPage++,
     icon: BookOpen,
+  });
+
+  // Report Details
+  tocEntries.push({
+    title: "Report Details",
+    pageNumber: currentPage++,
+    icon: FileCheck,
   });
 
   // Summary (if there are findings)
