@@ -8,7 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, X, FileText, Eye, AlertTriangle, CheckCircle, AlertCircle } from "lucide-react";
+import { X, FileText, Eye, AlertTriangle, CheckCircle, AlertCircle } from "lucide-react";
 import type { SampleReport } from "@/constants/sampleData";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { COVER_TEMPLATES } from "@/constants/coverTemplates";
@@ -18,14 +18,12 @@ interface SampleReportModalProps {
   report: SampleReport | null;
   isOpen: boolean;
   onClose: () => void;
-  onDownload?: (report: SampleReport) => void;
 }
 
 export const SampleReportModal: React.FC<SampleReportModalProps> = ({
   report,
   isOpen,
-  onClose,
-  onDownload
+  onClose
 }) => {
   const [activeTab, setActiveTab] = useState("cover");
   
@@ -64,16 +62,6 @@ export const SampleReportModal: React.FC<SampleReportModalProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {onDownload && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onDownload(report)}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download Sample
-              </Button>
-            )}
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-4 h-4" />
             </Button>

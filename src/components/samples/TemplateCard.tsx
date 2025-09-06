@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Download } from "lucide-react";
+import { Eye } from "lucide-react";
 import type { SampleReport } from "@/constants/sampleData";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { COVER_TEMPLATES } from "@/constants/coverTemplates";
@@ -10,13 +10,11 @@ import { COVER_TEMPLATES } from "@/constants/coverTemplates";
 interface TemplateCardProps {
   report: SampleReport;
   onPreview: (report: SampleReport) => void;
-  onDownload?: (report: SampleReport) => void;
 }
 
 export const TemplateCard: React.FC<TemplateCardProps> = ({
   report,
-  onPreview,
-  onDownload
+  onPreview
 }) => {
   const CoverComponent = COVER_TEMPLATES[report.coverTemplate].component;
   
@@ -51,7 +49,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
         </div>
         
         {/* Overlay Actions */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
           <Button
             size="sm"
             variant="secondary"
@@ -61,17 +59,6 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({
             <Eye className="w-4 h-4 mr-2" />
             Preview
           </Button>
-          {onDownload && (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => onDownload(report)}
-              className="bg-white/90 hover:bg-white text-black"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
-          )}
         </div>
       </div>
       
