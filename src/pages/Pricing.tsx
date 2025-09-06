@@ -265,6 +265,15 @@ const Pricing = () => {
                   </p>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-2">Is there an AI assistant to help me?</h3>
+                  <p className="text-muted-foreground">
+                    Absolutely! We include a powerful AI chatbot that can answer any questions about using the platform, creating reports, or getting help with specific features. It's available 24/7 right within the app.
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
