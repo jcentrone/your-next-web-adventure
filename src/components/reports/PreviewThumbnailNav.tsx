@@ -85,15 +85,17 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
         sectionMapping.push({ name: 'Inspector Certification', startPage: currentPageIndex, endPage: currentPageIndex });
         currentPageIndex++;
 
-        // Standards of practice (estimate pages based on sections)
-        const standardsStartPage = currentPageIndex;
-        const estimatedStandardsPages = 3; // Estimate based on content
-        sectionMapping.push({ 
-            name: 'Standards of Practice', 
-            startPage: standardsStartPage, 
-            endPage: standardsStartPage + estimatedStandardsPages - 1
-        });
-        currentPageIndex += estimatedStandardsPages;
+        // Standards of practice (only for home inspection reports)
+        if (report?.reportType === 'home_inspection') {
+            const standardsStartPage = currentPageIndex;
+            const estimatedStandardsPages = 3; // Estimate based on content
+            sectionMapping.push({ 
+                name: 'Standards of Practice', 
+                startPage: standardsStartPage, 
+                endPage: standardsStartPage + estimatedStandardsPages - 1
+            });
+            currentPageIndex += estimatedStandardsPages;
+        }
 
         // Terms (if exists)
         if (pageNodes.length > currentPageIndex) {
@@ -203,7 +205,7 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
                                 >
                                     <div 
                                         dangerouslySetInnerHTML={{ __html: page.innerHTML }}
-                                        className="bg-white [&_*]:!text-left [&_h1]:!text-center [&_h2]:!text-center [&_.text-center]:!text-center"
+                                        className="bg-white [&_*]:!text-left!important [&_h1]:!text-center!important [&_h2]:!text-center!important [&_.text-center]:!text-center!important [&_.justify-center]:!justify-center!important [&_.items-center]:!items-center!important [&_.mx-auto]:!mx-auto!important [&_.text-right]:!text-right!important"
                                     />
                                 </div>
                             </div>

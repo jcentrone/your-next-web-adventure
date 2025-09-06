@@ -100,6 +100,9 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                         <CoverComponent
                             reportTitle={report.title}
                             clientName={report.clientName}
+                            clientAddress={report.address}
+                            clientEmail={report.clientEmail || ""}
+                            clientPhone={report.clientPhone || ""}
                             coverImage={coverUrl}
                             organizationName={organization?.name || ""}
                             organizationAddress={organization?.address || ""}
@@ -111,14 +114,10 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                             inspectorLicenseNumber={inspector?.license_number || ""}
                             inspectorPhone={inspector?.phone || ""}
                             inspectorEmail={inspector?.email || ""}
-                            clientAddress={report.address}
-                            clientEmail={report.clientEmail || ""}
-                            clientPhone={report.clientPhone || ""}
                             inspectionDate={report.inspectionDate}
                             weatherConditions={report.weatherConditions || ""}
                             colorScheme={coverColorScheme}
                             className={className}
-
                         />
 
 
@@ -187,8 +186,8 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                     mediaUrlMap={mediaUrlMap}
                 />
 
-                {/* InterNACHI Standards of Practice */}
-                {(report as any).includeStandardsOfPractice === true && (
+                {/* InterNACHI Standards of Practice - Only for home inspection reports */}
+                {report.reportType === 'home_inspection' && (report as any).includeStandardsOfPractice === true && (
                     <div className="preview-page">
                         <section className="pdf-page-break p-8 min-h-[11in]">
                             {renderInternachiStandards()}
