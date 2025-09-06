@@ -43,9 +43,34 @@ const SampleReports = () => {
     setModalOpen(true);
   };
 
-  const handleDownload = (report: SampleReport) => {
-    // TODO: Implement PDF generation for sample reports
-    console.log("Download sample report:", report.id);
+  const handleDownload = async (report: SampleReport) => {
+    try {
+      // Create a link element to download the sample PDF
+      const link = document.createElement('a');
+      link.href = `/templates/${report.reportType.toLowerCase().replace('_', '_')}_template.pdf`;
+      link.download = `${report.title.replace(/\s+/g, '_')}_Sample.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading sample report:', error);
+      // Fallback: Generate a sample PDF with basic content
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      // Add basic content
+      doc.setFontSize(20);
+      doc.text(report.title, 20, 30);
+      doc.setFontSize(12);
+      doc.text(`Sample ${report.reportType.replace('_', ' ')} Report`, 20, 50);
+      doc.text(`Organization: ${report.organization.name}`, 20, 70);
+      doc.text(`Inspector: ${report.inspector.name}`, 20, 90);
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 110);
+      doc.text('This is a sample report template. Sign up to create custom reports.', 20, 140);
+      
+      // Save the PDF
+      doc.save(`${report.title.replace(/\s+/g, '_')}_Sample.pdf`);
+    }
   };
 
   const title = "Professional Report Templates | Home Report Pro";

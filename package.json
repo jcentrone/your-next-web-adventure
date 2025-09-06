@@ -59,6 +59,7 @@
     "git-filter-repo": "^0.0.30",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.4.2",
+    "jspdf": "^3.0.2",
     "konva": "^9.3.22",
     "lodash.get": "^4.4.2",
     "lucide": "^0.462.0",
