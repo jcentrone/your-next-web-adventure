@@ -231,7 +231,7 @@ const PreviewThumbnailNav: React.FC<PreviewThumbnailNavProps> = ({
         });
 
         return () => observer.disconnect();
-    }, [containerRef, report, pageGroups]);
+    }, [containerRef, report, pageGroups, report?.previewTemplate, report?.coverTemplate, report?.colorScheme, report?.customColors]);
 
     // Update active page from props
     React.useEffect(() => {
