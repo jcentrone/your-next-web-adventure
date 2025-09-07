@@ -802,6 +802,8 @@ export type Database = {
           initials_url: string | null
           last_sign_in_at: string | null
           license_number: string | null
+          onboarding_completed: boolean | null
+          onboarding_completed_at: string | null
           phone: string | null
           provider: string | null
           signature_type: string | null
@@ -819,6 +821,8 @@ export type Database = {
           initials_url?: string | null
           last_sign_in_at?: string | null
           license_number?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           phone?: string | null
           provider?: string | null
           signature_type?: string | null
@@ -836,6 +840,8 @@ export type Database = {
           initials_url?: string | null
           last_sign_in_at?: string | null
           license_number?: string | null
+          onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           phone?: string | null
           provider?: string | null
           signature_type?: string | null

@@ -204,7 +204,6 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) => {
 
   const handleTourComplete = () => {
     markUserAsReturning();
-    localStorage.setItem('onboarding-completed', 'true');
     onComplete();
   };
 

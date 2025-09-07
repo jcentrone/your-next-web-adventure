@@ -16,7 +16,7 @@ import Seo from "@/components/Seo";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { showTour, completeTour } = useOnboarding();
+  const { showTour, loading: onboardingLoading, completeTour } = useOnboarding();
 
   const { data: upcomingAppointments = [] } = useQuery({
     queryKey: ["appointments", "upcoming", user?.id],
@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  if (!user) {
+  if (!user || onboardingLoading) {
     return null;
   }
 
