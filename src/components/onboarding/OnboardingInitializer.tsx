@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/components/onboarding/OnboardingManager';
@@ -8,6 +8,8 @@ export const OnboardingInitializer = () => {
   const { user } = useAuth();
   const { startTour, isActive } = useOnboarding();
   const { toast } = useToast();
+  const [hasCompletedThisSession, setHasCompletedThisSession] = useState(false);
+  const previouslyActiveRef = useRef(false);
 
   const markOnboardingCompleted = useCallback(async () => {
     if (!user) return;
@@ -34,9 +36,10 @@ export const OnboardingInitializer = () => {
     }
   }, [user, toast]);
 
+  // Check onboarding status only on mount and user change
   useEffect(() => {
     const checkOnboardingStatus = async () => {
-      if (!user || isActive) return;
+      if (!user || hasCompletedThisSession) return;
 
       try {
         const { data: profile, error } = await supabase
@@ -62,18 +65,17 @@ export const OnboardingInitializer = () => {
     };
 
     checkOnboardingStatus();
-  }, [user, isActive, startTour]);
+  }, [user, startTour, hasCompletedThisSession]);
 
   // Listen for tour ending and mark as completed
   useEffect(() => {
-    let previouslyActive = false;
-    
     const handleTourEnd = async () => {
-      if (previouslyActive && !isActive) {
+      if (previouslyActiveRef.current && !isActive) {
         // Tour just ended, mark as completed
+        setHasCompletedThisSession(true);
         await markOnboardingCompleted();
       }
-      previouslyActive = isActive;
+      previouslyActiveRef.current = isActive;
     };
 
     handleTourEnd();
