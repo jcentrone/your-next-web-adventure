@@ -52,7 +52,7 @@ const Header: React.FC = () => {
         <header
             className="sticky top-0 z-[60] border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <nav className="flex h-14 items-center justify-between px-4">
-                <Link to="/" className="flex items-center gap-2 font-bold">
+                <Link to="/" className="flex items-center gap-2 font-bold" data-onboarding="logo">
                     <img
                         src="/HomeReportPro_Logo-transparent.png"
                         alt="Home Report Pro"
@@ -65,12 +65,14 @@ const Header: React.FC = () => {
                     {user ? (
                         <>
                             <Link to="/dashboard"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary">
+                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  data-onboarding="dashboard">
                                 <Home className="h-4 w-4"/>
                                 Dashboard
                             </Link>
                             <Link to="/calendar"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary">
+                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  data-onboarding="calendar">
                                 <Calendar className="h-4 w-4"/>
                                 Calendar
                             </Link>
@@ -79,7 +81,8 @@ const Header: React.FC = () => {
                                 Tasks
                             </Link>
                             <Link to="/contacts"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary">
+                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  data-onboarding="contacts">
                                 <Users className="h-4 w-4"/>
                                 Contacts
                             </Link>
@@ -89,7 +92,8 @@ const Header: React.FC = () => {
                                 Accounts
                             </Link>
                             <Link to="/reports"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary">
+                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  data-onboarding="reports">
                                 <FileText className="h-4 w-4"/>
                                 Reports
                             </Link>
@@ -286,7 +290,8 @@ const Header: React.FC = () => {
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <button
-                                        className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                        className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        data-onboarding="user-menu">
                                         <Avatar className="h-9 w-9">
                                             <AvatarImage
                                                 src={(user.user_metadata as any)?.avatar_url || (user.user_metadata as any)?.picture}

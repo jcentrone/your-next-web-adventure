@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useOnboarding as useOnboardingManager } from '@/components/onboarding/OnboardingManager';
 
 export const useOnboarding = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showTour, setShowTour] = useState(false);
   const [loading, setLoading] = useState(true);
+  const onboardingManager = useOnboardingManager();
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -33,6 +35,7 @@ export const useOnboarding = () => {
           // Small delay to ensure page is fully loaded
           const timer = setTimeout(() => {
             setShowTour(true);
+            onboardingManager.startTour();
             setLoading(false);
           }, 1000);
           return () => clearTimeout(timer);
@@ -75,10 +78,12 @@ export const useOnboarding = () => {
 
   const startTour = () => {
     setShowTour(true);
+    onboardingManager.startTour();
   };
 
   const completeTour = async () => {
     setShowTour(false);
+    onboardingManager.endTour();
     await markOnboardingCompleted();
   };
 
@@ -105,6 +110,7 @@ export const useOnboarding = () => {
       }
 
       setShowTour(true);
+      onboardingManager.startTour();
       toast({
         title: "Success",
         description: "Onboarding tour will restart",

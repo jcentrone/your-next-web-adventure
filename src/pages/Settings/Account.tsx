@@ -4,11 +4,13 @@ import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
+import {Button} from "@/components/ui/button";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Badge} from "@/components/ui/badge";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {toast} from "@/components/ui/use-toast";
 import {useAuth} from "@/contexts/AuthContext";
+import {useOnboarding} from "@/hooks/useOnboarding";
 import Seo from "@/components/Seo";
 import {
     deleteSignature,
@@ -19,11 +21,13 @@ import {
 } from "@/integrations/supabase/organizationsApi";
 import SignaturePad from "@/components/signature/SignaturePad";
 import InitialsPad from "@/components/signature/InitialsPad";
+import { RotateCcw } from "lucide-react";
 
 const Account: React.FC = () => {
     const {user} = useAuth();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { resetOnboarding } = useOnboarding();
 
     const [fullName, setFullName] = React.useState("");
     const [phone, setPhone] = React.useState("");
@@ -285,6 +289,27 @@ const Account: React.FC = () => {
                         {updateProfileMutation.isPending && (
                             <div className="text-sm text-muted-foreground">Auto-saving...</div>
                         )}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Onboarding & Tour</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <p className="text-sm text-muted-foreground">
+                                Take the product tour again to refresh your knowledge of the platform features.
+                            </p>
+                            <Button 
+                                variant="outline" 
+                                onClick={resetOnboarding}
+                                className="flex items-center gap-2"
+                            >
+                                <RotateCcw className="h-4 w-4" />
+                                Restart Tour
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
 
