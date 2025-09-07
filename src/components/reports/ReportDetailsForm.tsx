@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ContactSearchDropdown } from "@/components/contacts/ContactSearchDropdown";
+import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 import type { Report } from "@/lib/reportSchemas";
 
 interface Props {
@@ -92,10 +92,9 @@ const ReportDetailsForm: React.FC<Props> = ({ report, onUpdate }) => {
       {/* In Attendance Field */}
       <div className="space-y-2">
         <Label htmlFor="contactIds">In Attendance</Label>
-        <ContactSearchDropdown
+        <ContactMultiSelect
           value={report.contactIds || []}
           onChange={(contactIds) => onUpdate({ ...report, contactIds } as Report)}
-          placeholder="Select attendees..."
         />
       </div>
     </section>
