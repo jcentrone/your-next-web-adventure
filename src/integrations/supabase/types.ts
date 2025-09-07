@@ -1312,6 +1312,10 @@ export type Database = {
         Args: { p_end_date: string; p_start_date: string; p_user_id: string }
         Returns: Json
       }
+      generate_default_terms_html: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_contact_with_related_data: {
         Args: { contact_uuid: string }
         Returns: Json
