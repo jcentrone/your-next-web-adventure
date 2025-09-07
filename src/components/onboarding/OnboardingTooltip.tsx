@@ -36,13 +36,13 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
     
     switch (arrow) {
       case 'top':
-        return `${base} border-transparent border-t-[#1e40af] -bottom-2 left-1/2 -translate-x-1/2`;
+        return `${base} border-transparent border-t-primary -bottom-2 left-1/2 -translate-x-1/2`;
       case 'bottom':
-        return `${base} border-transparent border-b-[#1e40af] -top-2 left-1/2 -translate-x-1/2`;
+        return `${base} border-transparent border-b-primary -top-2 left-1/2 -translate-x-1/2`;
       case 'left':
-        return `${base} border-transparent border-l-[#1e40af] -right-2 top-1/2 -translate-y-1/2`;
+        return `${base} border-transparent border-l-primary -right-2 top-1/2 -translate-y-1/2`;
       case 'right':
-        return `${base} border-transparent border-r-[#1e40af] -left-2 top-1/2 -translate-y-1/2`;
+        return `${base} border-transparent border-r-primary -left-2 top-1/2 -translate-y-1/2`;
       default:
         return '';
     }
@@ -65,14 +65,14 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
           transform: transform
         }}
       >
-        <div className="relative bg-[#1e40af] text-white rounded-lg shadow-xl max-w-[320px] min-w-[280px]">
+        <div className="relative bg-primary text-primary-foreground rounded-lg shadow-xl max-w-[320px] min-w-[280px]">
           {/* Arrow */}
           <div className={getArrowClasses()} />
           
           {/* Header */}
           <div className="px-4 pt-4 pb-2">
             <h3 className="font-semibold text-base mb-2">{title}</h3>
-            <p className="text-sm text-white/90 leading-relaxed">{content}</p>
+            <p className="text-sm text-primary-foreground/90 leading-relaxed">{content}</p>
           </div>
           
           {/* Progress indicator */}
@@ -84,26 +84,26 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
                   className={cn(
                     "h-1.5 rounded-full transition-colors",
                     index < currentStep 
-                      ? "bg-white w-3" 
+                      ? "bg-primary-foreground w-3" 
                       : index === currentStep 
-                        ? "bg-white/70 w-4" 
-                        : "bg-white/30 w-2"
+                        ? "bg-primary-foreground/70 w-4" 
+                        : "bg-primary-foreground/30 w-2"
                   )}
                 />
               ))}
             </div>
-            <div className="text-xs text-white/60 mt-1">
+            <div className="text-xs text-primary-foreground/60 mt-1">
               Step {currentStep + 1} of {totalSteps}
             </div>
           </div>
           
           {/* Footer */}
-          <div className="flex justify-between items-center p-3 border-t border-white/20 bg-black/10 rounded-b-lg">
+          <div className="flex justify-between items-center p-3 border-t border-primary-foreground/20 bg-primary/10 rounded-b-lg">
             <Button
               variant="ghost"
               size="sm"
               onClick={onSkip}
-              className="text-white/70 hover:text-white hover:bg-white/10 text-xs"
+              className="text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10 text-xs"
             >
               Skip Tour
             </Button>
@@ -114,7 +114,7 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={onPrev}
-                  className="bg-transparent text-white/70 border-white/30 hover:bg-white/10 hover:text-white hover:border-white/50 text-xs px-3"
+                  className="bg-transparent text-primary-foreground/70 border-primary-foreground/30 hover:bg-primary-foreground/10 hover:text-primary-foreground hover:border-primary-foreground/50 text-xs px-3"
                 >
                   Back
                 </Button>
@@ -123,7 +123,7 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
               <Button
                 size="sm"
                 onClick={isLast ? onSkip : onNext}
-                className="bg-white text-[#1e40af] hover:bg-gray-100 text-xs px-3 font-medium"
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 text-xs px-3 font-medium"
               >
                 {isLast ? 'Finish' : 'Next'}
               </Button>

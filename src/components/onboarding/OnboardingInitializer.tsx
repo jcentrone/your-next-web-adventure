@@ -5,7 +5,7 @@ import { useOnboarding } from '@/components/onboarding/OnboardingManager';
 
 export const OnboardingInitializer = () => {
   const { user } = useAuth();
-  const { startTour } = useOnboarding();
+  const { startTour, isActive } = useOnboarding();
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -23,7 +23,7 @@ export const OnboardingInitializer = () => {
           return;
         }
 
-        if (profile && !profile.onboarding_completed) {
+        if (profile && !profile.onboarding_completed && !isActive) {
           // Small delay to ensure page is fully loaded
           setTimeout(() => {
             startTour();
@@ -35,7 +35,7 @@ export const OnboardingInitializer = () => {
     };
 
     checkOnboardingStatus();
-  }, [user, startTour]);
+  }, [user, startTour, isActive]);
 
   // This component doesn't render anything
   return null;
