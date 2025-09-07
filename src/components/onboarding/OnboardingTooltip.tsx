@@ -32,17 +32,17 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
   isLast,
 }) => {
   const getArrowClasses = () => {
-    const base = "absolute w-0 h-0 border-8 border-solid";
+    const base = "absolute w-0 h-0 border-[12px] border-solid z-10";
     
     switch (arrow) {
       case 'top':
-        return `${base} border-transparent border-t-primary -bottom-2 left-1/2 -translate-x-1/2`;
+        return `${base} border-transparent border-t-primary -bottom-3 left-1/2 -translate-x-1/2`;
       case 'bottom':
-        return `${base} border-transparent border-b-primary -top-2 left-1/2 -translate-x-1/2`;
+        return `${base} border-transparent border-b-primary -top-3 left-1/2 -translate-x-1/2`;
       case 'left':
-        return `${base} border-transparent border-l-primary -right-2 top-1/2 -translate-y-1/2`;
+        return `${base} border-transparent border-l-primary -right-3 top-1/2 -translate-y-1/2`;
       case 'right':
-        return `${base} border-transparent border-r-primary -left-2 top-1/2 -translate-y-1/2`;
+        return `${base} border-transparent border-r-primary -left-3 top-1/2 -translate-y-1/2`;
       default:
         return '';
     }

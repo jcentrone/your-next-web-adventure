@@ -9,7 +9,7 @@ export const OnboardingInitializer = () => {
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
-      if (!user) return;
+      if (!user || isActive) return;
 
       try {
         const { data: profile, error } = await supabase
@@ -23,7 +23,7 @@ export const OnboardingInitializer = () => {
           return;
         }
 
-        if (profile && !profile.onboarding_completed && !isActive) {
+        if (profile && !profile.onboarding_completed) {
           // Small delay to ensure page is fully loaded
           setTimeout(() => {
             startTour();
@@ -35,7 +35,7 @@ export const OnboardingInitializer = () => {
     };
 
     checkOnboardingStatus();
-  }, [user, startTour, isActive]);
+  }, [user, isActive]); // Removed startTour from dependencies to prevent re-triggering
 
   // This component doesn't render anything
   return null;
