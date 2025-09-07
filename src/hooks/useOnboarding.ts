@@ -57,7 +57,7 @@ export const useOnboarding = () => {
     };
 
     checkOnboardingStatus();
-  }, [user, onboardingManager]);
+  }, [user]); // Removed onboardingManager dependency to prevent restart loop
 
   const markOnboardingCompleted = async () => {
     if (!user) return;
