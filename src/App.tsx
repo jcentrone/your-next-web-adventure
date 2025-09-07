@@ -48,11 +48,12 @@ const App = () => (
               <Route path="/oauth/showingtime" element={<ShowingTimeCallback />} />
               <Route path="/book/:slug" element={lazyLoad(() => import("./pages/BookingPage"))} />
               <Route element={<RootLayout />}>
-                <Route path="/" element={<Index />} />
-                <Route path="/features" element={lazyLoad(() => import("./pages/Features"))} />
-                <Route path="/pricing" element={lazyLoad(() => import("./pages/Pricing"))} />
-              <Route path="/dashboard" element={lazyLoad(() => import("./pages/Dashboard"))} />
-              <Route path="/auth" element={lazyLoad(() => import("./pages/Auth"))} />
+              <Route path="/" element={<Index />} />
+              <Route path="/features" element={lazyLoad(() => import("./pages/Features"))} />
+              <Route path="/pricing" element={lazyLoad(() => import("./pages/Pricing"))} />
+            <Route path="/dashboard" element={lazyLoad(() => import("./pages/Dashboard"))} />
+            <Route path="/auth" element={lazyLoad(() => import("./pages/Auth"))} />
+            <Route path="/auth/confirm" element={lazyLoad(() => import("./pages/AuthConfirm"))} />
               <Route path="/reports" element={lazyLoad(() => import("./pages/ReportsList"))} />
               <Route path="/reports/select-type" element={lazyLoad(() => import("./components/reports/ReportTypeSelector"))} />
               <Route path="/reports/new" element={lazyLoad(() => import("./pages/ReportNew"))} />
