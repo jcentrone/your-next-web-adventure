@@ -1,6 +1,9 @@
 import React from "react";
 import { format } from "date-fns";
 import { Calendar, User, MapPin, Thermometer, Home, Cloud, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { contactsApi } from "@/integrations/supabase/crmApi";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ReportDetailsSectionProps {
   report: {
@@ -8,6 +11,7 @@ interface ReportDetailsSectionProps {
     clientName?: string;
     address?: string;
     inspectionDate?: string;
+    contactIds?: string[];
   };
   sectionInfo?: Record<string, any>;
   className?: string;
@@ -37,6 +41,14 @@ const ReportDetailsSection: React.FC<ReportDetailsSectionProps> = ({
   sectionInfo = {},
   className = ""
 }) => {
+  const { user } = useAuth();
+  
+  // Fetch contacts to resolve contact names
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts", user?.id],
+    queryFn: () => contactsApi.list(user!.id),
+    enabled: !!user,
+  });
   const formatDate = (dateStr: string) => {
     try {
       return format(new Date(dateStr), "MMMM d, yyyy");
@@ -81,6 +93,16 @@ const ReportDetailsSection: React.FC<ReportDetailsSectionProps> = ({
     if (fieldName === "inspection_date") {
       return formatDate(value);
     }
+    if (fieldName === "in_attendance" && Array.isArray(value)) {
+      // Format contact IDs to contact names
+      const contactNames = value
+        .map(contactId => {
+          const contact = contacts.find(c => c.id === contactId);
+          return contact ? `${contact.first_name} ${contact.last_name}` : contactId;
+        })
+        .filter(Boolean);
+      return contactNames.join(", ");
+    }
     return String(value || "");
   };
 
@@ -90,6 +112,7 @@ const ReportDetailsSection: React.FC<ReportDetailsSectionProps> = ({
     { name: "client_name", value: report.clientName || "" },
     { name: "address", value: report.address || "" },
     { name: "inspection_date", value: report.inspectionDate || "" },
+    { name: "in_attendance", value: report.contactIds || [] },
   ];
 
   // Additional fields from section info
@@ -98,7 +121,12 @@ const ReportDetailsSection: React.FC<ReportDetailsSectionProps> = ({
     .filter(([, value]) => value && String(value).trim() !== "")
     .map(([key, value]) => ({ name: key, value }));
 
-  const allFields = [...coreFields, ...additionalFields].filter(field => field.value && String(field.value).trim() !== "");
+  const allFields = [...coreFields, ...additionalFields].filter(field => {
+    if (Array.isArray(field.value)) {
+      return field.value.length > 0;
+    }
+    return field.value && String(field.value).trim() !== "";
+  });
 
   return (
     <section className={`space-y-6 pdf-report-details ${className}`}>

@@ -15,6 +15,7 @@ import { contactsApi } from "@/integrations/supabase/crmApi";
 import { useAuth } from "@/contexts/AuthContext";
 import type { InfoField } from "@/hooks/useSectionGuidance";
 import type { Contact } from "@/lib/crmSchemas";
+import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 
 interface InfoFieldWidgetProps {
   field: InfoField | string;
@@ -117,6 +118,36 @@ export function InfoFieldWidget({ field, value, onChange, onContactChange }: Inf
             ))}
           </SelectContent>
         </Select>
+      </div>
+    );
+  }
+
+  // Special handling for attendance fields - use ContactMultiSelect instead of regular multiselect
+  if (widget === "multiselect" && (label.toLowerCase().includes("attendance") || structuredField?.name === "in_attendance")) {
+    // Convert comma-separated string to array of contact IDs
+    const contactIds = value ? value.split(',').filter(v => v.trim()) : [];
+    
+    return (
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Label className="text-sm font-medium">
+            {label}
+            {required && <span className="text-destructive">*</span>}
+          </Label>
+          {sop_ref && (
+            <Badge variant="secondary" className="text-xs">
+              {sop_ref}
+            </Badge>
+          )}
+        </div>
+        
+        <ContactMultiSelect
+          value={contactIds}
+          onChange={(newContactIds) => {
+            // Convert array back to comma-separated string for compatibility
+            onChange(newContactIds.join(','));
+          }}
+        />
       </div>
     );
   }

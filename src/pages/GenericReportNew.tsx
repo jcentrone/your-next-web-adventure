@@ -18,13 +18,14 @@ import { contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 import type { Report } from "@/lib/reportSchemas";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
+import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
   clientName: z.string().min(1, "Required"),
   address: z.string().min(1, "Address is required"),
   inspectionDate: z.string().min(1, "Required"),
-  contactId: z.string().optional(),
+  contactIds: z.array(z.string()).optional().default([]),
 });
 
 type Values = z.infer<typeof schema>;
@@ -57,7 +58,7 @@ const GenericReportNew: React.FC = () => {
       clientName: "",
       address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
-      contactId: contactId || "",
+      contactIds: contactId ? [contactId] : [],
     },
   });
 
@@ -81,7 +82,7 @@ const GenericReportNew: React.FC = () => {
             clientName: values.clientName,
             address: values.address,
             inspectionDate: values.inspectionDate,
-            contact_id: values.contactId,
+            contactIds: values.contactIds || [],
             reportType: type,
           },
           user.id,
@@ -96,6 +97,7 @@ const GenericReportNew: React.FC = () => {
           address: values.address,
           inspectionDate: new Date(values.inspectionDate).toISOString(),
           reportType: type,
+          contactIds: values.contactIds || [],
         });
         toast({ title: `${label} report created (local draft)` });
         nav(`/reports/${report.id}`);
@@ -133,59 +135,29 @@ const GenericReportNew: React.FC = () => {
             />
             <FormField
               control={form.control}
-              name="contactId"
+              name="contactIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Contact</FormLabel>
+                  <FormLabel>In Attendance</FormLabel>
                   <FormControl>
-                    <div className="space-y-2">
-                      <Select
-                        value={field.value}
-                        onValueChange={(contactId) => {
-                          field.onChange(contactId);
-                          const selectedContact = contacts.find(c => c.id === contactId);
-                          if (selectedContact) {
-                            form.setValue('clientName', `${selectedContact.first_name} ${selectedContact.last_name}`);
-                            const contactAddress = selectedContact.formatted_address || selectedContact.address || "";
+                    <ContactMultiSelect
+                      contacts={contacts}
+                      value={field.value || []}
+                      onChange={(contactIds) => {
+                        field.onChange(contactIds);
+                        // Set client name from first selected contact
+                        if (contactIds.length > 0) {
+                          const primaryContact = contacts.find(c => c.id === contactIds[0]);
+                          if (primaryContact) {
+                            form.setValue('clientName', `${primaryContact.first_name} ${primaryContact.last_name}`);
+                            const contactAddress = primaryContact.formatted_address || primaryContact.address || "";
                             if (contactAddress) {
                               form.setValue('address', contactAddress);
                             }
                           }
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a contact or add new...">
-                            {field.value && contacts.length > 0 ?
-                              (() => {
-                                const contact = contacts.find(c => c.id === field.value);
-                                return contact ? `${contact.first_name} ${contact.last_name}` : field.value;
-                              })() : "Select a contact..."
-                            }
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="add-new" className="font-medium text-primary">
-                            + Add New Contact
-                          </SelectItem>
-                          {contacts.map((contact) => (
-                            <SelectItem key={contact.id} value={contact.id}>
-                              {contact.first_name} {contact.last_name}
-                              {contact.email && <span className="text-muted-foreground ml-2">({contact.email})</span>}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {field.value === "add-new" && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => nav('/contacts/new')}
-                        >
-                          Go to Add New Contact
-                        </Button>
-                      )}
-                    </div>
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

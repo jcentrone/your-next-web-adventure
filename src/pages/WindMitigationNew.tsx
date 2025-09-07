@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import ContactLookup from "@/components/contacts/ContactLookup";
+import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
@@ -23,7 +23,7 @@ const schema = z.object({
   county: z.string().optional(),
   ofStories: z.string().optional(),
   inspectionDate: z.string().min(1, "Required"),
-  contactId: z.string().optional(),
+  contactIds: z.array(z.string()).optional().default([]),
   phoneHome: z.string().optional(),
   phoneWork: z.string().optional(),
   phoneCell: z.string().optional(),
@@ -39,6 +39,13 @@ const WindMitigationNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
+
+  // Get all contacts for lookup
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["contacts", user?.id],
+    queryFn: () => contactsApi.list(user!.id),
+    enabled: !!user,
+  });
 
   // Get contact data if contactId is provided
   const { data: contact } = useQuery({
@@ -56,7 +63,7 @@ const WindMitigationNew: React.FC = () => {
       county: "",
       ofStories: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
-      contactId: contactId || "",
+      contactIds: contactId ? [contactId] : [],
       phoneHome: "",
       phoneWork: "",
       phoneCell: "",
@@ -68,7 +75,8 @@ const WindMitigationNew: React.FC = () => {
 
   // Update form when contact data loads
   useEffect(() => {
-    if (contact) {
+    if (contact && contactId) {
+      form.setValue('contactIds', [contactId]);
       form.setValue('clientName', `${contact.first_name} ${contact.last_name}`);
       const contactAddress = contact.formatted_address || contact.address || "";
       if (contactAddress) {
@@ -86,7 +94,7 @@ const WindMitigationNew: React.FC = () => {
         form.setValue('insuranceCompany', contact.company);
       }
     }
-  }, [contact, form]);
+  }, [contact, contactId, form]);
 
 
   const onSubmit = async (values: Values) => {
@@ -99,7 +107,7 @@ const WindMitigationNew: React.FC = () => {
             clientName: values.clientName,
             address: values.address,
             inspectionDate: values.inspectionDate,
-            contact_id: values.contactId,
+            contactIds: values.contactIds || [],
             reportType: "wind_mitigation",
             county: values.county,
             ofStories: values.ofStories,
@@ -157,31 +165,35 @@ const WindMitigationNew: React.FC = () => {
             />
             <FormField
               control={form.control}
-              name="contactId"
+              name="contactIds"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Contact</FormLabel>
+                  <FormLabel>In Attendance</FormLabel>
                   <FormControl>
-                    <ContactLookup
-                      value={field.value}
-                      onChange={(contactId, selectedContact) => {
-                        field.onChange(contactId);
-                        if (selectedContact) {
-                          form.setValue('clientName', `${selectedContact.first_name} ${selectedContact.last_name}`);
-                          const contactAddress = selectedContact.formatted_address || selectedContact.address || "";
-                          if (contactAddress) {
-                            form.setValue('address', contactAddress);
-                          }
-                          if (selectedContact.phone) {
-                            form.setValue('phoneHome', selectedContact.phone);
-                            form.setValue('phoneWork', selectedContact.phone);
-                            form.setValue('phoneCell', selectedContact.phone);
-                          }
-                          if (selectedContact.email) {
-                            form.setValue('email', selectedContact.email);
-                          }
-                          if (selectedContact.company) {
-                            form.setValue('insuranceCompany', selectedContact.company);
+                    <ContactMultiSelect
+                      value={field.value || []}
+                      onChange={(contactIds) => {
+                        field.onChange(contactIds);
+                        // Set client name from first selected contact
+                        if (contactIds.length > 0) {
+                          const selectedContact = contacts.find(c => c.id === contactIds[0]);
+                          if (selectedContact) {
+                            form.setValue('clientName', `${selectedContact.first_name} ${selectedContact.last_name}`);
+                            const contactAddress = selectedContact.formatted_address || selectedContact.address || "";
+                            if (contactAddress) {
+                              form.setValue('address', contactAddress);
+                            }
+                            if (selectedContact.phone) {
+                              form.setValue('phoneHome', selectedContact.phone);
+                              form.setValue('phoneWork', selectedContact.phone);
+                              form.setValue('phoneCell', selectedContact.phone);
+                            }
+                            if (selectedContact.email) {
+                              form.setValue('email', selectedContact.email);
+                            }
+                            if (selectedContact.company) {
+                              form.setValue('insuranceCompany', selectedContact.company);
+                            }
                           }
                         }
                       }}
