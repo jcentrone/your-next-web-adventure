@@ -70,15 +70,17 @@ const Header: React.FC = () => {
                                 <Home className="h-4 w-4"/>
                                 Dashboard
                             </Link>
-                            <Link to="/calendar"
+                            <Link to="/reports"
                                   className="flex items-center gap-2 transition-colors hover:text-primary"
-                                  data-onboarding="calendar">
-                                <Calendar className="h-4 w-4"/>
-                                Calendar
+                                  data-onboarding="reports">
+                                <FileText className="h-4 w-4"/>
+                                Reports
                             </Link>
-                            <Link to="/tasks" className="flex items-center gap-2 transition-colors hover:text-primary">
-                                <CheckSquare className="h-4 w-4"/>
-                                Tasks
+                            <Link to="/accounts"
+                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  data-onboarding="accounts">
+                                <Building2 className="h-4 w-4"/>
+                                Accounts
                             </Link>
                             <Link to="/contacts"
                                   className="flex items-center gap-2 transition-colors hover:text-primary"
@@ -86,19 +88,21 @@ const Header: React.FC = () => {
                                 <Users className="h-4 w-4"/>
                                 Contacts
                             </Link>
-                            <Link to="/accounts"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary">
-                                <Building2 className="h-4 w-4"/>
-                                Accounts
-                            </Link>
-                            <Link to="/reports"
+                            <Link to="/calendar"
                                   className="flex items-center gap-2 transition-colors hover:text-primary"
-                                  data-onboarding="reports">
-                                <FileText className="h-4 w-4"/>
-                                Reports
+                                  data-onboarding="calendar">
+                                <Calendar className="h-4 w-4"/>
+                                Calendar
+                            </Link>
+                            <Link to="/tasks"
+                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  data-onboarding="tasks">
+                                <CheckSquare className="h-4 w-4"/>
+                                Tasks
                             </Link>
                             <Link to="/analytics"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary">
+                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  data-onboarding="analytics">
                                 <BarChart3 className="h-4 w-4"/>
                                 Analytics
                             </Link>
@@ -145,11 +149,26 @@ const Header: React.FC = () => {
                             <nav className="flex flex-col space-y-4">
                                 {user ? (
                                     <>
-                                        {/* Primary workflow */}
+                                        {/* Reordered navigation */}
                                         <Link to="/dashboard"
                                               className="text-foreground hover:text-primary transition-colors py-2"
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Dashboard
+                                        </Link>
+                                        <Link to="/reports"
+                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              onClick={() => setMobileMenuOpen(false)}>
+                                            Reports
+                                        </Link>
+                                        <Link to="/accounts"
+                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              onClick={() => setMobileMenuOpen(false)}>
+                                            Accounts
+                                        </Link>
+                                        <Link to="/contacts"
+                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              onClick={() => setMobileMenuOpen(false)}>
+                                            Contacts
                                         </Link>
                                         <Link to="/calendar"
                                               className="text-foreground hover:text-primary transition-colors py-2"
@@ -160,25 +179,6 @@ const Header: React.FC = () => {
                                               className="text-foreground hover:text-primary transition-colors py-2"
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Tasks
-                                        </Link>
-
-                                        {/* Reference */}
-                                        <Link to="/contacts"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Contacts
-                                        </Link>
-                                        <Link to="/accounts"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Accounts
-                                        </Link>
-
-                                        {/* Outputs & insights */}
-                                        <Link to="/reports"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Reports
                                         </Link>
                                         <Link to="/analytics"
                                               className="text-foreground hover:text-primary transition-colors py-2"

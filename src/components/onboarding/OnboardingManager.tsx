@@ -56,6 +56,20 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     position: 'bottom'
   },
   {
+    id: 'accounts',
+    target: '[data-onboarding="accounts"]',
+    title: 'Accounts',
+    content: 'Manage client accounts, property information, and business relationships for organized reporting.',
+    position: 'bottom'
+  },
+  {
+    id: 'contacts',
+    target: '[data-onboarding="contacts"]',
+    title: 'Contacts',
+    content: 'Store and organize your clients, real estate agents, and other professional contacts.',
+    position: 'bottom'
+  },
+  {
     id: 'calendar',
     target: '[data-onboarding="calendar"]',
     title: 'Calendar',
@@ -63,10 +77,17 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     position: 'bottom'
   },
   {
-    id: 'contacts',
-    target: '[data-onboarding="contacts"]',
-    title: 'Contacts',
-    content: 'Manage your clients, real estate agents, and other professional contacts.',
+    id: 'tasks',
+    target: '[data-onboarding="tasks"]',
+    title: 'Tasks',
+    content: 'Track your to-do items, follow-ups, and inspection-related tasks to stay organized.',
+    position: 'bottom'
+  },
+  {
+    id: 'analytics',
+    target: '[data-onboarding="analytics"]',
+    title: 'Analytics',
+    content: 'View business insights, report statistics, and performance metrics to grow your inspection business.',
     position: 'bottom'
   },
   {
