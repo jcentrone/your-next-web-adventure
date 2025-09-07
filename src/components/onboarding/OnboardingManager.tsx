@@ -18,6 +18,7 @@ interface OnboardingContextType {
   nextStep: () => void;
   prevStep: () => void;
   goToStep: (step: number) => void;
+  onTourComplete?: () => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | null>(null);
@@ -98,10 +99,12 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
 
 interface OnboardingProviderProps {
   children: React.ReactNode;
+  onTourComplete?: () => void;
 }
 
 export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ 
-  children
+  children,
+  onTourComplete
 }) => {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -248,8 +251,13 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
 
   const endTour = useCallback(async () => {
     setIsActive(false);
-    setCurrentStep(0);
-  }, []);
+    // Call completion callback if provided
+    if (onTourComplete) {
+      await onTourComplete();
+    }
+    // Reset step after a brief delay to ensure completion is processed
+    setTimeout(() => setCurrentStep(0), 100);
+  }, [onTourComplete]);
 
   const nextStep = useCallback(() => {
     if (currentStep < ONBOARDING_STEPS.length - 1) {
@@ -323,6 +331,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
         nextStep,
         prevStep,
         goToStep,
+        onTourComplete,
       }}
     >
       {children}

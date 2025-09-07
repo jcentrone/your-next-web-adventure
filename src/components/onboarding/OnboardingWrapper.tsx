@@ -7,8 +7,12 @@ interface OnboardingWrapperProps {
 }
 
 export const OnboardingWrapper: React.FC<OnboardingWrapperProps> = ({ children }) => {
+  const handleTourComplete = async () => {
+    // This will be handled by OnboardingInitializer
+  };
+
   return (
-    <OnboardingProvider>
+    <OnboardingProvider onTourComplete={handleTourComplete}>
       <OnboardingInitializer />
       {children}
     </OnboardingProvider>

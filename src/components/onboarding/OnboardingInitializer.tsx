@@ -6,10 +6,10 @@ import { useToast } from '@/hooks/use-toast';
 
 export const OnboardingInitializer = () => {
   const { user } = useAuth();
-  const { startTour, isActive } = useOnboarding();
+  const { startTour, isActive, endTour } = useOnboarding();
   const { toast } = useToast();
   const [hasCompletedThisSession, setHasCompletedThisSession] = useState(false);
-  const previouslyActiveRef = useRef(false);
+  const wasActiveRef = useRef(false);
 
   const markOnboardingCompleted = useCallback(async () => {
     if (!user) return;
@@ -67,19 +67,15 @@ export const OnboardingInitializer = () => {
     checkOnboardingStatus();
   }, [user, startTour, hasCompletedThisSession]);
 
-  // Listen for tour ending and mark as completed
+  // Detect when tour ends and mark as completed
   useEffect(() => {
-    const handleTourEnd = async () => {
-      if (previouslyActiveRef.current && !isActive) {
-        // Tour just ended, mark as completed
-        setHasCompletedThisSession(true);
-        await markOnboardingCompleted();
-      }
-      previouslyActiveRef.current = isActive;
-    };
-
-    handleTourEnd();
-  }, [isActive, markOnboardingCompleted]);
+    if (wasActiveRef.current && !isActive && !hasCompletedThisSession) {
+      // Tour just ended, mark as completed
+      setHasCompletedThisSession(true);
+      markOnboardingCompleted();
+    }
+    wasActiveRef.current = isActive;
+  }, [isActive, hasCompletedThisSession, markOnboardingCompleted]);
 
   // This component doesn't render anything
   return null;
