@@ -382,8 +382,8 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) => {
       }
     };
 
-    // Initial delay before starting
-    const timer = setTimeout(initTour, 3000);
+    // Initial delay before starting - longer delay for navigation
+    const timer = setTimeout(initTour, 5000);
     
     return () => {
       clearTimeout(timer);

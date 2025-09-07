@@ -18,29 +18,31 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   const { showTour, loading: onboardingLoading, completeTour } = useOnboarding();
 
-  const { data: upcomingAppointments = [] } = useQuery({
+  const { data: upcomingAppointments = [], isLoading: appointmentsLoading } = useQuery({
     queryKey: ["appointments", "upcoming", user?.id],
     queryFn: () => appointmentsApi.getUpcoming(user!.id, 5),
     enabled: !!user,
   });
 
-  const { data: overdueTasks = [] } = useQuery({
+  const { data: overdueTasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ["tasks", "overdue", user?.id],
     queryFn: () => tasksApi.getOverdue(user!.id),
     enabled: !!user,
   });
 
-  const { data: recentReports = [] } = useQuery({
+  const { data: recentReports = [], isLoading: reportsLoading } = useQuery({
     queryKey: ["reports", user?.id],
     queryFn: () => dbListReports(user!.id),
     enabled: !!user,
   });
 
-  const { data: recentActivities = [] } = useQuery({
+  const { data: recentActivities = [], isLoading: activitiesLoading } = useQuery({
     queryKey: ["activities", user?.id],
     queryFn: () => activitiesApi.list(user!.id),
     enabled: !!user,
   });
+
+  const isDataLoading = appointmentsLoading || tasksLoading || reportsLoading || activitiesLoading;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -72,7 +74,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  if (!user || onboardingLoading) {
+  if (!user) {
     return null;
   }
 
@@ -355,7 +357,7 @@ const Dashboard: React.FC = () => {
           </Card>
         </div>
         
-        {showTour && <OnboardingTour onComplete={completeTour} />}
+        {showTour && !isDataLoading && <OnboardingTour onComplete={completeTour} />}
       </div>
     </>
   );
