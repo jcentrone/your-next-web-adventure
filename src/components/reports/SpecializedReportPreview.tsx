@@ -130,6 +130,7 @@ const SpecializedReportPreview = React.forwardRef<HTMLDivElement, SpecializedRep
                     <section className="pdf-page-break p-8 min-h-[11in]">
                         <TableOfContents
                             report={report}
+                            termsHtml={termsHtml}
                         />
                     </section>
                 </div>

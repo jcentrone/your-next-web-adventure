@@ -134,10 +134,11 @@ const PDFDocument = React.forwardRef<HTMLDivElement, PDFDocumentProps>(
                 <div className="preview-page">
                     <article className={tpl.container}>
                         <section className="pdf-page-break">
-                            <TableOfContents
-                                report={report}
-                                pageGroups={pageGroups}
-                            />
+                        <TableOfContents
+                            report={report}
+                            pageGroups={pageGroups}
+                            termsHtml={termsHtml}
+                        />
                         </section>
                     </article>
                 </div>

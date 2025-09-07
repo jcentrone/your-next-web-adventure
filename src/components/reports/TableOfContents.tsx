@@ -6,6 +6,7 @@ interface TableOfContentsProps {
   report: Report;
   pageGroups?: any[];
   className?: string;
+  termsHtml?: string;
 }
 
 interface TocEntry {
@@ -19,7 +20,8 @@ interface TocEntry {
 const TableOfContents: React.FC<TableOfContentsProps> = ({ 
   report, 
   pageGroups = [], 
-  className = "" 
+  className = "",
+  termsHtml 
 }) => {
   // Calculate page numbers based on the correct structure
   let currentPage = 1;
@@ -137,11 +139,13 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({
   }
 
   // Terms and Conditions (if present)
-  tocEntries.push({
-    title: "Terms and Conditions",
-    pageNumber: currentPage++,
-    icon: FileCheck,
-  });
+  if (termsHtml) {
+    tocEntries.push({
+      title: "Terms and Conditions",
+      pageNumber: currentPage++,
+      icon: FileCheck,
+    });
+  }
 
   return (
     <section className={`space-y-6 pdf-table-of-contents ${className}`}>

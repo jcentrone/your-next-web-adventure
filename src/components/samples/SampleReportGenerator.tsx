@@ -64,6 +64,15 @@ export const SampleReportGenerator: React.FC<SampleReportGeneratorProps> = ({ re
     }
   };
 
+  // Mock terms and conditions for sample reports
+  const mockTermsHtml = `
+    <div class="space-y-4">
+      <h2 class="text-xl font-semibold">Terms and Conditions</h2>
+      <p>This is a sample terms and conditions section that would appear in your actual reports when configured in your organization settings.</p>
+      <p>The terms and conditions can include important disclaimers, limitations of liability, and other legal language specific to your inspection business.</p>
+    </div>
+  `;
+
   const mediaUrlMap: Record<string, string> = {};
   const coverUrl = `/sampleImgs/sampleReportCoverImg1.jpg`;
 
@@ -76,6 +85,7 @@ export const SampleReportGenerator: React.FC<SampleReportGeneratorProps> = ({ re
           coverUrl={coverUrl}
           organization={report.organization}
           inspector={mapInspectorToProfile(report.inspector)}
+          termsHtml={mockTermsHtml}
         />
       </div>
     );
@@ -89,6 +99,7 @@ export const SampleReportGenerator: React.FC<SampleReportGeneratorProps> = ({ re
         coverUrl={coverUrl}
         organization={report.organization}
         inspector={mapInspectorToProfile(report.inspector)}
+        termsHtml={mockTermsHtml}
       />
     </div>
   );
