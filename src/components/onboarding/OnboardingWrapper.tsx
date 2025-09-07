@@ -1,19 +1,21 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { OnboardingProvider } from './OnboardingManager';
-import { OnboardingInitializer } from './OnboardingInitializer';
+import { OnboardingInitializer, OnboardingInitializerRef } from './OnboardingInitializer';
 
 interface OnboardingWrapperProps {
   children: React.ReactNode;
 }
 
 export const OnboardingWrapper: React.FC<OnboardingWrapperProps> = ({ children }) => {
+  const initializerRef = useRef<OnboardingInitializerRef>(null);
+
   const handleTourComplete = async () => {
-    // This will be handled by OnboardingInitializer
+    await initializerRef.current?.markOnboardingCompleted();
   };
 
   return (
     <OnboardingProvider onTourComplete={handleTourComplete}>
-      <OnboardingInitializer />
+      <OnboardingInitializer ref={initializerRef} />
       {children}
     </OnboardingProvider>
   );

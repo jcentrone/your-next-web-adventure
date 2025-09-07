@@ -1,18 +1,23 @@
-import { useEffect, useCallback, useState, useRef } from 'react';
+import { useEffect, useCallback, useState, forwardRef, useImperativeHandle } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useOnboarding } from '@/components/onboarding/OnboardingManager';
 import { useToast } from '@/hooks/use-toast';
 
-export const OnboardingInitializer = () => {
+export interface OnboardingInitializerRef {
+  markOnboardingCompleted: () => Promise<void>;
+}
+
+export const OnboardingInitializer = forwardRef<OnboardingInitializerRef>((_, ref) => {
   const { user } = useAuth();
-  const { startTour, isActive, endTour } = useOnboarding();
+  const { startTour } = useOnboarding();
   const { toast } = useToast();
   const [hasCompletedThisSession, setHasCompletedThisSession] = useState(false);
-  const wasActiveRef = useRef(false);
 
   const markOnboardingCompleted = useCallback(async () => {
-    if (!user) return;
+    if (!user || hasCompletedThisSession) return;
+
+    setHasCompletedThisSession(true);
 
     try {
       const { error } = await supabase
@@ -34,7 +39,12 @@ export const OnboardingInitializer = () => {
     } catch (error) {
       console.error('Error in markOnboardingCompleted:', error);
     }
-  }, [user, toast]);
+  }, [user, toast, hasCompletedThisSession]);
+
+  // Expose the markOnboardingCompleted function to parent
+  useImperativeHandle(ref, () => ({
+    markOnboardingCompleted
+  }), [markOnboardingCompleted]);
 
   // Check onboarding status only on mount and user change
   useEffect(() => {
@@ -67,16 +77,6 @@ export const OnboardingInitializer = () => {
     checkOnboardingStatus();
   }, [user, startTour, hasCompletedThisSession]);
 
-  // Detect when tour ends and mark as completed
-  useEffect(() => {
-    if (wasActiveRef.current && !isActive && !hasCompletedThisSession) {
-      // Tour just ended, mark as completed
-      setHasCompletedThisSession(true);
-      markOnboardingCompleted();
-    }
-    wasActiveRef.current = isActive;
-  }, [isActive, hasCompletedThisSession, markOnboardingCompleted]);
-
   // This component doesn't render anything
   return null;
-};
+});

@@ -250,13 +250,13 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
   }, [isActive]);
 
   const endTour = useCallback(async () => {
-    setIsActive(false);
-    // Call completion callback if provided
+    // Call completion callback FIRST, before UI changes
     if (onTourComplete) {
       await onTourComplete();
     }
-    // Reset step after a brief delay to ensure completion is processed
-    setTimeout(() => setCurrentStep(0), 100);
+    // Then update UI state
+    setIsActive(false);
+    setCurrentStep(0);
   }, [onTourComplete]);
 
   const nextStep = useCallback(() => {
