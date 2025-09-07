@@ -9,7 +9,15 @@ export const useOnboarding = () => {
   const { toast } = useToast();
   const [showTour, setShowTour] = useState(false);
   const [loading, setLoading] = useState(true);
-  const onboardingManager = useOnboardingManager();
+  
+  // Get the onboarding manager if available (it might not be if we're outside the provider)
+  let onboardingManager;
+  try {
+    onboardingManager = useOnboardingManager();
+  } catch (error) {
+    // We're outside the OnboardingProvider, that's ok
+    onboardingManager = null;
+  }
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -35,7 +43,7 @@ export const useOnboarding = () => {
           // Small delay to ensure page is fully loaded
           const timer = setTimeout(() => {
             setShowTour(true);
-            onboardingManager.startTour();
+            onboardingManager?.startTour();
             setLoading(false);
           }, 1000);
           return () => clearTimeout(timer);
@@ -49,7 +57,7 @@ export const useOnboarding = () => {
     };
 
     checkOnboardingStatus();
-  }, [user]);
+  }, [user, onboardingManager]);
 
   const markOnboardingCompleted = async () => {
     if (!user) return;
@@ -78,12 +86,11 @@ export const useOnboarding = () => {
 
   const startTour = () => {
     setShowTour(true);
-    onboardingManager.startTour();
+    onboardingManager?.startTour();
   };
 
   const completeTour = async () => {
     setShowTour(false);
-    onboardingManager.endTour();
     await markOnboardingCompleted();
   };
 
@@ -110,7 +117,7 @@ export const useOnboarding = () => {
       }
 
       setShowTour(true);
-      onboardingManager.startTour();
+      onboardingManager?.startTour();
       toast({
         title: "Success",
         description: "Onboarding tour will restart",

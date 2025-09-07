@@ -9,8 +9,8 @@ import GoogleCallback from "@/pages/oauth/GoogleCallback";
 import OutlookCallback from "@/pages/oauth/OutlookCallback";
 import AppleCallback from "@/pages/oauth/AppleCallback";
 import ShowingTimeCallback from "@/pages/oauth/ShowingTimeCallback";
-import { useOnboarding } from '@/hooks/useOnboarding';
 import { OnboardingProvider } from '@/components/onboarding/OnboardingManager';
+import { OnboardingInitializer } from '@/components/onboarding/OnboardingInitializer';
 
 const lazyLoad = (
   loader: () => Promise<{ default: React.ComponentType<any> }>
@@ -26,10 +26,9 @@ const lazyLoad = (
 };
 
 const AppWithOnboarding: React.FC = () => {
-  const { completeTour } = useOnboarding();
-
   return (
-    <OnboardingProvider onComplete={completeTour}>
+    <OnboardingProvider>
+      <OnboardingInitializer />
       <PWAManager />
       <BrowserRouter
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
