@@ -24,154 +24,166 @@ const ReportTypeSelector: React.FC = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
-            <CardHeader className="text-center">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
+            onClick={() => navigate("/reports/new/home-inspection")}
+          >
+            <CardHeader className="text-center flex-shrink-0">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Home className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>Home Inspection</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg">Home Inspection</CardTitle>
+              <CardDescription className="min-h-[3rem] flex items-center justify-center">
                 Comprehensive property inspection following InterNACHI Standards of Practice
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+            <CardContent className="flex flex-col flex-grow">
+              <ul className="space-y-2 text-sm text-muted-foreground flex-grow">
                 <li>• Complete structural assessment</li>
                 <li>• HVAC, plumbing, and electrical systems</li>
                 <li>• Roof, exterior, and interior evaluation</li>
                 <li>• Safety and maintenance recommendations</li>
               </ul>
-              <Button 
-                className="w-full" 
-                onClick={() => navigate("/reports/new/home-inspection")}
-              >
-                Create Home Inspection Report
-              </Button>
+              <div className="mt-6 pt-4 border-t">
+                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
+                  Create Home Inspection Report
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
-            <CardHeader className="text-center">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
+            onClick={() => navigate("/reports/new/wind-mitigation")}
+          >
+            <CardHeader className="text-center flex-shrink-0">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Wind className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>Uniform Mitigation Verification Inspection</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg">Uniform Mitigation Verification Inspection</CardTitle>
+              <CardDescription className="min-h-[3rem] flex items-center justify-center">
                 Florida uniform mitigation verification inspection for insurance discounts
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+            <CardContent className="flex flex-col flex-grow">
+              <ul className="space-y-2 text-sm text-muted-foreground flex-grow">
                 <li>• Building code compliance verification</li>
                 <li>• Roof covering and attachment assessment</li>
                 <li>• Opening protection evaluation</li>
                 <li>• Secondary water resistance check</li>
               </ul>
-              <Button
-                className="w-full"
-                onClick={() => navigate("/reports/new/wind-mitigation")}
-              >
-                Create Uniform Mitigation Report
-              </Button>
+              <div className="mt-6 pt-4 border-t">
+                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
+                  Create Uniform Mitigation Report
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
-            <CardHeader className="text-center">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
+            onClick={() => navigate("/reports/new/fl-four-point")}
+          >
+            <CardHeader className="text-center flex-shrink-0">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <ClipboardList className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>Florida 4-Point (Citizens)</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg">Florida 4-Point (Citizens)</CardTitle>
+              <CardDescription className="min-h-[3rem] flex items-center justify-center">
                 Florida 4-point inspection for underwriting older homes
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+            <CardContent className="flex flex-col flex-grow">
+              <ul className="space-y-2 text-sm text-muted-foreground flex-grow">
                 <li>• Roof, electrical, plumbing, HVAC overview</li>
                 <li>• Photos and signatures</li>
               </ul>
-              <Button
-                className="w-full"
-                onClick={() => navigate("/reports/new/fl-four-point")}
-              >
-                Create FL 4-Point Report
-              </Button>
+              <div className="mt-6 pt-4 border-t">
+                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
+                  Create FL 4-Point Report
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
-            <CardHeader className="text-center">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
+            onClick={() => navigate("/reports/new/ca-wildfire")}
+          >
+            <CardHeader className="text-center flex-shrink-0">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Flame className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>Wildfire Assessment</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg">Wildfire Assessment</CardTitle>
+              <CardDescription className="min-h-[3rem] flex items-center justify-center">
                 Wildfire defensible space assessment for underwriting
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+            <CardContent className="flex flex-col flex-grow">
+              <ul className="space-y-2 text-sm text-muted-foreground flex-grow">
                 <li>• Structure materials and vents</li>
                 <li>• Defensible space zones 0-100 ft</li>
                 <li>• Access and utility hazards</li>
               </ul>
-              <Button
-                className="w-full"
-                onClick={() => navigate("/reports/new/ca-wildfire")}
-              >
-                Create Wildfire Report
-              </Button>
+              <div className="mt-6 pt-4 border-t">
+                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
+                  Create Wildfire Report
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
-            <CardHeader className="text-center">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
+            onClick={() => navigate("/reports/new/manufactured-home")}
+          >
+            <CardHeader className="text-center flex-shrink-0">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <Factory className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>Manufactured Home Inspection</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg">Manufactured Home Inspection</CardTitle>
+              <CardDescription className="min-h-[3rem] flex items-center justify-center">
                 Pre-certification checklist for manufactured/mobile homes
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+            <CardContent className="flex flex-col flex-grow">
+              <ul className="space-y-2 text-sm text-muted-foreground flex-grow">
                 <li>• Home identifiers and HUD labels</li>
                 <li>• Foundation, tie-down, and skirting review</li>
                 <li>• Utilities and additions evaluation</li>
               </ul>
-              <Button
-                className="w-full"
-                onClick={() => navigate("/reports/new/manufactured-home")}
-              >
-                Create Manufactured Home Report
-              </Button>
+              <div className="mt-6 pt-4 border-t">
+                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
+                  Create Manufactured Home Report
+                </div>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
-            <CardHeader className="text-center">
+          <Card 
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
+            onClick={() => navigate("/reports/new/roof-certification")}
+          >
+            <CardHeader className="text-center flex-shrink-0">
               <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
                 <ShieldCheck className="w-8 h-8 text-primary" />
               </div>
-              <CardTitle>Roof Certification</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg">Roof Certification</CardTitle>
+              <CardDescription className="min-h-[3rem] flex items-center justify-center">
                 General roof condition certification for underwriting
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground mb-6">
+            <CardContent className="flex flex-col flex-grow">
+              <ul className="space-y-2 text-sm text-muted-foreground flex-grow">
                 <li>• Roof type and material details</li>
                 <li>• Remaining life estimates</li>
                 <li>• Photo documentation</li>
               </ul>
-              <Button
-                className="w-full"
-                onClick={() => navigate("/reports/new/roof-certification")}
-              >
-                Create Roof Certification Report
-              </Button>
+              <div className="mt-6 pt-4 border-t">
+                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
+                  Create Roof Certification Report
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
