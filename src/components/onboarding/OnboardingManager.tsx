@@ -154,6 +154,18 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
     let arrow: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
     let transform = 'translateX(-50%)';
     
+    // Special handling for settings menu item
+    if (targetSelector === '[data-onboarding="settings-menu"]') {
+      // Position to the left of the settings menu item
+      position = { 
+        x: Math.max(margin + tooltipWidth / 2, rect.left - margin), 
+        y: rect.top + rect.height / 2 
+      };
+      arrow = 'right';
+      transform = 'translate(-100%, -50%)';
+      return { position, arrow, transform };
+    }
+    
     // Determine best position based on available space
     const spaceAbove = rect.top;
     const spaceBelow = viewportHeight - rect.bottom;
