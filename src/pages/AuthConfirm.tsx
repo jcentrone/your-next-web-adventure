@@ -14,32 +14,46 @@ const AuthConfirm = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const handleEmailConfirmation = async () => {
+    const handleConfirmation = async () => {
       try {
         const token_hash = searchParams.get('token_hash');
-        const type = searchParams.get('type');
+        const type = searchParams.get('type') || 'signup';
         const next = searchParams.get('next') || '/dashboard';
 
-        if (!token_hash || !type) {
+        if (!token_hash) {
           setStatus('error');
           setMessage('Invalid confirmation link. Please check your email and try again.');
           return;
         }
 
-        // Verify the email confirmation
+        // Handle different confirmation types
+        let confirmationType: 'signup' | 'magiclink' | 'email_change';
+        
+        switch (type) {
+          case 'magiclink':
+            confirmationType = 'magiclink';
+            break;
+          case 'email_change':
+            confirmationType = 'email_change';
+            break;
+          default:
+            confirmationType = 'signup';
+        }
+
+        // Verify the confirmation
         const { data, error } = await supabase.auth.verifyOtp({
           token_hash,
-          type: type as any,
+          type: confirmationType,
         });
 
         if (error) {
-          console.error('Email confirmation error:', error);
+          console.error('Confirmation error:', error);
           setStatus('error');
-          setMessage(error.message || 'Failed to confirm your email. Please try again.');
+          setMessage(error.message || 'Failed to confirm. Please try again.');
           
           toast({
             title: "Confirmation Failed",
-            description: error.message || 'Failed to confirm your email.',
+            description: error.message || 'Failed to confirm.',
             variant: "destructive",
           });
           return;
@@ -47,11 +61,33 @@ const AuthConfirm = () => {
 
         if (data.user) {
           setStatus('success');
-          setMessage('Your email has been confirmed successfully! Redirecting to your dashboard...');
+          
+          // Set appropriate success message based on type
+          let successMessage = '';
+          let toastTitle = '';
+          
+          switch (confirmationType) {
+            case 'signup':
+              successMessage = 'Your email has been confirmed successfully! Redirecting to your dashboard...';
+              toastTitle = 'Email Confirmed';
+              break;
+            case 'magiclink':
+              successMessage = 'Signed in successfully! Redirecting to your dashboard...';
+              toastTitle = 'Signed In';
+              break;
+            case 'email_change':
+              successMessage = 'Your email address has been updated successfully!';
+              toastTitle = 'Email Updated';
+              break;
+          }
+          
+          setMessage(successMessage);
           
           toast({
-            title: "Email Confirmed",
-            description: "Welcome to HomeReport Pro! Your account is now active.",
+            title: toastTitle,
+            description: confirmationType === 'signup' ? 
+              "Welcome to HomeReport Pro! Your account is now active." : 
+              successMessage,
           });
 
           // Redirect after a short delay
@@ -66,7 +102,7 @@ const AuthConfirm = () => {
       }
     };
 
-    handleEmailConfirmation();
+    handleConfirmation();
   }, [searchParams, navigate, toast]);
 
   const handleReturnToLogin = () => {
@@ -93,8 +129,8 @@ const AuthConfirm = () => {
             )}
           </div>
           <CardTitle className="text-2xl">
-            {status === 'loading' && 'Confirming your email...'}
-            {status === 'success' && 'Email Confirmed!'}
+            {status === 'loading' && 'Processing...'}
+            {status === 'success' && 'Success!'}
             {status === 'error' && 'Confirmation Failed'}
           </CardTitle>
           <CardDescription>

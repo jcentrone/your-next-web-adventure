@@ -7,19 +7,21 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import { CheckCircle, AlertCircle, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/use-toast";
+import { sendMagicLink } from "@/utils/auth";
 
 const AuthPage: React.FC = () => {
   const nav = useNavigate();
   const location = useLocation();
   const { user, loading } = useAuth();
-  const [mode, setMode] = React.useState<"signin" | "signup">("signin");
+  const [mode, setMode] = React.useState<"signin" | "signup" | "magic-link">("signin");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+  const [magicLinkSent, setMagicLinkSent] = React.useState(false);
   
   // Signup form fields
   const [signupType, setSignupType] = React.useState<"individual" | "organization">("individual");
@@ -94,7 +96,7 @@ const AuthPage: React.FC = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `https://homereportpro.com/auth/confirm`,
           data: {
             full_name: fullName,
             phone: phone,
@@ -143,7 +145,7 @@ const AuthPage: React.FC = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: `https://homereportpro.com/auth/confirm`,
       },
     });
     if (error) {
@@ -154,16 +156,58 @@ const AuthPage: React.FC = () => {
     // On success, Supabase redirects to Google; when it comes back, onAuthStateChange will handle.
   };
 
+  const onMagicLink = async () => {
+    if (!email.trim()) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const result = await sendMagicLink(email);
+      if (result.success) {
+        setMagicLinkSent(true);
+        toast({
+          title: "Magic link sent",
+          description: "Check your email for the sign-in link.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to send magic link.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-10">
       <Card className="w-full max-w-lg p-6">
         <h1 className="text-xl font-semibold mb-1">
-          {mode === "signin" ? "Sign in" : inviteToken ? "Accept Invitation" : "Create an account"}
+          {mode === "signin" ? "Sign in" : 
+           mode === "magic-link" ? "Sign in with magic link" :
+           inviteToken ? "Accept Invitation" : "Create an account"}
         </h1>
         <p className="text-sm text-muted-foreground mb-6">
           {mode === "signin" ? (
             <>Don&apos;t have an account?{" "}
               <button className="underline" onClick={() => setMode("signup")}>Sign up</button></>
+          ) : mode === "magic-link" ? (
+            <>Prefer password?{" "}
+              <button className="underline" onClick={() => setMode("signin")}>Sign in with password</button></>
           ) : (
             <>Already have an account?{" "}
               <button className="underline" onClick={() => setMode("signin")}>Sign in</button></>
@@ -198,6 +242,16 @@ const AuthPage: React.FC = () => {
           </Alert>
         )}
 
+        {/* Magic Link Sent Message */}
+        {magicLinkSent && (
+          <Alert className="mb-4">
+            <Mail className="h-4 w-4" />
+            <AlertDescription>
+              Check your email and click the link to sign in. You can close this window.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="space-y-4">
           <Button variant="outline" className="w-full" onClick={onGoogle} disabled={busy}>
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
@@ -214,6 +268,56 @@ const AuthPage: React.FC = () => {
               <span className="bg-card px-2 text-muted-foreground">or</span>
             </div>
           </div>
+
+          {/* Magic Link Option */}
+          {mode === "signin" && !magicLinkSent && (
+            <Button 
+              variant="outline" 
+              className="w-full" 
+              onClick={() => setMode("magic-link")}
+              disabled={busy}
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Sign in with magic link
+            </Button>
+          )}
+
+          {mode === "magic-link" && !magicLinkSent && (
+            <>
+              <div>
+                <Label htmlFor="magic-email">Email</Label>
+                <Input
+                  id="magic-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </div>
+              <Button className="w-full" onClick={onMagicLink} disabled={busy}>
+                {busy ? "Sending..." : "Send magic link"}
+              </Button>
+              <div className="relative py-2">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">or</span>
+                </div>
+              </div>
+            </>
+          )}
+
+          {(mode === "signin" || mode === "magic-link") && !magicLinkSent && (
+            <div className="relative py-2">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">continue with email</span>
+              </div>
+            </div>
+          )}
 
           {mode === "signup" && !inviteToken && (
             <Tabs value={signupType} onValueChange={(value) => setSignupType(value as "individual" | "organization")} className="w-full">
@@ -280,32 +384,48 @@ const AuthPage: React.FC = () => {
             </>
           )}
 
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
+          {mode !== "magic-link" && !magicLinkSent && (
+            <>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+                {mode === "signin" && (
+                  <div className="flex justify-end mt-1">
+                    <Link 
+                      to="/auth/forgot-password" 
+                      className="text-xs text-muted-foreground hover:text-primary"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
           
-          {mode === "signin" ? (
+          {mode === "signin" && !magicLinkSent && (
             <Button className="w-full" onClick={onSignIn} disabled={busy}>
               {busy ? "Signing in..." : "Sign in"}
             </Button>
-          ) : (
+          )}
+          
+          {mode === "signup" && (
             <Button className="w-full" onClick={onSignUp} disabled={busy}>
               {busy ? "Creating account..." : 
                 inviteToken ? "Accept & Join" :

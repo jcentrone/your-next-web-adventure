@@ -54,6 +54,8 @@ const App = () => (
             <Route path="/dashboard" element={lazyLoad(() => import("./pages/Dashboard"))} />
             <Route path="/auth" element={lazyLoad(() => import("./pages/Auth"))} />
             <Route path="/auth/confirm" element={lazyLoad(() => import("./pages/AuthConfirm"))} />
+            <Route path="/auth/forgot-password" element={lazyLoad(() => import("./pages/ForgotPassword"))} />
+            <Route path="/auth/reset-password" element={lazyLoad(() => import("./pages/ResetPassword"))} />
               <Route path="/reports" element={lazyLoad(() => import("./pages/ReportsList"))} />
               <Route path="/reports/select-type" element={lazyLoad(() => import("./components/reports/ReportTypeSelector"))} />
               <Route path="/reports/new" element={lazyLoad(() => import("./pages/ReportNew"))} />
