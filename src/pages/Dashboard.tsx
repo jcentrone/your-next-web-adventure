@@ -1,7 +1,6 @@
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { useOnboarding } from "@/hooks/useOnboarding";
 import { appointmentsApi, tasksApi, activitiesApi } from "@/integrations/supabase/crmApi";
 import { dbListReports } from "@/integrations/supabase/reportsApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,6 @@ import Seo from "@/components/Seo";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const { showTour, loading: onboardingLoading, completeTour } = useOnboarding();
 
   const { data: upcomingAppointments = [], isLoading: appointmentsLoading } = useQuery({
     queryKey: ["appointments", "upcoming", user?.id],

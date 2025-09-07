@@ -30,14 +30,12 @@ import Advanced from "./Advanced";
 import Booking from "./Booking";
 import Services from "./Services";
 import SectionManager from "./SectionManager";
-import { useOnboarding } from "@/hooks/useOnboarding";
 import { Button } from "@/components/ui/button";
 
 const Settings: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { resetOnboarding } = useOnboarding();
   const currentTab = location.pathname.split("/").filter(Boolean).pop() || "account";
 
   React.useEffect(() => {
@@ -137,18 +135,11 @@ const Settings: React.FC = () => {
         <div className="p-8">
           <div className="mb-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {currentItem && (
-                  <>
-                    <currentItem.icon className="h-5 w-5 text-muted-foreground" />
-                    <h2 className="text-xl font-semibold">{currentItem.label}</h2>
-                  </>
-                )}
-              </div>
-              {currentTab === "account" && (
-                <Button variant="outline" onClick={resetOnboarding}>
-                  Restart Tour
-                </Button>
+              {currentItem && (
+                <>
+                  <currentItem.icon className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="text-xl font-semibold">{currentItem.label}</h2>
+                </>
               )}
             </div>
             {currentItem && (

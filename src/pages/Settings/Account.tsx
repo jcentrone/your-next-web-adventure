@@ -10,7 +10,6 @@ import {Badge} from "@/components/ui/badge";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {toast} from "@/components/ui/use-toast";
 import {useAuth} from "@/contexts/AuthContext";
-import {useOnboarding} from "@/hooks/useOnboarding";
 import Seo from "@/components/Seo";
 import {
     deleteSignature,
@@ -27,7 +26,6 @@ const Account: React.FC = () => {
     const {user} = useAuth();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
-    const { resetOnboarding } = useOnboarding();
 
     const [fullName, setFullName] = React.useState("");
     const [phone, setPhone] = React.useState("");
@@ -299,16 +297,8 @@ const Account: React.FC = () => {
                     <CardContent>
                         <div className="space-y-4">
                             <p className="text-sm text-muted-foreground">
-                                Take the product tour again to refresh your knowledge of the platform features.
+                                The product tour will automatically start for new users to help them learn the platform features.
                             </p>
-                            <Button 
-                                variant="outline" 
-                                onClick={resetOnboarding}
-                                className="flex items-center gap-2"
-                            >
-                                <RotateCcw className="h-4 w-4" />
-                                Restart Tour
-                            </Button>
                         </div>
                     </CardContent>
                 </Card>

@@ -9,8 +9,7 @@ import GoogleCallback from "@/pages/oauth/GoogleCallback";
 import OutlookCallback from "@/pages/oauth/OutlookCallback";
 import AppleCallback from "@/pages/oauth/AppleCallback";
 import ShowingTimeCallback from "@/pages/oauth/ShowingTimeCallback";
-import { OnboardingProvider } from '@/components/onboarding/OnboardingManager';
-import { OnboardingInitializer } from '@/components/onboarding/OnboardingInitializer';
+import { OnboardingWrapper } from '@/components/onboarding/OnboardingWrapper';
 
 const lazyLoad = (
   loader: () => Promise<{ default: React.ComponentType<any> }>
@@ -27,8 +26,7 @@ const lazyLoad = (
 
 const AppWithOnboarding: React.FC = () => {
   return (
-    <OnboardingProvider>
-      <OnboardingInitializer />
+    <OnboardingWrapper>
       <PWAManager />
       <BrowserRouter
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
@@ -83,7 +81,7 @@ const AppWithOnboarding: React.FC = () => {
         </Route>
       </Routes>
     </BrowserRouter>
-  </OnboardingProvider>
+  </OnboardingWrapper>
   );
 };
 

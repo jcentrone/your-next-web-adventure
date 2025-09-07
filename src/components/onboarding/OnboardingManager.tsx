@@ -1,9 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { OnboardingTooltip } from './OnboardingTooltip';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 interface OnboardingStep {
   id: string;
@@ -106,38 +103,12 @@ interface OnboardingProviderProps {
 export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ 
   children
 }) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [tooltipArrow, setTooltipArrow] = useState<'top' | 'bottom' | 'left' | 'right'>('bottom');
   const [tooltipTransform, setTooltipTransform] = useState('translateX(-50%)');
 
-  const markOnboardingCompleted = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          onboarding_completed: true,
-          onboarding_completed_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Error marking onboarding as completed:', error);
-        toast({
-          title: "Error",
-          description: "Failed to save onboarding progress",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Error in markOnboardingCompleted:', error);
-    }
-  };
 
   const calculateTooltipPosition = useCallback((targetSelector: string, preferredPosition: string = 'bottom') => {
     const element = document.querySelector(targetSelector) as HTMLElement;
@@ -278,8 +249,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
   const endTour = useCallback(async () => {
     setIsActive(false);
     setCurrentStep(0);
-    await markOnboardingCompleted();
-  }, [markOnboardingCompleted]);
+  }, []);
 
   const nextStep = useCallback(() => {
     if (currentStep < ONBOARDING_STEPS.length - 1) {
