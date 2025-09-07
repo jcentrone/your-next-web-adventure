@@ -313,7 +313,7 @@ const Header: React.FC = () => {
                                         </Avatar>
                                     </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuContent align={isActive && currentStep === 8 ? "center" : "end"} className="w-56">
                                     <DropdownMenuLabel className="max-w-[200px] truncate">
                                         {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
                                     </DropdownMenuLabel>
