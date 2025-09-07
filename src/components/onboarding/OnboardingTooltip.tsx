@@ -36,13 +36,13 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
     
     switch (arrow) {
       case 'top':
-        return `${base} border-transparent border-t-primary -bottom-[14px] left-1/2 -translate-x-1/2 z-20`;
+        return `${base} border-transparent border-t-primary -bottom-[20px] left-1/2 -translate-x-1/2 z-20`;
       case 'bottom':
-        return `${base} border-transparent border-b-primary -top-[14px] left-1/2 -translate-x-1/2 z-20`;
+        return `${base} border-transparent border-b-primary -top-[20px] left-1/2 -translate-x-1/2 z-20`;
       case 'left':
-        return `${base} border-transparent border-l-primary -right-[14px] top-1/2 -translate-y-1/2 z-20`;
+        return `${base} border-transparent border-l-primary -right-[20px] top-1/2 -translate-y-1/2 z-20`;
       case 'right':
-        return `${base} border-transparent border-r-primary -left-[14px] top-1/2 -translate-y-1/2 z-20`;
+        return `${base} border-transparent border-r-primary -left-[20px] top-1/2 -translate-y-1/2 z-20`;
       default:
         return '';
     }
