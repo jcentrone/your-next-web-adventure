@@ -7,6 +7,7 @@ interface OnboardingTooltipProps {
   content: string;
   position: { x: number; y: number };
   arrow: 'top' | 'bottom' | 'left' | 'right';
+  transform: string;
   currentStep: number;
   totalSteps: number;
   onNext?: () => void;
@@ -21,6 +22,7 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
   content,
   position,
   arrow,
+  transform,
   currentStep,
   totalSteps,
   onNext,
@@ -46,24 +48,6 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
     }
   };
 
-  const getTooltipPosition = () => {
-    const offset = 16;
-    switch (arrow) {
-      case 'top':
-        return { x: position.x, y: position.y - offset };
-      case 'bottom':
-        return { x: position.x, y: position.y + offset };
-      case 'left':
-        return { x: position.x - offset, y: position.y };
-      case 'right':
-        return { x: position.x + offset, y: position.y };
-      default:
-        return position;
-    }
-  };
-
-  const tooltipPos = getTooltipPosition();
-
   return (
     <>
       {/* Overlay */}
@@ -76,11 +60,9 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
       <div
         className="fixed z-[9999] animate-fade-in"
         style={{
-          left: tooltipPos.x,
-          top: tooltipPos.y,
-          transform: arrow === 'left' || arrow === 'right' 
-            ? 'translateY(-50%)' 
-            : 'translateX(-50%)'
+          left: position.x,
+          top: position.y,
+          transform: transform
         }}
       >
         <div className="relative bg-[#1e40af] text-white rounded-lg shadow-xl max-w-[320px] min-w-[280px]">

@@ -39,7 +39,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     target: '[data-onboarding="logo"]',
     title: 'Welcome to HomeReportPro!',
     content: 'Let\'s take a quick tour to get you started with your home inspection reporting platform.',
-    position: 'bottom'
+    position: 'right'
   },
   {
     id: 'dashboard',
@@ -91,6 +91,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [tooltipArrow, setTooltipArrow] = useState<'top' | 'bottom' | 'left' | 'right'>('bottom');
+  const [tooltipTransform, setTooltipTransform] = useState('translateX(-50%)');
 
   const markOnboardingCompleted = async () => {
     if (!user) return;
@@ -119,14 +120,18 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
 
   const calculateTooltipPosition = useCallback((targetSelector: string, preferredPosition: string = 'bottom') => {
     const element = document.querySelector(targetSelector) as HTMLElement;
-    if (!element) return { position: { x: 0, y: 0 }, arrow: 'bottom' as const };
+    if (!element) return { position: { x: 0, y: 0 }, arrow: 'bottom' as const, transform: 'translateX(-50%)' };
 
     const rect = element.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
+    const tooltipWidth = 320; // max-w-[320px]
+    const tooltipHeight = 200; // estimated height
+    const margin = 16; // minimum margin from viewport edge
     
     let position = { x: 0, y: 0 };
     let arrow: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
+    let transform = 'translateX(-50%)';
     
     // Determine best position based on available space
     const spaceAbove = rect.top;
@@ -134,50 +139,89 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
     const spaceLeft = rect.left;
     const spaceRight = viewportWidth - rect.right;
     
-    // Try preferred position first, fallback to best available space
-    if (preferredPosition === 'top' && spaceAbove > 150) {
-      position = { x: rect.left + rect.width / 2, y: rect.top };
+    // Calculate initial position based on preferred direction
+    let initialX = rect.left + rect.width / 2;
+    let initialY = rect.bottom + margin; // Add offset for bottom position
+    
+    if (preferredPosition === 'top' && spaceAbove > tooltipHeight + margin) {
+      initialY = rect.top - margin; // Add offset for top position
       arrow = 'top';
-    } else if (preferredPosition === 'bottom' && spaceBelow > 150) {
-      position = { x: rect.left + rect.width / 2, y: rect.bottom };
+    } else if (preferredPosition === 'bottom' && spaceBelow > tooltipHeight + margin) {
+      initialY = rect.bottom + margin; // Add offset for bottom position
       arrow = 'bottom';
-    } else if (preferredPosition === 'left' && spaceLeft > 300) {
-      position = { x: rect.left, y: rect.top + rect.height / 2 };
+    } else if (preferredPosition === 'left' && spaceLeft > tooltipWidth + margin) {
+      initialX = rect.left - margin; // Add offset for left position
+      initialY = rect.top + rect.height / 2;
       arrow = 'left';
-    } else if (preferredPosition === 'right' && spaceRight > 300) {
-      position = { x: rect.right, y: rect.top + rect.height / 2 };
+      transform = 'translateY(-50%)';
+    } else if (preferredPosition === 'right' && spaceRight > tooltipWidth + margin) {
+      initialX = rect.right + margin; // Add offset for right position
+      initialY = rect.top + rect.height / 2;
       arrow = 'right';
+      transform = 'translateY(-50%)';
     } else {
-      // Fallback to position with most space
-      if (spaceBelow > spaceAbove && spaceBelow > 150) {
-        position = { x: rect.left + rect.width / 2, y: rect.bottom };
+      // Fallback logic - choose best available space
+      if (spaceBelow > tooltipHeight + margin) {
+        initialY = rect.bottom + margin;
         arrow = 'bottom';
-      } else if (spaceAbove > 150) {
-        position = { x: rect.left + rect.width / 2, y: rect.top };
+      } else if (spaceAbove > tooltipHeight + margin) {
+        initialY = rect.top - margin;
         arrow = 'top';
-      } else if (spaceRight > spaceLeft && spaceRight > 300) {
-        position = { x: rect.right, y: rect.top + rect.height / 2 };
+      } else if (spaceRight > tooltipWidth + margin) {
+        initialX = rect.right + margin;
+        initialY = rect.top + rect.height / 2;
         arrow = 'right';
-      } else if (spaceLeft > 300) {
-        position = { x: rect.left, y: rect.top + rect.height / 2 };
+        transform = 'translateY(-50%)';
+      } else if (spaceLeft > tooltipWidth + margin) {
+        initialX = rect.left - margin;
+        initialY = rect.top + rect.height / 2;
         arrow = 'left';
-      } else {
-        // Default fallback
-        position = { x: rect.left + rect.width / 2, y: rect.bottom };
-        arrow = 'bottom';
+        transform = 'translateY(-50%)';
       }
     }
     
-    return { position, arrow };
+    // Adjust horizontal position for top/bottom arrows to prevent overflow
+    if (arrow === 'top' || arrow === 'bottom') {
+      const halfTooltipWidth = tooltipWidth / 2;
+      
+      // Check if centered position would overflow
+      if (initialX - halfTooltipWidth < margin) {
+        // Too far left - align to left edge with margin
+        initialX = margin + halfTooltipWidth;
+      } else if (initialX + halfTooltipWidth > viewportWidth - margin) {
+        // Too far right - align to right edge with margin
+        initialX = viewportWidth - margin - halfTooltipWidth;
+      }
+      
+      transform = 'translateX(-50%)';
+    }
+    
+    // Adjust vertical position for left/right arrows to prevent overflow
+    if (arrow === 'left' || arrow === 'right') {
+      const halfTooltipHeight = tooltipHeight / 2;
+      
+      if (initialY - halfTooltipHeight < margin) {
+        initialY = margin + halfTooltipHeight;
+      } else if (initialY + halfTooltipHeight > viewportHeight - margin) {
+        initialY = viewportHeight - margin - halfTooltipHeight;
+      }
+      
+      transform = 'translateY(-50%)';
+    }
+    
+    position = { x: initialX, y: initialY };
+    
+    return { position, arrow, transform };
   }, []);
 
   const updateTooltipPosition = useCallback(() => {
     if (!isActive || currentStep >= ONBOARDING_STEPS.length) return;
     
     const step = ONBOARDING_STEPS[currentStep];
-    const { position, arrow } = calculateTooltipPosition(step.target, step.position);
+    const { position, arrow, transform } = calculateTooltipPosition(step.target, step.position);
     setTooltipPosition(position);
     setTooltipArrow(arrow);
+    setTooltipTransform(transform);
   }, [isActive, currentStep, calculateTooltipPosition]);
 
   const startTour = useCallback(() => {
@@ -273,6 +317,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
           content={currentStepData.content}
           position={tooltipPosition}
           arrow={tooltipArrow}
+          transform={tooltipTransform}
           currentStep={currentStep}
           totalSteps={ONBOARDING_STEPS.length}
           onNext={nextStep}
