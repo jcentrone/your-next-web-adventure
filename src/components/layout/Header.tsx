@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import {useIsMobile} from "@/hooks/use-mobile";
 import {usePWAInstall} from "@/hooks/usePWAInstall";
+import {useOnboarding} from "@/components/onboarding/OnboardingManager";
 
 const Header: React.FC = () => {
     const {user, signOut} = useAuth();
@@ -34,6 +35,18 @@ const Header: React.FC = () => {
     const isMobile = useIsMobile();
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const {isInstallable, install} = usePWAInstall();
+    const {isActive, currentStep} = useOnboarding();
+    
+    // Auto-open user menu during settings onboarding step
+    const [userMenuOpen, setUserMenuOpen] = React.useState(false);
+    
+    React.useEffect(() => {
+        if (isActive && currentStep === 8) { // Settings step is index 8
+            setUserMenuOpen(true);
+        } else if (!isActive) {
+            setUserMenuOpen(false);
+        }
+    }, [isActive, currentStep]);
 
     const initials = React.useMemo(() => {
         const name = (user?.user_metadata?.full_name ||
@@ -287,7 +300,7 @@ const Header: React.FC = () => {
                                     Install App
                                 </Button>
                             )}
-                            <DropdownMenu>
+                            <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
                                 <DropdownMenuTrigger asChild>
                                     <button
                                         className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -318,7 +331,7 @@ const Header: React.FC = () => {
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
-                                        <Link to="/settings" className="flex items-center gap-2">
+                                        <Link to="/settings" className="flex items-center gap-2" data-onboarding="settings-menu">
                                             <Settings className="h-4 w-4"/>
                                             Settings
                                         </Link>

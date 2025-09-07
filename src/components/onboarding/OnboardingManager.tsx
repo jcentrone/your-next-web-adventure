@@ -92,7 +92,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     id: 'settings',
-    target: '[data-onboarding="user-menu"]',
+    target: '[data-onboarding="settings-menu"]',
     title: 'Settings & Profile',
     content: 'Access your account settings, customize report templates, and manage your organization preferences.',
     position: 'left'
