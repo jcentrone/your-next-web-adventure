@@ -133,3 +133,29 @@ All colors MUST be HSL.
   font-weight: 600 !important;
   color: hsl(var(--primary)) !important;
 }
+
+/* Shepherd.js tour styling */
+.shepherd-element {
+  z-index: 9999 !important;
+}
+
+.shepherd-content {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--card-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+}
+
+.shepherd-text {
+  padding: 0 !important;
+}
+
+.shepherd-footer {
+  border-top: 1px solid hsl(var(--border)) !important;
+  padding: 16px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  background: hsl(var(--muted/20)) !important;
+  border-radius: 0 0 8px 8px !important;
+}
