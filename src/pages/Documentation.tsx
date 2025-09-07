@@ -14,7 +14,9 @@ import {
   Shield,
   Globe,
   CheckCircle,
+  CheckSquare,
   ArrowRight,
+  BarChart,
   Calendar,
   Clock,
   Download
@@ -338,6 +340,81 @@ const Documentation = () => {
                       <li>• Automatic confirmation emails</li>
                       <li>• Service type selection</li>
                       <li>• Buffer time configuration</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        {/* Task Management */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold mb-8">Task Management</h2>
+
+          <Card className="p-8">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center shrink-0">
+                <CheckSquare className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-semibold mb-4">Stay Organized</h3>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3">Task Features:</h4>
+                    <ul className="space-y-2 text-muted-foreground">
+                      <li>• Create tasks with due dates and priorities</li>
+                      <li>• Link tasks to contacts, appointments, or reports</li>
+                      <li>• Track status: pending, in progress, completed</li>
+                      <li>• Filter and sort by priority or due date</li>
+                      <li>• Quick completion with checkboxes</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-3">Best Practices:</h4>
+                    <ul className="space-y-2 text-muted-foreground">
+                      <li>• Use tasks for follow-ups and reminders</li>
+                      <li>• Assign priorities to manage workload</li>
+                      <li>• Convert inspection findings into action items</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        {/* Analytics & Reporting */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold mb-8">Analytics & Reporting</h2>
+
+          <Card className="p-8">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-sky-500/10 rounded-lg flex items-center justify-center shrink-0">
+                <BarChart className="w-6 h-6 text-sky-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-semibold mb-4">Business Insights</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-3">Dashboard Metrics:</h4>
+                    <ul className="space-y-2 text-muted-foreground">
+                      <li>• Total reports, contacts, and appointments</li>
+                      <li>• Revenue and average fee calculations</li>
+                      <li>• Recent activity timeline</li>
+                      <li>• Report distribution by type</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-3">Interactive Charts:</h4>
+                    <ul className="space-y-2 text-muted-foreground">
+                      <li>• Monthly report and revenue trends</li>
+                      <li>• Pie charts for report types</li>
+                      <li>• Toggle activity types on timeline</li>
+                      <li>• Date range filtering</li>
                     </ul>
                   </div>
                 </div>
