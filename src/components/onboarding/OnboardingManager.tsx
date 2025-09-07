@@ -222,12 +222,14 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
     setTooltipPosition(position);
     setTooltipArrow(arrow);
     setTooltipTransform(transform);
-  }, [isActive, currentStep, calculateTooltipPosition]);
+  }, [isActive, currentStep]);
 
   const startTour = useCallback(() => {
-    setIsActive(true);
-    setCurrentStep(0);
-  }, []);
+    if (!isActive) {
+      setIsActive(true);
+      setCurrentStep(0);
+    }
+  }, [isActive]);
 
   const endTour = useCallback(async () => {
     setIsActive(false);
