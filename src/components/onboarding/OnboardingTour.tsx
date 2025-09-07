@@ -58,9 +58,9 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) => {
         const tour = new Shepherd.Tour({
           useModalOverlay: true,
           defaultStepOptions: {
-            classes: 'shadow-md bg-card text-card-foreground rounded-lg border',
+            classes: 'shepherd-theme-custom',
             scrollTo: { behavior: 'smooth', block: 'center' },
-            modalOverlayOpeningPadding: 4,
+            modalOverlayOpeningPadding: 12
           },
         });
 
