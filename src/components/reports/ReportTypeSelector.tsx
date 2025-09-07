@@ -25,11 +25,15 @@ const ReportTypeSelector: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card 
-            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
-            onClick={() => navigate("/reports/new/home-inspection")}
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col group"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate("/reports/new/home-inspection");
+            }}
           >
             <CardHeader className="text-center flex-shrink-0">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <Home className="w-8 h-8 text-primary" />
               </div>
               <CardTitle className="text-lg">Home Inspection</CardTitle>
@@ -45,19 +49,23 @@ const ReportTypeSelector: React.FC = () => {
                 <li>• Safety and maintenance recommendations</li>
               </ul>
               <div className="mt-6 pt-4 border-t">
-                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
-                  Create Home Inspection Report
+                <div className="text-center text-primary font-medium text-sm group-hover:text-primary/80 transition-colors">
+                  Click to create report →
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
-            onClick={() => navigate("/reports/new/wind-mitigation")}
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col group"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate("/reports/new/wind-mitigation");
+            }}
           >
             <CardHeader className="text-center flex-shrink-0">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <Wind className="w-8 h-8 text-primary" />
               </div>
               <CardTitle className="text-lg">Uniform Mitigation Verification Inspection</CardTitle>
@@ -73,19 +81,23 @@ const ReportTypeSelector: React.FC = () => {
                 <li>• Secondary water resistance check</li>
               </ul>
               <div className="mt-6 pt-4 border-t">
-                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
-                  Create Uniform Mitigation Report
+                <div className="text-center text-primary font-medium text-sm group-hover:text-primary/80 transition-colors">
+                  Click to create report →
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
-            onClick={() => navigate("/reports/new/fl-four-point")}
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col group"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate("/reports/new/fl-four-point");
+            }}
           >
             <CardHeader className="text-center flex-shrink-0">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <ClipboardList className="w-8 h-8 text-primary" />
               </div>
               <CardTitle className="text-lg">Florida 4-Point (Citizens)</CardTitle>
@@ -99,19 +111,23 @@ const ReportTypeSelector: React.FC = () => {
                 <li>• Photos and signatures</li>
               </ul>
               <div className="mt-6 pt-4 border-t">
-                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
-                  Create FL 4-Point Report
+                <div className="text-center text-primary font-medium text-sm group-hover:text-primary/80 transition-colors">
+                  Click to create report →
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
-            onClick={() => navigate("/reports/new/ca-wildfire")}
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col group"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate("/reports/new/ca-wildfire");
+            }}
           >
             <CardHeader className="text-center flex-shrink-0">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <Flame className="w-8 h-8 text-primary" />
               </div>
               <CardTitle className="text-lg">Wildfire Assessment</CardTitle>
@@ -126,19 +142,23 @@ const ReportTypeSelector: React.FC = () => {
                 <li>• Access and utility hazards</li>
               </ul>
               <div className="mt-6 pt-4 border-t">
-                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
-                  Create Wildfire Report
+                <div className="text-center text-primary font-medium text-sm group-hover:text-primary/80 transition-colors">
+                  Click to create report →
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
-            onClick={() => navigate("/reports/new/manufactured-home")}
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col group"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate("/reports/new/manufactured-home");
+            }}
           >
             <CardHeader className="text-center flex-shrink-0">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <Factory className="w-8 h-8 text-primary" />
               </div>
               <CardTitle className="text-lg">Manufactured Home Inspection</CardTitle>
@@ -153,19 +173,23 @@ const ReportTypeSelector: React.FC = () => {
                 <li>• Utilities and additions evaluation</li>
               </ul>
               <div className="mt-6 pt-4 border-t">
-                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
-                  Create Manufactured Home Report
+                <div className="text-center text-primary font-medium text-sm group-hover:text-primary/80 transition-colors">
+                  Click to create report →
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card 
-            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col"
-            onClick={() => navigate("/reports/new/roof-certification")}
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-primary/30 hover:scale-[1.02] h-full flex flex-col group"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate("/reports/new/roof-certification");
+            }}
           >
             <CardHeader className="text-center flex-shrink-0">
-              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                 <ShieldCheck className="w-8 h-8 text-primary" />
               </div>
               <CardTitle className="text-lg">Roof Certification</CardTitle>
@@ -180,8 +204,8 @@ const ReportTypeSelector: React.FC = () => {
                 <li>• Photo documentation</li>
               </ul>
               <div className="mt-6 pt-4 border-t">
-                <div className="w-full bg-primary/5 text-primary font-medium py-3 px-4 rounded-md text-center text-sm transition-colors hover:bg-primary/10">
-                  Create Roof Certification Report
+                <div className="text-center text-primary font-medium text-sm group-hover:text-primary/80 transition-colors">
+                  Click to create report →
                 </div>
               </div>
             </CardContent>
