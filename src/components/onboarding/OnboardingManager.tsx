@@ -239,11 +239,22 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
     if (!isActive || currentStep >= ONBOARDING_STEPS.length) return;
     
     const step = ONBOARDING_STEPS[currentStep];
-    const { position, arrow, transform } = calculateTooltipPosition(step.target, step.position);
-    setTooltipPosition(position);
-    setTooltipArrow(arrow);
-    setTooltipTransform(transform);
-  }, [isActive, currentStep]);
+    
+    // Add small delay for settings step to ensure dropdown is rendered
+    if (step.id === 'settings') {
+      setTimeout(() => {
+        const { position, arrow, transform } = calculateTooltipPosition(step.target, step.position);
+        setTooltipPosition(position);
+        setTooltipArrow(arrow);
+        setTooltipTransform(transform);
+      }, 100);
+    } else {
+      const { position, arrow, transform } = calculateTooltipPosition(step.target, step.position);
+      setTooltipPosition(position);
+      setTooltipArrow(arrow);
+      setTooltipTransform(transform);
+    }
+  }, [isActive, currentStep, calculateTooltipPosition]);
 
   const startTour = useCallback(() => {
     if (!isActive) {

@@ -66,8 +66,8 @@ export const OnboardingTooltip: React.FC<OnboardingTooltipProps> = ({
         }}
       >
         <div className="relative bg-primary text-primary-foreground rounded-lg shadow-xl max-w-[320px] min-w-[280px]">
-          {/* Arrow */}
-          <div className={getArrowClasses()} />
+          {/* Arrow - hidden for first step */}
+          {!isFirst && <div className={getArrowClasses()} />}
           
           {/* Header */}
           <div className="px-4 pt-4 pb-2">
