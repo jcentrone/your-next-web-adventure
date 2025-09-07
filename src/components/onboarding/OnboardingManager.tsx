@@ -161,7 +161,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
         x: Math.max(margin + tooltipWidth / 2, rect.left - margin), 
         y: rect.top + rect.height / 2 
       };
-      arrow = 'right';
+      arrow = 'left';
       transform = 'translate(-100%, -50%)';
       return { position, arrow, transform };
     }
