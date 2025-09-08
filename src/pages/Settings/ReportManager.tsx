@@ -11,6 +11,7 @@ import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { useReportTemplates } from "@/hooks/useReportTemplates";
 import { useCustomSections } from "@/hooks/useCustomSections";
 import { useCustomFields } from "@/hooks/useCustomFields";
+import { useSectionOrder } from "@/hooks/useSectionOrder";
 import { useAuth } from "@/contexts/AuthContext";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { getReportCategory, REPORT_CATEGORY_LABELS, REPORT_CATEGORY_DESCRIPTIONS, isDefectBasedReport } from "@/constants/reportCategories";
@@ -29,6 +30,7 @@ export default function ReportManager() {
   const { templates, deleteTemplate } = useReportTemplates(); // Get all templates, not filtered by type
   const { customSections, createSection, deleteSection } = useCustomSections();
   const { customFields, createField, updateField, deleteField } = useCustomFields();
+  const { updateSectionOrder } = useSectionOrder(selectedReportType, customSections);
   const { toast } = useToast();
 
   const reportCategory = getReportCategory(selectedReportType);
@@ -216,6 +218,7 @@ export default function ReportManager() {
                   customSections={customSections}
                   customFields={customFields}
                   onAddSection={() => setSectionDialogOpen(true)}
+                  onReorderSections={updateSectionOrder}
                 />
                 
                 <SectionFieldsPanel
