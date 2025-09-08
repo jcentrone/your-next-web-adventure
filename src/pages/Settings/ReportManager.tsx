@@ -1,13 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wrench, FileText, FormInput, Settings } from "lucide-react";
+import { Wrench, FileText, FormInput, Settings, Trash2 } from "lucide-react";
 import ReportTypeSelector from "@/components/reports/ReportTypeSelector";
-import { TemplatesList } from "@/components/sections/TemplatesList";
-import { TemplateCreateDialog } from "@/components/sections/TemplateCreateDialog";
-import { TemplateEditDialog } from "@/components/sections/TemplateEditDialog";
 import { UniversalSectionsList } from "@/components/sections/UniversalSectionsList";
 import { SectionFieldsPanel } from "@/components/sections/SectionFieldsPanel";
 import { FieldEditor } from "@/components/sections/FieldEditor";
@@ -18,64 +14,57 @@ import { useCustomFields } from "@/hooks/useCustomFields";
 import { useAuth } from "@/contexts/AuthContext";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { getReportCategory, REPORT_CATEGORY_LABELS, REPORT_CATEGORY_DESCRIPTIONS, isDefectBasedReport } from "@/constants/reportCategories";
-import { createDefaultTemplate } from "@/utils/defaultTemplates";
+import { useToast } from "@/hooks/use-toast";
 import type { Report } from "@/lib/reportSchemas";
-import type { ReportTemplate } from "@/integrations/supabase/reportTemplatesApi";
 import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 
 export default function ReportManager() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedReportType, setSelectedReportType] = useState<Report["reportType"]>("home_inspection");
-  const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null);
-  const [templateCreateOpen, setTemplateCreateOpen] = useState(false);
-  const [templateEditOpen, setTemplateEditOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [fieldEditorOpen, setFieldEditorOpen] = useState(false);
   const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<CustomField | undefined>();
 
-  const { templates, isLoading: templatesLoading, createTemplate, updateTemplate, deleteTemplate, duplicateTemplate } = useReportTemplates(selectedReportType);
-  const { customSections, isLoading: sectionsLoading, createSection, deleteSection } = useCustomSections();
-  const { customFields, isLoading: fieldsLoading, createField, updateField, deleteField } = useCustomFields();
+  const { templates, deleteTemplate } = useReportTemplates(); // Get all templates, not filtered by type
+  const { customSections, createSection, deleteSection } = useCustomSections();
+  const { customFields, createField, updateField, deleteField } = useCustomFields();
+  const { toast } = useToast();
 
   const reportCategory = getReportCategory(selectedReportType);
   const isDefectBased = isDefectBasedReport(selectedReportType);
 
+  // Get all available report types (standard + custom from templates)
+  const customReportTypes = templates
+    .map(t => t.report_type)
+    .filter((type, index, arr) => arr.indexOf(type) === index) // Remove duplicates
+    .filter(type => !REPORT_TYPE_LABELS[type]); // Only custom types
+
   const handleOpenReportBuilder = () => {
-    navigate("/report-builder");
+    window.open("/report-builder", "_blank");
   };
 
-  const handleCreateTemplate = () => {
-    setTemplateCreateOpen(true);
-  };
-
-  const handleEditTemplate = (template: ReportTemplate) => {
-    setSelectedTemplate(template);
-    setTemplateEditOpen(true);
-  };
-
-  const handleTemplateCreated = () => {
-    // Templates will be reloaded automatically by the hook
-  };
-
-  const handleTemplateUpdated = () => {
-    // Templates will be reloaded automatically by the hook
-  };
-
-  const handleCreateDefaultTemplate = async () => {
-    if (!user?.id) return;
+  const handleDeleteCustomReportType = async (reportType: Report["reportType"]) => {
+    const templatesToDelete = templates.filter(t => t.report_type === reportType);
     
     try {
-      await createDefaultTemplate(selectedReportType, user.id, createTemplate);
+      await Promise.all(templatesToDelete.map(t => deleteTemplate(t.id)));
+      toast({
+        title: "Success",
+        description: "Custom report type deleted successfully",
+      });
+      
+      // If we're currently viewing the deleted type, switch to home_inspection
+      if (selectedReportType === reportType) {
+        setSelectedReportType("home_inspection");
+      }
     } catch (error) {
-      console.error("Error creating default template:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete custom report type",
+        variant: "destructive",
+      });
     }
-  };
-
-  const handleDuplicateTemplate = async (template: ReportTemplate) => {
-    const newName = `${template.name} (Copy)`;
-    await duplicateTemplate(template.id, newName);
   };
 
   const handleAddField = () => {
@@ -126,13 +115,13 @@ export default function ReportManager() {
       <div>
         <h2 className="text-2xl font-bold">Report Manager</h2>
         <p className="text-muted-foreground mt-1">
-          Manage sections, fields, and templates for all report types
+          Manage and customize your report types, sections, and fields
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Report Type & Category</CardTitle>
+          <CardTitle className="text-lg">Report Type Selection</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
@@ -142,18 +131,31 @@ export default function ReportManager() {
                 value={selectedReportType}
                 onValueChange={(value) => {
                   setSelectedReportType(value);
-                  setSelectedTemplate(null);
+                  setSelectedSection(null);
                 }}
                 placeholder="Select a report type to manage"
+                includeCustomTypes={true}
               />
             </div>
             {selectedReportType && (
               <div>
                 <label className="text-sm font-medium mb-2 block">Category</label>
-                <Badge variant={isDefectBased ? "default" : "secondary"} className="flex items-center gap-1 w-fit">
-                  {isDefectBased ? <FileText className="w-3 h-3" /> : <FormInput className="w-3 h-3" />}
-                  {REPORT_CATEGORY_LABELS[reportCategory]}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={isDefectBased ? "default" : "secondary"} className="flex items-center gap-1 w-fit">
+                    {isDefectBased ? <FileText className="w-3 h-3" /> : <FormInput className="w-3 h-3" />}
+                    {REPORT_CATEGORY_LABELS[reportCategory]}
+                  </Badge>
+                  {customReportTypes.includes(selectedReportType) && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteCustomReportType(selectedReportType)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {REPORT_CATEGORY_DESCRIPTIONS[reportCategory]}
                 </p>
@@ -165,12 +167,12 @@ export default function ReportManager() {
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div>
                 <p className="text-sm font-medium">
-                  Managing: {REPORT_TYPE_LABELS[selectedReportType]}
+                  Managing: {REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {isDefectBased 
-                    ? "Use templates to organize report sections and customize fields"
-                    : "Create templates with structured form configurations"
+                    ? "Customize report sections and add fields for additional data collection"
+                    : "Configure structured form fields and data collection elements"
                   }
                 </p>
               </div>
@@ -184,86 +186,45 @@ export default function ReportManager() {
       </Card>
 
       {selectedReportType && (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Report Templates</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Manage report templates for {REPORT_TYPE_LABELS[selectedReportType]}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[400px] overflow-hidden">
-                <TemplatesList
-                  templates={templates}
-                  selectedTemplate={selectedTemplate}
-                  onTemplateSelect={setSelectedTemplate}
-                  onCreateTemplate={handleCreateTemplate}
-                  onEditTemplate={handleEditTemplate}
-                  onDuplicateTemplate={handleDuplicateTemplate}
-                  onDeleteTemplate={deleteTemplate}
-                  isLoading={templatesLoading}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="w-5 h-5" />
-                Section Management
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Customize sections and fields for {REPORT_TYPE_LABELS[selectedReportType]}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[600px] flex gap-4 rounded-lg overflow-hidden">
-                <UniversalSectionsList
-                  reportType={selectedReportType}
-                  selectedSection={selectedSection}
-                  onSectionSelect={setSelectedSection}
-                  customSections={customSections}
-                  customFields={customFields}
-                  onAddSection={() => setSectionDialogOpen(true)}
-                />
-                
-                <SectionFieldsPanel
-                  selectedSection={selectedSection}
-                  customFields={customFields.filter(field => 
-                    selectedSection ? 
-                      field.section_key === selectedSection && 
-                      field.report_types.includes(selectedReportType) 
-                      : false
-                  )}
-                  customSections={customSections}
-                  onAddField={handleAddField}
-                  onEditField={handleEditField}
-                  onDeleteField={deleteField}
-                  onDeleteSection={deleteSection}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              Section & Field Management
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Customize sections and fields for {REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[600px] flex gap-4 rounded-lg overflow-hidden border">
+              <UniversalSectionsList
+                reportType={selectedReportType}
+                selectedSection={selectedSection}
+                onSectionSelect={setSelectedSection}
+                customSections={customSections}
+                customFields={customFields}
+                onAddSection={() => setSectionDialogOpen(true)}
+              />
+              
+              <SectionFieldsPanel
+                selectedSection={selectedSection}
+                customFields={customFields.filter(field => 
+                  selectedSection ? 
+                    field.section_key === selectedSection && 
+                    field.report_types.includes(selectedReportType) 
+                    : false
+                )}
+                customSections={customSections}
+                onAddField={handleAddField}
+                onEditField={handleEditField}
+                onDeleteField={deleteField}
+                onDeleteSection={deleteSection}
+              />
+            </div>
+          </CardContent>
+        </Card>
       )}
-
-      <TemplateCreateDialog
-        open={templateCreateOpen}
-        onOpenChange={setTemplateCreateOpen}
-        reportType={selectedReportType}
-        onTemplateCreated={handleTemplateCreated}
-        onCreateTemplate={createTemplate}
-      />
-
-      <TemplateEditDialog
-        open={templateEditOpen}
-        onOpenChange={setTemplateEditOpen}
-        template={selectedTemplate}
-        onTemplateUpdated={handleTemplateUpdated}
-        onUpdateTemplate={updateTemplate}
-      />
 
       {/* Field Editor Dialog */}
       <FieldEditor
