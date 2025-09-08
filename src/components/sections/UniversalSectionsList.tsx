@@ -70,7 +70,6 @@ export function UniversalSectionsList({
           </h4>
           <div className="space-y-1">
             {getSectionsForReportType(reportType)
-              .filter(section => section.key !== "report_details" && section.key !== "finalize")
               .map(section => {
               const fieldCount = getFieldCount(section.key);
               const isSelected = selectedSection === section.key;

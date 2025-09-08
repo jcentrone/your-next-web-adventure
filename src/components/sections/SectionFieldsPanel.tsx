@@ -62,7 +62,7 @@ export function SectionFieldsPanel({
   const sectionTitle = customSection?.title || String(SOP_SECTIONS[selectedSection as keyof typeof SOP_SECTIONS] || selectedSection);
 
   // Get built-in fields for this section and report type
-  const getBuiltInFields = () => {
+  const getBuiltInFields = () => {    
     if (!selectedSection) return [];
     
     // Handle home inspection report type
