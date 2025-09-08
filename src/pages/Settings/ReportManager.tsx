@@ -219,6 +219,7 @@ export default function ReportManager() {
                 
                 <SectionFieldsPanel
                   selectedSection={selectedSection}
+                  reportType={selectedReportType}
                   customFields={customFields.filter(field => 
                     selectedSection ? 
                       field.section_key === selectedSection && 
