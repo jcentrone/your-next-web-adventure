@@ -3,84 +3,150 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Settings, FileText, FormInput } from "lucide-react";
-import ReportTypeSelector from "@/components/reports/ReportTypeSelector";
-import { UniversalSectionsList } from "@/components/sections/UniversalSectionsList";
-import { SectionFieldsPanel } from "@/components/sections/SectionFieldsPanel";
-import { FieldEditor } from "@/components/sections/FieldEditor";
-import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
-import { useCustomSections } from "@/hooks/useCustomSections";
-import { useCustomFields } from "@/hooks/useCustomFields";
+import { ArrowLeft, FileText, FormInput, Sparkles, Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
-import { getReportCategory, REPORT_CATEGORY_LABELS, REPORT_CATEGORY_DESCRIPTIONS, isDefectBasedReport } from "@/constants/reportCategories";
+import { REPORT_CATEGORY_LABELS, REPORT_CATEGORY_DESCRIPTIONS, type ReportCategory } from "@/constants/reportCategories";
 import Seo from "@/components/Seo";
-import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 import type { Report } from "@/lib/reportSchemas";
 
 export default function ReportBuilder() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [selectedReportType, setSelectedReportType] = useState<Report["reportType"]>("home_inspection");
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const [fieldEditorOpen, setFieldEditorOpen] = useState(false);
-  const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
-  const [editingField, setEditingField] = useState<CustomField | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState<ReportCategory | null>(null);
+  const [step, setStep] = useState<"category" | "builder">("category");
 
-  const { customSections, isLoading: sectionsLoading, createSection, deleteSection } = useCustomSections();
-  const { customFields, isLoading: fieldsLoading, createField, updateField, deleteField } = useCustomFields();
-
-  const reportCategory = getReportCategory(selectedReportType);
-  const isDefectBased = isDefectBasedReport(selectedReportType);
-
-  const handleAddField = () => {
-    setEditingField(undefined);
-    setFieldEditorOpen(true);
+  const handleCategorySelect = (category: ReportCategory) => {
+    setSelectedCategory(category);
+    setStep("builder");
   };
 
-  const handleEditField = (field: CustomField) => {
-    setEditingField(field);
-    setFieldEditorOpen(true);
-  };
-
-  const handleSaveField = async (fieldData: {
-    field_name: string;
-    field_label: string;
-    widget_type: CustomField["widget_type"];
-    options?: string[];
-    required?: boolean;
-  }) => {
-    if (!selectedSection) return;
-
-    if (editingField) {
-      await updateField(editingField.id, {
-        field_label: fieldData.field_label,
-        widget_type: fieldData.widget_type,
-        options: fieldData.options,
-        required: fieldData.required,
-      });
-    } else {
-      await createField({
-        ...fieldData,
-        section_key: selectedSection,
-        report_types: [selectedReportType],
-      });
-    }
-  };
-
-  const handleSectionCreated = async (title: string) => {
-    setSectionDialogOpen(false);
+  const handleBackToCategory = () => {
+    setSelectedCategory(null);
+    setStep("category");
   };
 
   if (!user) {
     return <div>Please log in to access the report builder.</div>;
   }
 
+  if (step === "category") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Seo
+          title="Report Builder - Choose Category"
+          description="Create a new report by selecting defect-based or form-based type"
+        />
+        
+        <div className="container mx-auto p-6">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-8">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold">Create New Report Type</h1>
+              <p className="text-muted-foreground">
+                Choose the category that best fits your reporting needs
+              </p>
+            </div>
+          </div>
+
+          {/* Category Selection */}
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 group"
+              onClick={() => handleCategorySelect("defect_based")}
+            >
+              <CardHeader className="text-center pb-4">
+                <div className="mx-auto mb-4 p-4 bg-primary/10 rounded-full w-fit group-hover:bg-primary/20 transition-colors">
+                  <FileText className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-xl">{REPORT_CATEGORY_LABELS.defect_based}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center space-y-4">
+                <p className="text-muted-foreground">
+                  {REPORT_CATEGORY_DESCRIPTIONS.defect_based}
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full" />
+                    <span>Section-based observations</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full" />
+                    <span>Defect tracking & categorization</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full" />
+                    <span>Photo & media attachments</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-primary rounded-full" />
+                    <span>Narrative recommendations</span>
+                  </div>
+                </div>
+                <Button className="w-full mt-4">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Create Defect-Based Report
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105 group"
+              onClick={() => handleCategorySelect("form_based")}
+            >
+              <CardHeader className="text-center pb-4">
+                <div className="mx-auto mb-4 p-4 bg-secondary/10 rounded-full w-fit group-hover:bg-secondary/20 transition-colors">
+                  <FormInput className="w-8 h-8 text-secondary-foreground" />
+                </div>
+                <CardTitle className="text-xl">{REPORT_CATEGORY_LABELS.form_based}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center space-y-4">
+                <p className="text-muted-foreground">
+                  {REPORT_CATEGORY_DESCRIPTIONS.form_based}
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-secondary-foreground rounded-full" />
+                    <span>Custom form fields</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-secondary-foreground rounded-full" />
+                    <span>Dropdown & multi-select options</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-secondary-foreground rounded-full" />
+                    <span>Number & date inputs</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-2 h-2 bg-secondary-foreground rounded-full" />
+                    <span>Structured data collection</span>
+                  </div>
+                </div>
+                <Button variant="secondary" className="w-full mt-4">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Form-Based Report
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Builder interface (placeholder for now)
   return (
     <div className="min-h-screen bg-background">
       <Seo
-        title="Report Builder"
-        description="Build and customize report sections and fields"
+        title={`Report Builder - ${selectedCategory === "defect_based" ? "Defect-Based" : "Form-Based"}`}
+        description="Design your custom report structure"
       />
       
       <div className="container mx-auto p-6 space-y-6">
@@ -89,119 +155,39 @@ export default function ReportBuilder() {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => navigate(-1)}
+            onClick={handleBackToCategory}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            Back to Categories
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Report Builder</h1>
+            <h1 className="text-3xl font-bold">
+              {selectedCategory === "defect_based" ? "Defect-Based" : "Form-Based"} Report Builder
+            </h1>
             <p className="text-muted-foreground">
-              Design custom sections and fields for your reports
+              {selectedCategory === "defect_based" 
+                ? "Design sections with observation and defect tracking"
+                : "Create structured forms with custom fields"
+              }
             </p>
           </div>
         </div>
 
-        {/* Report Type Selection */}
+        {/* Coming Soon Card */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              Report Configuration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Report Type</label>
-                <ReportTypeSelector
-                  value={selectedReportType}
-                  onValueChange={(value) => {
-                    setSelectedReportType(value);
-                    setSelectedSection(null);
-                  }}
-                  placeholder="Select a report type to build"
-                />
-              </div>
-              {selectedReportType && (
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Category</label>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={isDefectBased ? "default" : "secondary"} className="flex items-center gap-1">
-                      {isDefectBased ? <FileText className="w-3 h-3" /> : <FormInput className="w-3 h-3" />}
-                      {REPORT_CATEGORY_LABELS[reportCategory]}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {REPORT_CATEGORY_DESCRIPTIONS[reportCategory]}
-                  </p>
-                </div>
-              )}
+          <CardContent className="text-center py-12">
+            <div className="mx-auto mb-4 p-4 bg-muted/50 rounded-full w-fit">
+              <Sparkles className="w-8 h-8 text-muted-foreground" />
             </div>
-
-            {selectedReportType && (
-              <div className="bg-muted/50 p-4 rounded-lg">
-                <p className="text-sm">
-                  Building: <span className="font-medium">{REPORT_TYPE_LABELS[selectedReportType]}</span>
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {isDefectBased 
-                    ? "Add custom sections with observation and defect tracking capabilities"
-                    : "Configure form fields and structured data collection"
-                  }
-                </p>
-              </div>
-            )}
+            <h3 className="text-xl font-semibold mb-2">Builder Interface Coming Soon</h3>
+            <p className="text-muted-foreground mb-4">
+              The {selectedCategory === "defect_based" ? "defect-based" : "form-based"} report builder interface is under development.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              For now, you can edit existing reports using the Report Manager in Settings.
+            </p>
           </CardContent>
         </Card>
-
-        {/* Builder Interface */}
-        {selectedReportType && (
-          <div className="h-[700px] flex gap-4 rounded-lg overflow-hidden">
-            <UniversalSectionsList
-              reportType={selectedReportType}
-              selectedSection={selectedSection}
-              onSectionSelect={setSelectedSection}
-              customSections={customSections}
-              customFields={customFields}
-              onAddSection={() => setSectionDialogOpen(true)}
-            />
-            
-            <SectionFieldsPanel
-              selectedSection={selectedSection}
-              customFields={customFields.filter(field => 
-                selectedSection ? 
-                  field.section_key === selectedSection && 
-                  field.report_types.includes(selectedReportType) 
-                  : false
-              )}
-              customSections={customSections}
-              onAddField={handleAddField}
-              onEditField={handleEditField}
-              onDeleteField={deleteField}
-              onDeleteSection={deleteSection}
-            />
-          </div>
-        )}
-
-        {/* Field Editor Dialog */}
-        <FieldEditor
-          open={fieldEditorOpen}
-          onOpenChange={setFieldEditorOpen}
-          field={editingField}
-          sectionKey={selectedSection || ""}
-          onSave={handleSaveField}
-          isEditing={!!editingField}
-        />
-
-        {/* Custom Section Dialog */}
-        <CustomSectionDialog
-          open={sectionDialogOpen}
-          onOpenChange={setSectionDialogOpen}
-          userId={user.id}
-          reportTypes={[selectedReportType]}
-          onSectionCreated={handleSectionCreated}
-        />
       </div>
     </div>
   );
