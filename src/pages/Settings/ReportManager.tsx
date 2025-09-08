@@ -103,6 +103,7 @@ export default function ReportManager() {
   };
 
   const handleSectionCreated = async (title: string) => {
+    await createSection(title);
     setSectionDialogOpen(false);
   };
 

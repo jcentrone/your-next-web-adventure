@@ -62,85 +62,63 @@ export function UniversalSectionsList({
         </div>
       </div>
 
-      <div className="p-2 space-y-4">
-        {/* Standard Sections */}
-        <div>
-          <h4 className="text-xs font-medium text-muted-foreground mb-2 px-2">
-            Standard Sections
-          </h4>
-          <div className="space-y-1">
-            {getSectionsForReportType(reportType)
-              .map(section => {
-              const fieldCount = getFieldCount(section.key);
-              const isSelected = selectedSection === section.key;
-              
-              return (
-                <Card
-                  key={section.key}
-                  className={`p-3 cursor-pointer transition-colors hover:bg-muted/50 ${
-                    isSelected 
-                      ? "bg-primary/10 border-primary ring-1 ring-primary/20" 
-                      : "bg-background"
-                  }`}
-                  onClick={() => onSectionSelect(section.key)}
-                >
-                  <div className="flex items-center gap-3">
+      <div className="p-2">
+        <div className="space-y-1">
+          {/* Combine standard and custom sections */}
+          {[
+            ...getSectionsForReportType(reportType).map(section => ({
+              ...section,
+              type: 'standard' as const,
+              id: section.key
+            })),
+            ...relevantCustomSections.map(section => ({
+              ...section,
+              type: 'custom' as const,
+              name: section.title,
+              key: section.section_key
+            }))
+          ].map(section => {
+            const fieldCount = getFieldCount(section.key);
+            const isSelected = selectedSection === section.key;
+            const isCustom = section.type === 'custom';
+            
+            return (
+              <Card
+                key={section.id}
+                className={`p-3 cursor-pointer transition-colors hover:bg-muted/50 ${
+                  isSelected 
+                    ? "bg-primary/10 border-primary ring-1 ring-primary/20" 
+                    : "bg-background"
+                }`}
+                onClick={() => onSectionSelect(section.key)}
+              >
+                <div className="flex items-center gap-3">
+                  {isCustom ? (
+                    <div className="h-4 w-4 rounded-full bg-gradient-to-br from-primary to-primary/60" />
+                  ) : (
                     <Settings2 className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
                       <p className="text-sm font-medium truncate">{section.name}</p>
-                    </div>
-                    {fieldCount > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        <Hash className="h-3 w-3 mr-1" />
-                        {fieldCount}
-                      </Badge>
-                    )}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Custom Sections */}
-        {relevantCustomSections.length > 0 && (
-          <div>
-            <h4 className="text-xs font-medium text-muted-foreground mb-2 px-2">
-              Custom Sections
-            </h4>
-            <div className="space-y-1">
-              {relevantCustomSections.map(section => {
-                const fieldCount = getFieldCount(section.section_key);
-                const isSelected = selectedSection === section.section_key;
-                
-                return (
-                  <Card
-                    key={section.id}
-                    className={`p-3 cursor-pointer transition-colors hover:bg-muted/50 ${
-                      isSelected 
-                        ? "bg-primary/10 border-primary ring-1 ring-primary/20" 
-                        : "bg-background"
-                    }`}
-                    onClick={() => onSectionSelect(section.section_key)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-4 w-4 rounded-full bg-gradient-to-br from-primary to-primary/60" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{section.title}</p>
-                      </div>
-                      {fieldCount > 0 && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Hash className="h-3 w-3 mr-1" />
-                          {fieldCount}
+                      {isCustom && (
+                        <Badge variant="outline" className="text-xs px-1.5 py-0">
+                          Custom
                         </Badge>
                       )}
                     </div>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                  </div>
+                  {fieldCount > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      <Hash className="h-3 w-3 mr-1" />
+                      {fieldCount}
+                    </Badge>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
