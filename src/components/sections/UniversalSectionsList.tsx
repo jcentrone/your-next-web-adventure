@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Settings2, Hash } from "lucide-react";
-import { SOP_SECTIONS } from "@/constants/sop";
+import { getSectionsForReportType } from "@/constants/reportSections";
 import type { CustomSection } from "@/integrations/supabase/customSectionsApi";
 import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 import type { Report } from "@/lib/reportSchemas";
@@ -36,7 +36,8 @@ export function UniversalSectionsList({
     const customSection = customSections.find(section => section.section_key === sectionKey);
     if (customSection) return customSection.title;
     
-    const standardSection = SOP_SECTIONS.find(section => section.key === sectionKey);
+    const standardSections = getSectionsForReportType(reportType);
+    const standardSection = standardSections.find(section => section.key === sectionKey);
     return standardSection?.name || sectionKey;
   };
 
@@ -68,7 +69,9 @@ export function UniversalSectionsList({
             Standard Sections
           </h4>
           <div className="space-y-1">
-            {SOP_SECTIONS.map(section => {
+            {getSectionsForReportType(reportType)
+              .filter(section => section.key !== "report_details" && section.key !== "finalize")
+              .map(section => {
               const fieldCount = getFieldCount(section.key);
               const isSelected = selectedSection === section.key;
               
