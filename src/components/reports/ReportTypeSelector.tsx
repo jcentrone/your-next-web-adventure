@@ -1,6 +1,7 @@
 import { Select, SelectContent, SelectValue, SelectTrigger, SelectItem } from "@/components/ui/select";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { useReportTemplates } from "@/hooks/useReportTemplates";
+import { useCustomReportTypes } from "@/hooks/useCustomReportTypes";
 import type { Report } from "@/lib/reportSchemas";
 
 interface ReportTypeSelectorProps {
@@ -17,18 +18,17 @@ export default function ReportTypeSelector({
   includeCustomTypes = false 
 }: ReportTypeSelectorProps) {
   const { templates } = useReportTemplates();
+  const { customTypes } = useCustomReportTypes();
   
-  // Get custom report types from templates
-  const customTypes = includeCustomTypes 
-    ? templates
-        .map(t => t.report_type)
-        .filter((type, index, arr) => arr.indexOf(type) === index) // Remove duplicates
-        .filter(type => !REPORT_TYPE_LABELS[type]) // Only include types not in standard labels
+  // Get all available types
+  const standardTypes = Object.entries(REPORT_TYPE_LABELS);
+  const customTypeEntries = includeCustomTypes 
+    ? customTypes.map(type => [type.id, type.name])
     : [];
 
   const allTypes = [
-    ...Object.entries(REPORT_TYPE_LABELS),
-    ...customTypes.map(type => [type, type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())])
+    ...standardTypes,
+    ...customTypeEntries
   ];
 
   return (

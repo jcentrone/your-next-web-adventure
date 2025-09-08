@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Seo from "@/components/Seo";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
+import { useCustomReportTypes } from "@/hooks/useCustomReportTypes";
+import CustomReportTypeDialog from "@/components/reports/CustomReportTypeDialog";
 import {
   FileText,
   ArrowRight,
@@ -16,6 +18,7 @@ import {
   Factory,
   Shield,
   CheckCircle,
+  Plus,
 } from "lucide-react";
 import type { Report } from "@/lib/reportSchemas";
 
@@ -53,6 +56,7 @@ const ROUTE_MAP: Record<Report["reportType"], string> = {
 };
 
 const ReportTypeSelection = () => {
+  const { customTypes } = useCustomReportTypes();
   const title = "Select Report Type | Home Report Pro";
   const description = "Choose the type of inspection report you want to create. All templates are InterNACHI compliant and professionally designed.";
 
@@ -89,6 +93,7 @@ const ReportTypeSelection = () => {
       <section className="py-12 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Standard Report Types */}
             {reportTypes.map(([key, label]) => {
               const Icon = REPORT_TYPE_ICONS[key as Report["reportType"]];
               const description = REPORT_TYPE_DESCRIPTIONS[key as Report["reportType"]];
@@ -126,6 +131,69 @@ const ReportTypeSelection = () => {
                 </Card>
               );
             })}
+
+            {/* Custom Report Types */}
+            {customTypes.map((customType) => {
+              const IconComponent = REPORT_TYPE_ICONS[customType.icon_name as keyof typeof REPORT_TYPE_ICONS] || FileText;
+
+              return (
+                <Card key={customType.id} className="group hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="w-12 h-12 bg-gradient-to-br from-accent/20 to-accent/10 rounded-xl flex items-center justify-center group-hover:from-accent/30 group-hover:to-accent/20 transition-colors">
+                        <IconComponent className="w-6 h-6 text-accent-foreground" />
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        <Plus className="w-3 h-3 mr-1" />
+                        Custom
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-lg leading-tight">{customType.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                      {customType.description || "Custom report type for specialized inspections"}
+                    </p>
+                    <Button 
+                      asChild 
+                      className="w-full group-hover:bg-accent group-hover:text-accent-foreground transition-colors"
+                      variant="outline"
+                    >
+                      <Link to={`/reports/new/custom/${customType.id}`}>
+                        Create Report
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            {/* Create New Custom Report Type Card */}
+            <Card className="group hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer border-dashed">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="w-12 h-12 bg-gradient-to-br from-muted/20 to-muted/10 rounded-xl flex items-center justify-center group-hover:from-muted/30 group-hover:to-muted/20 transition-colors">
+                    <Plus className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                </div>
+                <CardTitle className="text-lg leading-tight">Create Custom Type</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                  Create a new custom report type for specialized inspections
+                </p>
+                <CustomReportTypeDialog>
+                  <Button 
+                    className="w-full group-hover:bg-muted group-hover:text-muted-foreground transition-colors"
+                    variant="outline"
+                  >
+                    Create New Type
+                    <Plus className="ml-2 w-4 h-4" />
+                  </Button>
+                </CustomReportTypeDialog>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Back to Reports Link */}

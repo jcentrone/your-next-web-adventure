@@ -560,6 +560,45 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_report_types: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean
+          name: string
+          organization_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          organization_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          organization_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       defects: {
         Row: {
           created_at: string

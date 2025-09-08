@@ -11,6 +11,8 @@ import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { useReportTemplates } from "@/hooks/useReportTemplates";
 import { useCustomSections } from "@/hooks/useCustomSections";
 import { useCustomFields } from "@/hooks/useCustomFields";
+import { useCustomReportTypes } from "@/hooks/useCustomReportTypes";
+import CustomReportTypeDialog from "@/components/reports/CustomReportTypeDialog";
 import { useSectionOrder } from "@/hooks/useSectionOrder";
 import { useAuth } from "@/contexts/AuthContext";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
@@ -30,42 +32,61 @@ export default function ReportManager() {
   const { templates, deleteTemplate } = useReportTemplates(); // Get all templates, not filtered by type
   const { customSections, createSection, deleteSection } = useCustomSections();
   const { customFields, createField, updateField, deleteField } = useCustomFields();
+  const { customTypes, deleteCustomType } = useCustomReportTypes();
   const { updateSectionOrder, getOrderedSections } = useSectionOrder(selectedReportType, customSections);
   const { toast } = useToast();
 
   const reportCategory = getReportCategory(selectedReportType);
   const isDefectBased = isDefectBasedReport(selectedReportType);
 
-  // Get all available report types (standard + custom from templates)
-  const customReportTypes = templates
-    .map(t => t.report_type)
-    .filter((type, index, arr) => arr.indexOf(type) === index) // Remove duplicates
-    .filter(type => !REPORT_TYPE_LABELS[type]); // Only custom types
+  // Get all available report types (standard + custom types)
+  const customReportTypeIds = customTypes.map(ct => ct.id);
 
   const handleOpenReportBuilder = () => {
     window.open("/report-builder", "_blank");
   };
 
   const handleDeleteCustomReportType = async (reportType: Report["reportType"]) => {
-    const templatesToDelete = templates.filter(t => t.report_type === reportType);
+    // Check if this is a custom report type ID
+    const customType = customTypes.find(ct => ct.id === reportType);
     
-    try {
-      await Promise.all(templatesToDelete.map(t => deleteTemplate(t.id)));
-      toast({
-        title: "Success",
-        description: "Custom report type deleted successfully",
-      });
-      
-      // If we're currently viewing the deleted type, switch to home_inspection
-      if (selectedReportType === reportType) {
-        setSelectedReportType("home_inspection");
+    if (customType) {
+      try {
+        await deleteCustomType(customType.id);
+        
+        // If we're currently viewing the deleted type, switch to home_inspection
+        if (selectedReportType === reportType) {
+          setSelectedReportType("home_inspection");
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete custom report type",
+          variant: "destructive",
+        });
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete custom report type",
-        variant: "destructive",
-      });
+    } else {
+      // Legacy handling for template-based custom types
+      const templatesToDelete = templates.filter(t => t.report_type === reportType);
+      
+      try {
+        await Promise.all(templatesToDelete.map(t => deleteTemplate(t.id)));
+        toast({
+          title: "Success",
+          description: "Custom report type deleted successfully",
+        });
+        
+        // If we're currently viewing the deleted type, switch to home_inspection
+        if (selectedReportType === reportType) {
+          setSelectedReportType("home_inspection");
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete custom report type",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -138,10 +159,18 @@ export default function ReportManager() {
                 Create new custom reports with tailored sections and fields
               </p>
             </div>
-            <Button onClick={handleOpenReportBuilder} className="flex items-center gap-2">
-              <Wrench className="w-4 h-4" />
-              Open Report Builder
-            </Button>
+            <div className="flex gap-2">
+              <CustomReportTypeDialog>
+                <Button variant="outline">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Custom Type
+                </Button>
+              </CustomReportTypeDialog>
+              <Button onClick={handleOpenReportBuilder} className="flex items-center gap-2">
+                <Wrench className="w-4 h-4" />
+                Open Report Builder
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -177,7 +206,7 @@ export default function ReportManager() {
                     {isDefectBased ? <FileText className="w-3 h-3" /> : <FormInput className="w-3 h-3" />}
                     {REPORT_CATEGORY_LABELS[reportCategory]}
                   </Badge>
-                  {customReportTypes.includes(selectedReportType) && (
+                  {customReportTypeIds.includes(selectedReportType) && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -200,7 +229,10 @@ export default function ReportManager() {
             <div>
               <div className="mb-4">
                 <h3 className="text-lg font-medium">
-                  Editing: {REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  Editing: {(() => {
+                    const customType = customTypes.find(ct => ct.id === selectedReportType);
+                    return customType ? customType.name : (REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+                  })()}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {isDefectBased 
