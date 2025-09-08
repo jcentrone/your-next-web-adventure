@@ -1,4 +1,5 @@
 import type { Report } from "@/lib/reportSchemas";
+import { getReportCategory, type ReportCategory } from "./reportCategories";
 
 export interface ReportSectionDefinition {
   key: string;
@@ -6,6 +7,7 @@ export interface ReportSectionDefinition {
   description?: string;
   isRequired?: boolean;
   sortOrder: number;
+  category?: ReportCategory;
 }
 
 export const REPORT_SECTIONS: Record<Report["reportType"], ReportSectionDefinition[]> = {
