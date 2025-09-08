@@ -17,7 +17,8 @@ interface CustomSectionDialogProps {
   onOpenChange: (open: boolean) => void;
   userId: string;
   organizationId?: string;
-  onSectionCreated: () => void;
+  reportTypes?: string[];
+  onSectionCreated: (title: string) => void | Promise<void>;
 }
 
 export const CustomSectionDialog: React.FC<CustomSectionDialogProps> = ({
@@ -25,6 +26,7 @@ export const CustomSectionDialog: React.FC<CustomSectionDialogProps> = ({
   onOpenChange,
   userId,
   organizationId,
+  reportTypes = ["home_inspection"],
   onSectionCreated,
 }) => {
   const [title, setTitle] = useState("");
@@ -46,7 +48,7 @@ export const CustomSectionDialog: React.FC<CustomSectionDialogProps> = ({
     setIsLoading(true);
 
     try {
-      await customSectionsApi.createCustomSection(userId, title.trim(), organizationId);
+      await customSectionsApi.createCustomSection(userId, title.trim(), reportTypes, organizationId);
       
       toast({
         title: "Success",
@@ -54,7 +56,7 @@ export const CustomSectionDialog: React.FC<CustomSectionDialogProps> = ({
       });
       
       setTitle("");
-      onSectionCreated();
+      await onSectionCreated(title.trim());
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating custom section:", error);

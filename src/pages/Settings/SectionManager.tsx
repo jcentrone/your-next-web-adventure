@@ -1,102 +1,67 @@
-import { useState } from "react";
-import { SectionsList } from "@/components/sections/SectionsList";
-import { SectionFieldsPanel } from "@/components/sections/SectionFieldsPanel";
-import { FieldEditor } from "@/components/sections/FieldEditor";
-import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
-import { useCustomSections } from "@/hooks/useCustomSections";
-import { useCustomFields } from "@/hooks/useCustomFields";
-import { useAuth } from "@/contexts/AuthContext";
-import type { CustomField } from "@/integrations/supabase/customFieldsApi";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Settings2 } from "lucide-react";
 
 export default function SectionManager() {
-  const { user } = useAuth();
-  const { customSections, isLoading: sectionsLoading, createSection, deleteSection } = useCustomSections();
-  const { customFields, isLoading: fieldsLoading, createField, updateField, deleteField } = useCustomFields();
-  
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
-  const [fieldEditorOpen, setFieldEditorOpen] = useState(false);
-  const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
-  const [editingField, setEditingField] = useState<CustomField | undefined>();
+  const navigate = useNavigate();
 
-  const handleAddField = () => {
-    setEditingField(undefined);
-    setFieldEditorOpen(true);
+  // Redirect to the new Report Manager after a short delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigate('/settings/report-manager', { replace: true });
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [navigate]);
+
+  const handleRedirectNow = () => {
+    navigate('/settings/report-manager', { replace: true });
   };
-
-  const handleEditField = (field: CustomField) => {
-    setEditingField(field);
-    setFieldEditorOpen(true);
-  };
-
-  const handleSaveField = async (fieldData: {
-    field_name: string;
-    field_label: string;
-    widget_type: CustomField["widget_type"];
-    options?: string[];
-    required?: boolean;
-  }) => {
-    if (!selectedSection) return;
-
-    if (editingField) {
-      await updateField(editingField.id, {
-        field_label: fieldData.field_label,
-        widget_type: fieldData.widget_type,
-        options: fieldData.options,
-        required: fieldData.required,
-      });
-    } else {
-      await createField({
-        ...fieldData,
-        section_key: selectedSection,
-      });
-    }
-  };
-
-  const handleSectionCreated = () => {
-    setSectionDialogOpen(false);
-  };
-
-  if (!user) {
-    return <div>Please log in to manage sections.</div>;
-  }
 
   return (
-    <div className="h-full flex gap-2">
-      <SectionsList
-        selectedSection={selectedSection}
-        onSectionSelect={setSelectedSection}
-        customSections={customSections}
-        customFields={customFields}
-        onAddSection={() => setSectionDialogOpen(true)}
-      />
-      
-      <SectionFieldsPanel
-        selectedSection={selectedSection}
-        customFields={customFields.filter(field => 
-          selectedSection ? field.section_key === selectedSection : false
-        )}
-        customSections={customSections}
-        onAddField={handleAddField}
-        onEditField={handleEditField}
-        onDeleteField={deleteField}
-        onDeleteSection={deleteSection}
-      />
+    <div className="max-w-2xl mx-auto space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Settings2 className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <CardTitle>Section Manager has moved!</CardTitle>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground">
+            The Section Manager has been upgraded to the new <strong>Report Manager</strong>, 
+            which allows you to manage sections, fields, and templates for all report types, 
+            not just home inspections.
+          </p>
+          
+          <div className="p-4 bg-muted/50 rounded-lg">
+            <h4 className="font-medium mb-2">New Features:</h4>
+            <ul className="text-sm text-muted-foreground space-y-1">
+              <li>• Manage sections for all report types</li>
+              <li>• Create and manage custom report templates</li>
+              <li>• Universal section and field management</li>
+              <li>• Build reports from scratch</li>
+            </ul>
+          </div>
 
-      <FieldEditor
-        open={fieldEditorOpen}
-        onOpenChange={setFieldEditorOpen}
-        field={editingField}
-        sectionKey={selectedSection || ""}
-        onSave={handleSaveField}
-        isEditing={!!editingField}
-      />
+          <div className="flex gap-3">
+            <Button onClick={handleRedirectNow} className="flex-1">
+              Go to Report Manager
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
 
-      <CustomSectionDialog
-        open={sectionDialogOpen}
-        onOpenChange={setSectionDialogOpen}
-        userId={user.id}
-        onSectionCreated={handleSectionCreated}
-      />
+          <p className="text-xs text-muted-foreground text-center">
+            You will be redirected automatically in a few seconds...
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

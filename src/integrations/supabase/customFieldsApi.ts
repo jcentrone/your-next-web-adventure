@@ -10,6 +10,7 @@ export interface CustomField {
   widget_type: "text" | "textarea" | "select" | "multiselect" | "date" | "contact_lookup";
   options: string[];
   required: boolean;
+  report_types: string[];
   sort_order: number;
   is_active: boolean;
   created_at: string;
@@ -18,7 +19,8 @@ export interface CustomField {
 
 export async function getUserCustomFields(
   userId: string,
-  sectionKey?: string
+  sectionKey?: string,
+  reportTypes?: string[]
 ): Promise<CustomField[]> {
   let query = supabase
     .from("user_custom_fields")
@@ -29,6 +31,10 @@ export async function getUserCustomFields(
 
   if (sectionKey) {
     query = query.eq("section_key", sectionKey);
+  }
+
+  if (reportTypes && reportTypes.length > 0) {
+    query = query.overlaps("report_types", reportTypes);
   }
 
   const { data, error } = await query;
@@ -50,6 +56,7 @@ export async function createCustomField(
     widget_type: CustomField["widget_type"];
     options?: string[];
     required?: boolean;
+    report_types?: string[];
     organization_id?: string;
   }
 ): Promise<CustomField> {
@@ -71,6 +78,7 @@ export async function createCustomField(
       ...fieldData,
       options: fieldData.options || [],
       required: fieldData.required || false,
+      report_types: fieldData.report_types || ["home_inspection"],
       sort_order: nextSortOrder,
     })
     .select()

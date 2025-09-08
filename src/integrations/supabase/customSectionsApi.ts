@@ -6,19 +6,31 @@ export interface CustomSection {
   organization_id?: string;
   title: string;
   section_key: string;
+  report_types: string[];
+  is_template: boolean;
+  template_name?: string;
   is_active: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;
 }
 
-export async function getUserCustomSections(userId: string): Promise<CustomSection[]> {
-  const { data, error } = await supabase
+export async function getUserCustomSections(
+  userId: string, 
+  reportTypes?: string[]
+): Promise<CustomSection[]> {
+  let query = supabase
     .from("user_custom_sections")
     .select("*")
     .eq("user_id", userId)
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
+
+  if (reportTypes && reportTypes.length > 0) {
+    query = query.overlaps("report_types", reportTypes);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching custom sections:", error);
@@ -31,6 +43,7 @@ export async function getUserCustomSections(userId: string): Promise<CustomSecti
 export async function createCustomSection(
   userId: string,
   title: string,
+  reportTypes: string[] = ["home_inspection"],
   organizationId?: string
 ): Promise<CustomSection> {
   // Generate a unique section key based on the title
@@ -53,6 +66,7 @@ export async function createCustomSection(
       organization_id: organizationId,
       title,
       section_key: sectionKey,
+      report_types: reportTypes,
       sort_order: nextSortOrder,
     })
     .select()

@@ -39,6 +39,7 @@ export const useCustomFields = (sectionKey?: string) => {
     widget_type: CustomField["widget_type"];
     options?: string[];
     required?: boolean;
+    report_types?: string[];
   }) => {
     if (!user?.id) return;
 

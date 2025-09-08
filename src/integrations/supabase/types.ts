@@ -1183,6 +1183,7 @@ export type Database = {
           is_active: boolean
           options: Json | null
           organization_id: string | null
+          report_types: string[] | null
           required: boolean
           section_key: string
           sort_order: number
@@ -1198,6 +1199,7 @@ export type Database = {
           is_active?: boolean
           options?: Json | null
           organization_id?: string | null
+          report_types?: string[] | null
           required?: boolean
           section_key: string
           sort_order?: number
@@ -1213,6 +1215,7 @@ export type Database = {
           is_active?: boolean
           options?: Json | null
           organization_id?: string | null
+          report_types?: string[] | null
           required?: boolean
           section_key?: string
           sort_order?: number
@@ -1227,9 +1230,12 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          is_template: boolean | null
           organization_id: string | null
+          report_types: string[] | null
           section_key: string
           sort_order: number
+          template_name: string | null
           title: string
           updated_at: string
           user_id: string
@@ -1238,9 +1244,12 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_template?: boolean | null
           organization_id?: string | null
+          report_types?: string[] | null
           section_key: string
           sort_order?: number
+          template_name?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -1249,9 +1258,12 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_template?: boolean | null
           organization_id?: string | null
+          report_types?: string[] | null
           section_key?: string
           sort_order?: number
+          template_name?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -1299,6 +1311,51 @@ export type Database = {
           tags?: string[]
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_report_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          fields_config: Json
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          organization_id: string | null
+          report_type: string
+          sections_config: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          fields_config?: Json
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          organization_id?: string | null
+          report_type: string
+          sections_config?: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          fields_config?: Json
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          organization_id?: string | null
+          report_type?: string
+          sections_config?: Json
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
