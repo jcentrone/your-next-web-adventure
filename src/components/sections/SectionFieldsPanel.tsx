@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, GripVertical, Settings, Lock } from "lucide-react";
-import { SOP_SECTIONS } from "@/constants/sop";
+import { getSectionDefinition } from "@/constants/reportSections";
 import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 import type { CustomSection } from "@/integrations/supabase/customSectionsApi";
 import type { Report } from "@/lib/reportSchemas";
@@ -59,15 +59,24 @@ export function SectionFieldsPanel({
   const sectionFields = customFields.filter(field => field.section_key === selectedSection);
   const customSection = customSections.find(s => s.section_key === selectedSection);
   const isCustomSection = !!customSection;
-  const sectionTitle = customSection?.title || String(SOP_SECTIONS[selectedSection as keyof typeof SOP_SECTIONS] || selectedSection);
+  const sectionDefinition = getSectionDefinition(reportType, selectedSection);
+  const sectionTitle = customSection?.title || sectionDefinition?.name || selectedSection;
 
   // Get built-in fields for this section and report type
   const getBuiltInFields = () => {    
     if (!selectedSection) return [];
     
+    // Debug logging to understand the data flow
+    console.log("DEBUG - getBuiltInFields:", {
+      selectedSection,
+      reportType,
+      availableSections: HOME_INSPECTION_FIELDS.sections.map(s => s.name)
+    });
+    
     // Handle home inspection report type
     if (reportType === "home_inspection") {
       const section = HOME_INSPECTION_FIELDS.sections.find(s => s.name === selectedSection);
+      console.log("DEBUG - Found section:", section);
       return section?.fields || [];
     }
     
@@ -90,6 +99,14 @@ export function SectionFieldsPanel({
   };
 
   const builtInFields = getBuiltInFields();
+  
+  // Debug logging to see what built-in fields we got
+  console.log("DEBUG - Built-in fields result:", {
+    selectedSection,
+    reportType,
+    builtInFieldsCount: builtInFields.length,
+    builtInFields: builtInFields.map(f => ({ name: f.name, label: f.label }))
+  });
 
   const getWidgetTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
