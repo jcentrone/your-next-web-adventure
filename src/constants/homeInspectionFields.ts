@@ -91,6 +91,14 @@ export const HOME_INSPECTION_FIELDS = {
         { name: "temperature", label: "Approximate Temperature (°F)", widget: "number", required: false },
         { name: "occupancy_status", label: "Property Occupancy", widget: "select", required: true, options: ["Occupied", "Vacant", "Partially Furnished", "Under Construction"] }
       ]
+    },
+    {
+      name: "finalize",
+      fields: [
+        { name: "inspector_signature", label: "Inspector Signature", widget: "text", required: true },
+        { name: "inspection_date", label: "Inspection Date", widget: "date", required: true },
+        { name: "report_delivery_method", label: "Report Delivery Method", widget: "select", required: false, options: ["Email", "Portal", "Hard Copy", "Other"] }
+      ]
     }
   ]
 };
