@@ -29,7 +29,6 @@ import Integrations from "./Integrations";
 import Advanced from "./Advanced";
 import Booking from "./Booking";
 import Services from "./Services";
-import SectionManager from "./SectionManager";
 import ReportManager from "./ReportManager";
 import { Button } from "@/components/ui/button";
 
@@ -73,7 +72,6 @@ const Settings: React.FC = () => {
     { id: "services", label: "Services", icon: Briefcase, description: "Manage your service offerings" },
     { id: "booking", label: "Booking", icon: Calendar, description: "Configure your booking page" },
     { id: "report-manager", label: "Report Manager", icon: Settings2, description: "Manage sections, fields, and templates for all reports" },
-    { id: "section-manager", label: "Section Manager (Legacy)", icon: Settings2, description: "Redirects to Report Manager" },
     ...(isAdminOrOwner ? [{ id: "advanced", label: "Advanced", icon: Shield, description: "Advanced system settings" }] : []),
   ];
 
@@ -91,7 +89,6 @@ const Settings: React.FC = () => {
       case "services": return <Services />;
       case "booking": return <Booking />;
       case "report-manager": return <ReportManager />;
-      case "section-manager": return <SectionManager />;
       case "advanced": return isAdminOrOwner ? <Advanced /> : null;
       default: return <Account />;
     }
