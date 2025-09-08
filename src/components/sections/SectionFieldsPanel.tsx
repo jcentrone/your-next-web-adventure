@@ -14,6 +14,7 @@ import { TX_WINDSTORM_QUESTIONS } from "@/constants/txWindstormQuestions";
 import { CA_WILDFIRE_QUESTIONS } from "@/constants/caWildfireQuestions";
 import { MANUFACTURED_HOME_QUESTIONS } from "@/constants/manufacturedHomeQuestions";
 import { ROOF_CERTIFICATION_QUESTIONS } from "@/constants/roofCertificationQuestions";
+import { HOME_INSPECTION_FIELDS } from "@/constants/homeInspectionFields";
 
 interface SectionFieldsPanelProps {
   selectedSection: string | null;
@@ -64,6 +65,13 @@ export function SectionFieldsPanel({
   const getBuiltInFields = () => {
     if (!selectedSection) return [];
     
+    // Handle home inspection report type
+    if (reportType === "home_inspection") {
+      const section = HOME_INSPECTION_FIELDS.sections.find(s => s.name === selectedSection);
+      return section?.fields || [];
+    }
+    
+    // Handle specialized report types
     const questionMaps = {
       fl_four_point_citizens: FL_FOUR_POINT_QUESTIONS,
       wind_mitigation: WIND_MITIGATION_QUESTIONS,
@@ -126,10 +134,10 @@ export function SectionFieldsPanel({
         </div>
       </div>
 
-      {sectionFields.length === 0 ? (
+      {sectionFields.length === 0 && builtInFields.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-muted-foreground mb-4">
-            No custom fields in this section yet
+            No fields in this section yet
           </div>
           <Button onClick={onAddField}>
             <Plus className="h-4 w-4 mr-1" />
