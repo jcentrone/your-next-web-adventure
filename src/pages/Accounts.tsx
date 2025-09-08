@@ -123,7 +123,7 @@ export default function Accounts() {
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
             <AccountsFilter
               selectedType={selectedType}
               selectedIndustry={selectedIndustry}
@@ -131,7 +131,6 @@ export default function Accounts() {
               onIndustryChange={setSelectedIndustry}
               availableIndustries={availableIndustries}
             />
-            <AccountsViewToggle view={view} onViewChange={setView} />
           </div>
         </div>
       ) : (
@@ -169,7 +168,7 @@ export default function Accounts() {
                 availableIndustries={availableIndustries}
               />
             </div>
-            <AccountsViewToggle view={view} onViewChange={setView} />
+            {!isMobile && <AccountsViewToggle view={view} onViewChange={setView} />}
           </div>
         </>
       )}

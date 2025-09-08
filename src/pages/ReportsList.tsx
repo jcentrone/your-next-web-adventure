@@ -163,7 +163,7 @@ const ReportsList: React.FC = () => {
                             />
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
                             {user && (
                                 <ReportsFilterToggle
                                     showArchived={showArchived}
@@ -173,7 +173,6 @@ const ReportsList: React.FC = () => {
                                     onReportTypeChange={setReportTypeFilter}
                                 />
                             )}
-                            <ReportsViewToggle view={view} onViewChange={setView}/>
                         </div>
                     </div>
                 ) : (
@@ -206,7 +205,7 @@ const ReportsList: React.FC = () => {
                                         onReportTypeChange={setReportTypeFilter}
                                     />
                                 )}
-                                <ReportsViewToggle view={view} onViewChange={setView}/>
+                                {!isMobile && <ReportsViewToggle view={view} onViewChange={setView}/>}
                                 <Button asChild>
                                     <Link to="/reports/new">New Report</Link>
                                 </Button>

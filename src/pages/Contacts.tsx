@@ -310,13 +310,12 @@ const Contacts: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2">
               <ContactsFilter
                 selectedType={selectedType}
                 onTypeChange={setSelectedType}
                 getContactTypeColor={getContactTypeColor}
               />
-              <ContactsViewToggle view={view} onViewChange={setView} />
             </div>
           </div>
         ) : (
@@ -331,7 +330,7 @@ const Contacts: React.FC = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <ContactsViewToggle view={view} onViewChange={setView} />
+                {!isMobile && <ContactsViewToggle view={view} onViewChange={setView} />}
                 <Button onClick={() => navigate("/contacts/new")}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Contact
@@ -357,6 +356,7 @@ const Contacts: React.FC = () => {
                 />
               </div>
             </div>
+            {!isMobile && <ContactsViewToggle view={view} onViewChange={setView} />}
           </div>
         )}
 
