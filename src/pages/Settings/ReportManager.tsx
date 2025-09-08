@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ReportTypeSelector from "@/components/reports/ReportTypeSelector";
 import { TemplatesList } from "@/components/sections/TemplatesList";
+import { TemplateCreateDialog } from "@/components/sections/TemplateCreateDialog";
+import { TemplateEditDialog } from "@/components/sections/TemplateEditDialog";
 import { UniversalSectionsList } from "@/components/sections/UniversalSectionsList";
 import { SectionFieldsPanel } from "@/components/sections/SectionFieldsPanel";
 import { FieldEditor } from "@/components/sections/FieldEditor";
@@ -11,6 +13,7 @@ import { useCustomFields } from "@/hooks/useCustomFields";
 import { useReportTemplates } from "@/hooks/useReportTemplates";
 import { useAuth } from "@/contexts/AuthContext";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
+import { createDefaultTemplate } from "@/utils/defaultTemplates";
 import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 import type { Report } from "@/lib/reportSchemas";
 import type { ReportTemplate } from "@/integrations/supabase/reportTemplatesApi";
@@ -22,6 +25,8 @@ export default function ReportManager() {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [fieldEditorOpen, setFieldEditorOpen] = useState(false);
   const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
+  const [templateCreateOpen, setTemplateCreateOpen] = useState(false);
+  const [templateEditOpen, setTemplateEditOpen] = useState(false);
   const [editingField, setEditingField] = useState<CustomField | undefined>();
 
   const { customSections, isLoading: sectionsLoading, createSection, deleteSection } = useCustomSections();
@@ -69,13 +74,30 @@ export default function ReportManager() {
   };
 
   const handleCreateTemplate = () => {
-    // TODO: Implement template creation dialog
-    console.log("Create template for", selectedReportType);
+    setTemplateCreateOpen(true);
   };
 
   const handleEditTemplate = (template: ReportTemplate) => {
-    // TODO: Implement template editing dialog
-    console.log("Edit template", template);
+    setSelectedTemplate(template);
+    setTemplateEditOpen(true);
+  };
+
+  const handleTemplateCreated = () => {
+    // Templates will be reloaded automatically by the hook
+  };
+
+  const handleTemplateUpdated = () => {
+    // Templates will be reloaded automatically by the hook
+  };
+
+  const handleCreateDefaultTemplate = async () => {
+    if (!user?.id) return;
+    
+    try {
+      await createDefaultTemplate(selectedReportType, user.id, createTemplate);
+    } catch (error) {
+      console.error("Error creating default template:", error);
+    }
   };
 
   const handleDuplicateTemplate = async (template: ReportTemplate) => {
@@ -176,6 +198,22 @@ export default function ReportManager() {
         userId={user.id}
         reportTypes={[selectedReportType]}
         onSectionCreated={handleSectionCreated}
+      />
+
+      <TemplateCreateDialog
+        open={templateCreateOpen}
+        onOpenChange={setTemplateCreateOpen}
+        reportType={selectedReportType}
+        onTemplateCreated={handleTemplateCreated}
+        onCreateTemplate={createTemplate}
+      />
+
+      <TemplateEditDialog
+        open={templateEditOpen}
+        onOpenChange={setTemplateEditOpen}
+        template={selectedTemplate}
+        onTemplateUpdated={handleTemplateUpdated}
+        onUpdateTemplate={updateTemplate}
       />
     </div>
   );
