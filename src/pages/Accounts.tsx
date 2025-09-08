@@ -19,7 +19,8 @@ export default function Accounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [filteredAccounts, setFilteredAccounts] = useState<Account[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [view, setView] = useState<"list" | "card">(isMobile ? "card" : "card"); // Default to card on mobile and desktop
+  const [view, setView] = useState<"list" | "card">("list");
+  const effectiveView = isMobile ? "card" : view;
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -193,7 +194,7 @@ export default function Accounts() {
             </div>
           </CardContent>
         </Card>
-      ) : view === "list" ? (
+      ) : effectiveView === "list" ? (
         <AccountsListView 
           accounts={filteredAccounts} 
           formatRevenue={formatRevenue}

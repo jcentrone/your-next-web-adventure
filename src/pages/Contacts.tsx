@@ -42,7 +42,8 @@ const Contacts: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [view, setView] = useState<"list" | "card">(isMobile ? "card" : "list"); // Default to card on mobile
+  const [view, setView] = useState<"list" | "card">("list");
+  const effectiveView = isMobile ? "card" : view;
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -356,7 +357,6 @@ const Contacts: React.FC = () => {
                 />
               </div>
             </div>
-            {!isMobile && <ContactsViewToggle view={view} onViewChange={setView} />}
           </div>
         )}
 
@@ -380,7 +380,7 @@ const Contacts: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-        ) : view === "list" ? (
+        ) : effectiveView === "list" ? (
           <ContactsListView 
             contacts={paginatedContacts}
             onEdit={handleEdit}

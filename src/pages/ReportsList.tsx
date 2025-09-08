@@ -30,7 +30,8 @@ const ReportsList: React.FC = () => {
     const {user} = useAuth();
     const isMobile = useIsMobile();
     const [localItems, setLocalItems] = React.useState(listLocalReports());
-    const [view, setView] = React.useState<"list" | "card">(isMobile ? "card" : "list"); // Default to card on mobile
+    const [view, setView] = React.useState<"list" | "card">("list");
+    const effectiveView = isMobile ? "card" : view;
     const [showArchived, setShowArchived] = React.useState(false);
     const [reportTypeFilter, setReportTypeFilter] = React.useState<Report["reportType"] | "all">("all");
     const [itemsPerPage, setItemsPerPage] = React.useState(10);
@@ -163,7 +164,7 @@ const ReportsList: React.FC = () => {
                             />
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-2">
                             {user && (
                                 <ReportsFilterToggle
                                     showArchived={showArchived}
@@ -234,7 +235,7 @@ const ReportsList: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        {view === "list" ? (
+                        {effectiveView === "list" ? (
                             <ReportsListView reports={paginatedItems} onDelete={onDelete}
                                              onArchive={user ? onArchive : undefined}
                                              showArchived={showArchived}/>
