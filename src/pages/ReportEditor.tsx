@@ -24,6 +24,9 @@ import { contactsApi } from "@/integrations/supabase/crmApi";
 import { useQuery } from "@tanstack/react-query";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
+import { CategoryAwareReportEditor } from "@/components/reports/CategoryAwareReportEditor";
+import { getReportCategory, isDefectBasedReport } from "@/constants/reportCategories";
+import { useReportTemplates } from "@/hooks/useReportTemplates";
 import type { Contact } from "@/lib/crmSchemas";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -91,6 +94,14 @@ const ReportEditor: React.FC = () => {
   const [selectedRecipients, setSelectedRecipients] = React.useState<string[]>([]);
   const [selectedContacts, setSelectedContacts] = React.useState<Contact[]>([]);
   const [sendingReport, setSendingReport] = React.useState(false);
+
+  // Get templates for the report type
+  const { templates } = useReportTemplates(report?.reportType);
+  const reportTemplate = templates.find(t => t.is_default) || templates[0] || null;
+  
+  // Check if this is a category-aware report
+  const reportCategory = report ? getReportCategory(report.reportType) : null;
+  const shouldUseCategoryEditor = reportCategory && reportTemplate;
 
   const { data: recipientOptions = [] } = useQuery({
     queryKey: ["contacts", user?.id],
@@ -258,6 +269,47 @@ const ReportEditor: React.FC = () => {
   }, [user, report?.coverImage]);
 
   if (!report) return null;
+
+  // Use category-aware editor if template is available
+  if (shouldUseCategoryEditor) {
+    return (
+      <>
+        <Seo title={`${report.title} • ${REPORT_TYPE_LABELS[report.reportType]}`} />
+        <div className="flex min-h-screen bg-background">
+          <main className="flex-1 p-6">
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold">{report.title}</h1>
+                  <p className="text-muted-foreground">
+                    {REPORT_TYPE_LABELS[report.reportType]} • {reportCategory === "defect_based" ? "Defect-Based" : "Form-Based"} Report
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => nav("/reports")}>
+                    Back to Reports
+                  </Button>
+                  <Button onClick={() => nav(`/reports/${report.id}/preview`)}>
+                    Preview Report
+                  </Button>
+                </div>
+              </div>
+
+              {/* Category-Aware Editor */}
+              <CategoryAwareReportEditor
+                report={report}
+                onReportChange={setReport}
+                template={reportTemplate}
+              />
+            </div>
+          </main>
+        </div>
+      </>
+    );
+  }
+
+  // ... keep existing code for legacy reports
 
   const updateFinding = (fid: string, patch: Partial<Finding>) => {
     setReport((prev) => {
