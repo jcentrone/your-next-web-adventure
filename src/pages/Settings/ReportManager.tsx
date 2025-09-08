@@ -115,7 +115,7 @@ export default function ReportManager() {
       <div>
         <h2 className="text-2xl font-bold">Report Manager</h2>
         <p className="text-muted-foreground mt-1">
-          Manage and customize your report types, sections, and fields
+          Manage and customize your reports, sections, and fields
         </p>
       </div>
 
@@ -124,7 +124,7 @@ export default function ReportManager() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Wrench className="w-5 h-5" />
-            Create New Report Type
+            Create New Report
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -132,7 +132,7 @@ export default function ReportManager() {
             <div>
               <p className="text-sm font-medium">Report Builder</p>
               <p className="text-xs text-muted-foreground">
-                Create new custom report types with tailored sections and fields
+                Create new custom reports with tailored sections and fields
               </p>
             </div>
             <Button onClick={handleOpenReportBuilder} className="flex items-center gap-2">
@@ -148,14 +148,14 @@ export default function ReportManager() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            Edit Report Type
+            Edit Report
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Report Selection */}
           <div className="grid md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border">
             <div>
-              <label className="text-sm font-medium mb-2 block">Select Report Type to Edit</label>
+              <label className="text-sm font-medium mb-2 block">Select Report to Edit</label>
               <ReportTypeSelector
                 value={selectedReportType}
                 onValueChange={(value) => {
@@ -238,7 +238,7 @@ export default function ReportManager() {
           {!selectedReportType && (
             <div className="text-center py-12 text-muted-foreground">
               <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Select a report type above to customize its sections and fields</p>
+              <p>Select a report above to customize its sections and fields</p>
             </div>
           )}
         </CardContent>
