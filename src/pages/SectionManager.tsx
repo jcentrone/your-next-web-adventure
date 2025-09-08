@@ -80,6 +80,7 @@ export default function SectionManager() {
         
         <SectionFieldsPanel
           selectedSection={selectedSection}
+          reportType="home_inspection"
           customFields={customFields.filter(field => 
             selectedSection ? field.section_key === selectedSection : false
           )}
