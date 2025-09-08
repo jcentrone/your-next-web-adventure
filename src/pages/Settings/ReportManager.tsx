@@ -30,7 +30,7 @@ export default function ReportManager() {
   const { templates, deleteTemplate } = useReportTemplates(); // Get all templates, not filtered by type
   const { customSections, createSection, deleteSection } = useCustomSections();
   const { customFields, createField, updateField, deleteField } = useCustomFields();
-  const { updateSectionOrder } = useSectionOrder(selectedReportType, customSections);
+  const { updateSectionOrder, getOrderedSections } = useSectionOrder(selectedReportType, customSections);
   const { toast } = useToast();
 
   const reportCategory = getReportCategory(selectedReportType);
@@ -219,6 +219,7 @@ export default function ReportManager() {
                   customFields={customFields}
                   onAddSection={() => setSectionDialogOpen(true)}
                   onReorderSections={updateSectionOrder}
+                  orderedSections={getOrderedSections()}
                 />
                 
                 <SectionFieldsPanel

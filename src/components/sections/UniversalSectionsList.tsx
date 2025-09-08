@@ -17,6 +17,13 @@ interface UniversalSectionsListProps {
   customFields: CustomField[];
   onAddSection: () => void;
   onReorderSections?: (sections: Array<{key: string, type: 'standard' | 'custom', sortOrder: number}>) => Promise<void>;
+  orderedSections?: Array<{
+    key: string;
+    name: string;
+    type: 'standard' | 'custom';
+    id: string;
+    sortOrder: number;
+  }>;
 }
 
 export function UniversalSectionsList({
@@ -27,6 +34,7 @@ export function UniversalSectionsList({
   customFields,
   onAddSection,
   onReorderSections,
+  orderedSections,
 }: UniversalSectionsListProps) {
   const getFieldCount = (sectionKey: string): number => {
     return customFields.filter(field => 
@@ -49,8 +57,8 @@ export function UniversalSectionsList({
     section.report_types.includes(reportType)
   );
 
-  // Combine and sort all sections
-  const allSections = [
+  // Use ordered sections if provided, otherwise fall back to default ordering
+  const allSections = orderedSections || [
     ...getSectionsForReportType(reportType).map((section, index) => ({
       ...section,
       type: 'standard' as const,

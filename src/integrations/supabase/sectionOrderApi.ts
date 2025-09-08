@@ -15,7 +15,8 @@ export async function getUserSectionOrder(
   userId: string, 
   reportType: string
 ): Promise<UserSectionOrder[]> {
-  const { data, error } = await supabase
+  // Use any to bypass TypeScript type checking for the new table
+  const { data, error } = await (supabase as any)
     .from('user_section_order')
     .select('*')
     .eq('user_id', userId)
@@ -36,7 +37,7 @@ export async function updateUserSectionOrder(
   sections: Array<{key: string, type: 'standard' | 'custom', sortOrder: number}>
 ): Promise<void> {
   // First, delete existing orders for this user and report type
-  const { error: deleteError } = await supabase
+  const { error: deleteError } = await (supabase as any)
     .from('user_section_order')
     .delete()
     .eq('user_id', userId)
@@ -48,20 +49,22 @@ export async function updateUserSectionOrder(
   }
 
   // Then insert new orders
-  const newOrders = sections.map(section => ({
-    user_id: userId,
-    report_type: reportType,
-    section_key: section.key,
-    sort_order: section.sortOrder,
-    section_type: section.type
-  }));
+  if (sections.length > 0) {
+    const newOrders = sections.map(section => ({
+      user_id: userId,
+      report_type: reportType,
+      section_key: section.key,
+      sort_order: section.sortOrder,
+      section_type: section.type
+    }));
 
-  const { error: insertError } = await supabase
-    .from('user_section_order')
-    .insert(newOrders);
+    const { error: insertError } = await (supabase as any)
+      .from('user_section_order')
+      .insert(newOrders);
 
-  if (insertError) {
-    console.error('Error inserting new section order:', insertError);
-    throw insertError;
+    if (insertError) {
+      console.error('Error inserting new section order:', insertError);
+      throw insertError;
+    }
   }
 }

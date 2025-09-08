@@ -1360,6 +1360,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_section_order: {
+        Row: {
+          created_at: string | null
+          id: string
+          organization_id: string | null
+          report_type: string
+          section_key: string
+          section_type: string
+          sort_order: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          report_type: string
+          section_key: string
+          section_type: string
+          sort_order: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          organization_id?: string | null
+          report_type?: string
+          section_key?: string
+          section_type?: string
+          sort_order?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
