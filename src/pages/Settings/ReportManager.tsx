@@ -119,27 +119,56 @@ export default function ReportManager() {
         </p>
       </div>
 
+      {/* Report Builder Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Report Type Selection</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Wrench className="w-5 h-5" />
+            Create New Report Type
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+            <div>
+              <p className="text-sm font-medium">Report Builder</p>
+              <p className="text-xs text-muted-foreground">
+                Create new custom report types with tailored sections and fields
+              </p>
+            </div>
+            <Button onClick={handleOpenReportBuilder} className="flex items-center gap-2">
+              <Wrench className="w-4 h-4" />
+              Open Report Builder
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Report Editing Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="w-5 h-5" />
+            Edit Report Type
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
+          {/* Report Selection */}
+          <div className="grid md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border">
             <div>
-              <label className="text-sm font-medium mb-2 block">Report Type</label>
+              <label className="text-sm font-medium mb-2 block">Select Report Type to Edit</label>
               <ReportTypeSelector
                 value={selectedReportType}
                 onValueChange={(value) => {
                   setSelectedReportType(value);
                   setSelectedSection(null);
                 }}
-                placeholder="Select a report type to manage"
+                placeholder="Choose a report type to customize"
                 includeCustomTypes={true}
               />
             </div>
             {selectedReportType && (
               <div>
-                <label className="text-sm font-medium mb-2 block">Category</label>
+                <label className="text-sm font-medium mb-2 block">Report Category</label>
                 <div className="flex items-center gap-2">
                   <Badge variant={isDefectBased ? "default" : "secondary"} className="flex items-center gap-1 w-fit">
                     {isDefectBased ? <FileText className="w-3 h-3" /> : <FormInput className="w-3 h-3" />}
@@ -163,68 +192,57 @@ export default function ReportManager() {
             )}
           </div>
 
+          {/* Section & Field Management */}
           {selectedReportType && (
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-              <div>
-                <p className="text-sm font-medium">
-                  Managing: {REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </p>
-                <p className="text-xs text-muted-foreground">
+            <div>
+              <div className="mb-4">
+                <h3 className="text-lg font-medium">
+                  Editing: {REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </h3>
+                <p className="text-sm text-muted-foreground">
                   {isDefectBased 
                     ? "Customize report sections and add fields for additional data collection"
                     : "Configure structured form fields and data collection elements"
                   }
                 </p>
               </div>
-              <Button onClick={handleOpenReportBuilder} className="flex items-center gap-2">
-                <Wrench className="w-4 h-4" />
-                Report Builder
-              </Button>
+              
+              <div className="h-[600px] flex gap-4 rounded-lg overflow-hidden border">
+                <UniversalSectionsList
+                  reportType={selectedReportType}
+                  selectedSection={selectedSection}
+                  onSectionSelect={setSelectedSection}
+                  customSections={customSections}
+                  customFields={customFields}
+                  onAddSection={() => setSectionDialogOpen(true)}
+                />
+                
+                <SectionFieldsPanel
+                  selectedSection={selectedSection}
+                  customFields={customFields.filter(field => 
+                    selectedSection ? 
+                      field.section_key === selectedSection && 
+                      field.report_types.includes(selectedReportType) 
+                      : false
+                  )}
+                  customSections={customSections}
+                  onAddField={handleAddField}
+                  onEditField={handleEditField}
+                  onDeleteField={deleteField}
+                  onDeleteSection={deleteSection}
+                />
+              </div>
+            </div>
+          )}
+
+          {!selectedReportType && (
+            <div className="text-center py-12 text-muted-foreground">
+              <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>Select a report type above to customize its sections and fields</p>
             </div>
           )}
         </CardContent>
       </Card>
-
-      {selectedReportType && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5" />
-              Section & Field Management
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Customize sections and fields for {REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[600px] flex gap-4 rounded-lg overflow-hidden border">
-              <UniversalSectionsList
-                reportType={selectedReportType}
-                selectedSection={selectedSection}
-                onSectionSelect={setSelectedSection}
-                customSections={customSections}
-                customFields={customFields}
-                onAddSection={() => setSectionDialogOpen(true)}
-              />
-              
-              <SectionFieldsPanel
-                selectedSection={selectedSection}
-                customFields={customFields.filter(field => 
-                  selectedSection ? 
-                    field.section_key === selectedSection && 
-                    field.report_types.includes(selectedReportType) 
-                    : false
-                )}
-                customSections={customSections}
-                onAddField={handleAddField}
-                onEditField={handleEditField}
-                onDeleteField={deleteField}
-                onDeleteSection={deleteSection}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Field Editor Dialog */}
       <FieldEditor
