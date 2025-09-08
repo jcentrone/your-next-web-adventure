@@ -46,8 +46,28 @@ export async function createCustomSection(
   reportTypes: string[] = ["home_inspection"],
   organizationId?: string
 ): Promise<CustomSection> {
-  // Generate a unique section key based on the title
-  const sectionKey = `custom_${title.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
+  // Generate a base section key from the title
+  const baseSectionKey = `custom_${title.toLowerCase().replace(/[^a-z0-9]/g, "_")}`;
+  
+  // Check for existing section keys and find a unique one
+  let sectionKey = baseSectionKey;
+  let counter = 1;
+  
+  while (true) {
+    const { data: existing } = await supabase
+      .from("user_custom_sections")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("section_key", sectionKey)
+      .limit(1);
+    
+    if (!existing || existing.length === 0) {
+      break; // Section key is unique
+    }
+    
+    counter++;
+    sectionKey = `${baseSectionKey}_${counter}`;
+  }
   
   // Get the next sort order
   const { data: existingSections } = await supabase
