@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Building2, Users, MapPin } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +15,11 @@ import { AccountsListView } from "@/components/accounts/AccountsListView";
 import type { Account } from "@/lib/accountSchemas";
 
 export default function Accounts() {
+  const isMobile = useIsMobile();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [filteredAccounts, setFilteredAccounts] = useState<Account[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [view, setView] = useState<"list" | "card">("card");
+  const [view, setView] = useState<"list" | "card">(isMobile ? "card" : "card"); // Default to card on mobile and desktop
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -96,22 +98,22 @@ export default function Accounts() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Accounts</h1>
-          <p className="text-muted-foreground">Manage your company accounts and client organizations</p>
-        </div>
-        <Button asChild>
-          <Link to="/accounts/new">
-            <Plus className="w-4 h-4 mr-2" />
-            New Account
-          </Link>
-        </Button>
-      </div>
-
-      <div className="flex items-center justify-between space-x-4">
-        <div className="flex items-center space-x-2 flex-1">
-          <div className="relative max-w-sm">
+      {/* Mobile Header */}
+      {isMobile ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold">Accounts</h1>
+            <Button asChild size="sm">
+              <Link to="/accounts/new">
+                <Plus className="w-4 h-4 mr-1" />
+                New
+              </Link>
+            </Button>
+          </div>
+          
+          <p className="text-sm text-muted-foreground">Manage your client organizations</p>
+          
+          <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search accounts..."
@@ -120,16 +122,57 @@ export default function Accounts() {
               className="pl-10"
             />
           </div>
-          <AccountsFilter
-            selectedType={selectedType}
-            selectedIndustry={selectedIndustry}
-            onTypeChange={setSelectedType}
-            onIndustryChange={setSelectedIndustry}
-            availableIndustries={availableIndustries}
-          />
+
+          <div className="flex items-center justify-between">
+            <AccountsFilter
+              selectedType={selectedType}
+              selectedIndustry={selectedIndustry}
+              onTypeChange={setSelectedType}
+              onIndustryChange={setSelectedIndustry}
+              availableIndustries={availableIndustries}
+            />
+            <AccountsViewToggle view={view} onViewChange={setView} />
+          </div>
         </div>
-        <AccountsViewToggle view={view} onViewChange={setView} />
-      </div>
+      ) : (
+        /* Desktop Header */
+        <>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold">Accounts</h1>
+              <p className="text-muted-foreground">Manage your company accounts and client organizations</p>
+            </div>
+            <Button asChild>
+              <Link to="/accounts/new">
+                <Plus className="w-4 h-4 mr-2" />
+                New Account
+              </Link>
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between space-x-4">
+            <div className="flex items-center space-x-2 flex-1">
+              <div className="relative max-w-sm">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search accounts..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <AccountsFilter
+                selectedType={selectedType}
+                selectedIndustry={selectedIndustry}
+                onTypeChange={setSelectedType}
+                onIndustryChange={setSelectedIndustry}
+                availableIndustries={availableIndustries}
+              />
+            </div>
+            <AccountsViewToggle view={view} onViewChange={setView} />
+          </div>
+        </>
+      )}
 
       {filteredAccounts.length === 0 ? (
         <Card>

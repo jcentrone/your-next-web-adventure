@@ -23,12 +23,14 @@ import {ReportsViewToggle} from "@/components/reports/ReportsViewToggle";
 import {ReportsFilterToggle} from "@/components/reports/ReportsFilterToggle";
 import type {Report} from "@/lib/reportSchemas";
 import {REPORT_TYPE_LABELS} from "@/constants/reportTypes";
-import {Search} from "lucide-react";
+import {Search, Plus} from "lucide-react";
+import {useIsMobile} from "@/hooks/use-mobile";
 
 const ReportsList: React.FC = () => {
     const {user} = useAuth();
+    const isMobile = useIsMobile();
     const [localItems, setLocalItems] = React.useState(listLocalReports());
-    const [view, setView] = React.useState<"list" | "card">("list"); // Default to list view
+    const [view, setView] = React.useState<"list" | "card">(isMobile ? "card" : "list"); // Default to card on mobile
     const [showArchived, setShowArchived] = React.useState(false);
     const [reportTypeFilter, setReportTypeFilter] = React.useState<Report["reportType"] | "all">("all");
     const [itemsPerPage, setItemsPerPage] = React.useState(10);
@@ -136,40 +138,82 @@ const ReportsList: React.FC = () => {
                 }}
             />
             <section className="max-w-7xl mx-auto px-4 py-10">
-                <header className="flex items-center justify-between mb-8">
-                    <h1 className="text-2xl font-semibold">
-                        {showArchived ? "Archived Reports" : "Inspection Reports"}
-                    </h1>
-
-                </header>
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center ">
-                        <div className="relative flex-1 min-w-lg max-w-lg">
+                {/* Mobile Header */}
+                {isMobile ? (
+                    <div className="space-y-4 mb-8">
+                        <div className="flex items-center justify-between">
+                            <h1 className="text-xl font-semibold">
+                                {showArchived ? "Archived" : "Reports"}
+                            </h1>
+                            <Button asChild size="sm">
+                                <Link to="/reports/new">
+                                    <Plus className="w-4 h-4 mr-1" />
+                                    New
+                                </Link>
+                            </Button>
+                        </div>
+                        
+                        <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4"/>
                             <Input
                                 placeholder="Search reports..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 min-w-[300px] max-w-lg w-full"
+                                className="pl-10"
                             />
                         </div>
+
+                        <div className="flex items-center justify-between">
+                            {user && (
+                                <ReportsFilterToggle
+                                    showArchived={showArchived}
+                                    onToggle={setShowArchived}
+                                    archivedCount={archivedCount}
+                                    reportType={reportTypeFilter}
+                                    onReportTypeChange={setReportTypeFilter}
+                                />
+                            )}
+                            <ReportsViewToggle view={view} onViewChange={setView}/>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                        {user && (
-                            <ReportsFilterToggle
-                                showArchived={showArchived}
-                                onToggle={setShowArchived}
-                                archivedCount={archivedCount}
-                                reportType={reportTypeFilter}
-                                onReportTypeChange={setReportTypeFilter}
-                            />
-                        )}
-                        <ReportsViewToggle view={view} onViewChange={setView}/>
-                        <Button asChild>
-                            <Link to="/reports/new">New Report</Link>
-                        </Button>
-                    </div>
-                </div>
+                ) : (
+                    /* Desktop Header */
+                    <>
+                        <header className="flex items-center justify-between mb-8">
+                            <h1 className="text-2xl font-semibold">
+                                {showArchived ? "Archived Reports" : "Inspection Reports"}
+                            </h1>
+                        </header>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center ">
+                                <div className="relative flex-1 min-w-lg max-w-lg">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4"/>
+                                    <Input
+                                        placeholder="Search reports..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-10 min-w-[300px] max-w-lg w-full"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                {user && (
+                                    <ReportsFilterToggle
+                                        showArchived={showArchived}
+                                        onToggle={setShowArchived}
+                                        archivedCount={archivedCount}
+                                        reportType={reportTypeFilter}
+                                        onReportTypeChange={setReportTypeFilter}
+                                    />
+                                )}
+                                <ReportsViewToggle view={view} onViewChange={setView}/>
+                                <Button asChild>
+                                    <Link to="/reports/new">New Report</Link>
+                                </Button>
+                            </div>
+                        </div>
+                    </>
+                )}
 
                 {user && isLoading ? (
                     <div className="rounded-lg border p-8 text-center">

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -37,10 +38,11 @@ const Contacts: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
-  const [view, setView] = useState<"list" | "card">("list");
+  const [view, setView] = useState<"list" | "card">(isMobile ? "card" : "list"); // Default to card on mobile
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -204,14 +206,9 @@ const Contacts: React.FC = () => {
   });
 
   const onSubmit = (data: any) => {
-    console.log('Form submitted with data:', data);
-    console.log('Editing contact:', editingContact);
-    
     if (editingContact) {
-      console.log('Updating contact:', editingContact.id);
       updateMutation.mutate({ id: editingContact.id, updates: data });
     } else {
-      console.log('Creating new contact');
       const contactData = { 
         ...data, 
         user_id: user!.id,
@@ -224,13 +221,11 @@ const Contacts: React.FC = () => {
         zip_code: data.zip_code || null,
         notes: data.notes || null,
       };
-      console.log('Contact data to create:', contactData);
       createMutation.mutate(contactData);
     }
   };
 
   const handleEdit = (contact: Contact) => {
-    console.log('Editing contact:', contact);
     setEditingContact(contact);
     form.reset({
       contact_type: contact.contact_type,
@@ -274,6 +269,14 @@ const Contacts: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <>
       <Seo 
@@ -282,324 +285,120 @@ const Contacts: React.FC = () => {
       />
       
       <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Contacts</h1>
-            <p className="text-muted-foreground">
+        {/* Mobile Header */}
+        {isMobile ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold tracking-tight">Contacts</h1>
+              <Button onClick={() => navigate("/contacts/new")} size="sm">
+                <Plus className="w-4 h-4 mr-1" />
+                Add
+              </Button>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">
               Manage your clients, realtors, and business contacts.
             </p>
+            
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search contacts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <ContactsFilter
+                selectedType={selectedType}
+                onTypeChange={setSelectedType}
+                getContactTypeColor={getContactTypeColor}
+              />
+              <ContactsViewToggle view={view} onViewChange={setView} />
+            </div>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <ContactsViewToggle view={view} onViewChange={setView} />
-            <Button onClick={() => navigate("/contacts/new")}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Contact
-            </Button>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogContent className="max-w-md max-h-[85vh] p-0">
-              <DialogHeader className="px-6 pt-6 pb-2">
-                <DialogTitle>Edit Contact</DialogTitle>
-                <DialogDescription>
-                  Update contact information
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="px-6 pb-6 overflow-y-auto max-h-[calc(85vh-100px)]">
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
-                      <FormField
-                        control={form.control}
-                        name="first_name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">First Name</FormLabel>
-                            <FormControl>
-                              <Input {...field} className="h-8" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="last_name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">Last Name</FormLabel>
-                            <FormControl>
-                              <Input {...field} className="h-8" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">Email</FormLabel>
-                            <FormControl>
-                              <Input type="email" {...field} className="h-8" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">Phone</FormLabel>
-                            <FormControl>
-                              <Input {...field} className="h-8" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <FormField
-                        control={form.control}
-                        name="contact_type"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">Contact Type</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="h-8">
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="client">Client</SelectItem>
-                                <SelectItem value="realtor">Realtor</SelectItem>
-                                <SelectItem value="vendor">Vendor</SelectItem>
-                                <SelectItem value="contractor">Contractor</SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="company"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">Company</FormLabel>
-                            <FormControl>
-                              <Input {...field} className="h-8" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="formatted_address"
-                      render={({ field }) => (
-                         <FormItem>
-                           <FormLabel className="text-xs">Address</FormLabel>
-                           <FormControl>
-                              <AddressAutocomplete
-                                value={field.value}
-                                onAddressChange={(addressData) => {
-                                  console.log('Address selected:', addressData);
-                                  // Update the display field and all related fields when address selection is made
-                                  field.onChange(addressData.formatted_address);
-                                  form.setValue('place_id', addressData.place_id);
-                                  form.setValue('latitude', addressData.latitude);
-                                  form.setValue('longitude', addressData.longitude);
-                                  form.setValue('address_components', addressData.address_components);
-                                  
-                                  // Extract city, state, zip from address components if available
-                                  const components = addressData.address_components || [];
-                                  let city = '';
-                                  let state = '';
-                                  let zipCode = '';
-
-                                  components.forEach((component: any) => {
-                                    const types = component.types || [];
-                                    if (types.includes('locality')) {
-                                      city = component.long_name;
-                                    } else if (types.includes('administrative_area_level_1')) {
-                                      state = component.short_name;
-                                    } else if (types.includes('postal_code')) {
-                                      zipCode = component.long_name;
-                                    }
-                                  });
-
-                                  if (city) form.setValue('city', city);
-                                  if (state) form.setValue('state', state);
-                                  if (zipCode) form.setValue('zip_code', zipCode);
-                                }}
-                                onInputChange={(value) => {
-                                 console.log('Input changed (typing):', value);
-                                 // Update form field only for typed input, preserving smooth typing
-                                 field.onChange(value);
-                               }}
-                                placeholder="Start typing address..."
-                                className="h-8"
-                              />
-                           </FormControl>
-                           <FormMessage />
-                         </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-3 gap-2">
-                      <FormField
-                        control={form.control}
-                        name="city"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">City</FormLabel>
-                            <FormControl>
-                              <Input {...field} className="h-8" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="state"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">State</FormLabel>
-                            <FormControl>
-                              <Input {...field} className="h-8" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="zip_code"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-xs">ZIP Code</FormLabel>
-                            <FormControl>
-                              <Input {...field} className="h-8" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Notes</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              {...field} 
-                              rows={2} 
-                              className="resize-none text-sm"
-                              placeholder="Additional notes..."
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="flex justify-end gap-2 pt-3 border-t">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => setIsDialogOpen(false)}
-                        className="h-8 px-3"
-                      >
-                        Cancel
-                      </Button>
-                      <Button 
-                        type="submit" 
-                        disabled={createMutation.isPending || updateMutation.isPending}
-                        className="h-8 px-3"
-                      >
-                        {createMutation.isPending || updateMutation.isPending 
-                          ? "Saving..." 
-                          : editingContact ? "Update" : "Create"} Contact
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
+        ) : (
+          /* Desktop Header */
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Contacts</h1>
+                <p className="text-muted-foreground">
+                  Manage your clients, realtors, and business contacts.
+                </p>
               </div>
-            </DialogContent>
-            </Dialog>
-          </div>
-        </div>
+              
+              <div className="flex items-center gap-2">
+                <ContactsViewToggle view={view} onViewChange={setView} />
+                <Button onClick={() => navigate("/contacts/new")}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Contact
+                </Button>
+              </div>
+            </div>
 
-        {/* Search and Filter */}
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search contacts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex items-center space-x-2 flex-1">
+                <div className="relative max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                  <Input
+                    placeholder="Search contacts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <ContactsFilter
+                  selectedType={selectedType}
+                  onTypeChange={setSelectedType}
+                  getContactTypeColor={getContactTypeColor}
+                />
+              </div>
+            </div>
           </div>
-          <ContactsFilter
-            selectedType={selectedType}
-            onTypeChange={setSelectedType}
-            getContactTypeColor={getContactTypeColor}
-          />
-        </div>
+        )}
 
-        {/* Contacts Display */}
-        {isLoading ? (
-          <div className="text-center py-8">Loading contacts...</div>
-        ) : filteredAndSortedContacts.length === 0 ? (
+        {filteredAndSortedContacts.length === 0 ? (
           <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground mb-4">
-                {searchQuery || selectedType ? "No contacts found matching your criteria" : "No contacts yet"}
-              </p>
-              <Button onClick={() => navigate("/contacts/new")}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Your First Contact
-              </Button>
+            <CardContent className="py-8">
+              <div className="text-center">
+                <Building className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No contacts found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchQuery ? "No contacts match your search criteria." : "Get started by creating your first contact."}
+                </p>
+                {!searchQuery && (
+                  <Button asChild>
+                    <Link to="/contacts/new">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Contact
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
+        ) : view === "list" ? (
+          <ContactsListView 
+            contacts={paginatedContacts}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            getContactTypeColor={getContactTypeColor}
+            onSort={handleSort}
+            sortField={sortField}
+            sortDirection={sortDirection}
+          />
         ) : (
-          view === "list" ? (
-            <ContactsListView
-              contacts={paginatedContacts}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              getContactTypeColor={getContactTypeColor}
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-            />
-          ) : (
-            <ContactsCardView
-              contacts={paginatedContacts}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              getContactTypeColor={getContactTypeColor}
-            />
-          )
+          <ContactsCardView 
+            contacts={paginatedContacts}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            getContactTypeColor={getContactTypeColor}
+          />
         )}
+
         {filteredAndSortedContacts.length > 0 && (
           <div className="flex items-center justify-between mt-4">
             <div className="flex items-center gap-2 ps-2">
@@ -609,7 +408,7 @@ const Contacts: React.FC = () => {
                 onValueChange={(value) => setItemsPerPage(Number(value))}
               >
                 <SelectTrigger className="h-8 w-[70px]">
-                  <SelectValue />
+                  <SelectValue/>
                 </SelectTrigger>
                 <SelectContent side="top">
                   <SelectItem value="10">10</SelectItem>
@@ -618,7 +417,7 @@ const Contacts: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Pagination  className="justify-end">
+            <Pagination className="justify-end">
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
@@ -630,7 +429,7 @@ const Contacts: React.FC = () => {
                     className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                   />
                 </PaginationItem>
-                {Array.from({ length: totalPages }).map((_, i) => (
+                {Array.from({length: totalPages}).map((_, i) => (
                   <PaginationItem key={i}>
                     <PaginationLink
                       href="#"
