@@ -5,16 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2, GripVertical, Settings, Lock } from "lucide-react";
 import { getSectionDefinition } from "@/constants/reportSections";
+import { extractBuiltInFields } from "@/utils/extractBuiltInFields";
 import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 import type { CustomSection } from "@/integrations/supabase/customSectionsApi";
 import type { Report } from "@/lib/reportSchemas";
-import { FL_FOUR_POINT_QUESTIONS } from "@/constants/flFourPointQuestions";
-import { WIND_MITIGATION_QUESTIONS } from "@/constants/windMitigationQuestions";
-import { TX_WINDSTORM_QUESTIONS } from "@/constants/txWindstormQuestions";
-import { CA_WILDFIRE_QUESTIONS } from "@/constants/caWildfireQuestions";
-import { MANUFACTURED_HOME_QUESTIONS } from "@/constants/manufacturedHomeQuestions";
-import { ROOF_CERTIFICATION_QUESTIONS } from "@/constants/roofCertificationQuestions";
-import { HOME_INSPECTION_FIELDS } from "@/constants/homeInspectionFields";
 
 interface SectionFieldsPanelProps {
   selectedSection: string | null;
@@ -62,51 +56,8 @@ export function SectionFieldsPanel({
   const sectionDefinition = getSectionDefinition(reportType, selectedSection);
   const sectionTitle = customSection?.title || sectionDefinition?.name || selectedSection;
 
-  // Get built-in fields for this section and report type
-  const getBuiltInFields = () => {    
-    if (!selectedSection) return [];
-    
-    // Debug logging to understand the data flow
-    console.log("DEBUG - getBuiltInFields:", {
-      selectedSection,
-      reportType,
-      availableSections: HOME_INSPECTION_FIELDS.sections.map(s => s.name)
-    });
-    
-    // Handle home inspection report type
-    if (reportType === "home_inspection") {
-      const section = HOME_INSPECTION_FIELDS.sections.find(s => s.name === selectedSection);
-      console.log("DEBUG - Found section:", section);
-      return section?.fields || [];
-    }
-    
-    // Handle specialized report types
-    const questionMaps = {
-      fl_four_point_citizens: FL_FOUR_POINT_QUESTIONS,
-      wind_mitigation: WIND_MITIGATION_QUESTIONS,
-      fl_wind_mitigation_oir_b1_1802: WIND_MITIGATION_QUESTIONS,
-      tx_coastal_windstorm_mitigation: TX_WINDSTORM_QUESTIONS,
-      ca_wildfire_defensible_space: CA_WILDFIRE_QUESTIONS,
-      manufactured_home_insurance_prep: MANUFACTURED_HOME_QUESTIONS,
-      roof_certification_nationwide: ROOF_CERTIFICATION_QUESTIONS,
-    };
-
-    const questions = questionMaps[reportType as keyof typeof questionMaps];
-    if (!questions || !('sections' in questions)) return [];
-
-    const section = questions.sections.find((s: any) => s.name === selectedSection);
-    return section?.fields || [];
-  };
-
-  const builtInFields = getBuiltInFields();
-  
-  // Debug logging to see what built-in fields we got
-  console.log("DEBUG - Built-in fields result:", {
-    selectedSection,
-    reportType,
-    builtInFieldsCount: builtInFields.length,
-    builtInFields: builtInFields.map(f => ({ name: f.name, label: f.label }))
-  });
+  // Get built-in fields for this section and report type using unified extraction
+  const builtInFields = extractBuiltInFields(reportType, selectedSection);
 
   const getWidgetTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
