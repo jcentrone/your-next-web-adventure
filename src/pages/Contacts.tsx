@@ -27,6 +27,7 @@ import { ContactsCardView } from "@/components/contacts/ContactsCardView";
 import { ContactsFilter } from "@/components/contacts/ContactsFilter";
 import { TagInput } from "@/components/ui/TagInput";
 import { ManageTagsDialog } from "@/components/modals/ManageTagsDialog";
+import { contactsTagsApi } from "@/integrations/supabase/contactsTagsApi";
 import {
   Pagination,
   PaginationContent,
@@ -49,6 +50,7 @@ const Contacts: React.FC = () => {
   const effectiveView = isMobile ? "card" : view;
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -63,6 +65,19 @@ const Contacts: React.FC = () => {
       : contactsApi.list(user!.id),
     enabled: !!user,
   });
+
+  React.useEffect(() => {
+    if (!user) return;
+    const loadTags = async () => {
+      try {
+        const tags = await contactsTagsApi.list();
+        setTagSuggestions(tags.map((t) => t.name));
+      } catch (error) {
+        console.error("Error loading tag suggestions:", error);
+      }
+    };
+    loadTags();
+  }, [user]);
 
   const form = useForm({
     resolver: zodResolver(CreateContactSchema),
@@ -336,6 +351,7 @@ const Contacts: React.FC = () => {
                 onChange={setTagFilter}
                 placeholder="Filter tags"
                 className="max-w-sm"
+                suggestions={tagSuggestions}
               />
             </div>
           </div>
@@ -380,6 +396,7 @@ const Contacts: React.FC = () => {
                   onChange={setTagFilter}
                   placeholder="Filter tags"
                   className="max-w-xs"
+                  suggestions={tagSuggestions}
                 />
               </div>
             </div>

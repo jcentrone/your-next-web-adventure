@@ -26,4 +26,11 @@ describe("TagInput", () => {
     })
     expect(handleChange).toHaveBeenCalledWith([])
   })
+
+  it("renders suggestions when provided", () => {
+    render(<TagInput value={[]} onChange={() => {}} suggestions={["a", "b"]} placeholder="tags" />)
+    const input = screen.getByPlaceholderText("tags")
+    expect(input).toHaveAttribute("list")
+    expect(document.querySelectorAll("option")).toHaveLength(2)
+  })
 })
