@@ -1,19 +1,23 @@
 import { Select, SelectContent, SelectValue, SelectTrigger, SelectItem } from "@/components/ui/select";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
-import type { Report } from "@/lib/reportSchemas";
+import type { CustomReportType } from "@/integrations/supabase/customReportTypesApi";
 
 interface ReportTypeSelectorProps {
-  value: Report["reportType"];
-  onValueChange: (value: Report["reportType"]) => void;
+  value: string;
+  onValueChange: (value: string) => void;
   placeholder?: string;
+  customTypes?: CustomReportType[];
 }
 
 export default function ReportTypeSelector({
   value,
   onValueChange,
-  placeholder = "Select report type"
+  placeholder = "Select report type",
+  customTypes = [],
 }: ReportTypeSelectorProps) {
-  const allTypes = Object.entries(REPORT_TYPE_LABELS);
+  const builtIn = Object.entries(REPORT_TYPE_LABELS);
+  const custom = customTypes.map((t) => [t.id, t.name] as [string, string]);
+  const allTypes = [...builtIn, ...custom];
 
   return (
     <Select value={value} onValueChange={onValueChange}>

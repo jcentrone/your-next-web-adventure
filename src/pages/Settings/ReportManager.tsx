@@ -11,6 +11,7 @@ import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { useCustomSections } from "@/hooks/useCustomSections";
 import { useCustomFields } from "@/hooks/useCustomFields";
 import { useSectionOrder } from "@/hooks/useSectionOrder";
+import { useCustomReportTypes } from "@/hooks/useCustomReportTypes";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
@@ -21,7 +22,7 @@ import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 export default function ReportManager() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [selectedReportType, setSelectedReportType] = useState<Report["reportType"]>("home_inspection");
+  const [selectedReportType, setSelectedReportType] = useState<string>("home_inspection");
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [fieldEditorOpen, setFieldEditorOpen] = useState(false);
   const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
@@ -29,10 +30,17 @@ export default function ReportManager() {
 
   const { customSections, createSection, deleteSection } = useCustomSections();
   const { customFields, createField, updateField, deleteField } = useCustomFields();
-  const { updateSectionOrder, getOrderedSections } = useSectionOrder(selectedReportType, customSections);
+  const { customTypes } = useCustomReportTypes();
+  const { updateSectionOrder, getOrderedSections } = useSectionOrder(
+    selectedReportType as Report["reportType"],
+    customSections
+  );
 
-  const reportCategory = getReportCategory(selectedReportType);
-  const isDefectBased = isDefectBasedReport(selectedReportType);
+  const selectedCustomType = customTypes.find((t) => t.id === selectedReportType);
+  const builtInCategory = getReportCategory(selectedReportType as Report["reportType"]);
+  const isDefectBased = selectedCustomType
+    ? selectedCustomType.category === "defect_based"
+    : isDefectBasedReport(selectedReportType as Report["reportType"]);
 
   const handleOpenReportBuilder = () => {
     navigate("/report-builder");
@@ -138,6 +146,7 @@ export default function ReportManager() {
                   setSelectedSection(null);
                 }}
                 placeholder="Choose a report type to customize"
+                customTypes={customTypes}
               />
             </div>
             {selectedReportType && (
@@ -146,12 +155,20 @@ export default function ReportManager() {
                 <div className="flex items-center gap-2">
                   <Badge variant={isDefectBased ? "default" : "secondary"} className="flex items-center gap-1 w-fit">
                     {isDefectBased ? <FileText className="w-3 h-3" /> : <FormInput className="w-3 h-3" />}
-                    {REPORT_CATEGORY_LABELS[reportCategory]}
+                    {selectedCustomType ? selectedCustomType.category : REPORT_CATEGORY_LABELS[builtInCategory]}
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {REPORT_CATEGORY_DESCRIPTIONS[reportCategory]}
-                </p>
+                {selectedCustomType ? (
+                  selectedCustomType.description ? (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {selectedCustomType.description}
+                    </p>
+                  ) : null
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {REPORT_CATEGORY_DESCRIPTIONS[builtInCategory]}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -161,7 +178,7 @@ export default function ReportManager() {
             <div>
               <div className="mb-4">
                 <h3 className="text-lg font-medium">
-                  Editing: {REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  Editing: {selectedCustomType ? selectedCustomType.name : (REPORT_TYPE_LABELS[selectedReportType as Report["reportType"]] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   {isDefectBased
@@ -170,10 +187,10 @@ export default function ReportManager() {
                   }
                 </p>
               </div>
-              
+
               <div className="h-[600px] flex gap-4 rounded-lg overflow-hidden border">
                 <UniversalSectionsList
-                  reportType={selectedReportType}
+                  reportType={selectedReportType as Report["reportType"]}
                   selectedSection={selectedSection}
                   onSectionSelect={setSelectedSection}
                   customSections={customSections}
@@ -182,14 +199,14 @@ export default function ReportManager() {
                   onReorderSections={updateSectionOrder}
                   orderedSections={getOrderedSections()}
                 />
-                
+
                 <SectionFieldsPanel
                   selectedSection={selectedSection}
-                  reportType={selectedReportType}
-                  customFields={customFields.filter(field => 
-                    selectedSection ? 
-                      field.section_key === selectedSection && 
-                      field.report_types.includes(selectedReportType) 
+                  reportType={selectedReportType as Report["reportType"]}
+                  customFields={customFields.filter(field =>
+                    selectedSection ?
+                      field.section_key === selectedSection &&
+                      field.report_types.includes(selectedReportType as Report["reportType"])
                       : false
                   )}
                   customSections={customSections}
@@ -226,7 +243,7 @@ export default function ReportManager() {
         open={sectionDialogOpen}
         onOpenChange={setSectionDialogOpen}
         userId={user?.id || ""}
-        reportTypes={[selectedReportType]}
+        reportTypes={[selectedReportType as Report["reportType"]]}
         onSectionCreated={handleSectionCreated}
       />
     </div>
