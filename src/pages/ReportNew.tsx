@@ -37,6 +37,7 @@ const ReportNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
+  const appointmentId = searchParams.get("appointmentId");
 
   // Get all contacts for lookup
   const { data: contacts = [] } = useQuery({
@@ -86,6 +87,7 @@ const ReportNew: React.FC = () => {
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
             reportType: "home_inspection",
+            appointment_id: appointmentId || undefined,
           },
           user.id,
           organization?.id

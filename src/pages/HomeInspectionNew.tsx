@@ -37,6 +37,7 @@ const HomeInspectionNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
+  const appointmentId = searchParams.get("appointmentId");
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
   const { templates } = useReportTemplates("home_inspection");
   const reportTemplate = templates.find(t => t.is_default) || templates[0] || null;
@@ -108,6 +109,7 @@ const HomeInspectionNew: React.FC = () => {
             includeStandardsOfPractice: values.includeStandardsOfPractice,
             tags: values.tags || [],
             template: reportTemplate,
+            appointment_id: appointmentId || undefined,
           },
           user.id,
           organization?.id
