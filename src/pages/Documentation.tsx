@@ -17,7 +17,6 @@ const Documentation = () => {
   const toggleSection = (sectionId: string) => {
     setOpenSections(prev => prev.includes(sectionId) ? prev.filter(id => id !== sectionId) : [...prev, sectionId]);
   };
-
   const openSingleSection = (sectionId: string) => {
     setOpenSections([sectionId]);
   };
@@ -1062,13 +1061,8 @@ const Documentation = () => {
                             <li><strong>Specializations:</strong> Types of inspections offered</li>
                           </ul>
 
-                          <h4 className="font-semibold">Legal & Compliance</h4>
-                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>Terms of service and inspection agreements</li>
-                            <li>State-specific disclaimer requirements</li>
-                            <li>Insurance and bonding information</li>
-                            <li>Professional association memberships</li>
-                          </ul>
+                          
+                          
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
