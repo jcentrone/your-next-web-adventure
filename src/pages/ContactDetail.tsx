@@ -21,6 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Mail, Phone, MapPin, Building2, Calendar, FileText, CheckSquare, Activity, Edit2, Save, X } from "lucide-react";
 import { format } from "date-fns";
+import { TagInput } from "@/components/ui/TagInput";
 
 export default function ContactDetail() {
   const { id } = useParams<{ id: string }>();
@@ -47,6 +48,7 @@ export default function ContactDetail() {
       state: "",
       zip_code: "",
       notes: "",
+      tags: [],
       is_active: true,
     },
   });
@@ -116,12 +118,13 @@ export default function ContactDetail() {
         address_components: contact.address_components,
         city: contact.city || "",
         state: contact.state || "",
-        zip_code: contact.zip_code || "",
-        notes: contact.notes || "",
-        is_active: contact.is_active,
-      });
-      setIsEditing(true);
-    }
+      zip_code: contact.zip_code || "",
+      notes: contact.notes || "",
+      tags: contact.tags || [],
+      is_active: contact.is_active,
+    });
+    setIsEditing(true);
+  }
   };
 
   const handleCancel = () => {
@@ -208,6 +211,11 @@ export default function ContactDetail() {
                     <Badge className={getContactTypeColor(contact.contact_type)}>
                       {contact.contact_type}
                     </Badge>
+                    {contact.tags?.map((tag) => (
+                      <Badge key={tag} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -509,6 +517,24 @@ export default function ContactDetail() {
                       )}
                     />
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="tags"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tags</FormLabel>
+                        <FormControl>
+                          <TagInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Add tags"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}

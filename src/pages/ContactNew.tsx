@@ -16,6 +16,7 @@ import { CreateContactSchema } from "@/lib/crmSchemas";
 import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
+import { TagInput } from "@/components/ui/TagInput";
 
 const ContactNew: React.FC = () => {
   const { user } = useAuth();
@@ -41,6 +42,7 @@ const ContactNew: React.FC = () => {
       state: "",
       zip_code: "",
       notes: "",
+      tags: [],
       is_active: true,
     },
   });
@@ -73,6 +75,7 @@ const ContactNew: React.FC = () => {
       state: data.state || null,
       zip_code: data.zip_code || null,
       notes: data.notes || null,
+      tags: data.tags || [],
     };
     createMutation.mutate(contactData);
   };
@@ -278,27 +281,45 @@ const ContactNew: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="zip_code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>ZIP Code</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
                 <FormField
                   control={form.control}
-                  name="notes"
+                  name="zip_code"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Notes</FormLabel>
+                      <FormLabel>ZIP Code</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags</FormLabel>
+                    <FormControl>
+                      <TagInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Add tags"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
                       <FormControl>
                         <Textarea 
                           {...field} 
