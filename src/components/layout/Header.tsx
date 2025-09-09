@@ -67,7 +67,7 @@ const Header: React.FC = () => {
             <nav className="flex h-14 items-center justify-between px-4">
                 <Link to="/" className="flex items-center gap-2 font-bold" data-onboarding="logo">
                     <img
-                        src="/HomeReportPro_Logo-transparent.png"
+                        src="/HomeReportPro_Logo-transparent-light.png"
                         alt="Home Report Pro"
                         className="h-8 w-auto"
                     />
@@ -150,7 +150,7 @@ const Header: React.FC = () => {
                             <div className="flex items-center justify-between mb-6">
                                 <Link to="/" className="flex items-center gap-2 font-bold"
                                       onClick={() => setMobileMenuOpen(false)}>
-                                    <img src="/HomeReportPro_Logo-transparent.png" alt="Home Report Pro"
+                                    <img src="/HomeReportPro_Logo-transparent-light.png" alt="Home Report Pro"
                                          className="h-6 w-auto"/>
                                 </Link>
                                 <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}
