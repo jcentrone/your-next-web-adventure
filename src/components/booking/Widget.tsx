@@ -33,8 +33,7 @@ const Widget: React.FC<WidgetProps> = ({ settings, reserved, layout = 'vertical'
     queryKey: ['booking-services', settings.user_id],
     queryFn: async () => {
     const { data, error } = await supabase
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .from('services' as any)
+      .from('services')
       .select('*')
         .eq('user_id', settings.user_id);
       if (error) throw error;
@@ -53,8 +52,7 @@ const Widget: React.FC<WidgetProps> = ({ settings, reserved, layout = 'vertical'
   const [isSigned, setIsSigned] = React.useState(false);
 
   const homeInspectionService = services.find(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (s: any) => serviceIds.includes(s.id) && s.name === 'home_inspection'
+    (s: any) => serviceIds.includes(s?.id) && s?.name === 'home_inspection'
   );
   const isHomeInspectionSelected = !!homeInspectionService;
   const agreementHtml = React.useMemo(

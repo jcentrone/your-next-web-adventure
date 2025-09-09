@@ -63,7 +63,7 @@ describe("SpecializedReportPreview", () => {
       />
     );
 
-    expect(screen.getByText("Terms and Conditions")).toBeInTheDocument();
+    expect(screen.getByText("Terms and Conditions")).toBeDefined();
   });
 });
 
