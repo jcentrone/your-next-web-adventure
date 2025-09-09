@@ -104,7 +104,8 @@ export default function ReportManager() {
             <div>
               <p className="text-sm font-medium">Report Builder</p>
               <p className="text-xs text-muted-foreground">
-                Create new custom reports with tailored sections and fields
+                Start a new defect-based or form-based report with custom sections and
+                fields.
               </p>
             </div>
             <div>
