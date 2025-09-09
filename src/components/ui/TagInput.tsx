@@ -8,10 +8,12 @@ export interface TagInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> {
   value: string[]
   onChange: (tags: string[]) => void
+  suggestions?: string[]
 }
 
-export function TagInput({ value, onChange, className, placeholder, ...props }: TagInputProps) {
+export function TagInput({ value, onChange, className, placeholder, suggestions = [], ...props }: TagInputProps) {
   const [inputValue, setInputValue] = React.useState("")
+  const listId = React.useId()
 
   const addTag = React.useCallback(
     (tag: string) => {
@@ -57,12 +59,20 @@ export function TagInput({ value, onChange, className, placeholder, ...props }: 
       <input
         {...props}
         type="text"
+        list={suggestions.length > 0 ? listId : undefined}
         className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
         placeholder={placeholder}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
       />
+      {suggestions.length > 0 && (
+        <datalist id={listId}>
+          {suggestions.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+      )}
     </div>
   )
 }

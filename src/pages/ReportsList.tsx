@@ -27,6 +27,7 @@ import {Search, Plus} from "lucide-react";
 import {useIsMobile} from "@/hooks/use-mobile";
 import { TagInput } from "@/components/ui/TagInput";
 import { ManageTagsDialog } from "@/components/modals/ManageTagsDialog";
+import { reportsTagsApi } from "@/integrations/supabase/reportsTagsApi";
 
 const ReportsList: React.FC = () => {
     const {user} = useAuth();
@@ -40,6 +41,7 @@ const ReportsList: React.FC = () => {
     const [currentPage, setCurrentPage] = React.useState(1);
     const [searchQuery, setSearchQuery] = React.useState("");
     const [tagFilter, setTagFilter] = React.useState<string[]>([]);
+    const [tagSuggestions, setTagSuggestions] = React.useState<string[]>([]);
     const [tagDialogOpen, setTagDialogOpen] = React.useState(false);
     const [selectedReport, setSelectedReport] = React.useState<Report | null>(null);
 
@@ -51,6 +53,19 @@ const ReportsList: React.FC = () => {
         },
         enabled: !!user,
     });
+
+    React.useEffect(() => {
+        if (!user) return;
+        const loadTags = async () => {
+            try {
+                const tags = await reportsTagsApi.list();
+                setTagSuggestions(tags.map((t) => t.name));
+            } catch (error) {
+                console.error("Error loading tag suggestions:", error);
+            }
+        };
+        loadTags();
+    }, [user]);
 
     // Get archived count for badge
     const {data: archivedItems} = useQuery({
@@ -195,6 +210,7 @@ const ReportsList: React.FC = () => {
                                 value={tagFilter}
                                 onChange={setTagFilter}
                                 placeholder="Filter tags"
+                                suggestions={tagSuggestions}
                             />
                         </div>
                     </div>
@@ -222,6 +238,7 @@ const ReportsList: React.FC = () => {
                                         value={tagFilter}
                                         onChange={setTagFilter}
                                         placeholder="Filter tags"
+                                        suggestions={tagSuggestions}
                                     />
                                 </div>
                             </div>

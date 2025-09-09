@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { TagInput } from "@/components/ui";
 import { useToast } from "@/hooks/use-toast";
 import { accountsApi } from "@/integrations/supabase/accountsApi";
+import { accountsTagsApi } from "@/integrations/supabase/accountsTagsApi";
 import { useAuth } from "@/contexts/AuthContext";
 import { AccountsViewToggle } from "@/components/accounts/AccountsViewToggle";
 import { AccountsFilter } from "@/components/accounts/AccountsFilter";
@@ -26,6 +27,7 @@ export default function Accounts() {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagSuggestions, setTagSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
@@ -35,6 +37,7 @@ export default function Accounts() {
   useEffect(() => {
     if (user) {
       loadAccounts();
+      loadTagSuggestions();
     }
   }, [user]);
 
@@ -55,6 +58,15 @@ export default function Accounts() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTagSuggestions = async () => {
+    try {
+      const tags = await accountsTagsApi.list();
+      setTagSuggestions(tags.map((t) => t.name));
+    } catch (error) {
+      console.error('Error loading tag suggestions:', error);
     }
   };
 
@@ -154,6 +166,7 @@ export default function Accounts() {
               value={selectedTags}
               onChange={setSelectedTags}
               placeholder="Filter tags"
+              suggestions={tagSuggestions}
             />
           </div>
         </div>
@@ -196,6 +209,7 @@ export default function Accounts() {
                   value={selectedTags}
                   onChange={setSelectedTags}
                   placeholder="Filter tags"
+                  suggestions={tagSuggestions}
                 />
               </div>
             </div>
