@@ -3,22 +3,25 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, Trash2, Mail, Phone, Building, MapPin, ChevronUp, ChevronDown } from "lucide-react";
+import { Edit, Trash2, Mail, Phone, Building, MapPin, ChevronUp, ChevronDown, Tag } from "lucide-react";
+import type { Contact } from "@/lib/crmSchemas";
 
 interface ContactsListViewProps {
-  contacts: any[];
-  onEdit: (contact: any) => void;
-  onDelete: (contact: any) => void;
+  contacts: Contact[];
+  onEdit: (contact: Contact) => void;
+  onDelete: (contact: Contact) => void;
+  onManageTags: (contact: Contact) => void;
   getContactTypeColor: (type: string) => string;
   sortField: string | null;
   sortDirection: "asc" | "desc";
   onSort: (field: string) => void;
 }
 
-export const ContactsListView: React.FC<ContactsListViewProps> = ({ 
-  contacts, 
-  onEdit, 
-  onDelete, 
+export const ContactsListView: React.FC<ContactsListViewProps> = ({
+  contacts,
+  onEdit,
+  onDelete,
+  onManageTags,
   getContactTypeColor,
   sortField,
   sortDirection,
@@ -133,6 +136,18 @@ export const ContactsListView: React.FC<ContactsListViewProps> = ({
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onManageTags(contact);
+                    }}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Tag className="h-4 w-4" />
+                    <span className="sr-only">Manage tags</span>
+                  </Button>
                   <Button
                     size="sm"
                     variant="ghost"
