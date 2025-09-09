@@ -72,7 +72,7 @@ const Calendar: React.FC = () => {
     }, [user]);
 
     const {data: appointments = []} = useQuery({
-        queryKey: ["appointments", user?.id],
+        queryKey: ["appointments", user!.id],
         queryFn: () => appointmentsApi.list(user!.id),
         enabled: !!user,
     });
@@ -86,7 +86,7 @@ const Calendar: React.FC = () => {
     const createMutation = useMutation({
         mutationFn: appointmentsApi.create,
         onSuccess: async (appointment) => {
-            queryClient.invalidateQueries({queryKey: ["appointments"]});
+            queryClient.invalidateQueries({queryKey: ["appointments", user!.id]});
             toast.success("Appointment created successfully");
             setIsDialogOpen(false);
             form.reset();
@@ -105,7 +105,7 @@ const Calendar: React.FC = () => {
         mutationFn: ({id, data}: { id: string; data: any }) =>
             appointmentsApi.update(id, data),
         onSuccess: async (appointment) => {
-            queryClient.invalidateQueries({queryKey: ["appointments"]});
+            queryClient.invalidateQueries({queryKey: ["appointments", user!.id]});
             toast.success("Appointment updated successfully");
             setIsDialogOpen(false);
             setEditingAppointment(null);
@@ -124,7 +124,7 @@ const Calendar: React.FC = () => {
     const deleteMutation = useMutation({
         mutationFn: appointmentsApi.delete,
         onSuccess: async (_, id) => {
-            queryClient.invalidateQueries({queryKey: ["appointments"]});
+            queryClient.invalidateQueries({queryKey: ["appointments", user!.id]});
             toast.success("Appointment deleted successfully");
             setDeleteAppointment(null);
             await Promise.all([
