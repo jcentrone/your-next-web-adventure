@@ -16,7 +16,7 @@ import {Calendar as CalendarIcon, Edit, Plus, Trash2, Settings} from "lucide-rea
 import {format} from "date-fns";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {type Appointment, AppointmentSchema, ContactSchema} from "@/lib/crmSchemas";
+import {type Appointment, AppointmentSchema, ContactSchema, type Contact} from "@/lib/crmSchemas";
 import {toast} from "sonner";
 import {
     AlertDialog,
@@ -72,19 +72,23 @@ const Calendar: React.FC = () => {
     }, [user]);
 
     const {
-        data: appointments = [],
+        data: appointments = [] as Appointment[],
         error: appointmentsError,
     } = useQuery({
         queryKey: ["appointments", user!.id],
         queryFn: () => appointmentsApi.list(user!.id),
         enabled: !!user,
-        onError: (err) => {
-            console.error("Error fetching appointments", err);
-            toast.error("Failed to load appointments");
-        },
     });
 
-    const {data: contacts = []} = useQuery({
+    // Handle appointments error
+    useEffect(() => {
+        if (appointmentsError) {
+            console.error("Error fetching appointments", appointmentsError);
+            toast.error("Failed to load appointments");
+        }
+    }, [appointmentsError]);
+
+    const {data: contacts = [] as Contact[]} = useQuery({
         queryKey: ["contacts", user?.id],
         queryFn: () => contactsApi.list(user!.id),
         enabled: !!user,
