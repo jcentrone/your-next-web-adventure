@@ -15,6 +15,7 @@ export const AccountSchema = z.object({
   notes: z.string().optional(),
   annual_revenue: z.number().optional(),
   employee_count: z.number().optional(),
+  tags: z.array(z.string()).default([]),
   user_id: z.string().uuid(),
   organization_id: z.string().uuid().optional(),
   is_active: z.boolean().default(true),

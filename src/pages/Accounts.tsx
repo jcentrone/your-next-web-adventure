@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { TagInput } from "@/components/ui";
 import { useToast } from "@/hooks/use-toast";
 import { accountsApi } from "@/integrations/supabase/accountsApi";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +24,7 @@ export default function Accounts() {
   const effectiveView = isMobile ? "card" : view;
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -35,7 +37,7 @@ export default function Accounts() {
 
   useEffect(() => {
     filterAccounts();
-  }, [accounts, searchTerm, selectedType, selectedIndustry]);
+  }, [accounts, searchTerm, selectedType, selectedIndustry, selectedTags]);
 
   const loadAccounts = async () => {
     try {
@@ -73,6 +75,13 @@ export default function Accounts() {
     // Industry filter
     if (selectedIndustry) {
       filtered = filtered.filter(account => account.industry === selectedIndustry);
+    }
+
+    // Tags filter
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(account =>
+        selectedTags.every(tag => account.tags?.includes(tag))
+      );
     }
 
     setFilteredAccounts(filtered);
@@ -132,6 +141,11 @@ export default function Accounts() {
               onIndustryChange={setSelectedIndustry}
               availableIndustries={availableIndustries}
             />
+            <TagInput
+              value={selectedTags}
+              onChange={setSelectedTags}
+              placeholder="Filter tags"
+            />
           </div>
         </div>
       ) : (
@@ -168,6 +182,13 @@ export default function Accounts() {
                 onIndustryChange={setSelectedIndustry}
                 availableIndustries={availableIndustries}
               />
+              <div className="max-w-sm">
+                <TagInput
+                  value={selectedTags}
+                  onChange={setSelectedTags}
+                  placeholder="Filter tags"
+                />
+              </div>
             </div>
             {!isMobile && <AccountsViewToggle view={view} onViewChange={setView} />}
           </div>
@@ -210,6 +231,15 @@ export default function Accounts() {
                 </div>
                 {account.industry && (
                   <p className="text-sm text-muted-foreground">{account.industry}</p>
+                )}
+                {account.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {account.tags.map((tag) => (
+                      <Badge key={tag} variant="outline">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
                 )}
               </CardHeader>
               <CardContent className="space-y-3">
