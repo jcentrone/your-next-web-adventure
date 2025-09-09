@@ -39,6 +39,7 @@ const GenericReportNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
+  const appointmentId = searchParams.get("appointmentId");
 
   const { data: contacts = [] } = useQuery({
     queryKey: ["contacts", user?.id],
@@ -87,6 +88,7 @@ const GenericReportNew: React.FC = () => {
             contactIds: values.contactIds || [],
             reportType: type,
             tags: values.tags || [],
+            appointment_id: appointmentId || undefined,
           },
           user.id,
           organization?.id

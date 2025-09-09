@@ -46,6 +46,7 @@ function toDbPayload(report: Report) {
     insurance_company: (report as any).insuranceCompany || null,
     policy_number: (report as any).policyNumber || null,
     email: (report as any).email || null,
+    appointment_id: (report as any).appointmentId || null,
   };
 }
 
@@ -93,6 +94,7 @@ function fromDbRow(row: any): Report {
     insuranceCompany: row.insurance_company || "",
     policyNumber: row.policy_number || "",
     email: row.email || "",
+    appointmentId: row.appointment_id || undefined,
     // includeStandardsOfPractice: removed as not in DB schema
   };
 
@@ -252,6 +254,7 @@ export async function dbCreateReport(meta: {
       coverImage: "",
       coverTemplate: "templateOne",
       previewTemplate: "classic",
+      appointmentId: meta.appointment_id,
       reportType: "home_inspection",
       tags: meta.tags || [],
       sections,
@@ -272,6 +275,7 @@ export async function dbCreateReport(meta: {
       coverImage: "",
       coverTemplate: "templateOne",
       previewTemplate: "classic",
+      appointmentId: meta.appointment_id,
       reportType: "wind_mitigation",
       phoneHome: meta.phoneHome || "",
       phoneWork: meta.phoneWork || "",
@@ -305,6 +309,7 @@ export async function dbCreateReport(meta: {
       coverImage: "",
       coverTemplate: "templateOne",
       previewTemplate: "classic",
+      appointmentId: meta.appointment_id,
       reportType: meta.reportType,
       clientPhone: meta.phoneHome || "",
       clientEmail: meta.email || "",
@@ -357,6 +362,14 @@ export async function dbCreateReport(meta: {
   if (error) {
     console.error("dbCreateReport error", error);
     throw error;
+  }
+
+  if (meta.appointment_id) {
+    try {
+      await attachReportToAppointment(id, meta.appointment_id);
+    } catch (err) {
+      console.error("Failed to attach report to appointment:", err);
+    }
   }
 
   // Track activity
@@ -467,6 +480,15 @@ export async function dbArchiveReport(id: string, archived: boolean = true): Pro
   }
 }
 
+export async function attachReportToAppointment(reportId: string, appointmentId: string) {
+  const { error } = await supabase
+    .from("appointments")
+    .update({ report_id: reportId })
+    .eq("id", appointmentId);
+
+  if (error) throw error;
+}
+
 export async function dbGetReportsByContactId(contactId: string): Promise<any[]> {
   const { data, error } = await supabase
     .from("reports")
@@ -493,5 +515,6 @@ export const reportsApi = {
   dbUpdateReport,
   dbDeleteReport,
   dbArchiveReport,
+  attachReportToAppointment,
   getByContactId: dbGetReportsByContactId,
 };

@@ -31,6 +31,7 @@ const ManufacturedHomeNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
+  const appointmentId = searchParams.get("appointmentId");
 
   const { data: contacts = [] } = useQuery({
     queryKey: ["contacts", user?.id],
@@ -77,6 +78,7 @@ const ManufacturedHomeNew: React.FC = () => {
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
             reportType: "manufactured_home_insurance_prep",
+            appointment_id: appointmentId || undefined,
           },
           user.id,
           organization?.id

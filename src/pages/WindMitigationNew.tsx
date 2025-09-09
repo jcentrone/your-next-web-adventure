@@ -39,6 +39,7 @@ const WindMitigationNew: React.FC = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
+  const appointmentId = searchParams.get("appointmentId");
 
   // Get all contacts for lookup
   const { data: contacts = [] } = useQuery({
@@ -117,6 +118,7 @@ const WindMitigationNew: React.FC = () => {
             insuranceCompany: values.insuranceCompany,
             policyNumber: values.policyNumber,
             email: values.email,
+            appointment_id: appointmentId || undefined,
           },
           user.id,
           organization?.id
