@@ -191,7 +191,7 @@ const ReportEditor: React.FC = () => {
   const handleLinkExisting = async () => {
     if (!report || !selectedAppointmentId) return;
     try {
-      await dbUpdateReport(report.id, { appointment_id: selectedAppointmentId });
+      await dbUpdateReport({ ...report, appointmentId: selectedAppointmentId });
       await appointmentsApi.update(selectedAppointmentId, { report_id: report.id });
       setReport((prev) => (prev ? ({ ...prev, appointmentId: selectedAppointmentId } as Report) : prev));
       toast({ title: "Appointment linked" });
@@ -213,7 +213,7 @@ const ReportEditor: React.FC = () => {
         contact_id: report.contactIds?.[0] || undefined,
       });
       await appointmentsApi.update(appt.id, { report_id: report.id });
-      await dbUpdateReport(report.id, { appointment_id: appt.id });
+      await dbUpdateReport({ ...report, appointmentId: appt.id });
       setReport((prev) => (prev ? ({ ...prev, appointmentId: appt.id } as Report) : prev));
       toast({ title: "Appointment created and linked" });
       setCreateApptDialogOpen(false);

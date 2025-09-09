@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { reportIfMapsJsBlocked } from './loadGoogleMapsApi';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { useThemeContext } from '@/components/ThemeProvider';
 
 interface GooglePlacesAutocompleteProps {
   value?: string;
@@ -31,6 +32,7 @@ export const GooglePlacesAutocomplete = forwardRef<HTMLInputElement, GooglePlace
     const autocompleteRef = useRef<any | null>(null);
     const onPlaceChangeRef = useRef(onPlaceChange);
     const { toast } = useToast();
+    const { effectiveTheme } = useThemeContext();
     const [isLoading, setIsLoading] = useState(false);
     const [apiLoaded, setApiLoaded] = useState(false);
 
@@ -87,6 +89,43 @@ export const GooglePlacesAutocomplete = forwardRef<HTMLInputElement, GooglePlace
           autocompleteRef.current = new googleMaps.maps.places.Autocomplete(input, {
             fields: ['formatted_address', 'place_id', 'geometry', 'address_components'],
           });
+
+          // Apply dark mode styling to the dropdown
+          if (effectiveTheme === 'dark') {
+            const pacContainer = document.querySelector('.pac-container') as HTMLElement;
+            if (pacContainer) {
+              pacContainer.style.backgroundColor = 'hsl(var(--background))';
+              pacContainer.style.border = '1px solid hsl(var(--border))';
+              pacContainer.style.borderRadius = '8px';
+            }
+            
+            // Style individual items
+            const observer = new MutationObserver(() => {
+              const pacItems = document.querySelectorAll('.pac-item');
+              pacItems.forEach((item) => {
+                const htmlItem = item as HTMLElement;
+                htmlItem.style.backgroundColor = 'hsl(var(--background))';
+                htmlItem.style.color = 'hsl(var(--foreground))';
+                htmlItem.style.borderBottom = '1px solid hsl(var(--border))';
+                
+                htmlItem.addEventListener('mouseenter', () => {
+                  htmlItem.style.backgroundColor = 'hsl(var(--accent))';
+                });
+                
+                htmlItem.addEventListener('mouseleave', () => {
+                  htmlItem.style.backgroundColor = 'hsl(var(--background))';
+                });
+              });
+            });
+            
+            observer.observe(document.body, {
+              childList: true,
+              subtree: true
+            });
+            
+            // Cleanup observer
+            setTimeout(() => observer.disconnect(), 10000);
+          }
 
           console.log('🗺️ Autocomplete instance created');
 
