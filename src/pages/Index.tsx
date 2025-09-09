@@ -454,7 +454,7 @@ const Index = () => {
             </p>
             
             {user ? (
-              <Button size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg" asChild>
+              <Button size="lg" className="bg-muted-foreground text-background hover:bg-muted-foreground/90 shadow-lg" asChild>
                 <Link to="/dashboard">
                   <ArrowRight className="mr-2 w-4 h-4" />
                   Go to Dashboard
