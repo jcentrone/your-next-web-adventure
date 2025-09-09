@@ -220,6 +220,7 @@ const Calendar: React.FC = () => {
     const onSubmit = (data: any) => {
         const appointmentData = {
             ...data,
+            appointment_date: new Date(data.appointment_date).toISOString(),
             user_id: user!.id,
             contact_id: data.contact_id || null,
         };
@@ -326,7 +327,7 @@ const Calendar: React.FC = () => {
         const appointmentData = {
             title: appointment.title,
             description: appointment.description,
-            appointment_date: finalDate.toISOString(),
+            appointment_date: new Date(finalDate).toISOString(),
             duration_minutes: appointment.duration_minutes,
             location: appointment.location,
             contact_id: appointment.contact_id,
