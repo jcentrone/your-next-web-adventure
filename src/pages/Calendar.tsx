@@ -762,14 +762,23 @@ const Calendar: React.FC = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                <DraggableCalendarGrid
-                    appointments={appointments}
-                    selectedDate={selectedDate}
-                    onDateSelect={setSelectedDate}
-                    onAppointmentDrop={handleAppointmentDrop}
-                    calendarSettings={calendarSettings}
-                    contacts={contacts}
-                />
+                                {appointments.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                                        <p className="text-muted-foreground mb-4">
+                                            Your calendar is intentionally empty. Click refresh to sync the latest appointments.
+                                        </p>
+                                        <Button onClick={handleSync}>Refresh</Button>
+                                    </div>
+                                ) : (
+                                    <DraggableCalendarGrid
+                                        appointments={appointments}
+                                        selectedDate={selectedDate}
+                                        onDateSelect={setSelectedDate}
+                                        onAppointmentDrop={handleAppointmentDrop}
+                                        calendarSettings={calendarSettings}
+                                        contacts={contacts}
+                                    />
+                                )}
                             </CardContent>
                         </Card>
 
