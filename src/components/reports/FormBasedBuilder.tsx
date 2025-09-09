@@ -9,8 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Save, FormInput, AlertCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Report } from "@/lib/reportSchemas";
-import { FORM_BASED_REPORTS } from "@/constants/reportCategories";
-import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 
 interface FormSection {
   id: string;
@@ -57,7 +55,7 @@ interface FormBasedBuilderProps {
 export function FormBasedBuilder({ userId, onSaveTemplate }: FormBasedBuilderProps) {
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
-  const [selectedReportType, setSelectedReportType] = useState<Report["reportType"]>("fl_four_point_citizens");
+  const reportType: Report["reportType"] = "fl_four_point_citizens";
   const [sections, setSections] = useState<FormSection[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -172,7 +170,7 @@ export function FormBasedBuilder({ userId, onSaveTemplate }: FormBasedBuilderPro
       await onSaveTemplate({
         name: templateName,
         description: templateDescription || undefined,
-        report_type: selectedReportType,
+        report_type: reportType,
         sections_config: sectionsConfig,
         fields_config: fieldsConfig,
       });
@@ -210,7 +208,7 @@ export function FormBasedBuilder({ userId, onSaveTemplate }: FormBasedBuilderPro
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4">
             <div>
               <Label htmlFor="template-name">Template Name</Label>
               <Input
@@ -219,21 +217,6 @@ export function FormBasedBuilder({ userId, onSaveTemplate }: FormBasedBuilderPro
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="Enter template name"
               />
-            </div>
-            <div>
-              <Label htmlFor="report-type">Report Type</Label>
-              <Select value={selectedReportType} onValueChange={(value) => setSelectedReportType(value as Report["reportType"])}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FORM_BASED_REPORTS.map(type => (
-                    <SelectItem key={type} value={type}>
-                      {REPORT_TYPE_LABELS[type]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
           <div>

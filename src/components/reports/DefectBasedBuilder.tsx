@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Plus, Save, Settings2, FileText, AlertTriangle } from "lucide-react";
 import { UniversalSectionsList } from "@/components/sections/UniversalSectionsList";
 import { SectionFieldsPanel } from "@/components/sections/SectionFieldsPanel";
@@ -12,9 +11,6 @@ import { FieldEditor } from "@/components/sections/FieldEditor";
 import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { useCustomSections } from "@/hooks/useCustomSections";
 import { useCustomFields } from "@/hooks/useCustomFields";
-import { useReportTemplates } from "@/hooks/useReportTemplates";
-import { getSectionsForReportType } from "@/constants/reportSections";
-import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { useToast } from "@/hooks/use-toast";
 import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 import type { Report } from "@/lib/reportSchemas";
@@ -47,16 +43,27 @@ interface DefectBasedBuilderProps {
 export function DefectBasedBuilder({ userId, onSaveTemplate }: DefectBasedBuilderProps) {
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
-  const [selectedReportType, setSelectedReportType] = useState<Report["reportType"]>("home_inspection");
+  const reportType: Report["reportType"] = "home_inspection";
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [fieldEditorOpen, setFieldEditorOpen] = useState(false);
   const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<CustomField | undefined>();
   const [isSaving, setIsSaving] = useState(false);
 
-  const { customSections, createSection, deleteSection } = useCustomSections();
+  const { customSections, deleteSection } = useCustomSections();
   const { customFields, createField, updateField, deleteField } = useCustomFields();
   const { toast } = useToast();
+
+  const orderedCustomSections = customSections
+    .filter(section => section.report_types.includes(reportType))
+    .map(section => ({
+      key: section.section_key,
+      name: section.title,
+      type: "custom" as const,
+      id: section.section_key,
+      sortOrder: section.sort_order || 0,
+    }))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
   const handleAddField = () => {
     setEditingField(undefined);
@@ -88,12 +95,12 @@ export function DefectBasedBuilder({ userId, onSaveTemplate }: DefectBasedBuilde
       await createField({
         ...fieldData,
         section_key: selectedSection,
-        report_types: [selectedReportType],
+        report_types: [reportType],
       });
     }
   };
 
-  const handleSectionCreated = async (title: string) => {
+  const handleSectionCreated = async () => {
     setSectionDialogOpen(false);
   };
 
@@ -109,35 +116,24 @@ export function DefectBasedBuilder({ userId, onSaveTemplate }: DefectBasedBuilde
 
     setIsSaving(true);
     try {
-      // Build sections config from standard sections + custom sections
-      const standardSections = getSectionsForReportType(selectedReportType);
-      const relevantCustomSections = customSections.filter(s => 
-        s.report_types.includes(selectedReportType)
-      );
+      // Build sections config using only user-created sections
+      const relevantCustomSections = customSections
+        .filter(s => s.report_types.includes(reportType))
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
-      const sectionsConfig = [
-        ...standardSections.map(section => ({
-          sectionKey: section.key,
-          title: section.name,
-          isCustom: false,
-          isRequired: section.isRequired || false,
-          sortOrder: section.sortOrder,
-        })),
-        ...relevantCustomSections.map((section, index) => ({
-          sectionKey: section.section_key,
-          title: section.title,
-          isCustom: true,
-          isRequired: false,
-          sortOrder: standardSections.length + index + 1,
-        })),
-      ];
+      const sectionsConfig = relevantCustomSections.map((section, index) => ({
+        sectionKey: section.section_key,
+        title: section.title,
+        isCustom: true,
+        isRequired: false,
+        sortOrder: index + 1,
+      }));
 
-      // Build fields config
+      // Build fields config from user-created fields
       const fieldsConfig: Record<string, any[]> = {};
-      
-      // Group custom fields by section
-      const relevantFields = customFields.filter(field => 
-        field.report_types.includes(selectedReportType)
+
+      const relevantFields = customFields.filter(field =>
+        field.report_types.includes(reportType)
       );
 
       relevantFields.forEach(field => {
@@ -158,7 +154,7 @@ export function DefectBasedBuilder({ userId, onSaveTemplate }: DefectBasedBuilde
       await onSaveTemplate({
         name: templateName,
         description: templateDescription || undefined,
-        report_type: selectedReportType,
+        report_type: reportType,
         sections_config: sectionsConfig,
         fields_config: fieldsConfig,
       });
@@ -195,7 +191,7 @@ export function DefectBasedBuilder({ userId, onSaveTemplate }: DefectBasedBuilde
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid gap-4">
             <div>
               <Label htmlFor="template-name">Template Name</Label>
               <Input
@@ -204,14 +200,6 @@ export function DefectBasedBuilder({ userId, onSaveTemplate }: DefectBasedBuilde
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="Enter template name"
               />
-            </div>
-            <div>
-              <Label htmlFor="report-type">Report Type</Label>
-              <div className="pt-2">
-                <Badge variant="outline">
-                  {REPORT_TYPE_LABELS[selectedReportType]}
-                </Badge>
-              </div>
             </div>
           </div>
           <div>
@@ -252,21 +240,22 @@ export function DefectBasedBuilder({ userId, onSaveTemplate }: DefectBasedBuilde
         <CardContent>
           <div className="h-[600px] flex gap-4 rounded-lg overflow-hidden border">
             <UniversalSectionsList
-              reportType={selectedReportType}
+              reportType={reportType}
               selectedSection={selectedSection}
               onSectionSelect={setSelectedSection}
               customSections={customSections}
               customFields={customFields}
               onAddSection={() => setSectionDialogOpen(true)}
+              orderedSections={orderedCustomSections}
             />
-            
+
             <SectionFieldsPanel
               selectedSection={selectedSection}
-              reportType={selectedReportType}
-              customFields={customFields.filter(field => 
-                selectedSection ? 
-                  field.section_key === selectedSection && 
-                  field.report_types.includes(selectedReportType) 
+              reportType={reportType}
+              customFields={customFields.filter(field =>
+                selectedSection ?
+                  field.section_key === selectedSection &&
+                  field.report_types.includes(reportType)
                   : false
               )}
               customSections={customSections}
@@ -305,7 +294,7 @@ export function DefectBasedBuilder({ userId, onSaveTemplate }: DefectBasedBuilde
         open={sectionDialogOpen}
         onOpenChange={setSectionDialogOpen}
         userId={userId}
-        reportTypes={[selectedReportType]}
+        reportTypes={[reportType]}
         onSectionCreated={handleSectionCreated}
       />
     </div>
