@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
-import { contactsApi } from "@/integrations/supabase/crmApi";
+import { appointmentsApi, contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 
 const schema = z.object({
@@ -22,6 +22,7 @@ const schema = z.object({
   address: z.string().min(1, "Address is required"),
   inspectionDate: z.string().min(1, "Required"),
   contactId: z.string().optional(),
+  appointmentId: z.string().optional(),
 });
 
 type Values = z.infer<typeof schema>;
@@ -39,6 +40,12 @@ const CaWildfireNew: React.FC = () => {
     enabled: !!user,
   });
 
+  const { data: appointments = [] } = useQuery({
+    queryKey: ["appointments", user?.id],
+    queryFn: () => appointmentsApi.getUpcoming(user!.id, 50),
+    enabled: !!user,
+  });
+
   const { data: contact } = useQuery({
     queryKey: ["contact", contactId],
     queryFn: () => contactsApi.get(contactId!),
@@ -53,6 +60,7 @@ const CaWildfireNew: React.FC = () => {
       address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactId: contactId || "",
+      appointmentId: appointmentId || "",
     },
   });
 
@@ -70,6 +78,17 @@ const CaWildfireNew: React.FC = () => {
     try {
       if (user) {
         const organization = await getMyOrganization();
+        let apptId = values.appointmentId;
+        if (!apptId) {
+          const appointment = await appointmentsApi.create({
+            user_id: user.id,
+            title: values.title,
+            appointment_date: new Date(values.inspectionDate).toISOString(),
+            address: values.address,
+            contact_id: values.contactId || undefined,
+          });
+          apptId = appointment.id;
+        }
         const report = await dbCreateReport(
           {
             title: values.title,
@@ -78,11 +97,12 @@ const CaWildfireNew: React.FC = () => {
             inspectionDate: values.inspectionDate,
             contact_id: values.contactId,
             reportType: "ca_wildfire_defensible_space",
-            appointment_id: appointmentId || undefined,
+            appointment_id: apptId,
           },
           user.id,
           organization?.id
         );
+        await appointmentsApi.update(apptId, { report_id: report.id });
         toast({ title: "CA wildfire report created" });
         nav(`/reports/${report.id}`);
       } else {
@@ -145,6 +165,30 @@ const CaWildfireNew: React.FC = () => {
                           <SelectItem key={c.id} value={c.id}>
                             {c.first_name} {c.last_name}
                             {c.email && <span className="text-muted-foreground ml-2">({c.email})</span>}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="appointmentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Appointment</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an appointment..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {appointments.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.title} - {new Date(a.appointment_date).toLocaleDateString()}
                           </SelectItem>
                         ))}
                       </SelectContent>

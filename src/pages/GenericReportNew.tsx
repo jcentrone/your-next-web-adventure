@@ -14,7 +14,7 @@ import { createReport } from "@/hooks/useLocalDraft";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
-import { contactsApi } from "@/integrations/supabase/crmApi";
+import { appointmentsApi, contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 import type { Report } from "@/lib/reportSchemas";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
@@ -27,6 +27,7 @@ const schema = z.object({
   inspectionDate: z.string().min(1, "Required"),
   contactIds: z.array(z.string()).optional().default([]),
   tags: z.array(z.string()).optional().default([]),
+  appointmentId: z.string().optional(),
 });
 
 type Values = z.infer<typeof schema>;
@@ -47,6 +48,12 @@ const GenericReportNew: React.FC = () => {
     enabled: !!user,
   });
 
+  const { data: appointments = [] } = useQuery({
+    queryKey: ["appointments", user?.id],
+    queryFn: () => appointmentsApi.getUpcoming(user!.id, 50),
+    enabled: !!user,
+  });
+
   const { data: contact } = useQuery({
     queryKey: ["contact", contactId],
     queryFn: () => contactsApi.get(contactId!),
@@ -62,6 +69,7 @@ const GenericReportNew: React.FC = () => {
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactIds: contactId ? [contactId] : [],
       tags: [],
+      appointmentId: appointmentId || "",
     },
   });
 
@@ -79,6 +87,17 @@ const GenericReportNew: React.FC = () => {
     try {
       if (user) {
         const organization = await getMyOrganization();
+        let apptId = values.appointmentId;
+        if (!apptId) {
+          const appointment = await appointmentsApi.create({
+            user_id: user.id,
+            title: values.title,
+            appointment_date: new Date(values.inspectionDate).toISOString(),
+            address: values.address,
+            contact_id: values.contactIds[0] || undefined,
+          });
+          apptId = appointment.id;
+        }
         const report = await dbCreateReport(
           {
             title: values.title,
@@ -88,11 +107,12 @@ const GenericReportNew: React.FC = () => {
             contactIds: values.contactIds || [],
             reportType: type,
             tags: values.tags || [],
-            appointment_id: appointmentId || undefined,
+            appointment_id: apptId,
           },
           user.id,
           organization?.id
         );
+        await appointmentsApi.update(apptId, { report_id: report.id });
         toast({ title: `${label} report created` });
         nav(`/reports/${report.id}`);
       } else {
@@ -164,6 +184,30 @@ const GenericReportNew: React.FC = () => {
                         }
                       }}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="appointmentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Appointment</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an appointment..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {appointments.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.title} - {new Date(a.appointment_date).toLocaleDateString()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
