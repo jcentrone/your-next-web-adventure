@@ -2,10 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useTheme } from "@/hooks/useTheme";
+import { useThemeContext } from "@/components/ThemeProvider";
 
 const Advanced: React.FC = () => {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useThemeContext();
 
   return (
     <div className="space-y-6">
