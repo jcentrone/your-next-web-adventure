@@ -24,8 +24,10 @@ export function RouteOptimizationSettings() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    if (user) {
+      loadSettings();
+    }
+  }, [user]);
 
   const loadSettings = async () => {
     try {
