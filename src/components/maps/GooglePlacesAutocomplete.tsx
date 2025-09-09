@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { reportIfMapsJsBlocked } from './loadGoogleMapsApi';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
 interface GooglePlacesAutocompleteProps {
   value?: string;
@@ -20,13 +21,14 @@ interface GooglePlacesAutocompleteProps {
   className?: string;
 }
 
-export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocompleteProps>(
+export const GooglePlacesAutocomplete = forwardRef<HTMLInputElement, GooglePlacesAutocompleteProps>(
   (
     { value = '', onPlaceChange, onInputChange, placeholder = 'Enter address...', className },
     ref
   ) => {
-    const internalRef = useRef<any>(null);
-    const elementRef = (ref as React.MutableRefObject<any>) || internalRef;
+    const internalRef = useRef<HTMLInputElement>(null);
+    const elementRef = (ref as React.MutableRefObject<HTMLInputElement>) || internalRef;
+    const autocompleteRef = useRef<any | null>(null);
     const onPlaceChangeRef = useRef(onPlaceChange);
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
@@ -44,12 +46,11 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
 
     useEffect(() => {
       let isMounted = true;
-      let cleanupFn: (() => void) | null = null;
 
       const init = async () => {
         try {
           setIsLoading(true);
-          console.log('Initializing Google Maps API...');
+          console.log('🗺️ Initializing Google Maps API...');
           
           const { data: apiKeyData, error: apiKeyError } = await supabase.functions.invoke('google-maps-proxy');
           if (apiKeyError || !apiKeyData?.apiKey) {
@@ -57,7 +58,7 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
             throw new Error('Failed to get Google Maps API key');
           }
 
-          console.log('API key obtained successfully');
+          console.log('🗺️ API key obtained successfully');
 
           const loader = new Loader({
             apiKey: apiKeyData.apiKey,
@@ -66,71 +67,60 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
           });
           
           await loader.load();
-          console.log('Google Maps API loaded');
-          
-          await window.google.maps.importLibrary('places');
-          console.log('Places library imported');
+          console.log('🗺️ Google Maps API loaded');
 
           if (!isMounted || !elementRef.current) {
             console.log('Component unmounted or element not available');
             return;
           }
 
-          const el = elementRef.current;
+          const input = elementRef.current;
           setApiLoaded(true);
 
           // Set initial value after API loads
           if (value) {
-            el.value = value;
+            input.value = value;
           }
 
-          const handlePlaceChange = async (event: any) => {
-            console.log('Place change event:', event.type, event);
-            const place = event.detail?.place || event.place;
+          // Create autocomplete instance
+          const googleMaps = (window as any).google;
+          autocompleteRef.current = new googleMaps.maps.places.Autocomplete(input, {
+            fields: ['formatted_address', 'place_id', 'geometry', 'address_components'],
+          });
+
+          console.log('🗺️ Autocomplete instance created');
+
+          // Add place change listener
+          const placeChangedListener = () => {
+            console.log('🎯 Place changed event fired');
+            const place = autocompleteRef.current?.getPlace();
+            
             if (!place) {
-              console.log('No place data in event');
+              console.log('🎯 No place data available');
               return;
             }
 
-            try {
-              await place.fetchFields({
-                fields: ['formatted_address', 'place_id', 'geometry', 'address_components'],
-              });
+            console.log('🎯 Place data received:', place);
 
-              console.log('Place data fetched:', place);
+            if (place.geometry?.location) {
+              const placeData = {
+                formatted_address: place.formatted_address || '',
+                place_id: place.place_id || '',
+                latitude: place.geometry.location.lat(),
+                longitude: place.geometry.location.lng(),
+                address_components: place.address_components || [],
+              };
 
-              if (place.geometry?.location) {
-                onPlaceChangeRef.current({
-                  formatted_address: place.formatted_address || '',
-                  place_id: place.place_id || '',
-                  latitude: place.geometry.location.lat(),
-                  longitude: place.geometry.location.lng(),
-                  address_components: place.address_components || [],
-                });
-              }
-            } catch (error) {
-              console.error('Error fetching place details:', error);
+              console.log('🎯 Calling onPlaceChange with:', placeData);
+              onPlaceChangeRef.current(placeData);
+            } else {
+              console.log('🎯 No geometry data in place');
             }
           };
 
-          const handleInput = (e: any) => {
-            console.log('Input event:', e.target.value);
-            if (onInputChange) {
-              onInputChange(e.target.value);
-            }
-          };
+          autocompleteRef.current.addListener('place_changed', placeChangedListener);
 
-          // Add event listeners
-          el.addEventListener('gmp-placeselect', handlePlaceChange);
-          el.addEventListener('input', handleInput);
-
-          console.log('Event listeners attached');
-
-          cleanupFn = () => {
-            console.log('Cleaning up event listeners');
-            el.removeEventListener('gmp-placeselect', handlePlaceChange);
-            el.removeEventListener('input', handleInput);
-          };
+          console.log('🗺️ Place change listener attached');
 
         } catch (error) {
           console.error('Error loading Google Maps:', error);
@@ -151,35 +141,29 @@ export const GooglePlacesAutocomplete = forwardRef<any, GooglePlacesAutocomplete
 
       return () => {
         isMounted = false;
-        if (cleanupFn) {
-          cleanupFn();
+        if (autocompleteRef.current) {
+          (window as any).google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
         }
       };
-    }, [onInputChange, toast, elementRef]);
+    }, [toast]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log('🎯 Input change:', e.target.value);
+      if (onInputChange) {
+        onInputChange(e.target.value);
+      }
+    };
 
     return (
-      <div className={cn(
-        "relative w-full",
-        "before:absolute before:inset-0 before:rounded-md before:border before:border-input before:pointer-events-none",
-        "focus-within:before:ring-2 focus-within:before:ring-ring focus-within:before:ring-offset-2",
-        "focus-within:before:border-ring",
-        className
-      )}>
+      <div className={cn("relative w-full", className)}>
         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 z-10 pointer-events-none" />
-        {/* eslint-disable-next-line react/no-unknown-property */}
-        <gmp-place-autocomplete
+        <Input
           ref={elementRef}
           placeholder={placeholder}
-          class="w-full h-10 pl-10 pr-3 py-2 text-sm bg-transparent border-0 outline-0 rounded-md"
-          style={{
-            color: 'inherit',
-            backgroundColor: 'transparent',
-            border: 'none',
-            outline: 'none',
-            fontFamily: 'inherit',
-            fontSize: 'inherit'
-          } as React.CSSProperties}
-        ></gmp-place-autocomplete>
+          className="pl-10 pr-10"
+          onChange={handleInputChange}
+          defaultValue={value}
+        />
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground z-10" />
         )}
