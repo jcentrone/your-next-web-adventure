@@ -439,7 +439,7 @@ const Index = () => {
       {/* Enhanced Call to Action */}
       <section className="max-w-7xl mx-auto px-4 py-16">
         <div className="relative bg-gradient-to-br from-primary via-primary to-primary/80 rounded-3xl p-8 md:p-12 text-center overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/10 to-transparent" />
+          <div className="absolute inset-0" style={{ backgroundColor: '#0A1122' }} />
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 bg-muted-foreground text-background px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Smartphone className="w-4 h-4" />
