@@ -148,7 +148,7 @@ const Calendar: React.FC = () => {
     const createContactMutation = useMutation({
         mutationFn: contactsApi.create,
         onSuccess: (newContact) => {
-            queryClient.invalidateQueries({queryKey: ["contacts"]});
+            queryClient.invalidateQueries({queryKey: ["contacts", user!.id]});
             toast.success("Contact created successfully");
             setIsContactDialogOpen(false);
             contactForm.reset();
