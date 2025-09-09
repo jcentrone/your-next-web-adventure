@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MapPin, Save } from 'lucide-react';
 import { GooglePlacesAutocomplete } from '@/components/maps/GooglePlacesAutocomplete';
 import { routeOptimizationApi, type RouteOptimizationSettings } from '@/integrations/supabase/routeOptimizationApi';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 export function RouteOptimizationSettings() {
+  const { user } = useAuth();
   const [settings, setSettings] = useState<Partial<RouteOptimizationSettings>>({
     home_base_address: '',
     default_enabled: true,
@@ -39,6 +41,15 @@ export function RouteOptimizationSettings() {
   };
 
   const handleSaveSettings = async () => {
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please log in to save settings.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!settings.home_base_address) {
       toast({
         title: 'Home base required',
@@ -52,7 +63,7 @@ export function RouteOptimizationSettings() {
 
     try {
       await routeOptimizationApi.upsertSettings({
-        user_id: '', // Will be set by RLS
+        user_id: user.id,
         ...settings,
       } as RouteOptimizationSettings);
 
