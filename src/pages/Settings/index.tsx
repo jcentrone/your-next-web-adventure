@@ -95,7 +95,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex min-h-screen bg-background">
       {/* Fixed Sidebar */}
       <div className="w-64 bg-muted/30 border-r border-border">
         <div className="p-6">
@@ -105,7 +105,7 @@ const Settings: React.FC = () => {
           </p>
         </div>
         
-        <nav className="px-3">
+        <nav className="px-3 pb-6">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
@@ -131,10 +131,10 @@ const Settings: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
+      <div className="flex-1">
+        <div className="p-8 max-w-5xl">
           <div className="mb-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
               {currentItem && (
                 <>
                   <currentItem.icon className="h-5 w-5 text-muted-foreground" />
