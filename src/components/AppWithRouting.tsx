@@ -10,7 +10,14 @@ import GoogleCallback from "@/pages/oauth/GoogleCallback";
 import OutlookCallback from "@/pages/oauth/OutlookCallback";
 import AppleCallback from "@/pages/oauth/AppleCallback";
 import ShowingTimeCallback from "@/pages/oauth/ShowingTimeCallback";
-import { OnboardingWrapper } from '@/components/onboarding/OnboardingWrapper';
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-[400px]">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+      <p className="text-muted-foreground">Loading page...</p>
+    </div>
+  </div>
+);
 
 const lazyLoad = (
   loader: () => Promise<{ default: React.ComponentType<any> }>
@@ -18,21 +25,18 @@ const lazyLoad = (
   const C = React.lazy(loader);
   return (
     <ErrorBoundary>
-      <React.Suspense fallback={null}>
+      <React.Suspense fallback={<LoadingFallback />}>
         <C />
       </React.Suspense>
     </ErrorBoundary>
   );
 };
 
-const AppWithOnboarding: React.FC = () => {
+const AppWithRouting: React.FC = () => {
   return (
-    <OnboardingWrapper>
-      <PWAManager />
-      <NotificationManager />
-      <BrowserRouter
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+    <BrowserRouter
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
         <Routes>
           <Route path="/oauth/google" element={<GoogleCallback />} />
           <Route path="/oauth/outlook" element={<OutlookCallback />} />
@@ -69,7 +73,7 @@ const AppWithOnboarding: React.FC = () => {
     <Route path="/accounts/new" element={lazyLoad(() => import("@/pages/AccountNew"))} />
     <Route path="/accounts/:id" element={lazyLoad(() => import("@/pages/AccountDetail"))} />
     <Route path="/analytics" element={lazyLoad(() => import("@/pages/Analytics"))} />
-          <Route path="/calendar" element={lazyLoad(() => import("@/pages/Calendar"))} />
+          <Route path="/calendar" element={lazyLoad(() => import("@/components/calendar/CalendarWrapper"))} />
           <Route path="/tasks" element={lazyLoad(() => import("@/pages/Tasks"))} />
           <Route path="/support" element={lazyLoad(() => import("@/pages/ContactSupport"))} />
           <Route path="/documentation" element={lazyLoad(() => import("@/pages/Documentation"))} />
@@ -81,10 +85,9 @@ const AppWithOnboarding: React.FC = () => {
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Route>
-      </Routes>
-    </BrowserRouter>
-  </OnboardingWrapper>
+        </Routes>
+      </BrowserRouter>
   );
 };
 
-export default AppWithOnboarding;
+export default AppWithRouting;

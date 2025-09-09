@@ -4,7 +4,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./components/ThemeProvider";
-import AppWithOnboarding from "./components/AppWithOnboarding";
+import { OnboardingWrapper } from '@/components/onboarding/OnboardingWrapper';
+import { PWAManager } from "@/components/pwa/PWAManager";
+import { NotificationManager } from "@/components/notifications/NotificationManager";
+import AppWithRouting from "./components/AppWithRouting";
 
 const queryClient = new QueryClient();
 
@@ -15,7 +18,11 @@ const App = () => (
         <Toaster />
         <Sonner />
         <AuthProvider>
-          <AppWithOnboarding />
+          <OnboardingWrapper>
+            <PWAManager />
+            <NotificationManager />
+            <AppWithRouting />
+          </OnboardingWrapper>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
