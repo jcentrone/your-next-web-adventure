@@ -10,11 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createReport } from "@/hooks/useLocalDraft";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
-import { contactsApi } from "@/integrations/supabase/crmApi";
+import { appointmentsApi, contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 import type { Contact } from "@/lib/crmSchemas";
@@ -28,6 +29,7 @@ const schema = z.object({
   contactIds: z.array(z.string()).optional().default([]),
   includeStandardsOfPractice: z.boolean().default(true),
   tags: z.array(z.string()).optional().default([]),
+  appointmentId: z.string().optional(),
 });
 
 type Values = z.infer<typeof schema>;
@@ -49,6 +51,12 @@ const HomeInspectionNew: React.FC = () => {
     enabled: !!user,
   });
 
+  const { data: appointments = [] } = useQuery({
+    queryKey: ["appointments", user?.id],
+    queryFn: () => appointmentsApi.getUpcoming(user!.id, 50),
+    enabled: !!user,
+  });
+
   // Get contact data if contactId is provided
   const { data: contact } = useQuery({
     queryKey: ["contact", contactId],
@@ -66,6 +74,7 @@ const HomeInspectionNew: React.FC = () => {
       contactIds: contactId ? [contactId] : [],
       includeStandardsOfPractice: true,
       tags: [],
+      appointmentId: appointmentId || "",
     },
   });
 
@@ -98,6 +107,17 @@ const HomeInspectionNew: React.FC = () => {
     try {
       if (user) {
         const organization = await getMyOrganization();
+        let apptId = values.appointmentId;
+        if (!apptId) {
+          const appointment = await appointmentsApi.create({
+            user_id: user.id,
+            title: values.title,
+            appointment_date: new Date(values.inspectionDate).toISOString(),
+            address: values.address,
+            contact_id: values.contactIds[0] || undefined,
+          });
+          apptId = appointment.id;
+        }
         const report = await dbCreateReport(
           {
             title: values.title,
@@ -109,11 +129,12 @@ const HomeInspectionNew: React.FC = () => {
             includeStandardsOfPractice: values.includeStandardsOfPractice,
             tags: values.tags || [],
             template: reportTemplate,
-            appointment_id: appointmentId || undefined,
+            appointment_id: apptId,
           },
           user.id,
           organization?.id
         );
+        await appointmentsApi.update(apptId, { report_id: report.id });
         toast({ title: "Home inspection report created" });
         nav(`/reports/${report.id}`);
       } else {
@@ -179,6 +200,30 @@ const HomeInspectionNew: React.FC = () => {
                   <FormDescription>
                     Search and select who will be attending the inspection
                   </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="appointmentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Appointment</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an appointment..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {appointments.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.title} - {new Date(a.appointment_date).toLocaleDateString()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

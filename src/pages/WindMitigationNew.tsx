@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbCreateReport } from "@/integrations/supabase/reportsApi";
-import { contactsApi } from "@/integrations/supabase/crmApi";
+import { appointmentsApi, contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 
 const schema = z.object({
@@ -30,6 +31,7 @@ const schema = z.object({
   insuranceCompany: z.string().optional(),
   policyNumber: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
+  appointmentId: z.string().optional(),
 });
 
 type Values = z.infer<typeof schema>;
@@ -45,6 +47,12 @@ const WindMitigationNew: React.FC = () => {
   const { data: contacts = [] } = useQuery({
     queryKey: ["contacts", user?.id],
     queryFn: () => contactsApi.list(user!.id),
+    enabled: !!user,
+  });
+
+  const { data: appointments = [] } = useQuery({
+    queryKey: ["appointments", user?.id],
+    queryFn: () => appointmentsApi.getUpcoming(user!.id, 50),
     enabled: !!user,
   });
 
@@ -71,6 +79,7 @@ const WindMitigationNew: React.FC = () => {
       insuranceCompany: "",
       policyNumber: "",
       email: "",
+      appointmentId: appointmentId || "",
     },
   });
 
@@ -102,6 +111,17 @@ const WindMitigationNew: React.FC = () => {
     try {
       if (user) {
         const organization = await getMyOrganization();
+        let apptId = values.appointmentId;
+        if (!apptId) {
+          const appointment = await appointmentsApi.create({
+            user_id: user.id,
+            title: values.title,
+            appointment_date: new Date(values.inspectionDate).toISOString(),
+            address: values.address,
+            contact_id: values.contactIds[0] || undefined,
+          });
+          apptId = appointment.id;
+        }
         const report = await dbCreateReport(
           {
             title: values.title,
@@ -118,11 +138,12 @@ const WindMitigationNew: React.FC = () => {
             insuranceCompany: values.insuranceCompany,
             policyNumber: values.policyNumber,
             email: values.email,
-            appointment_id: appointmentId || undefined,
+            appointment_id: apptId,
           },
           user.id,
           organization?.id
         );
+        await appointmentsApi.update(apptId, { report_id: report.id });
         toast({ title: "Uniform mitigation report created" });
         nav(`/reports/${report.id}`);
       } else {
@@ -200,6 +221,30 @@ const WindMitigationNew: React.FC = () => {
                         }
                       }}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="appointmentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Appointment</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an appointment..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {appointments.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.title} - {new Date(a.appointment_date).toLocaleDateString()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
