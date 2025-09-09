@@ -5,7 +5,7 @@ export const accountsApi = {
   async list(userId: string): Promise<Account[]> {
     const { data, error } = await supabase
       .from('accounts')
-      .select('*')
+      .select('*, tags')
       .eq('user_id', userId)
       .eq('is_active', true)
       .order('name');
@@ -17,7 +17,7 @@ export const accountsApi = {
   async get(id: string): Promise<Account | null> {
     const { data, error } = await supabase
       .from('accounts')
-      .select('*')
+      .select('*, tags')
       .eq('id', id)
       .single();
     
@@ -43,6 +43,7 @@ export const accountsApi = {
       notes: account.notes,
       annual_revenue: account.annual_revenue,
       employee_count: account.employee_count,
+      tags: account.tags,
       user_id: user.user.id,
     };
 
@@ -57,9 +58,14 @@ export const accountsApi = {
   },
 
   async update(id: string, updates: UpdateAccount): Promise<Account> {
+    const updateData = {
+      ...updates,
+      tags: updates.tags,
+    };
+
     const { data, error } = await supabase
       .from('accounts')
-      .update(updates)
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -80,7 +86,7 @@ export const accountsApi = {
   async search(userId: string, query: string): Promise<Account[]> {
     const { data, error } = await supabase
       .from('accounts')
-      .select('*')
+      .select('*, tags')
       .eq('user_id', userId)
       .eq('is_active', true)
       .or(`name.ilike.%${query}%,email.ilike.%${query}%,website.ilike.%${query}%`)
@@ -97,7 +103,7 @@ export const accountsApi = {
       .eq('account_id', accountId)
       .eq('is_active', true)
       .order('first_name');
-    
+
     if (error) throw error;
     return data;
   },

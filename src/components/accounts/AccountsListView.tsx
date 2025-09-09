@@ -20,6 +20,7 @@ export const AccountsListView: React.FC<AccountsListViewProps> = ({ accounts, fo
             <TableHead>Account Name</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Industry</TableHead>
+            <TableHead>Tags</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Employees</TableHead>
             <TableHead>Revenue</TableHead>
@@ -44,6 +45,13 @@ export const AccountsListView: React.FC<AccountsListViewProps> = ({ accounts, fo
                 {account.industry && (
                   <Badge variant="outline">{account.industry}</Badge>
                 )}
+              </TableCell>
+              <TableCell>
+                {account.tags?.map((tag) => (
+                  <Badge key={tag} variant="outline" className="mr-1">
+                    {tag}
+                  </Badge>
+                ))}
               </TableCell>
               <TableCell>
                 {(account.city || account.state) && (

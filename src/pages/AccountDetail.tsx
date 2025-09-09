@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { TagInput } from "@/components/ui";
 import { accountsApi } from "@/integrations/supabase/accountsApi";
 import { CreateAccountSchema } from "@/lib/accountSchemas";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,6 +43,7 @@ export default function AccountDetail() {
       notes: "",
       annual_revenue: undefined,
       employee_count: undefined,
+      tags: [],
     },
   });
 
@@ -92,6 +94,7 @@ export default function AccountDetail() {
         notes: account.notes || "",
         annual_revenue: account.annual_revenue,
         employee_count: account.employee_count,
+        tags: account.tags || [],
       });
       setIsEditing(true);
     }
@@ -170,11 +173,14 @@ export default function AccountDetail() {
                 </Avatar>
                 <div>
                   <CardTitle className="text-2xl">{account.name}</CardTitle>
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
                     <Badge variant="secondary">{account.type}</Badge>
                     {account.industry && (
                       <Badge variant="outline">{account.industry}</Badge>
                     )}
+                    {account.tags?.map((tag) => (
+                      <Badge key={tag}>{tag}</Badge>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -444,6 +450,19 @@ export default function AccountDetail() {
                       )}
                     />
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="tags"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tags</FormLabel>
+                        <FormControl>
+                          <TagInput value={field.value || []} onChange={field.onChange} placeholder="Add tags" />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
                   <FormField
                     control={form.control}
