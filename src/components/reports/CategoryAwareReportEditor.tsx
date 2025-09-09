@@ -7,6 +7,7 @@ import { getReportCategory, isDefectBasedReport } from "@/constants/reportCatego
 import { useCustomFields } from "@/hooks/useCustomFields";
 import { useSectionGuidance } from "@/hooks/useSectionGuidance";
 import { InfoFieldWidget } from "./InfoFieldWidget";
+import DefectPicker from "./DefectPicker";
 import type { Report } from "@/lib/reportSchemas";
 import type { ReportTemplate } from "@/integrations/supabase/reportTemplatesApi";
 
@@ -39,6 +40,7 @@ function DefectBasedReportEditor({
 }: CategoryAwareReportEditorProps) {
   const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
   const [activeTab, setActiveTab] = React.useState<"info" | "observations">("info");
+  const [pickerOpen, setPickerOpen] = React.useState(false);
 
   // Use existing section structure for defect-based reports
   const sections = (report as any).sections || [];
@@ -76,7 +78,8 @@ function DefectBasedReportEditor({
     } as Report);
   };
 
-  return (
+return (
+    <>
     <div className="flex h-[800px] border rounded-lg overflow-hidden">
       {/* Sections Sidebar */}
       <div className="w-80 bg-muted/30 border-r">
@@ -193,8 +196,9 @@ function DefectBasedReportEditor({
                       </ul>
                     </details>
                   </section>
-                  <div className="flex justify-between mb-4">
+                  <div className="flex gap-2 mb-4">
                     <Button onClick={addObservation}>Add Observation</Button>
+                    <Button onClick={() => setPickerOpen(true)}>Add Defect</Button>
                   </div>
                 </div>
 
@@ -280,6 +284,39 @@ function DefectBasedReportEditor({
         )}
       </div>
     </div>
+    <DefectPicker
+      open={pickerOpen}
+      onOpenChange={setPickerOpen}
+      sectionKey={activeSection.key}
+      onInsert={(tpl) => {
+        if (!activeSection) return;
+        const fid = crypto.randomUUID();
+        const updatedSections = sections.map((s: any) =>
+          s.id === activeSection.id
+            ? {
+                ...s,
+                findings: [
+                  {
+                    id: fid,
+                    title: tpl.title,
+                    severity: tpl.severity,
+                    narrative: tpl.narrative,
+                    recommendation: tpl.recommendation || "",
+                    mediaGuidance: tpl.mediaGuidance || "",
+                    defectId: tpl.defectId || null,
+                    media: [],
+                    includeInSummary: false,
+                  },
+                  ...s.findings,
+                ],
+              }
+            : s
+        );
+        onReportChange({ ...report, sections: updatedSections } as Report);
+        if (tpl.defectId) setPickerOpen(false);
+      }}
+    />
+    </>
   );
 }
 
