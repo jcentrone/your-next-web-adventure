@@ -7,6 +7,7 @@ import {Input} from "@/components/ui/input";
 import {Separator} from "@/components/ui/separator";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Calendar, Navigation, Search} from "lucide-react";
+import { RouteOptimizationSettings } from "@/components/settings/RouteOptimizationSettings";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as openAI from "@/integrations/openAI";
 
@@ -34,32 +35,13 @@ const Integrations: React.FC = () => {
 
     const integrations = useMemo(() => [
         {
-            id: "route-optimization",
-            name: "Route Optimization",
-            type: "navigation",
-            category: "Navigation & Maps",
-            description: "Enable optimized navigation when viewing daily appointments.",
-            icon: <Navigation className="h-5 w-5 text-muted-foreground"/>,
-            component: (
-                <div className="flex items-center justify-between border p-4 rounded-md">
-                    <div className="flex items-center gap-3">
-                        <Navigation className="h-5 w-5 text-muted-foreground"/>
-                        <div>
-                            <p className="font-medium">Route Optimization</p>
-                            <p className="text-sm text-muted-foreground">
-                                Enable optimized navigation when viewing daily appointments.
-                            </p>
-                        </div>
-                    </div>
-                    <Switch
-                        checked={optimizeRoute}
-                        onCheckedChange={(checked) => {
-                            setOptimizeRoute(checked);
-                            localStorage.setItem("optimizeRoute", String(checked));
-                        }}
-                    />
-                </div>
-            )
+          id: 'route-optimization',
+          name: 'Route Optimization & Mileage Tracking',
+          type: 'navigation' as const,
+          category: 'Navigation & Maps',
+          description: 'Configure home base, track mileage, and optimize routes with AI',
+          icon: <Navigation className="h-5 w-5 text-muted-foreground"/>,
+          component: <RouteOptimizationSettings />,
         },
         {
             id: "google-calendar",

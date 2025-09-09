@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DateRangePicker } from "@/components/DateRangePicker";
+import { MileageAnalytics } from "@/components/analytics/MileageAnalytics";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface AnalyticsData {
@@ -328,12 +329,13 @@ export default function Analytics() {
       </div>
 
       {/* Charts */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="reports">Report Analysis</TabsTrigger>
-          <TabsTrigger value="activity">Activity Trends</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="reports">Report Analysis</TabsTrigger>
+            <TabsTrigger value="activity">Activity Trends</TabsTrigger>
+            <TabsTrigger value="mileage">Mileage</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -468,6 +470,10 @@ export default function Analytics() {
               </ChartContainer>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="mileage" className="space-y-4">
+          <MileageAnalytics />
         </TabsContent>
       </Tabs>
     </div>
