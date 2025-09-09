@@ -40,10 +40,12 @@ import * as appleCalendar from "@/integrations/appleCalendar";
 import {syncExternalEvents} from "@/integrations/syncExternalEvents";
 import { getOptimizedRoute } from "@/components/maps/routeOptimizer";
 import RouteChoiceDialog from "@/components/maps/RouteChoiceDialog";
+import { useNavigate } from "react-router-dom";
 
 const Calendar: React.FC = () => {
     const {user} = useAuth();
     const queryClient = useQueryClient();
+    const navigate = useNavigate();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
@@ -907,6 +909,7 @@ const Calendar: React.FC = () => {
                         isOpen={!!previewAppointment}
                         onOpenChange={(open) => !open && setPreviewAppointment(null)}
                         contact={(previewAppointment as any)?.contacts || (previewAppointment as any)?.contact}
+                        onNavigate={navigate}
                     />
 
                     {/* Delete Confirmation Dialog */}
