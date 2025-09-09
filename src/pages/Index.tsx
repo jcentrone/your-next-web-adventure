@@ -161,13 +161,13 @@ const Index = () => {
         <div className="text-center max-w-4xl mx-auto relative z-10">
           <div className="relative inline-block mb-8">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-2xl blur-lg"></div>
-            <div className="relative bg-card/80 backdrop-blur-sm border border-primary/20 px-6 py-3 rounded-2xl">
+            <div className="relative bg-muted-foreground/90 backdrop-blur-sm border border-primary/20 px-6 py-3 rounded-2xl">
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <div className="w-3 h-3 bg-primary rounded-full animate-ping"></div>
                   <div className="absolute inset-0 w-3 h-3 bg-primary rounded-full"></div>
                 </div>
-                <span className="text-primary font-medium">Professional Inspection Platform</span>
+                <span className="text-background font-medium">Professional Inspection Platform</span>
               </div>
             </div>
           </div>
