@@ -1230,6 +1230,58 @@ const Documentation = () => {
                       </CollapsibleContent>
                     </Collapsible>
 
+                     <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                        <ChevronRight className="w-4 h-4" />
+                        <span className="font-semibold">Route Optimization & Mileage Analytics</span>
+                        <Badge className="ml-auto">New</Badge>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="p-4 space-y-4">
+                        <div className="space-y-4">
+                          <p className="text-sm text-muted-foreground">
+                            Our route optimization and mileage analytics help you maximize efficiency and track business expenses.
+                          </p>
+                          
+                          <h4 className="font-semibold">Mileage Analytics Dashboard</h4>
+                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <li><strong>Total Miles Driven:</strong> Track cumulative mileage across all optimized routes</li>
+                            <li><strong>Estimated Fuel Costs:</strong> Calculate expenses based on your configured mileage rate</li>
+                            <li><strong>Total Route Trips:</strong> Count of optimized routes taken</li>
+                            <li><strong>Average Miles per Trip:</strong> Efficiency metric to identify route optimization benefits</li>
+                            <li><strong>Monthly Trends:</strong> Visual charts showing mileage and cost trends over time</li>
+                          </ul>
+
+                          <h4 className="font-semibold">Route Optimization Features</h4>
+                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <li><strong>Home Base Setup:</strong> Configure your starting/ending location for optimal route planning</li>
+                            <li><strong>Daily Route Planning:</strong> Automatically optimize multiple appointments for minimal driving</li>
+                            <li><strong>Navigation Integration:</strong> Generate links for Google Maps and Waze with optimized waypoints</li>
+                            <li><strong>Cost Tracking:</strong> Automatic calculation of mileage expenses based on IRS rates or custom rates</li>
+                          </ul>
+
+                          <h4 className="font-semibold">Using Route Optimization</h4>
+                          <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
+                            <li>Configure your home base address in Settings → Integrations → Route Optimization</li>
+                            <li>Set your mileage rate and preferred navigation app</li>
+                            <li>On the Calendar page, use the "Optimize Route" button for any day with multiple appointments</li>
+                            <li>Choose your preferred navigation app (Google Maps or Waze) to start your optimized route</li>
+                            <li>View mileage analytics in the Analytics page to track savings and expenses</li>
+                          </ol>
+
+                          <div className="bg-green-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2 flex items-center gap-2">
+                              <Navigation className="w-4 h-4" />
+                              Route Optimization Benefits
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              Route optimization can save 20-30% on driving time and fuel costs. The system uses Google Maps 
+                              to calculate the most efficient order of stops, reducing backtracking and unnecessary miles.
+                            </p>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
                     <Collapsible>
                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
                         <ChevronRight className="w-4 h-4" />
@@ -1252,6 +1304,7 @@ const Documentation = () => {
                             <li>Contacts data shows total active clients</li>
                             <li>Appointments data filtered by appointment date within selected range</li>
                             <li>All data is filtered to show only your own business information</li>
+                            <li><strong>Route Optimization data:</strong> Includes daily routes, mileage, and cost calculations</li>
                           </ul>
 
                           <div className="bg-blue-50 p-4 rounded-lg">
@@ -1318,6 +1371,58 @@ const Documentation = () => {
                       </CollapsibleContent>
                     </Collapsible>
 
+                     <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                        <ChevronRight className="w-4 h-4" />
+                        <span className="font-semibold">Route Optimization & Travel Efficiency</span>
+                        <Badge className="ml-auto">New</Badge>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="p-4 space-y-4">
+                        <div className="space-y-4">
+                          <h4 className="font-semibold">Smart Route Planning</h4>
+                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <li>Automatically calculate optimal appointment order to minimize drive time</li>
+                            <li>Integration with Google Maps for real-time traffic and route optimization</li>
+                            <li>Support for custom home base address (office or preferred starting location)</li>
+                            <li>Option to always return home or end at the last appointment</li>
+                          </ul>
+
+                          <h4 className="font-semibold">Configuration Options</h4>
+                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <li><strong>Home Base Address:</strong> Set your starting point using Google Places autocomplete</li>
+                            <li><strong>Mileage Rate:</strong> Configure IRS standard rate or custom rate for expense tracking</li>
+                            <li><strong>Preferred Navigation App:</strong> Choose between Google Maps and Waze for turn-by-turn directions</li>
+                            <li><strong>Auto-Enable:</strong> Automatically suggest route optimization for multi-appointment days</li>
+                            <li><strong>Return Home Setting:</strong> Control whether routes end at your home base or last appointment</li>
+                          </ul>
+
+                          <h4 className="font-semibold">Usage & Analytics</h4>
+                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <li><strong>One-Click Optimization:</strong> Optimize any day's appointments with a single button click</li>
+                            <li><strong>Navigation Links:</strong> Generate direct links to start navigation in your preferred app</li>
+                            <li><strong>Cost Calculation:</strong> Automatic mileage expense calculation based on optimized routes</li>
+                            <li><strong>Historical Tracking:</strong> View past routes and analyze travel patterns over time</li>
+                            <li><strong>Savings Reports:</strong> Compare optimized vs. non-optimized route distances and costs</li>
+                          </ul>
+
+                          <div className="bg-green-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2 flex items-center gap-2">
+                              <Navigation className="w-4 h-4" />
+                              Setup Instructions
+                            </h4>
+                            <ol className="list-decimal pl-6 space-y-1 text-sm text-muted-foreground">
+                              <li>Go to Settings → Integrations → Route Optimization</li>
+                              <li>Enter your home base address using the autocomplete field</li>
+                              <li>Set your mileage rate (defaults to current IRS rate)</li>
+                              <li>Choose your preferred navigation app</li>
+                              <li>Enable "Default Enabled" to automatically suggest optimization</li>
+                              <li>Save settings and start optimizing routes from the Calendar page</li>
+                            </ol>
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
                     <Collapsible>
                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
                         <ChevronRight className="w-4 h-4" />
@@ -1332,6 +1437,7 @@ const Documentation = () => {
                             <li>Automated follow-up email sequences</li>
                             <li>Invoice generation upon report completion</li>
                             <li>Calendar sync and conflict resolution</li>
+                            <li><strong>Route Optimization:</strong> Auto-suggest optimization for days with 3+ appointments</li>
                           </ul>
 
                           <h4 className="font-semibold">Smart Templates</h4>
