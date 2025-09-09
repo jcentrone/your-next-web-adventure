@@ -18,6 +18,7 @@ import { contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 import type { Contact } from "@/lib/crmSchemas";
+import { useReportTemplates } from "@/hooks/useReportTemplates";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -37,6 +38,8 @@ const HomeInspectionNew: React.FC = () => {
   const [searchParams] = useSearchParams();
   const contactId = searchParams.get("contactId");
   const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
+  const { templates } = useReportTemplates("home_inspection");
+  const reportTemplate = templates.find(t => t.is_default) || templates[0] || null;
 
   // Get all contacts for lookup
   const { data: contacts = [] } = useQuery({
@@ -104,6 +107,7 @@ const HomeInspectionNew: React.FC = () => {
             reportType: "home_inspection",
             includeStandardsOfPractice: values.includeStandardsOfPractice,
             tags: values.tags || [],
+            template: reportTemplate,
           },
           user.id,
           organization?.id
@@ -120,6 +124,7 @@ const HomeInspectionNew: React.FC = () => {
           includeStandardsOfPractice: values.includeStandardsOfPractice,
           contactIds: values.contactIds || [],
           tags: values.tags || [],
+          template: reportTemplate,
         });
         toast({ title: "Home inspection report created (local draft)" });
         nav(`/reports/${report.id}`);

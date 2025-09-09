@@ -1,5 +1,6 @@
 import { SOP_SECTIONS } from "@/constants/sop";
 import { Report, ReportSchema, Section } from "@/lib/reportSchemas";
+import type { ReportTemplate } from "@/integrations/supabase/reportTemplatesApi";
 
 const INDEX_KEY = "reports:index";
 const DATA_PREFIX = "reports:data:";
@@ -66,6 +67,7 @@ export function createReport(meta: {
   includeStandardsOfPractice?: boolean;
   contactIds?: string[];
   tags?: string[];
+  template?: ReportTemplate | null;
 }): Report {
   const id = crypto.randomUUID();
   const reportType = meta.reportType || "home_inspection";
@@ -73,12 +75,26 @@ export function createReport(meta: {
   let report: Report;
 
   if (reportType === "home_inspection") {
-    const sections: Section[] = SOP_SECTIONS.map((s, idx) => ({
-      id: `${id}-sec-${idx + 1}`,
-      key: s.key as any,
-      title: s.name,
-      findings: [],
-    }));
+    let sections: Section[];
+    if (meta.template?.sections_config && meta.template.sections_config.length > 0) {
+      const fieldsConfig = meta.template.fields_config || {};
+      sections = meta.template.sections_config.map((cfg, idx) => ({
+        id: `${id}-sec-${idx + 1}`,
+        key: cfg.sectionKey as any,
+        title: cfg.title,
+        findings: [],
+        info: Object.fromEntries(
+          (fieldsConfig[cfg.sectionKey] || []).map(f => [f.fieldName, ""])
+        ),
+      }));
+    } else {
+      sections = SOP_SECTIONS.map((s, idx) => ({
+        id: `${id}-sec-${idx + 1}`,
+        key: s.key as any,
+        title: s.name,
+        findings: [],
+      }));
+    }
 
     report = {
       id,

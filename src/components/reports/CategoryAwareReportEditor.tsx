@@ -40,7 +40,7 @@ export function CategoryAwareReportEditor({
 function DefectBasedReportEditor({
   report,
   onReportChange,
-  template: _template
+  template
 }: CategoryAwareReportEditorProps) {
   const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
   const [activeTab, setActiveTab] = React.useState<"info" | "observations">("info");
@@ -52,11 +52,58 @@ function DefectBasedReportEditor({
   const [aiDialogFindingId, setAiDialogFindingId] = React.useState<string | null>(null);
   const [aiLoading, setAiLoading] = React.useState(false);
 
-  // Use existing section structure for defect-based reports
-  const sections = (report as any).sections || [];
+  // Build sections from template when supplied, otherwise fall back to report data
+  const sectionsFromTemplate = React.useMemo(() => {
+    if (!template) return null;
+    const fieldsConfig = template.fields_config || {};
+    const existing = (report as any).sections || [];
+
+    return template.sections_config.map((cfg: any, idx: number) => {
+      const match = existing.find((s: any) => s.key === cfg.sectionKey);
+      const baseInfo = match?.info || {};
+      const tplFields = fieldsConfig[cfg.sectionKey] || [];
+      const info: Record<string, string> = { ...baseInfo };
+      tplFields.forEach((f: any) => {
+        if (!(f.fieldName in info)) info[f.fieldName] = "";
+      });
+      return {
+        id: match?.id || crypto.randomUUID(),
+        key: cfg.sectionKey,
+        title: cfg.title,
+        findings: match?.findings || [],
+        info,
+      };
+    });
+  }, [template, report]);
+
+  const sections = sectionsFromTemplate || (report as any).sections || [];
   const activeSection = sections.find((s: any) => s.id === selectedSection) || sections[0];
   const { guidance } = useSectionGuidance();
-  const infoFields = activeSection ? guidance[activeSection.key]?.infoFields || [] : [];
+
+  const infoFields = React.useMemo(() => {
+    if (!activeSection) return [] as any[];
+    const defaultFields = guidance[activeSection.key]?.infoFields || [];
+    const customFields = template?.fields_config?.[activeSection.key] || [];
+    const converted = customFields.map((f: any) => ({
+      name: f.fieldName,
+      label: f.fieldLabel,
+      widget: f.widgetType,
+      options: f.options,
+      required: f.required,
+    }));
+    return [...defaultFields, ...converted];
+  }, [activeSection, guidance, template]);
+
+  // If template provided and report lacks sections or mismatched, update report
+  React.useEffect(() => {
+    if (!sectionsFromTemplate) return;
+    const existing = (report as any).sections || [];
+    const mismatch = existing.length !== sectionsFromTemplate.length ||
+      sectionsFromTemplate.some((s, idx) => !existing[idx] || existing[idx].key !== s.key);
+    if (mismatch) {
+      onReportChange({ ...report, sections: sectionsFromTemplate } as Report);
+    }
+  }, [sectionsFromTemplate, report, onReportChange]);
 
   React.useEffect(() => {
     setActiveTab("info");

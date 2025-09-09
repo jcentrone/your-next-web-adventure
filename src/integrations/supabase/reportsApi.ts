@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { activitiesApi } from "@/integrations/supabase/crmApi";
 import { SOP_SECTIONS } from "@/constants/sop";
 import { Report, ReportSchema, Section } from "@/lib/reportSchemas";
+import type { ReportTemplate } from "@/integrations/supabase/reportTemplatesApi";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 
 type ReportListItem = {
@@ -207,18 +208,33 @@ export async function dbCreateReport(meta: {
   email?: string;
   includeStandardsOfPractice?: boolean;
   tags?: string[];
+  template?: ReportTemplate | null;
 }, userId: string, organizationId?: string): Promise<Report> {
   const id = crypto.randomUUID();
 
   let report: Report;
 
   if (meta.reportType === "home_inspection") {
-    const sections: Section[] = SOP_SECTIONS.map((s, idx) => ({
-      id: `${id}-sec-${idx + 1}`,
-      key: s.key as any,
-      title: s.name,
-      findings: [],
-    }));
+    let sections: Section[];
+    if (meta.template?.sections_config && meta.template.sections_config.length > 0) {
+      const fieldsConfig = meta.template.fields_config || {};
+      sections = meta.template.sections_config.map((cfg, idx) => ({
+        id: `${id}-sec-${idx + 1}`,
+        key: cfg.sectionKey as any,
+        title: cfg.title,
+        findings: [],
+        info: Object.fromEntries(
+          (fieldsConfig[cfg.sectionKey] || []).map(f => [f.fieldName, ""])
+        ),
+      }));
+    } else {
+      sections = SOP_SECTIONS.map((s, idx) => ({
+        id: `${id}-sec-${idx + 1}`,
+        key: s.key as any,
+        title: s.name,
+        findings: [],
+      }));
+    }
 
     report = {
       id,
