@@ -86,7 +86,7 @@ const Documentation = () => {
               <nav className="space-y-2">
                 {categories.map(category => {
                 const Icon = category.icon;
-                return <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${activeCategory === category.id ? "bg-primary text-white" : "hover:bg-muted"}`}>
+                return <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${activeCategory === category.id ? "bg-muted text-foreground" : "hover:bg-muted"}`}>
                       <Icon className="w-4 h-4" />
                       <span className="text-sm">{category.label}</span>
                     </button>;
