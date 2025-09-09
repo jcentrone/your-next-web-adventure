@@ -18,7 +18,6 @@ import { contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 import type { Contact } from "@/lib/crmSchemas";
-import { TagInput } from "@/components/ui/TagInput";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -215,19 +214,6 @@ const HomeInspectionNew: React.FC = () => {
                   <FormLabel>Inspection Date</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <TagInput value={field.value || []} onChange={field.onChange} placeholder="Add tags" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

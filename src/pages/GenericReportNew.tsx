@@ -19,7 +19,6 @@ import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 import type { Report } from "@/lib/reportSchemas";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
-import { TagInput } from "@/components/ui/TagInput";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -189,19 +188,6 @@ const GenericReportNew: React.FC = () => {
                   <FormLabel>Inspection Date</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <TagInput value={field.value || []} onChange={field.onChange} placeholder="Add tags" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -21,7 +21,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Mail, Phone, MapPin, Building2, Calendar, FileText, CheckSquare, Activity, Edit2, Save, X } from "lucide-react";
 import { format } from "date-fns";
-import { TagInput } from "@/components/ui/TagInput";
 
 export default function ContactDetail() {
   const { id } = useParams<{ id: string }>();
@@ -517,24 +516,6 @@ export default function ContactDetail() {
                       )}
                     />
                   </div>
-
-                  <FormField
-                    control={form.control}
-                    name="tags"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tags</FormLabel>
-                        <FormControl>
-                          <TagInput
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="Add tags"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
                   <FormField
                     control={form.control}

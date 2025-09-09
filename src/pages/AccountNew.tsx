@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TagInput } from "@/components/ui";
 import { useToast } from "@/hooks/use-toast";
 import { accountsApi } from "@/integrations/supabase/accountsApi";
 import { ArrowLeft } from "lucide-react";
@@ -216,16 +215,6 @@ export default function AccountNew() {
             </div>
 
             
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags</Label>
-              <TagInput
-                id="tags"
-                value={formData.tags}
-                onChange={(tags) => handleInputChange("tags", tags)}
-                placeholder="Add tags"
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Textarea

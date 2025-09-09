@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { TagInput } from "@/components/ui";
 import { accountsApi } from "@/integrations/supabase/accountsApi";
 import { CreateAccountSchema } from "@/lib/accountSchemas";
 import { useAuth } from "@/contexts/AuthContext";
@@ -450,19 +449,6 @@ export default function AccountDetail() {
                       )}
                     />
                   </div>
-
-                  <FormField
-                    control={form.control}
-                    name="tags"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tags</FormLabel>
-                        <FormControl>
-                          <TagInput value={field.value || []} onChange={field.onChange} placeholder="Add tags" />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
 
                   <FormField
                     control={form.control}

@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 import type { Report } from "@/lib/reportSchemas";
-import { TagInput } from "@/components/ui/TagInput";
 
 interface Props {
   report: Report;
@@ -96,14 +95,6 @@ const ReportDetailsForm: React.FC<Props> = ({ report, onUpdate }) => {
         <ContactMultiSelect
           value={report.contactIds || []}
           onChange={(contactIds) => onUpdate({ ...report, contactIds } as Report)}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="tags">Tags</Label>
-        <TagInput
-          value={report.tags || []}
-          onChange={(tags) => onUpdate({ ...report, tags } as Report)}
-          placeholder="Add tags"
         />
       </div>
     </section>

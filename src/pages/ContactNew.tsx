@@ -16,7 +16,6 @@ import { CreateContactSchema } from "@/lib/crmSchemas";
 import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
-import { TagInput } from "@/components/ui/TagInput";
 
 const ContactNew: React.FC = () => {
   const { user } = useAuth();
@@ -295,24 +294,6 @@ const ContactNew: React.FC = () => {
                   )}
                 />
               </div>
-
-              <FormField
-                control={form.control}
-                name="tags"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tags</FormLabel>
-                    <FormControl>
-                      <TagInput
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Add tags"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <FormField
                 control={form.control}
