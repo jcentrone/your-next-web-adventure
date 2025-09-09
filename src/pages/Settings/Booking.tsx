@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, X, Link, Code, Globe, Palette, Eye, Monitor, LayoutGrid } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -146,19 +147,35 @@ const Booking: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Configuration */}
-      <div className="space-y-6">
+    <div className="space-y-6">
+      {/* Header with Preview */}
+      <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-medium flex items-center gap-2 mb-4">
-            <Globe className="h-5 w-5" />
-            Booking Page Configuration
-          </h3>
+          <h2 className="text-2xl font-semibold">Booking Configuration</h2>
+          <p className="text-muted-foreground mt-1">
+            Customize your booking page appearance and settings
+          </p>
         </div>
-        
+        {shareUrl && (
+          <Button
+            type="button"
+            onClick={() => window.open(shareUrl, '_blank')}
+            className="flex items-center gap-2"
+          >
+            <Eye className="h-4 w-4" />
+            Preview Page
+          </Button>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Configuration */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Left Column - Basic Settings */}
         <div className="space-y-6">
           {/* Slug Configuration */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label htmlFor="slug" className="text-base font-medium">Booking Page URL</Label>
             <p className="text-sm text-muted-foreground">
               This will be the unique URL for your booking page
@@ -167,7 +184,7 @@ const Booking: React.FC = () => {
               <span className="text-sm text-muted-foreground whitespace-nowrap">
                 {origin}/book/
               </span>
-              <div className="relative flex-1 max-w-md">
+              <div className="relative flex-1">
                 <Input
                   id="slug"
                   placeholder="e.g. joe-inspections"
@@ -189,78 +206,8 @@ const Booking: React.FC = () => {
             )}
           </div>
 
-          <hr className="border-border" />
-
-          {/* Template Selection */}
-          <div className="space-y-4">
-            <Label className="text-base font-medium flex items-center gap-2">
-              <Eye className="h-4 w-4" />
-              Template Style
-            </Label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {templateOptions.map((option) => (
-                <div key={option.id} className="relative">
-                  <input
-                    type="radio"
-                    id={option.id}
-                    value={option.id}
-                    {...register('template')}
-                    className="sr-only"
-                  />
-                  <label
-                    htmlFor={option.id}
-                    className={`block cursor-pointer rounded-lg border p-4 transition-colors hover:border-primary/50 ${
-                      template === option.id ? 'border-primary bg-primary/5' : 'border-border'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{option.name}</h4>
-                      {template === option.id && (
-                        <Check className="h-4 w-4 text-primary" />
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{option.description}</p>
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <hr className="border-border" />
-
-          {/* Theme Color */}
-          <div className="space-y-4">
-            <Label className="text-base font-medium flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Theme Color
-            </Label>
-            <div className="flex items-center gap-4">
-              <Input
-                type="color"
-                {...register('theme_color')}
-                className="w-16 h-12 p-1 rounded-lg"
-              />
-              <div className="flex gap-2 flex-wrap">
-                {colorPresets.map((preset) => (
-                  <button
-                    type="button"
-                    key={preset.color}
-                    className={`w-8 h-8 rounded-full border-2 transition-colors hover:scale-110 ${
-                      themeColor === preset.color ? 'border-primary ring-2 ring-primary/20' : 'border-border'
-                    }`}
-                    style={{ backgroundColor: preset.color }}
-                    onClick={() => setValue('theme_color', preset.color)}
-                    title={preset.name}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <hr className="border-border" />
-
           {/* Welcome Message */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Label htmlFor="welcome_message" className="text-base font-medium flex items-center gap-2">
               <Globe className="h-4 w-4" />
               Welcome Message
@@ -272,137 +219,226 @@ const Booking: React.FC = () => {
               id="welcome_message"
               placeholder="e.g. Schedule Your Appointment"
               {...register('welcome_message')}
-              className="max-w-md"
             />
           </div>
 
-          <hr className="border-border" />
+          {/* Theme Color */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              Theme Color
+            </Label>
+            <div className="flex items-center gap-4">
+              <Input
+                type="color"
+                {...register('theme_color')}
+                className="w-12 h-10 p-1 rounded-lg"
+              />
+              <div className="flex gap-2 flex-wrap">
+                {colorPresets.map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.color}
+                    className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-110 ${
+                      themeColor === preset.color ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+                    }`}
+                    style={{ backgroundColor: preset.color }}
+                    onClick={() => setValue('theme_color', preset.color)}
+                    title={preset.name}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Style & Layout */}
+        <div className="space-y-6">
+          {/* Template Selection */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              Template Style
+            </Label>
+            <div className="space-y-3">
+              {templateOptions.map((option) => (
+                <div key={option.id} className="relative">
+                  <input
+                    type="radio"
+                    id={option.id}
+                    value={option.id}
+                    {...register('template')}
+                    className="sr-only"
+                  />
+                  <label
+                    htmlFor={option.id}
+                    className={`block cursor-pointer rounded-lg border p-3 transition-colors hover:border-primary/50 ${
+                      template === option.id ? 'border-primary bg-primary/5' : 'border-border'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">{option.name}</h4>
+                        <p className="text-sm text-muted-foreground">{option.description}</p>
+                      </div>
+                      {template === option.id && (
+                        <Check className="h-4 w-4 text-primary" />
+                      )}
+                    </div>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
 
           {/* Layout Selection */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Label className="text-base font-medium flex items-center gap-2">
               <LayoutGrid className="h-4 w-4" />
               Booking Layout
             </Label>
-            <p className="text-sm text-muted-foreground">
-              Choose how your booking page is laid out
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
               <div
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                   watch('layout') === 'vertical' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
                 }`}
                 onClick={() => setValue('layout', 'vertical')}
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <Monitor className="h-5 w-5" />
-                  <span className="font-medium">Vertical (Stacked)</span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 font-medium">
+                      <Monitor className="h-4 w-4" />
+                      <span>Vertical (Stacked)</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Services, calendar, and form stacked vertically
+                    </p>
+                  </div>
+                  {watch('layout') === 'vertical' && (
+                    <Check className="h-4 w-4 text-primary" />
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Services, then calendar, then contact form - all stacked vertically
-                </p>
               </div>
               <div
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
                   watch('layout') === 'horizontal' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
                 }`}
                 onClick={() => setValue('layout', 'horizontal')}
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <LayoutGrid className="h-5 w-5" />
-                  <span className="font-medium">Horizontal (Two Column)</span>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 font-medium">
+                      <LayoutGrid className="h-4 w-4" />
+                      <span>Horizontal (Two Column)</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Calendar on left, services and form on right
+                    </p>
+                  </div>
+                  {watch('layout') === 'horizontal' && (
+                    <Check className="h-4 w-4 text-primary" />
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Calendar on left, services and contact form on right
-                </p>
               </div>
             </div>
-          </div>
-
-          <div className="flex gap-4">
-            {mutation.isPending && (
-              <div className="text-sm text-muted-foreground">Saving...</div>
-            )}
-            {shareUrl && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => window.open(shareUrl, '_blank')}
-                className="flex items-center gap-2"
-              >
-                <Eye className="h-4 w-4" />
-                Preview
-              </Button>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Share & Embed */}
-      {shareUrl && (
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium flex items-center gap-2">
-              <Link className="h-5 w-5" />
-              Share Your Booking Page
-            </h3>
-            <div>
-              <Label className="text-sm font-medium">Booking Page URL</Label>
-              <div className="mt-1 flex items-center gap-2">
-                <Input
-                  value={shareUrl}
-                  readOnly
-                  className="flex-1 bg-muted"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigator.clipboard.writeText(shareUrl)}
-                >
-                  Copy
-                </Button>
-              </div>
-            </div>
-            <div className="border border-dashed border-border rounded-lg p-4">
-              <iframe
-                src={shareUrl}
-                className="w-full h-64 rounded border-0"
-                title="Booking Page Preview"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium flex items-center gap-2">
-              <Code className="h-5 w-5" />
-              Embed Widget
-            </h3>
-            <div>
-              <Label className="text-sm font-medium">Embed Code</Label>
-              <div className="mt-1 flex items-center gap-2">
-                <Input
-                  value={widgetEmbedCode}
-                  readOnly
-                  className="flex-1 bg-muted font-mono text-xs"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigator.clipboard.writeText(widgetEmbedCode)}
-                >
-                  Copy
-                </Button>
-              </div>
-            </div>
-            <div className="border border-dashed border-border rounded-lg p-4">
-              <iframe
-                src={`${shareUrl}?embed=1`}
-                className="w-full h-64 rounded border-0"
-                title="Widget Preview"
-              />
-            </div>
-          </div>
+      {/* Status Indicator */}
+      {mutation.isPending && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="h-2 w-2 bg-primary rounded-full animate-pulse" />
+          Saving changes...
         </div>
+      )}
+
+      <Separator />
+
+      {/* Share & Embed Tabs */}
+      {shareUrl && (
+        <Tabs defaultValue="share" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="share" className="flex items-center gap-2">
+              <Link className="h-4 w-4" />
+              Share Page
+            </TabsTrigger>
+            <TabsTrigger value="embed" className="flex items-center gap-2">
+              <Code className="h-4 w-4" />
+              Embed Widget
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="share" className="space-y-4 mt-6">
+            <div>
+              <h3 className="text-lg font-medium mb-2">Share Your Booking Page</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Copy this URL to share your booking page directly with clients
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Booking Page URL</Label>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Input
+                      value={shareUrl}
+                      readOnly
+                      className="flex-1 bg-muted"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigator.clipboard.writeText(shareUrl)}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+                <div className="border border-dashed border-border rounded-lg p-4">
+                  <iframe
+                    src={shareUrl}
+                    className="w-full h-64 rounded border-0"
+                    title="Booking Page Preview"
+                  />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="embed" className="space-y-4 mt-6">
+            <div>
+              <h3 className="text-lg font-medium mb-2">Embed Widget</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Add this code to your website to embed the booking widget
+              </p>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Embed Code</Label>
+                  <div className="mt-2 flex items-center gap-2">
+                    <Input
+                      value={widgetEmbedCode}
+                      readOnly
+                      className="flex-1 bg-muted font-mono text-xs"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigator.clipboard.writeText(widgetEmbedCode)}
+                    >
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+                <div className="border border-dashed border-border rounded-lg p-4">
+                  <iframe
+                    src={`${shareUrl}?embed=1`}
+                    className="w-full h-64 rounded border-0"
+                    title="Widget Preview"
+                  />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
