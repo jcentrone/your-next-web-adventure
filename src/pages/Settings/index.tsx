@@ -133,23 +133,7 @@ const Settings: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1">
         <div className="p-8 max-w-5xl">
-          <div className="mb-6">
-            <div className="flex items-center gap-3">
-              {currentItem && (
-                <>
-                  <currentItem.icon className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-xl font-semibold">{currentItem.label}</h2>
-                </>
-              )}
-            </div>
-            {currentItem && (
-              <p className="text-sm text-muted-foreground mt-1">{currentItem.description}</p>
-            )}
-          </div>
-          
-          <div>
-            {renderContent()}
-          </div>
+          {renderContent()}
         </div>
       </div>
     </div>
