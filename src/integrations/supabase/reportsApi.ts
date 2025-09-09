@@ -14,6 +14,7 @@ type ReportListItem = {
   reportType: Report["reportType"];
   archived?: boolean;
   address?: string;
+  tags?: string[];
 };
 
 function toDbPayload(report: Report) {
@@ -34,6 +35,7 @@ function toDbPayload(report: Report) {
     report_data: report.reportType === "home_inspection" ? null : (report as any).reportData || null,
     contact_id: (report as any).contactId || null,
     contact_ids: (report as any).contactIds || [],
+    tags: (report as any).tags || [],
     county: (report as any).county || null,
     ofStories: (report as any).ofStories || null,
     phone_home: (report as any).phoneHome || null,
@@ -79,6 +81,7 @@ function fromDbRow(row: any): Report {
     customColors: row.custom_colors || undefined,
     contactId: row.contact_id || undefined,
     contactIds: row.contact_ids || [],
+    tags: row.tags || [],
     reportData: row.report_data ?? {},
     reportType,
     phoneHome: row.phone_home || "",
@@ -203,6 +206,7 @@ export async function dbCreateReport(meta: {
   policyNumber?: string;
   email?: string;
   includeStandardsOfPractice?: boolean;
+  tags?: string[];
 }, userId: string, organizationId?: string): Promise<Report> {
   const id = crypto.randomUUID();
 
@@ -230,6 +234,7 @@ export async function dbCreateReport(meta: {
       coverTemplate: "templateOne",
       previewTemplate: "classic",
       reportType: "home_inspection",
+      tags: meta.tags || [],
       sections,
       // includeStandardsOfPractice: removed as not in DB schema
     };
@@ -255,6 +260,7 @@ export async function dbCreateReport(meta: {
       insuranceCompany: meta.insuranceCompany || "",
       policyNumber: meta.policyNumber || "",
       email: meta.email || "",
+      tags: meta.tags || [],
       reportData: {
         "1_building_code": {},
         "2_roof_covering": {},
@@ -283,6 +289,7 @@ export async function dbCreateReport(meta: {
       reportType: meta.reportType,
       clientPhone: meta.phoneHome || "",
       clientEmail: meta.email || "",
+      tags: meta.tags || [],
       reportData: {},
     };
   }
@@ -328,7 +335,7 @@ export async function dbCreateReport(meta: {
 }
 
 export async function dbListReports(userId: string, includeArchived: boolean = false): Promise<ReportListItem[]> {
-  const selectQuery = "id,title,client_name,address,inspection_date,status,archived,report_type";
+  const selectQuery = "id,title,client_name,address,inspection_date,status,archived,report_type,tags";
   
   const query = supabase
     .from("reports")
@@ -356,6 +363,7 @@ export async function dbListReports(userId: string, includeArchived: boolean = f
     archived: r.archived || false,
     reportType: r.report_type || "home_inspection",
     address: r.address || "",
+    tags: r.tags || [],
   }));
 }
 

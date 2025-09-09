@@ -76,6 +76,15 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
                     <Badge variant="outline" className="ml-2">Archived</Badge>
                   )}
                 </div>
+                {report.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {report.tags.map((tag: string) => (
+                      <Badge key={tag} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </TableCell>
               <TableCell>
                 <Badge variant="secondary">
