@@ -235,6 +235,7 @@ export type Database = {
       appointments: {
         Row: {
           appointment_date: string
+          agreement_id: string | null
           contact_id: string | null
           created_at: string
           description: string | null
@@ -250,6 +251,7 @@ export type Database = {
         }
         Insert: {
           appointment_date: string
+          agreement_id?: string | null
           contact_id?: string | null
           created_at?: string
           description?: string | null
@@ -265,6 +267,7 @@ export type Database = {
         }
         Update: {
           appointment_date?: string
+          agreement_id?: string | null
           contact_id?: string | null
           created_at?: string
           description?: string | null
@@ -291,6 +294,13 @@ export type Database = {
             columns: ["report_id"]
             isOneToOne: false
             referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_appointments_agreement"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_agreements"
             referencedColumns: ["id"]
           },
         ]
@@ -738,6 +748,51 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: true
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_agreements: {
+        Row: {
+          id: string
+          appointment_id: string | null
+          service_id: string | null
+          client_name: string | null
+          signed_at: string | null
+          signature_url: string | null
+          agreement_html: string | null
+        }
+        Insert: {
+          id?: string
+          appointment_id?: string | null
+          service_id?: string | null
+          client_name?: string | null
+          signed_at?: string | null
+          signature_url?: string | null
+          agreement_html?: string | null
+        }
+        Update: {
+          id?: string
+          appointment_id?: string | null
+          service_id?: string | null
+          client_name?: string | null
+          signed_at?: string | null
+          signature_url?: string | null
+          agreement_html?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_agreements_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_agreements_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]
