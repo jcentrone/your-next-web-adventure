@@ -27,6 +27,7 @@ function toDbPayload(report: Report) {
     status: report.status,
     final_comments: report.finalComments || null,
     terms_html: (report as any).termsHtml || null,
+    agreement_id: (report as any).agreementId || null,
     cover_image: report.coverImage || null,
     cover_template: report.coverTemplate || 'templateOne',
     preview_template: report.previewTemplate || 'classic',
@@ -75,6 +76,7 @@ function fromDbRow(row: any): Report {
     status: row.status,
     finalComments: row.final_comments || "",
     termsHtml: row.terms_html ?? undefined,
+    agreementId: row.agreement_id || undefined,
     coverImage: row.cover_image || "",
     coverTemplate: transformCoverTemplate(row.cover_template || "templateOne"),
     previewTemplate: row.preview_template || "classic",
@@ -197,6 +199,7 @@ export async function dbCreateReport(meta: {
   inspectionDate: string; // 'YYYY-MM-DD' or ISO
   contact_id?: string;
   contactIds?: string[];
+  appointment_id?: string;
   reportType: Report["reportType"];
   county?: string;
   ofStories?: string;
@@ -308,6 +311,30 @@ export async function dbCreateReport(meta: {
       tags: meta.tags || [],
       reportData: {},
     };
+  }
+
+  // If linked to an appointment, fetch agreement terms
+  if (meta.appointment_id) {
+    try {
+      const { data: appt } = await supabase
+        .from("appointments")
+        .select("agreement_id")
+        .eq("id", meta.appointment_id)
+        .maybeSingle();
+      if (appt?.agreement_id) {
+        (report as any).agreementId = appt.agreement_id;
+        const { data: agreement } = await supabase
+          .from("inspection_agreements")
+          .select("agreement_html")
+          .eq("id", appt.agreement_id)
+          .maybeSingle();
+        if (agreement?.agreement_html) {
+          (report as any).termsHtml = agreement.agreement_html;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to attach agreement terms to report:", err);
+    }
   }
 
   const payload = {

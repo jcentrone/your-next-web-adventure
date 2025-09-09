@@ -58,6 +58,7 @@ export const BaseReportSchema = z.object({
     tags: z.array(z.string()).default([]),
     finalComments: z.string().optional().default(""),
     termsHtml: z.string().optional(),
+    agreementId: z.string().optional(),
     includeStandardsOfPractice: z.boolean().default(true),
     coverImage: z.string().optional().default(""),
     coverTemplate: z
