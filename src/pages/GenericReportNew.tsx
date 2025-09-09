@@ -19,6 +19,7 @@ import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 import type { Report } from "@/lib/reportSchemas";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
+import { TagInput } from "@/components/ui/TagInput";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -26,6 +27,7 @@ const schema = z.object({
   address: z.string().min(1, "Address is required"),
   inspectionDate: z.string().min(1, "Required"),
   contactIds: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).optional().default([]),
 });
 
 type Values = z.infer<typeof schema>;
@@ -59,6 +61,7 @@ const GenericReportNew: React.FC = () => {
       address: "",
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactIds: contactId ? [contactId] : [],
+      tags: [],
     },
   });
 
@@ -84,6 +87,7 @@ const GenericReportNew: React.FC = () => {
             inspectionDate: values.inspectionDate,
             contactIds: values.contactIds || [],
             reportType: type,
+            tags: values.tags || [],
           },
           user.id,
           organization?.id
@@ -98,6 +102,7 @@ const GenericReportNew: React.FC = () => {
           inspectionDate: new Date(values.inspectionDate).toISOString(),
           reportType: type,
           contactIds: values.contactIds || [],
+          tags: values.tags || [],
         });
         toast({ title: `${label} report created (local draft)` });
         nav(`/reports/${report.id}`);
@@ -184,6 +189,19 @@ const GenericReportNew: React.FC = () => {
                   <FormLabel>Inspection Date</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags</FormLabel>
+                  <FormControl>
+                    <TagInput value={field.value || []} onChange={field.onChange} placeholder="Add tags" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -18,6 +18,7 @@ import { contactsApi } from "@/integrations/supabase/crmApi";
 import { getMyOrganization } from "@/integrations/supabase/organizationsApi";
 import { ContactMultiSelect } from "@/components/contacts/ContactMultiSelect";
 import type { Contact } from "@/lib/crmSchemas";
+import { TagInput } from "@/components/ui/TagInput";
 
 const schema = z.object({
   title: z.string().min(1, "Required"),
@@ -26,6 +27,7 @@ const schema = z.object({
   inspectionDate: z.string().min(1, "Required"),
   contactIds: z.array(z.string()).optional().default([]),
   includeStandardsOfPractice: z.boolean().default(true),
+  tags: z.array(z.string()).optional().default([]),
 });
 
 type Values = z.infer<typeof schema>;
@@ -60,6 +62,7 @@ const HomeInspectionNew: React.FC = () => {
       inspectionDate: new Date().toISOString().slice(0, 10),
       contactIds: contactId ? [contactId] : [],
       includeStandardsOfPractice: true,
+      tags: [],
     },
   });
 
@@ -101,6 +104,7 @@ const HomeInspectionNew: React.FC = () => {
             contactIds: values.contactIds || [],
             reportType: "home_inspection",
             includeStandardsOfPractice: values.includeStandardsOfPractice,
+            tags: values.tags || [],
           },
           user.id,
           organization?.id
@@ -116,6 +120,7 @@ const HomeInspectionNew: React.FC = () => {
           reportType: "home_inspection",
           includeStandardsOfPractice: values.includeStandardsOfPractice,
           contactIds: values.contactIds || [],
+          tags: values.tags || [],
         });
         toast({ title: "Home inspection report created (local draft)" });
         nav(`/reports/${report.id}`);
@@ -210,6 +215,19 @@ const HomeInspectionNew: React.FC = () => {
                   <FormLabel>Inspection Date</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags</FormLabel>
+                  <FormControl>
+                    <TagInput value={field.value || []} onChange={field.onChange} placeholder="Add tags" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

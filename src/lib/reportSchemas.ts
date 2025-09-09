@@ -55,6 +55,7 @@ export const BaseReportSchema = z.object({
     status: z.enum(["Draft", "Final"]).default("Draft"),
     contactId: z.string().optional(), // Deprecated, use contactIds
     contactIds: z.array(z.string()).optional().default([]),
+    tags: z.array(z.string()).default([]),
     finalComments: z.string().optional().default(""),
     termsHtml: z.string().optional(),
     includeStandardsOfPractice: z.boolean().default(true),

@@ -25,6 +25,7 @@ import type {Report} from "@/lib/reportSchemas";
 import {REPORT_TYPE_LABELS} from "@/constants/reportTypes";
 import {Search, Plus} from "lucide-react";
 import {useIsMobile} from "@/hooks/use-mobile";
+import { TagInput } from "@/components/ui/TagInput";
 
 const ReportsList: React.FC = () => {
     const {user} = useAuth();
@@ -37,6 +38,7 @@ const ReportsList: React.FC = () => {
     const [itemsPerPage, setItemsPerPage] = React.useState(10);
     const [currentPage, setCurrentPage] = React.useState(1);
     const [searchQuery, setSearchQuery] = React.useState("");
+    const [tagFilter, setTagFilter] = React.useState<string[]>([]);
 
     const {data: remoteItems, refetch, isLoading} = useQuery({
         queryKey: ["reports", user?.id, showArchived],
@@ -71,6 +73,11 @@ const ReportsList: React.FC = () => {
             return false;
         }
 
+        // Filter by tags
+        if (tagFilter.length > 0 && !tagFilter.every((tag) => item.tags?.includes(tag))) {
+            return false;
+        }
+
         // Finally filter by search query
         const query = searchQuery.toLowerCase();
         if (query) {
@@ -95,7 +102,7 @@ const ReportsList: React.FC = () => {
 
     React.useEffect(() => {
         setCurrentPage(1);
-    }, [itemsPerPage, showArchived, reportTypeFilter, items, searchQuery]);
+    }, [itemsPerPage, showArchived, reportTypeFilter, items, searchQuery, tagFilter]);
 
     const onDelete = async (id: string) => {
         try {
@@ -174,6 +181,11 @@ const ReportsList: React.FC = () => {
                                     onReportTypeChange={setReportTypeFilter}
                                 />
                             )}
+                            <TagInput
+                                value={tagFilter}
+                                onChange={setTagFilter}
+                                placeholder="Filter tags"
+                            />
                         </div>
                     </div>
                 ) : (
@@ -185,7 +197,7 @@ const ReportsList: React.FC = () => {
                             </h1>
                         </header>
                         <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center ">
+                            <div className="flex items-center gap-2">
                                 <div className="relative flex-1 min-w-lg max-w-lg">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4"/>
                                     <Input
@@ -193,6 +205,13 @@ const ReportsList: React.FC = () => {
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="pl-10 min-w-[300px] max-w-lg w-full"
+                                    />
+                                </div>
+                                <div className="max-w-sm">
+                                    <TagInput
+                                        value={tagFilter}
+                                        onChange={setTagFilter}
+                                        placeholder="Filter tags"
                                     />
                                 </div>
                             </div>

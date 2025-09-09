@@ -16,7 +16,7 @@ function setIndex(ids: string[]) {
   localStorage.setItem(INDEX_KEY, JSON.stringify(ids));
 }
 
-export function listReports(): Pick<Report, "id" | "title" | "clientName" | "inspectionDate" | "status" | "address">[] {
+export function listReports(): Pick<Report, "id" | "title" | "clientName" | "inspectionDate" | "status" | "address" | "tags">[] {
   const ids = getIndex();
   return ids
     .map((id) => loadReport(id))
@@ -28,6 +28,7 @@ export function listReports(): Pick<Report, "id" | "title" | "clientName" | "ins
       inspectionDate: r!.inspectionDate,
       status: r!.status,
       address: r!.address,
+      tags: r!.tags || [],
     }));
 }
 
@@ -64,6 +65,7 @@ export function createReport(meta: {
   reportType?: Report["reportType"];
   includeStandardsOfPractice?: boolean;
   contactIds?: string[];
+  tags?: string[];
 }): Report {
   const id = crypto.randomUUID();
   const reportType = meta.reportType || "home_inspection";
@@ -92,6 +94,7 @@ export function createReport(meta: {
       sections,
       includeStandardsOfPractice: meta.includeStandardsOfPractice ?? true,
       contactIds: meta.contactIds || [],
+      tags: meta.tags || [],
     };
   } else if (reportType === "wind_mitigation") {
     report = {
@@ -106,6 +109,7 @@ export function createReport(meta: {
       previewTemplate: "classic",
       reportType: "wind_mitigation",
       contactIds: meta.contactIds || [],
+      tags: meta.tags || [],
       reportData: {
         "1_building_code": {},
         "2_roof_covering": {},
@@ -129,6 +133,7 @@ export function createReport(meta: {
       previewTemplate: "classic",
       reportType,
       contactIds: meta.contactIds || [],
+      tags: meta.tags || [],
       reportData: {},
     };
   }
