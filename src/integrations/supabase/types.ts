@@ -14,6 +14,21 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_tags: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       accounts: {
         Row: {
           address: string | null
@@ -397,6 +412,21 @@ export type Database = {
           to_contact_id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      contact_tags: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -930,6 +960,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      report_tags: {
+        Row: {
+          id: string
+          name: string
+        }
+        Insert: {
+          id?: string
+          name: string
+        }
+        Update: {
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       reports: {
         Row: {
