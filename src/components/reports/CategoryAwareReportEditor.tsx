@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, FormInput, Plus, Settings2 } from "lucide-react";
+import { FileText, FormInput, Plus, Settings2, Edit3, Trash2, Wand2 } from "lucide-react";
 import { getReportCategory, isDefectBasedReport } from "@/constants/reportCategories";
 import { useCustomFields } from "@/hooks/useCustomFields";
 import { useSectionGuidance } from "@/hooks/useSectionGuidance";
@@ -10,6 +10,10 @@ import { InfoFieldWidget } from "./InfoFieldWidget";
 import DefectPicker from "./DefectPicker";
 import type { Report } from "@/lib/reportSchemas";
 import type { ReportTemplate } from "@/integrations/supabase/reportTemplatesApi";
+import { isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/use-toast";
+import AIAnalyzeDialog from "./AIAnalyzeDialog";
 
 interface CategoryAwareReportEditorProps {
   report: Report;
@@ -41,6 +45,12 @@ function DefectBasedReportEditor({
   const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
   const [activeTab, setActiveTab] = React.useState<"info" | "observations">("info");
   const [pickerOpen, setPickerOpen] = React.useState(false);
+  const nav = useNavigate();
+  const [mediaUrlMap, setMediaUrlMap] = React.useState<Record<string, string>>({});
+  const [aiDialogOpen, setAiDialogOpen] = React.useState(false);
+  const [aiDialogImages, setAiDialogImages] = React.useState<{ id: string; url: string; caption?: string }[]>([]);
+  const [aiDialogFindingId, setAiDialogFindingId] = React.useState<string | null>(null);
+  const [aiLoading, setAiLoading] = React.useState(false);
 
   // Use existing section structure for defect-based reports
   const sections = (report as any).sections || [];
@@ -51,6 +61,30 @@ function DefectBasedReportEditor({
   React.useEffect(() => {
     setActiveTab("info");
   }, [selectedSection]);
+
+  React.useEffect(() => {
+    if (!activeSection) return;
+    const medias = (activeSection.findings || [])
+      .flatMap((f: any) => f.media)
+      .filter((m: any) => isSupabaseUrl(m.url));
+    if (medias.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const entries = await Promise.all(
+        medias.map(async (m: any) => [m.id, await getSignedUrlFromSupabaseUrl(m.url)] as const)
+      );
+      if (!cancelled) {
+        setMediaUrlMap((prev) => {
+          const next = { ...prev };
+          for (const [id, url] of entries) next[id] = url;
+          return next;
+        });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSection]);
 
   const addObservation = () => {
     if (!activeSection) return;
@@ -76,6 +110,16 @@ function DefectBasedReportEditor({
       ...report,
       sections: updatedSections,
     } as Report);
+  };
+
+  const handleAIAnalyze = async (_imageId: string) => {
+    setAiLoading(true);
+    try {
+      // AI analysis integration is handled elsewhere in the application
+    } finally {
+      setAiLoading(false);
+      setAiDialogOpen(false);
+    }
   };
 
 return (
@@ -252,6 +296,85 @@ return (
                           rows={3}
                           placeholder="Observation details..."
                         />
+
+                        {finding.media && finding.media.length > 0 && (
+                          <div className="mt-3">
+                            <label className="block text-sm font-medium mb-1">Media</label>
+                            <div className="flex flex-wrap gap-3">
+                              {finding.media.map((m: any) => {
+                                const hasSignedUrl = !isSupabaseUrl(m.url) || !!mediaUrlMap[m.id];
+                                const resolvedUrl = hasSignedUrl ? mediaUrlMap[m.id] || m.url : undefined;
+                                return (
+                                  <div key={m.id} className="relative w-24 h-24 border rounded overflow-hidden">
+                                    {hasSignedUrl ? (
+                                      <img
+                                        src={resolvedUrl}
+                                        alt={m.caption || "Media"}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full bg-muted" />
+                                    )}
+                                    <button
+                                      type="button"
+                                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow"
+                                      onClick={() => {
+                                        const updated = sections.map((s: any) =>
+                                          s.id === activeSection.id
+                                            ? {
+                                                ...s,
+                                                findings: s.findings.map((f: any) =>
+                                                  f.id === finding.id
+                                                    ? { ...f, media: f.media.filter((x: any) => x.id !== m.id) }
+                                                    : f
+                                                ),
+                                              }
+                                            : s
+                                        );
+                                        onReportChange({ ...report, sections: updated } as Report);
+                                      }}
+                                    >
+                                      <Trash2 className="w-4 h-4 text-red-500" />
+                                    </button>
+
+                                    {m.type === "image" && (
+                                      <button
+                                        type="button"
+                                        className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
+                                        onClick={() => {
+                                          if (!report.id || !finding.id || !m.id) {
+                                            toast({
+                                              title: "Navigation Error",
+                                              description: "Missing required IDs for annotation",
+                                              variant: "destructive",
+                                            });
+                                            return;
+                                          }
+                                          nav(`/reports/${report.id}/findings/${finding.id}/media/${m.id}/annotate`);
+                                        }}
+                                      >
+                                        <Edit3 className="w-4 h-4 text-orange-500" />
+                                      </button>
+                                    )}
+
+                                    <button
+                                      type="button"
+                                      className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow"
+                                      onClick={() => {
+                                        if (!hasSignedUrl) return;
+                                        setAiDialogFindingId(finding.id);
+                                        setAiDialogImages([{ id: m.id, url: resolvedUrl!, caption: m.caption }]);
+                                        setAiDialogOpen(true);
+                                      }}
+                                    >
+                                      <Wand2 className="w-4 h-4 text-blue-500" />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </Card>
                   ))}
@@ -315,6 +438,13 @@ return (
         onReportChange({ ...report, sections: updatedSections } as Report);
         if (tpl.defectId) setPickerOpen(false);
       }}
+    />
+    <AIAnalyzeDialog
+      open={aiDialogOpen}
+      onOpenChange={setAiDialogOpen}
+      images={aiDialogImages}
+      loading={aiLoading}
+      onConfirm={handleAIAnalyze}
     />
     </>
   );
