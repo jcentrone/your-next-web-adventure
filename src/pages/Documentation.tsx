@@ -1242,7 +1242,7 @@ const Documentation = () => {
                             Our route optimization and mileage analytics help you maximize efficiency and track business expenses.
                           </p>
                           
-                          <h4 className="font-semibold">Mileage Analytics Dashboard</h4>
+                          <h4 className="font-semibold">Mileage Tab on the Analytics Page</h4>
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                             <li><strong>Total Miles Driven:</strong> Track cumulative mileage across all optimized routes</li>
                             <li><strong>Estimated Fuel Costs:</strong> Calculate expenses based on your configured mileage rate</li>
@@ -1250,6 +1250,21 @@ const Documentation = () => {
                             <li><strong>Average Miles per Trip:</strong> Efficiency metric to identify route optimization benefits</li>
                             <li><strong>Monthly Trends:</strong> Visual charts showing mileage and cost trends over time</li>
                           </ul>
+
+                          <p className="text-sm text-muted-foreground">
+                            Mileage statistics are compiled from your saved optimized routes. Run optimization and save your routes for each day to populate this tab.
+                          </p>
+
+                          <h4 className="font-semibold">Exporting Mileage Reports</h4>
+                          <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
+                            <li>Open the Analytics page and select the <strong>Mileage</strong> tab.</li>
+                            <li>Use the date range selector to choose the period you want to review.</li>
+                            <li>Click the <strong>Export CSV</strong> button to download your mileage data.</li>
+                          </ol>
+
+                          <p className="text-sm text-muted-foreground">
+                            Use the exported CSV for expense tracking or tax preparation.
+                          </p>
 
                           <h4 className="font-semibold">Route Optimization Features</h4>
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
