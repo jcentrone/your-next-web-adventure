@@ -88,6 +88,21 @@ const Widget: React.FC<WidgetProps> = ({ settings, reserved, layout = 'vertical'
         formatted_address: propertyAddress || null,
       });
 
+      let agreementId: string | undefined;
+      if (isHomeInspectionSelected && sigCanvasRef.current) {
+        const dataUrl = sigCanvasRef.current.toDataURL();
+        const signatureUrl = await uploadSignatureFromDataUrl(dataUrl, 'agreement');
+        const signedAgreementHtml = `${agreementHtml}\n        <p>Client Name: ${name}</p>\n        <p>Date: ${new Date().toLocaleDateString()}</p>\n        <img src="${signatureUrl}" alt="Signature" />`;
+        const agreement = await agreementsApi.create({
+          service_id: homeInspectionService?.id,
+          client_name: name,
+          signed_at: new Date().toISOString(),
+          signature_url: signatureUrl,
+          agreement_html: signedAgreementHtml,
+        });
+        agreementId = agreement.id;
+      }
+
       const appointment = await mutation.mutateAsync({
         user_id: settings.user_id,
         title: 'Online booking',
@@ -95,19 +110,11 @@ const Widget: React.FC<WidgetProps> = ({ settings, reserved, layout = 'vertical'
         appointment_date: selected[0].toISOString(),
         contact_id: contact.id,
         service_ids: serviceIds,
+        agreement_id: agreementId,
       });
 
-      if (isHomeInspectionSelected && sigCanvasRef.current) {
-        const dataUrl = sigCanvasRef.current.toDataURL();
-        const signatureUrl = await uploadSignatureFromDataUrl(dataUrl, 'agreement');
-        await agreementsApi.create({
-          appointment_id: appointment.id,
-          service_id: homeInspectionService?.id,
-          client_name: name,
-          signed_at: new Date().toISOString(),
-          signature_url: signatureUrl,
-          agreement_html: agreementHtml,
-        });
+      if (agreementId) {
+        await agreementsApi.linkToAppointment(agreementId, appointment.id);
       }
     } catch (error) {
       console.error(error);

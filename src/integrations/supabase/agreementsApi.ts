@@ -2,7 +2,7 @@ import { supabase } from './client';
 
 export interface InspectionAgreement {
   id?: string;
-  appointment_id: string;
+  appointment_id?: string | null;
   service_id?: string | null;
   client_name: string;
   signed_at?: string | null;
@@ -15,7 +15,10 @@ async function create(
 ): Promise<InspectionAgreement> {
   const { data, error } = await supabase
     .from('inspection_agreements')
-    .insert(agreement)
+    .insert({
+      ...agreement,
+      appointment_id: agreement.appointment_id ?? null,
+    })
     .select()
     .single();
   if (error) throw error;
@@ -45,10 +48,22 @@ async function attachToReport(
   if (error) throw error;
 }
 
+async function linkToAppointment(
+  agreementId: string,
+  appointmentId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('inspection_agreements')
+    .update({ appointment_id: appointmentId })
+    .eq('id', agreementId);
+  if (error) throw error;
+}
+
 export const agreementsApi = {
   create,
   getByAppointment,
   attachToReport,
+  linkToAppointment,
 };
 
 export default agreementsApi;
