@@ -234,8 +234,8 @@ export type Database = {
       }
       appointments: {
         Row: {
-          appointment_date: string
           agreement_id: string | null
+          appointment_date: string
           contact_id: string | null
           created_at: string
           description: string | null
@@ -250,8 +250,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          appointment_date: string
           agreement_id?: string | null
+          appointment_date: string
           contact_id?: string | null
           created_at?: string
           description?: string | null
@@ -266,8 +266,8 @@ export type Database = {
           user_id: string
         }
         Update: {
-          appointment_date?: string
           agreement_id?: string | null
+          appointment_date?: string
           contact_id?: string | null
           created_at?: string
           description?: string | null
@@ -283,6 +283,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "appointments_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_agreements"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_appointments_contact"
             columns: ["contact_id"]
             isOneToOne: false
@@ -294,13 +301,6 @@ export type Database = {
             columns: ["report_id"]
             isOneToOne: false
             referencedRelation: "reports"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_appointments_agreement"
-            columns: ["agreement_id"]
-            isOneToOne: false
-            referencedRelation: "inspection_agreements"
             referencedColumns: ["id"]
           },
         ]
@@ -660,6 +660,63 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_routes: {
+        Row: {
+          created_at: string | null
+          end_address: string | null
+          estimated_fuel_cost: number | null
+          google_maps_url: string | null
+          id: string
+          is_optimized: boolean | null
+          optimized_order: Json | null
+          organization_id: string | null
+          route_date: string
+          start_address: string
+          total_distance_miles: number | null
+          total_duration_minutes: number | null
+          updated_at: string | null
+          user_id: string
+          waypoints: Json | null
+          waze_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_address?: string | null
+          estimated_fuel_cost?: number | null
+          google_maps_url?: string | null
+          id?: string
+          is_optimized?: boolean | null
+          optimized_order?: Json | null
+          organization_id?: string | null
+          route_date: string
+          start_address: string
+          total_distance_miles?: number | null
+          total_duration_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+          waypoints?: Json | null
+          waze_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_address?: string | null
+          estimated_fuel_cost?: number | null
+          google_maps_url?: string | null
+          id?: string
+          is_optimized?: boolean | null
+          optimized_order?: Json | null
+          organization_id?: string | null
+          route_date?: string
+          start_address?: string
+          total_distance_miles?: number | null
+          total_duration_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+          waypoints?: Json | null
+          waze_url?: string | null
+        }
+        Relationships: []
+      }
       defects: {
         Row: {
           created_at: string
@@ -754,31 +811,31 @@ export type Database = {
       }
       inspection_agreements: {
         Row: {
-          id: string
-          appointment_id: string | null
-          service_id: string | null
-          client_name: string | null
-          signed_at: string | null
-          signature_url: string | null
           agreement_html: string | null
+          appointment_id: string | null
+          client_name: string | null
+          id: string
+          service_id: string | null
+          signature_url: string | null
+          signed_at: string | null
         }
         Insert: {
-          id?: string
-          appointment_id?: string | null
-          service_id?: string | null
-          client_name?: string | null
-          signed_at?: string | null
-          signature_url?: string | null
           agreement_html?: string | null
+          appointment_id?: string | null
+          client_name?: string | null
+          id?: string
+          service_id?: string | null
+          signature_url?: string | null
+          signed_at?: string | null
         }
         Update: {
-          id?: string
-          appointment_id?: string | null
-          service_id?: string | null
-          client_name?: string | null
-          signed_at?: string | null
-          signature_url?: string | null
           agreement_html?: string | null
+          appointment_id?: string | null
+          client_name?: string | null
+          id?: string
+          service_id?: string | null
+          signature_url?: string | null
+          signed_at?: string | null
         }
         Relationships: [
           {
@@ -1348,6 +1405,104 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      route_optimization_settings: {
+        Row: {
+          always_return_home: boolean | null
+          created_at: string | null
+          default_enabled: boolean | null
+          home_base_address: string
+          home_base_formatted_address: string | null
+          home_base_lat: number | null
+          home_base_lng: number | null
+          home_base_place_id: string | null
+          id: string
+          mileage_rate: number | null
+          organization_id: string | null
+          preferred_nav_app: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          always_return_home?: boolean | null
+          created_at?: string | null
+          default_enabled?: boolean | null
+          home_base_address: string
+          home_base_formatted_address?: string | null
+          home_base_lat?: number | null
+          home_base_lng?: number | null
+          home_base_place_id?: string | null
+          id?: string
+          mileage_rate?: number | null
+          organization_id?: string | null
+          preferred_nav_app?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          always_return_home?: boolean | null
+          created_at?: string | null
+          default_enabled?: boolean | null
+          home_base_address?: string
+          home_base_formatted_address?: string | null
+          home_base_lat?: number | null
+          home_base_lng?: number | null
+          home_base_place_id?: string | null
+          id?: string
+          mileage_rate?: number | null
+          organization_id?: string | null
+          preferred_nav_app?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      route_segments: {
+        Row: {
+          created_at: string | null
+          daily_route_id: string
+          distance_miles: number | null
+          duration_minutes: number | null
+          from_address: string
+          from_appointment_id: string | null
+          id: string
+          segment_order: number
+          to_address: string
+          to_appointment_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          daily_route_id: string
+          distance_miles?: number | null
+          duration_minutes?: number | null
+          from_address: string
+          from_appointment_id?: string | null
+          id?: string
+          segment_order: number
+          to_address: string
+          to_appointment_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          daily_route_id?: string
+          distance_miles?: number | null
+          duration_minutes?: number | null
+          from_address?: string
+          from_appointment_id?: string | null
+          id?: string
+          segment_order?: number
+          to_address?: string
+          to_appointment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_segments_daily_route_id_fkey"
+            columns: ["daily_route_id"]
+            isOneToOne: false
+            referencedRelation: "daily_routes"
             referencedColumns: ["id"]
           },
         ]
