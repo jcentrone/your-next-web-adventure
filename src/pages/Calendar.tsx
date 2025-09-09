@@ -64,7 +64,7 @@ const Calendar: React.FC = () => {
     const handleSync = async () => {
         if (!user) return;
         await syncExternalEvents(user.id);
-        queryClient.invalidateQueries({queryKey: ["appointments", user.id]});
+        queryClient.invalidateQueries({queryKey: ["appointments", user!.id]});
     };
 
     useEffect(() => {
@@ -75,7 +75,7 @@ const Calendar: React.FC = () => {
         data: appointments = [] as Appointment[],
         error: appointmentsError,
     } = useQuery({
-        queryKey: ["appointments", user!.id],
+        queryKey: ["appointments", user?.id],
         queryFn: () => appointmentsApi.list(user!.id),
         enabled: !!user,
     });
@@ -97,6 +97,7 @@ const Calendar: React.FC = () => {
     const createMutation = useMutation({
         mutationFn: appointmentsApi.create,
         onSuccess: async (appointment) => {
+            if (!user) return;
             queryClient.invalidateQueries({queryKey: ["appointments", user!.id]});
             toast.success("Appointment created successfully");
             setIsDialogOpen(false);
@@ -116,6 +117,7 @@ const Calendar: React.FC = () => {
         mutationFn: ({id, data}: { id: string; data: any }) =>
             appointmentsApi.update(id, data),
         onSuccess: async (appointment) => {
+            if (!user) return;
             queryClient.invalidateQueries({queryKey: ["appointments", user!.id]});
             toast.success("Appointment updated successfully");
             setIsDialogOpen(false);
@@ -135,6 +137,7 @@ const Calendar: React.FC = () => {
     const deleteMutation = useMutation({
         mutationFn: appointmentsApi.delete,
         onSuccess: async (_, id) => {
+            if (!user) return;
             queryClient.invalidateQueries({queryKey: ["appointments", user!.id]});
             toast.success("Appointment deleted successfully");
             setDeleteAppointment(null);
@@ -152,6 +155,7 @@ const Calendar: React.FC = () => {
     const createContactMutation = useMutation({
         mutationFn: contactsApi.create,
         onSuccess: (newContact) => {
+            if (!user) return;
             queryClient.invalidateQueries({queryKey: ["contacts", user!.id]});
             toast.success("Contact created successfully");
             setIsContactDialogOpen(false);
