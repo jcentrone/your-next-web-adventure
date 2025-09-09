@@ -106,46 +106,55 @@ const Documentation = () => {
                     Getting Started
                   </h2>
                   
-                  {/* Quick Start Cards */}
-                  <div className="grid md:grid-cols-3 gap-6 mb-8">
-                    <Card className="p-6">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                        <Users className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2">1. Create Account</h3>
-                      <p className="text-muted-foreground mb-4">Sign up and set up your inspector profile with credentials and branding.</p>
-                      <Badge variant="secondary">2 minutes</Badge>
-                    </Card>
-                    
-                    <Card className="p-6">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                        <Smartphone className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2">2. Install PWA</h3>
-                      <p className="text-muted-foreground mb-4">Install the app on your mobile device for offline inspections.</p>
-                      <Badge variant="secondary">30 seconds</Badge>
-                    </Card>
-                    
-                    <Card className="p-6">
-                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                        <FileText className="w-6 h-6 text-primary" />
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2">3. First Report</h3>
-                      <p className="text-muted-foreground mb-4">Create your first inspection report using our guided interface.</p>
-                      <Badge variant="secondary">15 minutes</Badge>
-                    </Card>
-                  </div>
+                   {/* Quick Start Cards */}
+                   <div className="grid md:grid-cols-3 gap-6 mb-8">
+                     <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => toggleSection('account-setup')}>
+                       <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                         <Users className="w-6 h-6 text-primary" />
+                       </div>
+                       <h3 className="text-xl font-semibold mb-2 flex items-center justify-between">
+                         1. Create Account
+                         <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                       </h3>
+                       <p className="text-muted-foreground mb-4">Sign up and set up your inspector profile with credentials and branding.</p>
+                       <Badge variant="secondary">2 minutes</Badge>
+                     </Card>
+                     
+                     <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => toggleSection('pwa-installation')}>
+                       <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                         <Smartphone className="w-6 h-6 text-primary" />
+                       </div>
+                       <h3 className="text-xl font-semibold mb-2 flex items-center justify-between">
+                         2. Install PWA
+                         <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                       </h3>
+                       <p className="text-muted-foreground mb-4">Install the app on your mobile device for offline inspections.</p>
+                       <Badge variant="secondary">30 seconds</Badge>
+                     </Card>
+                     
+                     <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => toggleSection('first-report')}>
+                       <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                         <FileText className="w-6 h-6 text-primary" />
+                       </div>
+                       <h3 className="text-xl font-semibold mb-2 flex items-center justify-between">
+                         3. First Report
+                         <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                       </h3>
+                       <p className="text-muted-foreground mb-4">Create your first inspection report using our guided interface.</p>
+                       <Badge variant="secondary">15 minutes</Badge>
+                     </Card>
+                   </div>
 
                   {/* Detailed Setup Guide */}
                   <Card className="p-8">
                     <h3 className="text-2xl font-semibold mb-6">Complete Setup Guide</h3>
                     
-                    <Collapsible>
-                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="font-semibold">Account Registration & Profile Setup</span>
-                        <Badge className="ml-auto">Essential</Badge>
-                      </CollapsibleTrigger>
+                     <Collapsible open={openSections.includes('account-setup')} onOpenChange={() => toggleSection('account-setup')}>
+                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                         <ChevronRight className={`w-4 h-4 transition-transform ${openSections.includes('account-setup') ? 'rotate-90' : ''}`} />
+                         <span className="font-semibold">Account Registration & Profile Setup</span>
+                         <Badge className="ml-auto">Essential</Badge>
+                       </CollapsibleTrigger>
                       <CollapsibleContent className="p-4 space-y-4">
                         <div className="space-y-3">
                           <h4 className="font-semibold">Step 1: Sign Up</h4>
@@ -176,12 +185,12 @@ const Documentation = () => {
                       </CollapsibleContent>
                     </Collapsible>
 
-                    <Collapsible>
-                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="font-semibold">PWA Installation Guide</span>
-                        <Badge variant="secondary" className="ml-auto">Recommended</Badge>
-                      </CollapsibleTrigger>
+                     <Collapsible open={openSections.includes('pwa-installation')} onOpenChange={() => toggleSection('pwa-installation')}>
+                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                         <ChevronRight className={`w-4 h-4 transition-transform ${openSections.includes('pwa-installation') ? 'rotate-90' : ''}`} />
+                         <span className="font-semibold">PWA Installation Guide</span>
+                         <Badge variant="secondary" className="ml-auto">Recommended</Badge>
+                       </CollapsibleTrigger>
                       <CollapsibleContent className="p-4 space-y-4">
                         <div className="grid md:grid-cols-2 gap-6">
                           <div>
@@ -243,12 +252,12 @@ const Documentation = () => {
                       </CollapsibleContent>
                     </Collapsible>
 
-                    <Collapsible>
-                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="font-semibold">Creating Your First Report</span>
-                        <Badge variant="outline" className="ml-auto">15 min tutorial</Badge>
-                      </CollapsibleTrigger>
+                     <Collapsible open={openSections.includes('first-report')} onOpenChange={() => toggleSection('first-report')}>
+                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                         <ChevronRight className={`w-4 h-4 transition-transform ${openSections.includes('first-report') ? 'rotate-90' : ''}`} />
+                         <span className="font-semibold">Creating Your First Report</span>
+                         <Badge variant="outline" className="ml-auto">15 min tutorial</Badge>
+                       </CollapsibleTrigger>
                       <CollapsibleContent className="p-4 space-y-4">
                         <div className="space-y-4">
                           <div>
