@@ -1,10 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, FormInput, Plus, Settings2 } from "lucide-react";
 import { getReportCategory, isDefectBasedReport } from "@/constants/reportCategories";
 import { useCustomFields } from "@/hooks/useCustomFields";
+import { useSectionGuidance } from "@/hooks/useSectionGuidance";
+import { InfoFieldWidget } from "./InfoFieldWidget";
 import type { Report } from "@/lib/reportSchemas";
 import type { ReportTemplate } from "@/integrations/supabase/reportTemplatesApi";
 
@@ -21,7 +23,7 @@ export function CategoryAwareReportEditor({
 }: CategoryAwareReportEditorProps) {
   const reportCategory = getReportCategory(report.reportType);
   const isDefectBased = isDefectBasedReport(report.reportType);
-  const { customFields } = useCustomFields();
+  const { customFields: _customFields } = useCustomFields();
 
   if (isDefectBased) {
     return <DefectBasedReportEditor report={report} onReportChange={onReportChange} template={template} />;
@@ -30,16 +32,23 @@ export function CategoryAwareReportEditor({
   }
 }
 
-function DefectBasedReportEditor({ 
-  report, 
-  onReportChange, 
-  template 
+function DefectBasedReportEditor({
+  report,
+  onReportChange,
+  template: _template
 }: CategoryAwareReportEditorProps) {
   const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
+  const [activeTab, setActiveTab] = React.useState<"info" | "observations">("info");
 
   // Use existing section structure for defect-based reports
   const sections = (report as any).sections || [];
   const activeSection = sections.find((s: any) => s.id === selectedSection) || sections[0];
+  const { guidance } = useSectionGuidance();
+  const infoFields = activeSection ? guidance[activeSection.key]?.infoFields || [] : [];
+
+  React.useEffect(() => {
+    setActiveTab("info");
+  }, [selectedSection]);
 
   const addObservation = () => {
     if (!activeSection) return;
@@ -102,83 +111,164 @@ function DefectBasedReportEditor({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 overflow-auto">
         {activeSection ? (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">{activeSection.title}</h2>
-                <p className="text-muted-foreground">
-                  Document observations, defects, and recommendations
-                </p>
-              </div>
-              <Button onClick={addObservation}>
-                <Plus className="w-4 h-4 mr-1" />
-                Add Observation
-              </Button>
+            <div>
+              <h2 className="text-2xl font-bold">{activeSection.title}</h2>
+              <p className="text-muted-foreground">
+                Document observations, defects, and recommendations
+              </p>
             </div>
 
-            {/* Observations List */}
-            <div className="space-y-4">
-              {activeSection.findings?.map((finding: any) => (
-                <Card key={finding.id} className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="text"
-                        value={finding.title}
-                        onChange={(e) => {
-                          const updatedSections = sections.map((s: any) => 
-                            s.id === activeSection.id 
+            <div className="border-b mb-4">
+              <div className="mb-4 flex gap-6">
+                <button
+                  onClick={() => setActiveTab("info")}
+                  className={`pb-2 border-b-2 ${
+                    activeTab === "info"
+                      ? "border-primary font-medium"
+                      : "border-transparent text-muted-foreground"
+                  }`}
+                >
+                  Information
+                </button>
+                <button
+                  onClick={() => setActiveTab("observations")}
+                  className={`pb-2 border-b-2 ${
+                    activeTab === "observations"
+                      ? "border-primary font-medium"
+                      : "border-transparent text-muted-foreground"
+                  }`}
+                >
+                  Observations
+                </button>
+              </div>
+            </div>
+
+            {activeTab === "info" && (
+              <section className="mb-4 rounded-md border p-4 space-y-4">
+                {infoFields.length > 0 ? (
+                  infoFields.map((field: any, idx: number) => {
+                    const fieldName = typeof field === "string" ? field : field.name;
+                    return (
+                      <InfoFieldWidget
+                        key={idx}
+                        field={field}
+                        value={activeSection.info?.[fieldName] || ""}
+                        onChange={(val) => {
+                          const updatedSections = sections.map((s: any) =>
+                            s.id === activeSection.id
                               ? {
-                                  ...s, 
-                                  findings: s.findings.map((f: any) => 
-                                    f.id === finding.id ? { ...f, title: e.target.value } : f
-                                  )
+                                  ...s,
+                                  info: { ...(s.info || {}), [fieldName]: val },
                                 }
                               : s
                           );
                           onReportChange({ ...report, sections: updatedSections } as Report);
                         }}
-                        className="flex-1 font-medium bg-transparent border-none outline-none"
-                        placeholder="Observation title"
                       />
-                      <Badge variant="outline">{finding.severity}</Badge>
-                    </div>
-                    <textarea
-                      value={finding.narrative}
-                      onChange={(e) => {
-                        const updatedSections = sections.map((s: any) => 
-                          s.id === activeSection.id 
-                            ? {
-                                ...s, 
-                                findings: s.findings.map((f: any) => 
-                                  f.id === finding.id ? { ...f, narrative: e.target.value } : f
-                                )
-                              }
-                            : s
-                        );
-                        onReportChange({ ...report, sections: updatedSections } as Report);
-                      }}
-                      className="w-full p-3 border rounded-md resize-none"
-                      rows={3}
-                      placeholder="Observation details..."
-                    />
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-muted-foreground">No information fields for this section.</p>
+                )}
+              </section>
+            )}
+
+            {activeTab === "observations" && (
+              <>
+                <div className="flex gap-6 justify-between mb-4">
+                  <section className="mb-4 flex-1 rounded-md border p-3 w-100">
+                    <details>
+                      <summary className="text-sm font-medium cursor-pointer">
+                        What to inspect (InterNACHI)
+                      </summary>
+                      <ul className="mt-2 list-disc pl-5 text-sm">
+                        {(guidance[activeSection.key]?.observationItems || []).map(
+                          (item, idx) => (
+                            <li key={idx}>{item}</li>
+                          )
+                        )}
+                      </ul>
+                    </details>
+                  </section>
+                  <div className="flex justify-between mb-4">
+                    <Button onClick={addObservation}>Add Observation</Button>
                   </div>
-                </Card>
-              ))}
-              
-              {(!activeSection.findings || activeSection.findings.length === 0) && (
-                <div className="text-center py-12 text-muted-foreground">
-                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No observations in this section yet</p>
-                  <Button variant="outline" onClick={addObservation} className="mt-4">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add First Observation
-                  </Button>
                 </div>
-              )}
-            </div>
+
+                {/* Observations List */}
+                <div className="space-y-4">
+                  {activeSection.findings?.map((finding: any) => (
+                    <Card key={finding.id} className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={finding.title}
+                            onChange={(e) => {
+                              const updatedSections = sections.map((s: any) =>
+                                s.id === activeSection.id
+                                  ? {
+                                      ...s,
+                                      findings: s.findings.map((f: any) =>
+                                        f.id === finding.id
+                                          ? { ...f, title: e.target.value }
+                                          : f
+                                      ),
+                                    }
+                                  : s
+                              );
+                              onReportChange({ ...report, sections: updatedSections } as Report);
+                            }}
+                            className="flex-1 font-medium bg-transparent border-none outline-none"
+                            placeholder="Observation title"
+                          />
+                          <Badge variant="outline">{finding.severity}</Badge>
+                        </div>
+                        <textarea
+                          value={finding.narrative}
+                          onChange={(e) => {
+                            const updatedSections = sections.map((s: any) =>
+                              s.id === activeSection.id
+                                ? {
+                                    ...s,
+                                    findings: s.findings.map((f: any) =>
+                                      f.id === finding.id
+                                        ? { ...f, narrative: e.target.value }
+                                        : f
+                                    ),
+                                  }
+                                : s
+                            );
+                            onReportChange({ ...report, sections: updatedSections } as Report);
+                          }}
+                          className="w-full p-3 border rounded-md resize-none"
+                          rows={3}
+                          placeholder="Observation details..."
+                        />
+                      </div>
+                    </Card>
+                  ))}
+
+                  {(!activeSection.findings || activeSection.findings.length === 0) && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No observations in this section yet</p>
+                      <Button
+                        variant="outline"
+                        onClick={addObservation}
+                        className="mt-4"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Add First Observation
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground">
