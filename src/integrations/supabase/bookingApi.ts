@@ -9,6 +9,10 @@ export interface BookingSettings {
   template?: string;
   theme_color?: string | null;
   layout?: string;
+  working_hours?: { start: string; end: string } | null;
+  time_zone?: string | null;
+  buffer_time?: number | null;
+  working_days?: string[] | null;
 }
 
 export interface AppointmentPayload {
@@ -26,7 +30,7 @@ export const bookingApi = {
     const { data, error } = await supabase
       .from('booking_settings' as any)
       .select(
-        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout'
+        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout, working_hours, time_zone, buffer_time, working_days'
       )
       .eq('slug', slug)
       .maybeSingle();
@@ -39,7 +43,7 @@ export const bookingApi = {
     const { data, error } = await supabase
       .from('booking_settings' as any)
       .select(
-        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout'
+        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout, working_hours, time_zone, buffer_time, working_days'
       )
       .eq('user_id', userId)
       .maybeSingle();
@@ -55,7 +59,11 @@ export const bookingApi = {
     themeColor: string | null = '#1e293b',
     advanceNotice?: number,
     defaultDuration?: number,
-    layout: string = 'vertical'
+    layout: string = 'vertical',
+    workingHours?: { start: string; end: string } | null,
+    timeZone?: string | null,
+    bufferTime?: number | null,
+    workingDays?: string[] | null
   ): Promise<BookingSettings> {
     // First check if slug is already taken by another user
     const { data: existingSlug } = await supabase
@@ -80,6 +88,10 @@ export const bookingApi = {
           advance_notice: advanceNotice,
           default_duration: defaultDuration,
           layout,
+          working_hours: workingHours,
+          time_zone: timeZone,
+          buffer_time: bufferTime,
+          working_days: workingDays,
         },
         { 
           onConflict: 'user_id',
