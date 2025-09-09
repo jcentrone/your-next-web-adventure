@@ -5,6 +5,7 @@ import NotFound from "@/pages/NotFound";
 import RootLayout from "@/layouts/RootLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { PWAManager } from "@/components/pwa/PWAManager";
+import { NotificationManager } from "@/components/notifications/NotificationManager";
 import GoogleCallback from "@/pages/oauth/GoogleCallback";
 import OutlookCallback from "@/pages/oauth/OutlookCallback";
 import AppleCallback from "@/pages/oauth/AppleCallback";
@@ -28,6 +29,7 @@ const AppWithOnboarding: React.FC = () => {
   return (
     <OnboardingWrapper>
       <PWAManager />
+      <NotificationManager />
       <BrowserRouter
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >

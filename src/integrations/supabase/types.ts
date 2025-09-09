@@ -742,6 +742,153 @@ export type Database = {
           },
         ]
       }
+      notification_log: {
+        Row: {
+          body: string
+          clicked: boolean | null
+          data: Json | null
+          delivered: boolean | null
+          error_message: string | null
+          id: string
+          related_appointment_id: string | null
+          related_contact_id: string | null
+          related_report_id: string | null
+          sent_at: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          clicked?: boolean | null
+          data?: Json | null
+          delivered?: boolean | null
+          error_message?: string | null
+          id?: string
+          related_appointment_id?: string | null
+          related_contact_id?: string | null
+          related_report_id?: string | null
+          sent_at?: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          clicked?: boolean | null
+          data?: Json | null
+          delivered?: boolean | null
+          error_message?: string | null
+          id?: string
+          related_appointment_id?: string | null
+          related_contact_id?: string | null
+          related_report_id?: string | null
+          sent_at?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          appointment_reminder_times: number[]
+          appointment_reminders: boolean
+          business_intelligence: boolean
+          client_messages: boolean
+          created_at: string
+          id: string
+          quiet_hours_enabled: boolean
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          sync_notifications: boolean
+          system_alerts: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_reminder_times?: number[]
+          appointment_reminders?: boolean
+          business_intelligence?: boolean
+          client_messages?: boolean
+          created_at?: string
+          id?: string
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sync_notifications?: boolean
+          system_alerts?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_reminder_times?: number[]
+          appointment_reminders?: boolean
+          business_intelligence?: boolean
+          client_messages?: boolean
+          created_at?: string
+          id?: string
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          sync_notifications?: boolean
+          system_alerts?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_queue: {
+        Row: {
+          attempts: number | null
+          body: string
+          created_at: string
+          data: Json | null
+          id: string
+          max_attempts: number | null
+          related_appointment_id: string | null
+          related_contact_id: string | null
+          related_report_id: string | null
+          scheduled_for: string
+          sent: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          body: string
+          created_at?: string
+          data?: Json | null
+          id?: string
+          max_attempts?: number | null
+          related_appointment_id?: string | null
+          related_contact_id?: string | null
+          related_report_id?: string | null
+          scheduled_for: string
+          sent?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number | null
+          body?: string
+          created_at?: string
+          data?: Json | null
+          id?: string
+          max_attempts?: number | null
+          related_appointment_id?: string | null
+          related_contact_id?: string | null
+          related_report_id?: string | null
+          scheduled_for?: string
+          sent?: boolean | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       organization_invitations: {
         Row: {
           accepted_at: string | null
@@ -937,6 +1084,42 @@ export type Database = {
           signature_type?: string | null
           signature_url?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string
+          endpoint: string
+          id: string
+          is_active: boolean
+          p256dh_key: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          is_active?: boolean
+          p256dh_key: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          is_active?: boolean
+          p256dh_key?: string
+          updated_at?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []

@@ -17,7 +17,8 @@ import {
   Briefcase,
   Calendar,
   Shield,
-  Settings2
+  Settings2,
+  Bell
 } from "lucide-react";
 import EmailTemplate from "./EmailTemplate";
 import Account from "./Account";
@@ -30,6 +31,7 @@ import Advanced from "./Advanced";
 import Booking from "./Booking";
 import Services from "./Services";
 import ReportManager from "./ReportManager";
+import Notifications from "./Notifications";
 import { Button } from "@/components/ui/button";
 
 const Settings: React.FC = () => {
@@ -68,6 +70,7 @@ const Settings: React.FC = () => {
     { id: "terms-and-conditions", label: "Terms & Conditions", icon: FileText, description: "Manage terms and conditions" },
     { id: "email-template", label: "Email Template", icon: Mail, description: "Customize email notifications" },
     { id: "data", label: "Data", icon: Database, description: "Import, export, and manage data" },
+    { id: "notifications", label: "Notifications", icon: Bell, description: "Configure push notification preferences" },
     { id: "integrations", label: "Integrations", icon: Plug, description: "Connect third-party services" },
     { id: "services", label: "Services", icon: Briefcase, description: "Manage your service offerings" },
     { id: "booking", label: "Booking", icon: Calendar, description: "Configure your booking page" },
@@ -85,6 +88,7 @@ const Settings: React.FC = () => {
       case "terms-and-conditions": return <TermsAndConditions />;
       case "email-template": return <EmailTemplate />;
       case "data": return <Data />;
+      case "notifications": return <Notifications />;
       case "integrations": return <Integrations />;
       case "services": return <Services />;
       case "booking": return <Booking />;
