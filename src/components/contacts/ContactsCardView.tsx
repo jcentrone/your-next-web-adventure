@@ -39,7 +39,7 @@ export const ContactsCardView: React.FC<ContactsCardViewProps> = ({
                     <CardDescription className="flex items-center gap-1">
                       <div className="flex items-center gap-1">
                         <Building className="w-3 h-3 text-blue-500" />
-                        <Link 
+                        <Link
                           to={`/accounts/${contact.account.id}`}
                           className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors font-medium"
                           onClick={(e) => e.stopPropagation()}
@@ -51,6 +51,15 @@ export const ContactsCardView: React.FC<ContactsCardViewProps> = ({
                         </Badge>
                       </div>
                     </CardDescription>
+                  )}
+                  {contact.tags?.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {contact.tags.map((tag: string) => (
+                        <Badge key={tag} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   )}
                 </div>
                 <Badge className={getContactTypeColor(contact.contact_type)}>

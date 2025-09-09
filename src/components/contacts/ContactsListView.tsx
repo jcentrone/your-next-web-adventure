@@ -58,12 +58,21 @@ export const ContactsListView: React.FC<ContactsListViewProps> = ({
           {contacts.map((contact) => (
             <TableRow key={contact.id} className="group">
               <TableCell>
-                <Link 
-                  to={`/contacts/${contact.id}`} 
+                <Link
+                  to={`/contacts/${contact.id}`}
                   className="font-medium hover:text-primary transition-colors"
                 >
                   {contact.first_name} {contact.last_name}
                 </Link>
+                {contact.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {contact.tags.map((tag: string) => (
+                      <Badge key={tag} variant="secondary">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </TableCell>
               <TableCell>
                 <Badge className={getContactTypeColor(contact.contact_type)}>

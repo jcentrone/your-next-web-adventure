@@ -24,6 +24,7 @@ import { ContactsViewToggle } from "@/components/contacts/ContactsViewToggle";
 import { ContactsListView } from "@/components/contacts/ContactsListView";
 import { ContactsCardView } from "@/components/contacts/ContactsCardView";
 import { ContactsFilter } from "@/components/contacts/ContactsFilter";
+import { TagInput } from "@/components/ui/TagInput";
 import {
   Pagination,
   PaginationContent,
@@ -45,6 +46,7 @@ const Contacts: React.FC = () => {
   const [view, setView] = useState<"list" | "card">("list");
   const effectiveView = isMobile ? "card" : view;
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -91,8 +93,11 @@ const Contacts: React.FC = () => {
              contact.company?.toLowerCase().includes(query);
       
       const matchesType = !selectedType || contact.contact_type === selectedType;
-      
-      return matchesSearch && matchesType;
+      const matchesTags =
+        tagFilter.length === 0 ||
+        tagFilter.every((tag) => contact.tags?.includes(tag));
+
+      return matchesSearch && matchesType && matchesTags;
     }) || [];
 
     // Sort contacts
@@ -134,7 +139,7 @@ const Contacts: React.FC = () => {
     }
 
     return filtered;
-  }, [contacts, searchQuery, selectedType, sortField, sortDirection]);
+  }, [contacts, searchQuery, selectedType, tagFilter, sortField, sortDirection]);
 
   const totalPages = Math.ceil(filteredAndSortedContacts.length / itemsPerPage) || 1;
   const paginatedContacts = React.useMemo(() => {
@@ -317,6 +322,12 @@ const Contacts: React.FC = () => {
                 onTypeChange={setSelectedType}
                 getContactTypeColor={getContactTypeColor}
               />
+              <TagInput
+                value={tagFilter}
+                onChange={setTagFilter}
+                placeholder="Filter tags"
+                className="max-w-sm"
+              />
             </div>
           </div>
         ) : (
@@ -354,6 +365,12 @@ const Contacts: React.FC = () => {
                   selectedType={selectedType}
                   onTypeChange={setSelectedType}
                   getContactTypeColor={getContactTypeColor}
+                />
+                <TagInput
+                  value={tagFilter}
+                  onChange={setTagFilter}
+                  placeholder="Filter tags"
+                  className="max-w-xs"
                 />
               </div>
             </div>

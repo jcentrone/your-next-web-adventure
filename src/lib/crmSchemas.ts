@@ -21,6 +21,7 @@ export const ContactSchema = z.object({
   state: z.string().optional().nullable(),
   zip_code: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
+  tags: z.array(z.string()).default([]),
   is_active: z.boolean().default(true),
   created_at: z.string(),
   updated_at: z.string(),
@@ -52,6 +53,7 @@ export const CreateContactSchema = z.object({
   state: z.string().optional().nullable(),
   zip_code: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
+  tags: z.array(z.string()).default([]),
   is_active: z.boolean().default(true),
 });
 export type Contact = z.infer<typeof ContactSchema>;

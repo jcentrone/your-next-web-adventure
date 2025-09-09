@@ -8,6 +8,7 @@ export const contactsApi = {
       .from('contacts')
       .select(`
         *,
+        tags,
         account:accounts(id, name, type, industry)
       `)
       .eq('user_id', userId)
@@ -23,6 +24,7 @@ export const contactsApi = {
       .from('contacts')
       .select(`
         *,
+        tags,
         account:accounts(id, name, type, industry, website, phone, email)
       `)
       .eq('id', id)
@@ -36,7 +38,7 @@ export const contactsApi = {
     const { data, error } = await supabase
       .from('contacts')
       .insert(contact)
-      .select()
+      .select('*')
       .single();
     
     if (error) throw error;
@@ -62,7 +64,7 @@ export const contactsApi = {
       .from('contacts')
       .update(updates)
       .eq('id', id)
-      .select()
+      .select('*')
       .single();
     
     if (error) throw error;
@@ -83,6 +85,7 @@ export const contactsApi = {
       .from('contacts')
       .select(`
         *,
+        tags,
         account:accounts(id, name, type, industry)
       `)
       .eq('user_id', userId)
