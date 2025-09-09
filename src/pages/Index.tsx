@@ -441,15 +441,15 @@ const Index = () => {
         <div className="relative bg-gradient-to-br from-primary via-primary to-primary/80 rounded-3xl p-8 md:p-12 text-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/10 to-transparent" />
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 bg-primary-foreground/10 text-primary-foreground px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 bg-primary-foreground/10 text-muted-foreground px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Smartphone className="w-4 h-4" />
               Ready to Start?
             </div>
             
-            <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-muted-foreground mb-4">
               Join the Modern Inspection Revolution
             </h2>
-            <p className="text-primary-foreground/90 text-lg mb-8 max-w-2xl mx-auto">
+            <p className="text-muted-foreground/90 text-lg mb-8 max-w-2xl mx-auto">
               Create professional inspection reports with confidence. Works online or offline, anywhere you need it.
             </p>
             
