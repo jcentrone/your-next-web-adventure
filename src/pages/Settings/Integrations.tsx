@@ -6,14 +6,13 @@ import {Switch} from "@/components/ui/switch";
 import {Input} from "@/components/ui/input";
 import {Separator} from "@/components/ui/separator";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
-import {Calendar, Navigation, Search} from "lucide-react";
+import {Calendar, Navigation} from "lucide-react";
 import { RouteOptimizationSettings } from "@/components/settings/RouteOptimizationSettings";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as openAI from "@/integrations/openAI";
 
 const Integrations: React.FC = () => {
     const {user} = useAuth();
-    const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState<string>("all");
     const [openAiKey, setOpenAiKey] = useState("");
 
@@ -150,13 +149,10 @@ const Integrations: React.FC = () => {
 
     const filteredIntegrations = useMemo(() => {
         return integrations.filter(integration => {
-            const matchesSearch =
-                integration.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                integration.description.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesFilter = filterType === "all" || integration.type === filterType;
-            return matchesSearch && matchesFilter;
+            return matchesFilter;
         });
-    }, [integrations, searchQuery, filterType]);
+    }, [integrations, filterType]);
 
     const groupedIntegrations = useMemo(() => {
         const groups: Record<string, typeof filteredIntegrations> = {};
@@ -176,19 +172,9 @@ const Integrations: React.FC = () => {
                 Manage your third-party integrations here.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                    <Search
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                    <Input
-                        placeholder="Search integrations..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10"
-                    />
-                </div>
+            <div className="flex justify-end">
                 <Select value={filterType} onValueChange={setFilterType}>
-                    <SelectTrigger className="w-full sm:w-48">
+                    <SelectTrigger className="w-48">
                         <SelectValue placeholder="Filter by type"/>
                     </SelectTrigger>
                     <SelectContent>
@@ -225,7 +211,7 @@ const Integrations: React.FC = () => {
 
                 {Object.keys(groupedIntegrations).length === 0 && (
                     <div className="text-center py-8">
-                        <p className="text-muted-foreground">No integrations found matching your search criteria.</p>
+                        <p className="text-muted-foreground">No integrations found matching your filter criteria.</p>
                     </div>
                 )}
             </div>
