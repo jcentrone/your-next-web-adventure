@@ -73,14 +73,29 @@ export function RouteOptimizationSettings() {
   };
 
   const handlePlaceChange = (place: any) => {
-    setSettings(prev => ({
-      ...prev,
+    console.log('🎯 handlePlaceChange called with place:', place);
+    console.log('🎯 Place formatted_address:', place.formatted_address);
+    console.log('🎯 Place structure:', JSON.stringify(place, null, 2));
+    
+    const newSettings = {
+      ...settings,
       home_base_address: place.formatted_address,
       home_base_formatted_address: place.formatted_address,
       home_base_place_id: place.place_id,
       home_base_lat: place.latitude,
       home_base_lng: place.longitude,
-    }));
+    };
+    
+    console.log('🎯 New settings object:', newSettings);
+    console.log('🎯 home_base_address will be set to:', newSettings.home_base_address);
+    
+    setSettings(newSettings);
+    
+    // Log after state update (will show in next render)
+    setTimeout(() => {
+      console.log('🎯 Settings state after update:', settings);
+      console.log('🎯 Save button should be enabled:', !!settings.home_base_address);
+    }, 100);
   };
 
   if (isLoading) {
