@@ -83,6 +83,20 @@ When adding external images, the app routes the request through `/api/image-prox
 This server-side proxy fetches the image and returns it with permissive CORS headers
 to prevent cross-origin errors when loading user-provided URLs.
 
+## Category-Aware Report Editor
+
+An experimental `CategoryAwareReportEditor` is available but disabled by default.
+To enable it safely, ensure the following features are complete and at parity with
+the legacy editor:
+
+- Tabbed navigation
+- Template support
+- Image annotation workflow
+- AI assistance
+
+Once these are implemented, set `ENABLE_CATEGORY_REPORT_EDITOR` to `true` in
+`src/constants/featureFlags.ts` to turn on the new editor.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/069944d1-052a-41dd-b482-c41df0da3591) and click on Share -> Publish.
