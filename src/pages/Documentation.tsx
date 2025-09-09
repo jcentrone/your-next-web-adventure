@@ -834,7 +834,7 @@ const Documentation = () => {
                             <li>Configure widget appearance:
                               <ul className="list-disc pl-6 mt-2">
                                 <li>Choose color scheme to match your brand</li>
-                                <li>Upload company logo</li>
+                                <li>Choose a style</li>
                                 <li>Customize welcome message</li>
                                 <li>Select available languages</li>
                               </ul>
