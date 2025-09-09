@@ -17,6 +17,10 @@ const Documentation = () => {
   const toggleSection = (sectionId: string) => {
     setOpenSections(prev => prev.includes(sectionId) ? prev.filter(id => id !== sectionId) : [...prev, sectionId]);
   };
+
+  const openSingleSection = (sectionId: string) => {
+    setOpenSections([sectionId]);
+  };
   const categories = [{
     id: "getting-started",
     label: "Getting Started",
@@ -108,7 +112,7 @@ const Documentation = () => {
                   
                    {/* Quick Start Cards */}
                    <div className="grid md:grid-cols-3 gap-6 mb-8">
-                     <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => toggleSection('account-setup')}>
+                     <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => openSingleSection('account-setup')}>
                        <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                          <Users className="w-6 h-6 text-primary" />
                        </div>
@@ -120,7 +124,7 @@ const Documentation = () => {
                        <Badge variant="secondary">2 minutes</Badge>
                      </Card>
                      
-                     <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => toggleSection('pwa-installation')}>
+                     <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => openSingleSection('pwa-installation')}>
                        <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                          <Smartphone className="w-6 h-6 text-primary" />
                        </div>
@@ -132,7 +136,7 @@ const Documentation = () => {
                        <Badge variant="secondary">30 seconds</Badge>
                      </Card>
                      
-                     <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => toggleSection('first-report')}>
+                     <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => openSingleSection('first-report')}>
                        <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
                          <FileText className="w-6 h-6 text-primary" />
                        </div>
