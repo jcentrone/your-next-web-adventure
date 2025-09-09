@@ -31,7 +31,7 @@ export function NewReportBuilder({ userId, category }: NewReportBuilderProps) {
   const [editingField, setEditingField] = useState<CustomField | undefined>();
   const [isSaving, setIsSaving] = useState(false);
 
-  const [reportType] = useState<Report["reportType"]>(() => (`custom_${crypto.randomUUID()}`) as Report["reportType"]);
+  const [reportType] = useState<Report["reportType"]>(() => crypto.randomUUID() as Report["reportType"]);
 
   const { customSections, deleteSection, loadCustomSections } = useCustomSections();
   const { customFields, createField, updateField, deleteField } = useCustomFields();
