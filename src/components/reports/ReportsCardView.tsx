@@ -43,8 +43,7 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
           </div>
           <p className="text-sm text-muted-foreground mb-4">
             {/* inspectionDate is ISO; show local date */}
-            {new Date(r.inspectionDate).toLocaleDateString()} • {/* @ts-expect-error clientName exists on both shapes */}
-            {r.clientName}
+            {new Date(r.inspectionDate).toLocaleDateString()} • {r.clientName}
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             {!r.archived && (
@@ -75,14 +74,14 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
                   <TooltipContent>Edit report</TooltipContent>
                 </Tooltip>
                 
-                {r.reportType === "windMitigation" ? (
+                {r.reportType === "wind_mitigation" ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         size="sm"
                         variant="outline"
                         className="border"
-                        onClick={() => downloadWindMitigationReport(r)}
+                        onClick={() => downloadWindMitigationReport(r.id)}
                       >
                         Download
                       </Button>

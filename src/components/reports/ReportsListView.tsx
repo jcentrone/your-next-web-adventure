@@ -137,14 +137,14 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
                     <TooltipContent>Edit report</TooltipContent>
                   </Tooltip>
 
-                  {report.reportType === "windMitigation" && (
+                  {report.reportType === "wind_mitigation" && (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
                           size="sm"
                           variant="outline"
                           className="h-8 px-2"
-                          onClick={() => downloadWindMitigationReport(report)}
+                          onClick={() => downloadWindMitigationReport(report.id)}
                         >
                           Download
                         </Button>

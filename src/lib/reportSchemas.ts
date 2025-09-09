@@ -79,6 +79,7 @@ export const BaseReportSchema = z.object({
         })
         .optional(),
     shareToken: z.string().optional(),
+    archived: z.boolean().default(false),
     reportType: z.enum([
         "home_inspection",
         "wind_mitigation",

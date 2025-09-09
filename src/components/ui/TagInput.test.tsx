@@ -30,7 +30,7 @@ describe("TagInput", () => {
   it("renders suggestions when provided", () => {
     render(<TagInput value={[]} onChange={() => {}} suggestions={["a", "b"]} placeholder="tags" />)
     const input = screen.getByPlaceholderText("tags")
-    expect(input).toHaveAttribute("list")
+    expect(input.getAttribute("list")).toBeTruthy()
     expect(document.querySelectorAll("option")).toHaveLength(2)
   })
 })
