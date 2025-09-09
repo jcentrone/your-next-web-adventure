@@ -2,6 +2,7 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { CalendarIcon, Clock, MapPin, User, FileText, Phone, Mail, Building2, Hash, Calendar } from "lucide-react";
 import { type Appointment } from "@/lib/crmSchemas";
@@ -10,13 +11,14 @@ interface AppointmentPreviewDialogProps {
   appointment: Appointment | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  contact?: { 
+  contact?: {
     first_name: string; 
     last_name: string;
     email?: string;
     phone?: string;
     company?: string;
   } | null;
+  onNavigate: (path: string) => void;
 }
 
 const AppointmentPreviewDialog: React.FC<AppointmentPreviewDialogProps> = ({
@@ -24,6 +26,7 @@ const AppointmentPreviewDialog: React.FC<AppointmentPreviewDialogProps> = ({
   isOpen,
   onOpenChange,
   contact,
+  onNavigate,
 }) => {
   if (!appointment) return null;
 
@@ -206,6 +209,19 @@ const AppointmentPreviewDialog: React.FC<AppointmentPreviewDialogProps> = ({
               </div>
             </>
           )}
+
+          <Separator />
+          <div className="flex justify-end">
+            {appointment.report_id ? (
+              <Button onClick={() => onNavigate(`/reports/${appointment.report_id}`)}>
+                View Report
+              </Button>
+            ) : (
+              <Button onClick={() => onNavigate(`/reports/new/home-inspection?appointmentId=${appointment.id}`)}>
+                Create Report
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
