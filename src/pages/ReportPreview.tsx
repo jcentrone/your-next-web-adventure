@@ -426,6 +426,10 @@ const ReportPreview: React.FC = () => {
 
     React.useEffect(() => {
         if (!organization || !report) return;
+        if (report.termsHtml) {
+            setTermsHtml(report.termsHtml);
+            return;
+        }
         (async () => {
             try {
                 const terms = await getTermsConditions(organization.id);
