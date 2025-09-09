@@ -2,12 +2,11 @@ import React, {useMemo, useState} from "react";
 import {useAuth} from "@/contexts/AuthContext";
 import {useQuery} from "@tanstack/react-query";
 import {Button} from "@/components/ui/button";
-import {Switch} from "@/components/ui/switch";
 import {Input} from "@/components/ui/input";
 import {Separator} from "@/components/ui/separator";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Calendar, Navigation} from "lucide-react";
-import { RouteOptimizationSettings } from "@/components/settings/RouteOptimizationSettings";
+import {RouteOptimizationSettings} from "@/components/settings/RouteOptimizationSettings";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as openAI from "@/integrations/openAI";
 
@@ -34,13 +33,13 @@ const Integrations: React.FC = () => {
 
     const integrations = useMemo(() => [
         {
-          id: 'route-optimization',
-          name: 'Route Optimization & Mileage Tracking',
-          type: 'navigation' as const,
-          category: 'Navigation & Maps',
-          description: 'Configure home base, track mileage, and optimize routes with AI',
-          icon: <Navigation className="h-5 w-5 text-muted-foreground"/>,
-          component: <RouteOptimizationSettings />,
+            id: 'route-optimization',
+            name: 'Route Optimization & Mileage Tracking',
+            type: 'navigation' as const,
+            category: 'Navigation & Maps',
+            description: 'Configure home base, track mileage, and optimize routes with AI',
+            icon: <Navigation className="h-5 w-5 text-muted-foreground"/>,
+            component: <RouteOptimizationSettings/>,
         },
         {
             id: "google-calendar",
@@ -167,23 +166,27 @@ const Integrations: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <h2 className="text-lg font-medium">Integrations</h2>
-            <p className="text-sm text-muted-foreground">
-                Manage your third-party integrations here.
-            </p>
 
-            <div className="flex justify-end">
-                <Select value={filterType} onValueChange={setFilterType}>
-                    <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Filter by type"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Types</SelectItem>
-                        <SelectItem value="navigation">Navigation & Maps</SelectItem>
-                        <SelectItem value="calendar">Calendar Sync</SelectItem>
-                        <SelectItem value="ai">AI Tools</SelectItem>
-                    </SelectContent>
-                </Select>
+            <div className="flex justify-between">
+                <div>
+                    <h2 className="text-lg font-medium">Integrations</h2>
+                    <p className="text-sm text-muted-foreground">
+                        Manage your third-party integrations here.
+                    </p>
+                </div>
+                <div className="flex justify-end">
+                    <Select value={filterType} onValueChange={setFilterType}>
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Filter by type"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Types</SelectItem>
+                            <SelectItem value="navigation">Navigation & Maps</SelectItem>
+                            <SelectItem value="calendar">Calendar Sync</SelectItem>
+                            <SelectItem value="ai">AI Tools</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             <div className="space-y-6">
