@@ -29,12 +29,16 @@ export function RouteOptimizationSettings() {
 
   const loadSettings = async () => {
     try {
+      console.log('🔍 Loading settings for user:', user?.id);
       const existingSettings = await routeOptimizationApi.getSettings();
+      console.log('🔍 Loaded settings:', existingSettings);
       if (existingSettings) {
         setSettings(existingSettings);
+      } else {
+        console.log('🔍 No existing settings found');
       }
     } catch (error) {
-      console.error('Error loading settings:', error);
+      console.error('🔍 Error loading settings:', error);
     } finally {
       setIsLoading(false);
     }
@@ -62,10 +66,15 @@ export function RouteOptimizationSettings() {
     setIsSaving(true);
 
     try {
-      await routeOptimizationApi.upsertSettings({
+      console.log('💾 Saving settings for user:', user.id);
+      console.log('💾 Settings to save:', settings);
+      
+      const savedSettings = await routeOptimizationApi.upsertSettings({
         user_id: user.id,
         ...settings,
       } as RouteOptimizationSettings);
+      
+      console.log('💾 Saved settings result:', savedSettings);
 
       toast({
         title: 'Settings saved',
