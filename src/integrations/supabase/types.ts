@@ -292,7 +292,7 @@ export type Database = {
           {
             foreignKeyName: "fk_appointments_report"
             columns: ["report_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "reports"
             referencedColumns: ["id"]
           },
@@ -1232,6 +1232,7 @@ export type Database = {
       reports: {
         Row: {
           address: string
+          appointment_id: string | null
           archived: boolean
           client_name: string
           color_scheme: string | null
@@ -1267,6 +1268,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          appointment_id?: string | null
           archived?: boolean
           client_name: string
           color_scheme?: string | null
@@ -1302,6 +1304,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          appointment_id?: string | null
           archived?: boolean
           client_name?: string
           color_scheme?: string | null
@@ -1336,6 +1339,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "reports_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reports_contact_id_fkey"
             columns: ["contact_id"]
