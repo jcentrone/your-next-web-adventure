@@ -36,7 +36,24 @@ async function create(userId: string, data: { id: string; name: string; descript
   return result as CustomReportType;
 }
 
+async function getUserReportTypes(userId: string): Promise<CustomReportType[]> {
+  const { data, error } = await supabase
+    .from("custom_report_types")
+    .select("*")
+    .eq("is_active", true)
+    .or(`user_id.eq.${userId},organization_id.not.is.null`)
+    .order("name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching custom report types:", error);
+    throw error;
+  }
+
+  return (data || []) as CustomReportType[];
+}
+
 export const customReportTypesApi = {
   create,
+  getUserReportTypes,
 };
 
