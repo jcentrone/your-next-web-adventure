@@ -1,1 +1,2 @@
-export * from "./TagInput"
+export * from "./actions-menu";
+export * from "./TagInput";

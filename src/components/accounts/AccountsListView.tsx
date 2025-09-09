@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Users, DollarSign, ExternalLink, Tag } from "lucide-react";
+import { ActionsMenu, ActionItem } from "@/components/ui/actions-menu";
 import type { Account } from "@/lib/accountSchemas";
 
 interface AccountsListViewProps {
@@ -78,22 +79,23 @@ export const AccountsListView: React.FC<AccountsListViewProps> = ({ accounts, fo
                   </div>
                 )}
               </TableCell>
-              <TableCell className="space-x-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0"
-                  onClick={() => onManageTags(account)}
-                >
-                  <Tag className="h-4 w-4" />
-                  <span className="sr-only">Manage tags</span>
-                </Button>
-                <Button asChild variant="outline" size="sm">
-                  <Link to={`/accounts/${account.id}`}>
-                    <ExternalLink className="w-4 h-4 mr-1" />
-                    View
-                  </Link>
-                </Button>
+              <TableCell>
+                <ActionsMenu 
+                  actions={[
+                    {
+                      key: "tags",
+                      label: "Manage Tags",
+                      icon: <Tag className="h-4 w-4" />,
+                      onClick: () => onManageTags(account),
+                    },
+                    {
+                      key: "view",
+                      label: "View Details",
+                      icon: <ExternalLink className="h-4 w-4" />,
+                      onClick: () => window.location.href = `/accounts/${account.id}`,
+                    },
+                  ] as ActionItem[]}
+                />
               </TableCell>
             </TableRow>
           ))}

@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -24,6 +23,7 @@ import {
   Pencil,
   Tag,
 } from "lucide-react";
+import { ActionsMenu, ActionItem } from "@/components/ui/actions-menu";
 import { downloadWindMitigationReport } from "@/utils/fillWindMitigationPDF";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import type { Report } from "@/lib/reportSchemas";
@@ -105,111 +105,47 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
                 {report.address || "-"}
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        onClick={() => onManageTags(report)}
-                      >
-                        <Tag className="h-4 w-4" />
-                        <span className="sr-only">Manage tags</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Manage tags</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        asChild
-                      >
-                        <Link to={`/reports/${report.id}`}>
-                          <Pencil className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Edit report</TooltipContent>
-                  </Tooltip>
-
-                  {report.reportType === "wind_mitigation" && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 px-2"
-                          onClick={() => downloadWindMitigationReport(report.id)}
-                        >
-                          Download
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Download PDF</TooltipContent>
-                    </Tooltip>
-                  )}
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        asChild
-                      >
-                        <Link to={`/reports/${report.id}/preview`}>
-                          <Eye className="h-4 w-4" />
-                          <span className="sr-only">Preview</span>
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Preview report</TooltipContent>
-                  </Tooltip>
-
-                  {onArchive && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                          onClick={() => onArchive(report.id, !report.archived)}
-                        >
-                          {report.archived ? (
-                            <ArchiveRestore className="h-4 w-4" />
-                          ) : (
-                            <Archive className="h-4 w-4" />
-                          )}
-                          <span className="sr-only">
-                            {report.archived ? "Restore" : "Archive"}
-                          </span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {report.archived ? "Restore report" : "Archive report"}
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="h-8 w-8 p-0"
-                        onClick={() => onDelete(report.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Delete</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Delete report</TooltipContent>
-                  </Tooltip>
-                </div>
+                <ActionsMenu 
+                  actions={[
+                    {
+                      key: "tags",
+                      label: "Manage Tags",
+                      icon: <Tag className="h-4 w-4" />,
+                      onClick: () => onManageTags(report),
+                    },
+                    {
+                      key: "edit",
+                      label: "Edit Report",
+                      icon: <Pencil className="h-4 w-4" />,
+                      onClick: () => window.location.href = `/reports/${report.id}`,
+                    },
+                    ...(report.reportType === "wind_mitigation" ? [{
+                      key: "download",
+                      label: "Download PDF",
+                      icon: <FileText className="h-4 w-4" />,
+                      onClick: () => downloadWindMitigationReport(report.id),
+                    }] : []),
+                    {
+                      key: "preview",
+                      label: "Preview Report",
+                      icon: <Eye className="h-4 w-4" />,
+                      onClick: () => window.location.href = `/reports/${report.id}/preview`,
+                    },
+                    ...(onArchive ? [{
+                      key: "archive",
+                      label: report.archived ? "Restore Report" : "Archive Report",
+                      icon: report.archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />,
+                      onClick: () => onArchive(report.id, !report.archived),
+                    }] : []),
+                    {
+                      key: "delete",
+                      label: "Delete Report",
+                      icon: <Trash2 className="h-4 w-4" />,
+                      onClick: () => onDelete(report.id),
+                      variant: "destructive" as const,
+                    },
+                  ] as ActionItem[]}
+                />
               </TableCell>
             </TableRow>
           ))}

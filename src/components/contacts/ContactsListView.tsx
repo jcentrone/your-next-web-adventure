@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Trash2, Mail, Phone, Building, MapPin, ChevronUp, ChevronDown, Tag } from "lucide-react";
+import { ActionsMenu, ActionItem } from "@/components/ui/actions-menu";
 import type { Contact } from "@/lib/crmSchemas";
 
 interface ContactsListViewProps {
@@ -135,42 +136,29 @@ export const ContactsListView: React.FC<ContactsListViewProps> = ({
                 )}
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onManageTags(contact);
-                    }}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Tag className="h-4 w-4" />
-                    <span className="sr-only">Manage tags</span>
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onEdit(contact);
-                    }}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onDelete(contact);
-                    }}
-                    className="h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                <ActionsMenu 
+                  actions={[
+                    {
+                      key: "tags",
+                      label: "Manage Tags",
+                      icon: <Tag className="h-4 w-4" />,
+                      onClick: () => onManageTags(contact),
+                    },
+                    {
+                      key: "edit",
+                      label: "Edit Contact",
+                      icon: <Edit className="h-4 w-4" />,
+                      onClick: () => onEdit(contact),
+                    },
+                    {
+                      key: "delete",
+                      label: "Delete Contact",
+                      icon: <Trash2 className="h-4 w-4" />,
+                      onClick: () => onDelete(contact),
+                      variant: "destructive" as const,
+                    },
+                  ] as ActionItem[]}
+                />
               </TableCell>
             </TableRow>
           ))}
