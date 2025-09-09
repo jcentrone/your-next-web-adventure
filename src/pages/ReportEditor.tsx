@@ -20,7 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
 import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
-import { contactsApi } from "@/integrations/supabase/crmApi";
+import { contactsApi, appointmentsApi } from "@/integrations/supabase/crmApi";
 import { useQuery } from "@tanstack/react-query";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
@@ -38,6 +38,7 @@ import { Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import ContactMultiSelect from "@/components/contacts/ContactMultiSelect";
 import FEATURE_FLAGS from "@/constants/featureFlags";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Lazy load wind mitigation editor at module level
 const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
@@ -95,6 +96,14 @@ const ReportEditor: React.FC = () => {
   const [selectedRecipients, setSelectedRecipients] = React.useState<string[]>([]);
   const [selectedContacts, setSelectedContacts] = React.useState<Contact[]>([]);
   const [sendingReport, setSendingReport] = React.useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = React.useState(false);
+  const [selectApptDialogOpen, setSelectApptDialogOpen] = React.useState(false);
+  const [createApptDialogOpen, setCreateApptDialogOpen] = React.useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = React.useState<string>("");
+  const [newApptTitle, setNewApptTitle] = React.useState("");
+  const [newApptDate, setNewApptDate] = React.useState("");
+  const [newApptAddress, setNewApptAddress] = React.useState("");
+  const [linkDialogDismissed, setLinkDialogDismissed] = React.useState(false);
 
   // Get templates for the report type
   const { templates } = useReportTemplates(report?.reportType);
@@ -137,6 +146,20 @@ const ReportEditor: React.FC = () => {
   // Custom sections hook
   const { customSections, loadCustomSections } = useCustomSections();
 
+  const { data: upcomingAppointments = [] } = useQuery({
+    queryKey: ["appointments", user?.id],
+    queryFn: () => appointmentsApi.getUpcoming(user!.id, 50),
+    enabled: selectApptDialogOpen && !!user,
+  });
+
+  React.useEffect(() => {
+    if (report && !report.appointmentId && !linkDialogDismissed && user) {
+      setLinkDialogOpen(true);
+    } else {
+      setLinkDialogOpen(false);
+    }
+  }, [report, linkDialogDismissed, user]);
+
   // Handle contact change to update address automatically
   const handleContactChange = React.useCallback((contact: any) => {
     setSelectedContactId(contact.id);
@@ -149,6 +172,56 @@ const ReportEditor: React.FC = () => {
       return next;
     });
   }, []);
+
+  const openSelectDialog = () => {
+    setSelectApptDialogOpen(true);
+    setLinkDialogOpen(false);
+  };
+
+  const openCreateDialog = () => {
+    if (report) {
+      setNewApptTitle(report.title);
+      setNewApptDate(report.inspectionDate ? new Date(report.inspectionDate).toISOString().slice(0,16) : new Date().toISOString().slice(0,16));
+      setNewApptAddress(report.address);
+    }
+    setCreateApptDialogOpen(true);
+    setLinkDialogOpen(false);
+  };
+
+  const handleLinkExisting = async () => {
+    if (!report || !selectedAppointmentId) return;
+    try {
+      await dbUpdateReport(report.id, { appointment_id: selectedAppointmentId });
+      await appointmentsApi.update(selectedAppointmentId, { report_id: report.id });
+      setReport((prev) => (prev ? ({ ...prev, appointmentId: selectedAppointmentId } as Report) : prev));
+      toast({ title: "Appointment linked" });
+      setSelectApptDialogOpen(false);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Failed to link appointment", description: e?.message || "Please try again." });
+    }
+  };
+
+  const handleCreateAppointment = async () => {
+    if (!report || !user) return;
+    try {
+      const appt = await appointmentsApi.create({
+        user_id: user.id,
+        title: newApptTitle,
+        appointment_date: new Date(newApptDate).toISOString(),
+        address: newApptAddress,
+        contact_id: report.contactIds?.[0] || undefined,
+      });
+      await appointmentsApi.update(appt.id, { report_id: report.id });
+      await dbUpdateReport(report.id, { appointment_id: appt.id });
+      setReport((prev) => (prev ? ({ ...prev, appointmentId: appt.id } as Report) : prev));
+      toast({ title: "Appointment created and linked" });
+      setCreateApptDialogOpen(false);
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: "Failed to create appointment", description: e?.message || "Please try again." });
+    }
+  };
 
   React.useEffect(() => {
     if (!id) return;
@@ -1447,6 +1520,84 @@ const ReportEditor: React.FC = () => {
               )}
             </section>
           )}
+
+          <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Link to calendar?</DialogTitle>
+              </DialogHeader>
+              <DialogFooter>
+                <Button onClick={openSelectDialog}>Select existing</Button>
+                <Button onClick={openCreateDialog}>Create new</Button>
+                <Button variant="secondary" onClick={() => { setLinkDialogOpen(false); setLinkDialogDismissed(true); }}>
+                  Dismiss
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={selectApptDialogOpen} onOpenChange={setSelectApptDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Select Appointment</DialogTitle>
+              </DialogHeader>
+              <div className="py-2">
+                <Select value={selectedAppointmentId} onValueChange={setSelectedAppointmentId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an appointment..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {upcomingAppointments.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.title} - {new Date(a.appointment_date).toLocaleDateString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter>
+                <Button variant="secondary" onClick={() => setSelectApptDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleLinkExisting} disabled={!selectedAppointmentId}>
+                  Link
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={createApptDialogOpen} onOpenChange={setCreateApptDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Appointment</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Input
+                  placeholder="Title"
+                  value={newApptTitle}
+                  onChange={(e) => setNewApptTitle(e.target.value)}
+                />
+                <Input
+                  type="datetime-local"
+                  value={newApptDate}
+                  onChange={(e) => setNewApptDate(e.target.value)}
+                />
+                <Input
+                  placeholder="Address"
+                  value={newApptAddress}
+                  onChange={(e) => setNewApptAddress(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="secondary" onClick={() => setCreateApptDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateAppointment} disabled={!newApptTitle || !newApptDate}>
+                  Save
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
             <DialogContent>
