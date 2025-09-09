@@ -397,7 +397,7 @@ const Documentation = () => {
                             <li>Document communication preferences</li>
                           </ul>
 
-                          <div className="bg-green-50 p-4 rounded-lg">
+              <div className="bg-muted text-foreground p-4 rounded-lg">
                             <h4 className="font-semibold mb-2 flex items-center gap-2">
                               <CheckCircle className="w-4 h-4" />
                               Best Practice
