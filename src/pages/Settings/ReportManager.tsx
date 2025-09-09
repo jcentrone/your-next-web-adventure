@@ -12,6 +12,7 @@ import { useCustomSections } from "@/hooks/useCustomSections";
 import { useCustomFields } from "@/hooks/useCustomFields";
 import { useSectionOrder } from "@/hooks/useSectionOrder";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { getReportCategory, REPORT_CATEGORY_LABELS, REPORT_CATEGORY_DESCRIPTIONS, isDefectBasedReport } from "@/constants/reportCategories";
 import type { Report } from "@/lib/reportSchemas";
@@ -19,6 +20,7 @@ import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 
 export default function ReportManager() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedReportType, setSelectedReportType] = useState<Report["reportType"]>("home_inspection");
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [fieldEditorOpen, setFieldEditorOpen] = useState(false);
@@ -33,7 +35,7 @@ export default function ReportManager() {
   const isDefectBased = isDefectBasedReport(selectedReportType);
 
   const handleOpenReportBuilder = () => {
-    window.open("/report-builder", "_blank");
+    navigate("/report-builder");
   };
 
   const handleAddField = () => {

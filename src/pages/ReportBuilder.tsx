@@ -4,20 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileText, FormInput, Sparkles, Plus } from "lucide-react";
-import { DefectBasedBuilder } from "@/components/reports/DefectBasedBuilder";
-import { FormBasedBuilder } from "@/components/reports/FormBasedBuilder";
 import { useAuth } from "@/contexts/AuthContext";
-import { useReportTemplates } from "@/hooks/useReportTemplates";
+import { NewReportBuilder } from "@/components/reports/NewReportBuilder";
 import { REPORT_CATEGORY_LABELS, REPORT_CATEGORY_DESCRIPTIONS, type ReportCategory } from "@/constants/reportCategories";
 import Seo from "@/components/Seo";
-import type { Report } from "@/lib/reportSchemas";
 
 export default function ReportBuilder() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<ReportCategory | null>(null);
   const [step, setStep] = useState<"category" | "builder">("category");
-  const { createTemplate } = useReportTemplates();
 
   const handleCategorySelect = (category: ReportCategory) => {
     setSelectedCategory(category);
@@ -27,31 +23,6 @@ export default function ReportBuilder() {
   const handleBackToCategory = () => {
     setSelectedCategory(null);
     setStep("category");
-  };
-
-  const handleSaveTemplate = async (templateData: {
-    name: string;
-    description?: string;
-    report_type: Report["reportType"];
-    sections_config: Array<{
-      sectionKey: string;
-      title: string;
-      isCustom: boolean;
-      isRequired: boolean;
-      sortOrder: number;
-    }>;
-    fields_config: Record<string, Array<{
-      fieldId: string;
-      fieldName: string;
-      fieldLabel: string;
-      widgetType: string;
-      options?: string[];
-      required: boolean;
-      sortOrder: number;
-    }>>;
-  }) => {
-    await createTemplate(templateData);
-    navigate("/settings/account/report-manager");
   };
 
   if (!user) {
@@ -203,15 +174,10 @@ export default function ReportBuilder() {
         </div>
 
         {/* Builder Interface */}
-        {selectedCategory === "defect_based" ? (
-          <DefectBasedBuilder 
-            userId={user.id} 
-            onSaveTemplate={handleSaveTemplate}
-          />
-        ) : (
-          <FormBasedBuilder 
-            userId={user.id} 
-            onSaveTemplate={handleSaveTemplate}
+        {selectedCategory && (
+          <NewReportBuilder
+            userId={user.id}
+            category={selectedCategory}
           />
         )}
       </div>
