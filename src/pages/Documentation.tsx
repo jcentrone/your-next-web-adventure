@@ -356,7 +356,7 @@ const Documentation = () => {
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                             <li>Search by name, email, phone, or company</li>
                             <li>Filter by contact type or category</li>
-                            <li>Sort by last activity, name, or creation date</li>
+                            
                             <li>Use tags for custom organization</li>
                             <li>Create smart groups based on criteria</li>
                           </ul>
