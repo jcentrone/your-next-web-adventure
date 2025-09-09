@@ -1477,7 +1477,7 @@ const Documentation = () => {
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                             <li>Close other apps to free up device memory</li>
                             <li>Clear app cache and temporary files</li>
-                            <li>Ensure device has adequate storage space (>1GB free)</li>
+                            <li>Ensure device has adequate storage space ({'>'}1GB free)</li>
                             <li>Update to latest app version</li>
                             <li>Restart device if problems persist</li>
                           </ul>
