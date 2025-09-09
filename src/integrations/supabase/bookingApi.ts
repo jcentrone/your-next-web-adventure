@@ -24,6 +24,7 @@ export interface AppointmentPayload {
   appointment_end?: string | null;
   contact_id?: string;
   service_ids?: string[];
+  agreement_id?: string | null;
 }
 
 export const bookingApi = {
@@ -130,7 +131,8 @@ export const bookingApi = {
       .from('appointments')
       .insert({
         ...appt,
-        status: 'scheduled' as const
+        status: 'scheduled' as const,
+        agreement_id: appt.agreement_id ?? null,
       })
       .select()
       .single();
