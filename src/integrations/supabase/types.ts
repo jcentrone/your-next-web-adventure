@@ -45,12 +45,12 @@ export type Database = {
           organization_id: string | null
           phone: string | null
           state: string | null
+          tags: string[]
           type: string | null
           updated_at: string
           user_id: string
           website: string | null
           zip_code: string | null
-          tags: string[]
         }
         Insert: {
           address?: string | null
@@ -67,12 +67,12 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           state?: string | null
+          tags?: string[]
           type?: string | null
           updated_at?: string
           user_id: string
           website?: string | null
           zip_code?: string | null
-          tags?: string[]
         }
         Update: {
           address?: string | null
@@ -89,12 +89,12 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           state?: string | null
+          tags?: string[]
           type?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
           zip_code?: string | null
-          tags?: string[]
         }
         Relationships: []
       }
@@ -298,33 +298,48 @@ export type Database = {
       booking_settings: {
         Row: {
           advance_notice: number | null
+          buffer_time: number | null
           default_duration: number | null
           id: string
           layout: string | null
           slug: string
           template: string
           theme_color: string | null
+          time_zone: string | null
           user_id: string
+          welcome_message: string | null
+          working_days: string[] | null
+          working_hours: Json | null
         }
         Insert: {
           advance_notice?: number | null
+          buffer_time?: number | null
           default_duration?: number | null
           id?: string
           layout?: string | null
           slug: string
           template?: string
           theme_color?: string | null
+          time_zone?: string | null
           user_id: string
+          welcome_message?: string | null
+          working_days?: string[] | null
+          working_hours?: Json | null
         }
         Update: {
           advance_notice?: number | null
+          buffer_time?: number | null
           default_duration?: number | null
           id?: string
           layout?: string | null
           slug?: string
           template?: string
           theme_color?: string | null
+          time_zone?: string | null
           user_id?: string
+          welcome_message?: string | null
+          working_days?: string[] | null
+          working_hours?: Json | null
         }
         Relationships: []
       }
@@ -1006,11 +1021,11 @@ export type Database = {
           report_type: string | null
           sections: Json | null
           status: Database["public"]["Enums"]["report_status"]
+          tags: string[]
           terms_html: string | null
           title: string
           updated_at: string
           user_id: string
-          tags: string[]
         }
         Insert: {
           address: string
@@ -1041,11 +1056,11 @@ export type Database = {
           report_type?: string | null
           sections?: Json | null
           status?: Database["public"]["Enums"]["report_status"]
+          tags?: string[]
           terms_html?: string | null
           title: string
           updated_at?: string
           user_id: string
-          tags?: string[]
         }
         Update: {
           address?: string
@@ -1076,11 +1091,11 @@ export type Database = {
           report_type?: string | null
           sections?: Json | null
           status?: Database["public"]["Enums"]["report_status"]
+          tags?: string[]
           terms_html?: string | null
           title?: string
           updated_at?: string
           user_id?: string
-          tags?: string[]
         }
         Relationships: [
           {

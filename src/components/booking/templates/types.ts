@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { BookingSettings } from '@/integrations/supabase/bookingApi';
 
 export interface TemplateProps {
   org: {
@@ -13,4 +14,5 @@ export interface TemplateProps {
   } | null;
   children?: ReactNode;
   layout?: 'vertical' | 'horizontal';
+  settings?: BookingSettings | null;
 }

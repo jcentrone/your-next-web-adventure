@@ -13,6 +13,7 @@ export interface BookingSettings {
   time_zone?: string | null;
   buffer_time?: number | null;
   working_days?: string[] | null;
+  welcome_message?: string | null;
 }
 
 export interface AppointmentPayload {
@@ -30,7 +31,7 @@ export const bookingApi = {
     const { data, error } = await supabase
       .from('booking_settings' as any)
       .select(
-        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout, working_hours, time_zone, buffer_time, working_days'
+        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout, working_hours, time_zone, buffer_time, working_days, welcome_message'
       )
       .eq('slug', slug)
       .maybeSingle();
@@ -43,7 +44,7 @@ export const bookingApi = {
     const { data, error } = await supabase
       .from('booking_settings' as any)
       .select(
-        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout, working_hours, time_zone, buffer_time, working_days'
+        'id, user_id, slug, default_duration, advance_notice, template, theme_color, layout, working_hours, time_zone, buffer_time, working_days, welcome_message'
       )
       .eq('user_id', userId)
       .maybeSingle();
@@ -63,7 +64,8 @@ export const bookingApi = {
     workingHours?: { start: string; end: string } | null,
     timeZone?: string | null,
     bufferTime?: number | null,
-    workingDays?: string[] | null
+    workingDays?: string[] | null,
+    welcomeMessage?: string | null
   ): Promise<BookingSettings> {
     // First check if slug is already taken by another user
     const { data: existingSlug } = await supabase
@@ -92,6 +94,7 @@ export const bookingApi = {
           time_zone: timeZone,
           buffer_time: bufferTime,
           working_days: workingDays,
+          welcome_message: welcomeMessage,
         },
         { 
           onConflict: 'user_id',

@@ -16,13 +16,19 @@ interface FormValues {
   template: string;
   theme_color: string;
   layout: string;
+  welcome_message: string;
 }
 
 const Booking: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { register, handleSubmit, reset, watch, setValue } = useForm<FormValues>({
-    defaultValues: { template: 'templateA', theme_color: '#1e293b', layout: 'vertical' },
+    defaultValues: { 
+      template: 'templateA', 
+      theme_color: '#1e293b', 
+      layout: 'vertical',
+      welcome_message: 'Schedule Your Appointment'
+    },
   });
 
   const { data: bookingSettings } = useQuery({
@@ -38,6 +44,7 @@ const Booking: React.FC = () => {
         template: bookingSettings.template || 'templateA',
         theme_color: bookingSettings.theme_color || '#1e293b',
         layout: bookingSettings.layout || 'vertical',
+        welcome_message: bookingSettings.welcome_message || 'Schedule Your Appointment',
       });
     }
   }, [bookingSettings, reset]);
@@ -51,7 +58,12 @@ const Booking: React.FC = () => {
         values.theme_color,
         undefined, // advance_notice
         undefined, // default_duration
-        values.layout
+        values.layout,
+        undefined, // working_hours
+        undefined, // time_zone
+        undefined, // buffer_time
+        undefined, // working_days
+        values.welcome_message
       ),
     onSuccess: () => {
       toast({
@@ -243,6 +255,25 @@ const Booking: React.FC = () => {
                 ))}
               </div>
             </div>
+          </div>
+
+          <hr className="border-border" />
+
+          {/* Welcome Message */}
+          <div className="space-y-4">
+            <Label htmlFor="welcome_message" className="text-base font-medium flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Welcome Message
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              Customize the welcome message that appears on your booking page
+            </p>
+            <Input
+              id="welcome_message"
+              placeholder="e.g. Schedule Your Appointment"
+              {...register('welcome_message')}
+              className="max-w-md"
+            />
           </div>
 
           <hr className="border-border" />

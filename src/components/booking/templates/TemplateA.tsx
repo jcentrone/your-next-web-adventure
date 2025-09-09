@@ -1,7 +1,7 @@
 import React from 'react';
 import type { TemplateProps } from './types';
 
-const TemplateA: React.FC<TemplateProps> = ({ org, children, layout }) => (
+const TemplateA: React.FC<TemplateProps> = ({ org, children, layout, settings }) => (
   <div
     className="min-h-screen bg-slate-50"
     style={{
@@ -27,7 +27,7 @@ const TemplateA: React.FC<TemplateProps> = ({ org, children, layout }) => (
             {org.name}
           </h1>
         )}
-        <p className="text-lg opacity-90">Schedule Your Appointment</p>
+        <p className="text-lg opacity-90">{settings?.welcome_message || 'Schedule Your Appointment'}</p>
       </div>
     </div>
 

@@ -835,18 +835,10 @@ const Documentation = () => {
                               <ul className="list-disc pl-6 mt-2">
                                 <li>Choose color scheme to match your brand</li>
                                 <li>Choose a style</li>
-                                <li>Customize welcome message</li>
-                                <li>Select available languages</li>
+                <li>Customize welcome message</li>
                               </ul>
                             </li>
-                            <li>Set booking rules:
-                              <ul className="list-disc pl-6 mt-2">
-                                <li>Which service types to offer</li>
-                                <li>Minimum advance notice required</li>
-                                <li>Maximum booking window</li>
-                                <li>Required client information fields</li>
-                              </ul>
-                            </li>
+            <li>Set booking rules (inferred from your business hours, available services, and required client information fields)</li>
                             <li>Generate embed code for your website</li>
                           </ol>
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { TemplateProps } from './types';
 
-const TemplateB: React.FC<TemplateProps> = ({ org, children }) => (
+const TemplateB: React.FC<TemplateProps> = ({ org, children, settings }) => (
   <div
     className="min-h-screen bg-gray-50"
     style={{
@@ -24,7 +24,7 @@ const TemplateB: React.FC<TemplateProps> = ({ org, children }) => (
         <h1 className="text-4xl font-light text-gray-700 mb-2">
           {org?.name || 'Professional Services'}
         </h1>
-        <p className="text-xl text-gray-500">Book your consultation today</p>
+        <p className="text-xl text-gray-500">{settings?.welcome_message || 'Book your consultation today'}</p>
       </div>
     </div>
 

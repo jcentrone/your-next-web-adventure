@@ -87,7 +87,7 @@ const BookingPage: React.FC = () => {
   const Template = templates[templateKey] ?? templates.templateA;
 
   return (
-    <Template org={organization || null} layout={settings.layout as 'vertical' | 'horizontal'}>
+    <Template org={organization || null} layout={settings.layout as 'vertical' | 'horizontal'} settings={settings}>
       <Widget settings={settings} reserved={reservedRanges} layout={settings.layout as 'vertical' | 'horizontal'} />
     </Template>
   );
