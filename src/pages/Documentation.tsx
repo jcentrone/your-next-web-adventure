@@ -7,80 +7,54 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import {
-  BookOpen,
-  Smartphone,
-  Camera,
-  FileText,
-  Users,
-  Settings,
-  Wind,
-  Shield,
-  Globe,
-  CheckCircle,
-  CheckSquare,
-  ArrowRight,
-  BarChart,
-  Calendar,
-  Clock,
-  Download,
-  Search,
-  ChevronDown,
-  ChevronRight,
-  Star,
-  AlertCircle,
-  ExternalLink,
-  PlayCircle,
-  Eye,
-  Home,
-  Plus,
-  Edit,
-  Filter,
-  Workflow,
-  Zap,
-  Link,
-  MessageSquare,
-  RefreshCw,
-  Bell,
-  Archive,
-  Trash2,
-  TrendingUp,
-  Code,
-  Database,
-  Smartphone as Mobile,
-  Monitor
-} from "lucide-react";
-
+import { BookOpen, Smartphone, Camera, FileText, Users, Settings, Wind, Shield, Globe, CheckCircle, CheckSquare, ArrowRight, BarChart, Calendar, Clock, Download, Search, ChevronDown, ChevronRight, Star, AlertCircle, ExternalLink, PlayCircle, Eye, Home, Plus, Edit, Filter, Workflow, Zap, Link, MessageSquare, RefreshCw, Bell, Archive, Trash2, TrendingUp, Code, Database, Smartphone as Mobile, Monitor } from "lucide-react";
 const Documentation = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("getting-started");
   const [openSections, setOpenSections] = useState<string[]>([]);
-
   const title = "Documentation | Home Report Pro - Complete User Guide";
   const description = "Comprehensive documentation for Home Report Pro. Learn how to use our platform for professional home inspections, wind mitigation reports, and more.";
-
   const toggleSection = (sectionId: string) => {
-    setOpenSections(prev => 
-      prev.includes(sectionId) 
-        ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
-    );
+    setOpenSections(prev => prev.includes(sectionId) ? prev.filter(id => id !== sectionId) : [...prev, sectionId]);
   };
-
-  const categories = [
-    { id: "getting-started", label: "Getting Started", icon: Star },
-    { id: "contacts", label: "Contact Management", icon: Users },
-    { id: "reports", label: "Report Creation", icon: FileText },
-    { id: "calendar", label: "Calendar & Booking", icon: Calendar },
-    { id: "integrations", label: "Integrations", icon: Link },
-    { id: "settings", label: "Settings", icon: Settings },
-    { id: "analytics", label: "Analytics", icon: BarChart },
-    { id: "advanced", label: "Advanced Features", icon: Zap },
-    { id: "troubleshooting", label: "Troubleshooting", icon: AlertCircle },
-  ];
-
-  return (
-    <div className="min-h-screen bg-background">
+  const categories = [{
+    id: "getting-started",
+    label: "Getting Started",
+    icon: Star
+  }, {
+    id: "contacts",
+    label: "Contact Management",
+    icon: Users
+  }, {
+    id: "reports",
+    label: "Report Creation",
+    icon: FileText
+  }, {
+    id: "calendar",
+    label: "Calendar & Booking",
+    icon: Calendar
+  }, {
+    id: "integrations",
+    label: "Integrations",
+    icon: Link
+  }, {
+    id: "settings",
+    label: "Settings",
+    icon: Settings
+  }, {
+    id: "analytics",
+    label: "Analytics",
+    icon: BarChart
+  }, {
+    id: "advanced",
+    label: "Advanced Features",
+    icon: Zap
+  }, {
+    id: "troubleshooting",
+    label: "Troubleshooting",
+    icon: AlertCircle
+  }];
+  return <div className="min-h-screen bg-background">
       <Seo title={title} description={description} canonical="/documentation" />
       
       {/* Header */}
@@ -96,13 +70,7 @@ const Documentation = () => {
             {/* Search Bar */}
             <div className="relative max-w-md mx-auto mt-8">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Search documentation..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-              />
+              <Input type="text" placeholder="Search documentation..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60" />
             </div>
           </div>
         </div>
@@ -115,23 +83,13 @@ const Documentation = () => {
             <Card className="p-4 sticky top-4">
               <h3 className="font-semibold mb-4">Documentation</h3>
               <nav className="space-y-2">
-                {categories.map((category) => {
-                  const Icon = category.icon;
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => setActiveCategory(category.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                        activeCategory === category.id
-                          ? "bg-primary text-white"
-                          : "hover:bg-muted"
-                      }`}
-                    >
+                {categories.map(category => {
+                const Icon = category.icon;
+                return <button key={category.id} onClick={() => setActiveCategory(category.id)} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${activeCategory === category.id ? "bg-primary text-white" : "hover:bg-muted"}`}>
                       <Icon className="w-4 h-4" />
                       <span className="text-sm">{category.label}</span>
-                    </button>
-                  );
-                })}
+                    </button>;
+              })}
               </nav>
             </Card>
           </aside>
@@ -369,15 +327,9 @@ const Documentation = () => {
                             <li>Click <strong>Save Contact</strong></li>
                           </ol>
 
-                          <h4 className="font-semibold">Bulk Import</h4>
-                          <p className="text-muted-foreground">For importing multiple contacts:</p>
-                          <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
-                            <li>Prepare a CSV file with columns: Name, Email, Phone, Type, Company</li>
-                            <li>Go to Contacts → Import/Export</li>
-                            <li>Upload your CSV file</li>
-                            <li>Map the columns to the appropriate fields</li>
-                            <li>Review and confirm the import</li>
-                          </ol>
+                          
+                          
+                          
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
@@ -1530,8 +1482,6 @@ const Documentation = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Documentation;
