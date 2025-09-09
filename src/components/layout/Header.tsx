@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
     BarChart3,
+    BookOpen,
     Building2,
     Calendar,
     CheckSquare,
@@ -344,6 +345,12 @@ const Header: React.FC = () => {
                                         <Link to="/settings" className="flex items-center gap-2" data-onboarding="settings-menu">
                                             <Settings className="h-4 w-4"/>
                                             Settings
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/documentation" className="flex items-center gap-2">
+                                            <BookOpen className="h-4 w-4"/>
+                                            Documentation
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
