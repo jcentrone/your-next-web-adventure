@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Settings2, Hash, GripVertical } from "lucide-react";
-import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { getSectionsForReportType } from "@/constants/reportSections";
 import type { CustomSection } from "@/integrations/supabase/customSectionsApi";
 import type { CustomField } from "@/integrations/supabase/customFieldsApi";
