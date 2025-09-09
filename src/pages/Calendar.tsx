@@ -71,10 +71,17 @@ const Calendar: React.FC = () => {
         handleSync();
     }, [user]);
 
-    const {data: appointments = []} = useQuery({
+    const {
+        data: appointments = [],
+        error: appointmentsError,
+    } = useQuery({
         queryKey: ["appointments", user!.id],
         queryFn: () => appointmentsApi.list(user!.id),
         enabled: !!user,
+        onError: (err) => {
+            console.error("Error fetching appointments", err);
+            toast.error("Failed to load appointments");
+        },
     });
 
     const {data: contacts = []} = useQuery({
@@ -758,8 +765,13 @@ const Calendar: React.FC = () => {
                         </Card>
 
                         {/* Appointments */}
-                        <Card className="min-w-[400px]">
-                            <Tabs value={appointmentsView} onValueChange={(value) => setAppointmentsView(value as 'day' | 'all')} className="w-full">
+        <Card className="min-w-[400px]">
+            {appointmentsError ? (
+                <CardContent>
+                    <p className="text-destructive text-center py-4">Failed to load appointments.</p>
+                </CardContent>
+            ) : (
+                <Tabs value={appointmentsView} onValueChange={(value) => setAppointmentsView(value as 'day' | 'all')} className="w-full">
                                 <CardHeader className="p-0">
                                     <TabsList className="grid w-full grid-cols-2">
                                         <TabsTrigger value="day">{format(selectedDate, "MMMM d, yyyy")}</TabsTrigger>
@@ -884,6 +896,7 @@ const Calendar: React.FC = () => {
                                     </TabsContent>
                                 </CardContent>
                             </Tabs>
+                        )}
                         </Card>
                     </div>
 
