@@ -1146,11 +1146,15 @@ const Documentation = () => {
                 <div>
                   <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                     <BarChart className="w-8 h-8 text-primary" />
-                    Analytics & Reporting
+                    Business Analytics
                   </h2>
 
                   <Card className="p-8">
-                    <h3 className="text-2xl font-semibold mb-6">Business Intelligence Dashboard</h3>
+                    <h3 className="text-2xl font-semibold mb-6">Analytics Dashboard</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Track your inspection business performance with visual insights and growth metrics.
+                      Access your analytics by navigating to the Analytics page in your dashboard.
+                    </p>
                     
                     <Collapsible>
                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
@@ -1160,80 +1164,67 @@ const Documentation = () => {
                       </CollapsibleTrigger>
                       <CollapsibleContent className="p-4 space-y-4">
                         <div className="space-y-4">
-                          <h4 className="font-semibold">Revenue Tracking</h4>
-                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>Monthly and yearly revenue trends</li>
-                            <li>Revenue by inspection type</li>
-                            <li>Average inspection value</li>
-                            <li>Payment collection rates</li>
-                            <li>Outstanding invoice tracking</li>
-                          </ul>
-
-                          <h4 className="font-semibold">Productivity Metrics</h4>
-                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>Inspections completed per month</li>
-                            <li>Average inspection duration</li>
-                            <li>Report turnaround time</li>
-                            <li>Booking-to-completion ratio</li>
-                            <li>Cancellation and no-show rates</li>
-                          </ul>
-
-                          <h4 className="font-semibold">Client Analytics</h4>
-                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>New vs. repeat client ratios</li>
-                            <li>Client acquisition sources</li>
-                            <li>Geographic distribution of clients</li>
-                            <li>Client satisfaction trends</li>
-                            <li>Referral tracking and effectiveness</li>
-                          </ul>
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-
-                    <Collapsible>
-                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="font-semibold">Financial Reports</span>
-                        <Badge variant="secondary" className="ml-auto">Business</Badge>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="p-4 space-y-4">
-                        <div className="space-y-4">
-                          <h4 className="font-semibold">Available Reports</h4>
+                          <p className="text-sm text-muted-foreground">
+                            The analytics dashboard displays four key performance indicators at the top:
+                          </p>
+                          
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
-                              <strong>Income Reports</strong>
-                              <ul className="list-disc pl-6 mt-2 text-muted-foreground">
-                                <li>Monthly income summaries</li>
-                                <li>Year-over-year comparisons</li>
-                                <li>Service type breakdowns</li>
-                                <li>Seasonal trend analysis</li>
-                              </ul>
+                              <h4 className="font-semibold">Total Reports</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Shows the total number of inspection reports created in the selected date range, 
+                                with a count of completed reports.
+                              </p>
                             </div>
                             <div>
-                              <strong>Expense Tracking</strong>
-                              <ul className="list-disc pl-6 mt-2 text-muted-foreground">
-                                <li>Business expense categories</li>
-                                <li>Vehicle and travel costs</li>
-                                <li>Equipment and tool expenses</li>
-                                <li>Marketing and advertising costs</li>
-                              </ul>
+                              <h4 className="font-semibold">Total Contacts</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Displays your total active client contacts in the system.
+                              </p>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold">Appointments</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Shows the number of appointments scheduled within the selected period.
+                              </p>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold">Estimated Revenue</h4>
+                              <p className="text-sm text-muted-foreground">
+                                Calculated estimated revenue based on reports created (assumes $400 per report), 
+                                including average revenue per report.
+                              </p>
                             </div>
                           </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
-                          <h4 className="font-semibold">Tax Preparation</h4>
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                        <ChevronRight className="w-4 h-4" />
+                        <span className="font-semibold">Visual Charts & Reports</span>
+                        <Badge variant="secondary" className="ml-auto">Charts</Badge>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="p-4 space-y-4">
+                        <div className="space-y-4">
+                          <h4 className="font-semibold">Overview Tab</h4>
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>Quarterly and annual tax summaries</li>
-                            <li>Deductible expense reporting</li>
-                            <li>1099 contractor payment tracking</li>
-                            <li>Mileage and vehicle expense logs</li>
+                            <li><strong>Monthly Reports Chart:</strong> Bar chart showing report creation trends over time</li>
+                            <li><strong>Revenue Trend:</strong> Line chart displaying estimated revenue progression month over month</li>
                           </ul>
 
-                          <h4 className="font-semibold">Export Options</h4>
-                          <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                            <li>PDF reports for printing or sharing</li>
-                            <li>CSV data for spreadsheet analysis</li>
-                            <li>QuickBooks and Xero integration</li>
-                            <li>Custom date range selections</li>
+                          <h4 className="font-semibold">Report Analysis Tab</h4>
+                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <li><strong>Report Types Distribution:</strong> Pie chart breaking down reports by type (Home Inspection, Wind Mitigation, etc.)</li>
+                            <li>Shows percentage distribution of different inspection services you provide</li>
+                          </ul>
+
+                          <h4 className="font-semibold">Activity Trends Tab</h4>
+                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <li><strong>Activity Timeline:</strong> Multi-line chart tracking Reports, Contacts, and Appointments over time</li>
+                            <li>Interactive checkboxes to toggle visibility of different activity types</li>
+                            <li>Color-coded lines for easy identification of trends</li>
                           </ul>
                         </div>
                       </CollapsibleContent>
@@ -1242,43 +1233,36 @@ const Documentation = () => {
                     <Collapsible>
                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
                         <ChevronRight className="w-4 h-4" />
-                        <span className="font-semibold">Operational Insights</span>
-                        <Badge variant="outline" className="ml-auto">Growth</Badge>
+                        <span className="font-semibold">Date Range & Filtering</span>
+                        <Badge variant="outline" className="ml-auto">Controls</Badge>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="p-4 space-y-4">
                         <div className="space-y-4">
-                          <h4 className="font-semibold">Scheduling Optimization</h4>
+                          <h4 className="font-semibold">Date Range Picker</h4>
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>Peak booking days and times</li>
-                            <li>Travel time and route efficiency</li>
-                            <li>Optimal scheduling patterns</li>
-                            <li>Capacity utilization rates</li>
+                            <li>Located at the top right of the analytics page</li>
+                            <li>Default range starts 6 months ago to present</li>
+                            <li>Instantly updates all charts and metrics based on selected date range</li>
+                            <li>Useful for comparing different time periods or focusing on specific months</li>
                           </ul>
 
-                          <h4 className="font-semibold">Service Performance</h4>
+                          <h4 className="font-semibold">Data Sources</h4>
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>Most popular inspection types</li>
-                            <li>Service pricing optimization</li>
-                            <li>Seasonal demand patterns</li>
-                            <li>Geographic service area analysis</li>
+                            <li>Reports data includes creation dates, types, and completion status</li>
+                            <li>Contacts data shows total active clients</li>
+                            <li>Appointments data filtered by appointment date within selected range</li>
+                            <li>All data is filtered to show only your own business information</li>
                           </ul>
 
-                          <h4 className="font-semibold">Quality Metrics</h4>
-                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>Average defects found per inspection</li>
-                            <li>Report complexity scores</li>
-                            <li>Photo documentation rates</li>
-                            <li>Client feedback and ratings</li>
-                          </ul>
-
-                          <div className="bg-green-50 p-4 rounded-lg">
+                          <div className="bg-blue-50 p-4 rounded-lg">
                             <h4 className="font-semibold mb-2 flex items-center gap-2">
                               <TrendingUp className="w-4 h-4" />
-                              Growth Insights
+                              Analytics Insights
                             </h4>
                             <p className="text-sm text-muted-foreground">
-                              Use these analytics to identify your most profitable services and optimal 
-                              scheduling patterns to grow your business efficiently.
+                              Use these analytics to track your business growth, identify busy periods, 
+                              and understand which inspection services are most in demand. The visual 
+                              charts make it easy to spot trends and make data-driven business decisions.
                             </p>
                           </div>
                         </div>
