@@ -276,17 +276,21 @@ serve(async (req) => {
 async function sendWebPush(subscription: any, data: any) {
   const payload = JSON.stringify(data);
   
-  // This is a simplified version - in production, you'd use a proper Web Push library
-  // For now, we'll simulate the response based on the endpoint validity
   try {
+    // Create VAPID headers
+    const vapidHeaders = {
+      'Content-Type': 'application/octet-stream',
+      'TTL': '86400',
+    };
+
+    // Add authorization header if VAPID keys are available
+    if (VAPID_PRIVATE_KEY && VAPID_PUBLIC_KEY) {
+      vapidHeaders['Authorization'] = `vapid t=${VAPID_PRIVATE_KEY}, k=${VAPID_PUBLIC_KEY}`;
+    }
+
     const response = await fetch(subscription.endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/octet-stream',
-        'Authorization': `Bearer ${VAPID_PRIVATE_KEY}`,
-        'Crypto-Key': `p256ecdsa=${VAPID_PUBLIC_KEY}`,
-        'TTL': '86400'
-      },
+      headers: vapidHeaders,
       body: payload
     });
     

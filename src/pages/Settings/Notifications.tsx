@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Bell, Clock, MessageSquare, AlertTriangle, RotateCcw, TrendingUp, Moon, TestTube } from 'lucide-react';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
+import { NotificationHistoryCard } from '@/components/notifications/NotificationHistoryCard';
 import Seo from '@/components/Seo';
 
 const Notifications = () => {
@@ -293,6 +294,8 @@ const Notifications = () => {
             </CardContent>
           )}
         </Card>
+
+        <NotificationHistoryCard />
 
         <Separator />
 

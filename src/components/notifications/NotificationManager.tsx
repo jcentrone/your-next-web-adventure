@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
-import { notificationScheduler } from '@/utils/notificationScheduler';
 import { supabase } from '@/integrations/supabase/client';
+import { AppointmentNotificationManager } from '@/utils/appointmentNotifications';
 
 export function NotificationManager() {
   const { user } = useAuth();
@@ -15,11 +15,15 @@ export function NotificationManager() {
     checkExistingSubscription();
 
     // Initialize appointment scheduling
-    notificationScheduler.initializeAppointmentScheduling();
+    AppointmentNotificationManager.initializeUpcomingReminders();
 
     // Set up periodic queue processing (every 5 minutes)
-    const queueProcessor = setInterval(() => {
-      notificationScheduler.processNotificationQueue();
+    const queueProcessor = setInterval(async () => {
+      try {
+        await supabase.functions.invoke('process-notification-queue');
+      } catch (error) {
+        console.error('Error processing notification queue:', error);
+      }
     }, 5 * 60 * 1000);
 
     return () => {
@@ -33,35 +37,12 @@ export function NotificationManager() {
 
     const handleAppointmentChange = (payload: any) => {
       const { eventType, new: newRecord, old: oldRecord } = payload;
-
-      switch (eventType) {
-        case 'INSERT':
-          // Schedule reminders for new appointment
-          if (newRecord?.id) {
-            notificationScheduler.scheduleAppointmentReminders(newRecord.id);
-          }
-          break;
-
-        case 'UPDATE':
-          // Reschedule if date changed, cancel if cancelled
-          if (newRecord?.status === 'cancelled' && oldRecord?.id) {
-            notificationScheduler.cancelAppointmentNotifications(oldRecord.id);
-          } else if (
-            newRecord?.appointment_date !== oldRecord?.appointment_date &&
-            newRecord?.id
-          ) {
-            notificationScheduler.cancelAppointmentNotifications(newRecord.id);
-            notificationScheduler.scheduleAppointmentReminders(newRecord.id);
-          }
-          break;
-
-        case 'DELETE':
-          // Cancel notifications for deleted appointment
-          if (oldRecord?.id) {
-            notificationScheduler.cancelAppointmentNotifications(oldRecord.id);
-          }
-          break;
-      }
+      AppointmentNotificationManager.handleAppointmentChange(
+        newRecord?.id || oldRecord?.id,
+        eventType,
+        oldRecord,
+        newRecord
+      );
     };
 
     // Subscribe to real-time appointment changes

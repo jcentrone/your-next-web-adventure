@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToastNotifications } from './useToastNotifications';
 
-const VAPID_PUBLIC_KEY = 'BNxVjWyUGHHzgfgYhYJZvF5xOdF5jNvH5RjN8NjH8Rj9PnH5RjN8Nj';
+const VAPID_PUBLIC_KEY = 'BKxVjWyUGHHzgfgYhYJZvF5xOdF5jNvH5RjN8NjH8Rj9PnH5RjN8NjH8Rj9PnH5RjN8NjH8Rj9PnH5RjN8NjH8Rj9PnH5RjN8NjH8Rj9PnH5Rj';
 
 interface PushSubscriptionData {
   endpoint: string;

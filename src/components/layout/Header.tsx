@@ -28,6 +28,7 @@ import {
 import {useIsMobile} from "@/hooks/use-mobile";
 import {usePWAInstall} from "@/hooks/usePWAInstall";
 import {useOnboarding} from "@/components/onboarding/OnboardingManager";
+import {NotificationCenter} from "@/components/notifications/NotificationCenter";
 
 const Header: React.FC = () => {
     const {user, signOut} = useAuth();
@@ -307,6 +308,7 @@ const Header: React.FC = () => {
                                     Install App
                                 </Button>
                             )}
+                            <NotificationCenter />
                             <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
                                 <DropdownMenuTrigger asChild>
                                     <button
