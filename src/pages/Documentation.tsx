@@ -438,23 +438,32 @@ const Documentation = () => {
 
                   {/* Report Types Overview */}
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                    <Card className="p-6">
-                      <Home className="w-8 h-8 text-blue-600 mb-4" />
-                      <h3 className="font-semibold mb-2">Home Inspections</h3>
+                    <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => openSingleSection('home-inspections')}>
+                      <Home className="w-8 h-8 text-blue-600 mb-4 group-hover:scale-110 transition-transform" />
+                      <h3 className="font-semibold mb-2 flex items-center justify-between">
+                        Home Inspections
+                        <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </h3>
                       <p className="text-sm text-muted-foreground mb-3">InterNACHI SOP compliant standard home inspections</p>
                       <Badge>Most Popular</Badge>
                     </Card>
                     
-                    <Card className="p-6">
-                      <Wind className="w-8 h-8 text-green-600 mb-4" />
-                      <h3 className="font-semibold mb-2">Wind Mitigation</h3>
+                    <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => openSingleSection('wind-mitigation')}>
+                      <Wind className="w-8 h-8 text-green-600 mb-4 group-hover:scale-110 transition-transform" />
+                      <h3 className="font-semibold mb-2 flex items-center justify-between">
+                        Wind Mitigation
+                        <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </h3>
                       <p className="text-sm text-muted-foreground mb-3">Florida OIR-B1-1802 wind mitigation inspections</p>
                       <Badge variant="secondary">Florida</Badge>
                     </Card>
                     
-                    <Card className="p-6">
-                      <Shield className="w-8 h-8 text-purple-600 mb-4" />
-                      <h3 className="font-semibold mb-2">4-Point Inspection</h3>
+                    <Card className="p-6 cursor-pointer hover:shadow-md transition-all group" onClick={() => openSingleSection('four-point')}>
+                      <Shield className="w-8 h-8 text-purple-600 mb-4 group-hover:scale-110 transition-transform" />
+                      <h3 className="font-semibold mb-2 flex items-center justify-between">
+                        4-Point Inspection
+                        <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </h3>
                       <p className="text-sm text-muted-foreground mb-3">Florida insurance 4-point inspections</p>
                       <Badge variant="secondary">Insurance</Badge>
                     </Card>
@@ -463,12 +472,110 @@ const Documentation = () => {
                   <Card className="p-8">
                     <h3 className="text-2xl font-semibold mb-6">Detailed Report Creation Guide</h3>
                     
-                    <Collapsible>
-                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
-                        <ChevronRight className="w-4 h-4" />
-                        <span className="font-semibold">Starting a New Report</span>
-                        <Badge className="ml-auto">Essential</Badge>
-                      </CollapsibleTrigger>
+                     <Collapsible open={openSections.includes('home-inspections')} onOpenChange={() => toggleSection('home-inspections')}>
+                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                         <ChevronRight className={`w-4 h-4 transition-transform ${openSections.includes('home-inspections') ? 'rotate-90' : ''}`} />
+                         <span className="font-semibold">Home Inspection Reports</span>
+                         <Badge className="ml-auto">InterNACHI SOP</Badge>
+                       </CollapsibleTrigger>
+                       <CollapsibleContent className="p-4 space-y-4">
+                         <div className="space-y-4">
+                           <h4 className="font-semibold">InterNACHI Standards Compliance</h4>
+                           <p className="text-muted-foreground">Our home inspection reports follow the InterNACHI Standards of Practice, covering all required systems and components.</p>
+                           
+                           <h4 className="font-semibold">Report Sections</h4>
+                           <div className="grid md:grid-cols-2 gap-4">
+                             <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
+                               <li>Structural Components</li>
+                               <li>Exterior</li>
+                               <li>Roofing System</li>
+                               <li>Plumbing System</li>
+                               <li>Electrical System</li>
+                             </ul>
+                             <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
+                               <li>Heating System</li>
+                               <li>Air Conditioning</li>
+                               <li>Interior</li>
+                               <li>Insulation & Ventilation</li>
+                               <li>Fireplaces & Chimneys</li>
+                             </ul>
+                           </div>
+                           
+                           <h4 className="font-semibold">Key Features</h4>
+                           <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
+                             <li>Pre-written defect templates for common issues</li>
+                             <li>Photo documentation with annotations</li>
+                             <li>Professional PDF generation</li>
+                             <li>Custom branding and signatures</li>
+                           </ul>
+                         </div>
+                       </CollapsibleContent>
+                     </Collapsible>
+
+                     <Collapsible open={openSections.includes('wind-mitigation')} onOpenChange={() => toggleSection('wind-mitigation')}>
+                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                         <ChevronRight className={`w-4 h-4 transition-transform ${openSections.includes('wind-mitigation') ? 'rotate-90' : ''}`} />
+                         <span className="font-semibold">Wind Mitigation Reports</span>
+                         <Badge variant="secondary" className="ml-auto">Florida OIR-B1-1802</Badge>
+                       </CollapsibleTrigger>
+                       <CollapsibleContent className="p-4 space-y-4">
+                         <div className="space-y-4">
+                           <h4 className="font-semibold">Florida Wind Mitigation Form</h4>
+                           <p className="text-muted-foreground">Complete OIR-B1-1802 form compliance with guided questions and automatic calculations.</p>
+                           
+                           <h4 className="font-semibold">Inspection Areas</h4>
+                           <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
+                             <li>Building Code Compliance</li>
+                             <li>Roof Covering Materials</li>
+                             <li>Roof Deck Attachment</li>
+                             <li>Roof to Wall Attachment</li>
+                             <li>Roof Geometry</li>
+                             <li>Secondary Water Resistance</li>
+                             <li>Opening Protection</li>
+                           </ul>
+                           
+                           <h4 className="font-semibold">Insurance Benefits</h4>
+                           <p className="text-muted-foreground">Proper wind mitigation can result in significant insurance premium discounts for Florida homeowners.</p>
+                         </div>
+                       </CollapsibleContent>
+                     </Collapsible>
+
+                     <Collapsible open={openSections.includes('four-point')} onOpenChange={() => toggleSection('four-point')}>
+                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                         <ChevronRight className={`w-4 h-4 transition-transform ${openSections.includes('four-point') ? 'rotate-90' : ''}`} />
+                         <span className="font-semibold">4-Point Inspections</span>
+                         <Badge variant="secondary" className="ml-auto">Insurance</Badge>
+                       </CollapsibleTrigger>
+                       <CollapsibleContent className="p-4 space-y-4">
+                         <div className="space-y-4">
+                           <h4 className="font-semibold">Insurance Required Inspection</h4>
+                           <p className="text-muted-foreground">Focus on the four major systems that insurance companies are most concerned about in older homes.</p>
+                           
+                           <h4 className="font-semibold">The Four Points</h4>
+                           <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
+                             <li><strong>HVAC System:</strong> Heating, ventilation, and air conditioning</li>
+                             <li><strong>Electrical System:</strong> Main panel, wiring, and safety devices</li>
+                             <li><strong>Plumbing System:</strong> Water supply, drainage, and fixtures</li>
+                             <li><strong>Roofing System:</strong> Covering, structure, and drainage</li>
+                           </ol>
+                           
+                           <h4 className="font-semibold">Common Requirements</h4>
+                           <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
+                             <li>Homes typically 30+ years old</li>
+                             <li>Required for insurance coverage</li>
+                             <li>Focus on safety and functionality</li>
+                             <li>May affect insurance rates</li>
+                           </ul>
+                         </div>
+                       </CollapsibleContent>
+                     </Collapsible>
+
+                     <Collapsible>
+                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                         <ChevronRight className="w-4 h-4" />
+                         <span className="font-semibold">Starting a New Report</span>
+                         <Badge className="ml-auto">Essential</Badge>
+                       </CollapsibleTrigger>
                       <CollapsibleContent className="p-4 space-y-4">
                         <div className="space-y-4">
                           <h4 className="font-semibold">Report Setup Process</h4>
