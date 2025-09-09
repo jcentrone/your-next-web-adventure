@@ -75,11 +75,11 @@ export function RouteOptimizationSettings() {
   const handlePlaceChange = (place: any) => {
     setSettings(prev => ({
       ...prev,
-      home_base_address: place.address,
+      home_base_address: place.formatted_address,
       home_base_formatted_address: place.formatted_address,
       home_base_place_id: place.place_id,
-      home_base_lat: place.lat,
-      home_base_lng: place.lng,
+      home_base_lat: place.latitude,
+      home_base_lng: place.longitude,
     }));
   };
 
