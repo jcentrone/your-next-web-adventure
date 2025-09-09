@@ -26,11 +26,12 @@ import {REPORT_TYPE_LABELS} from "@/constants/reportTypes";
 import {Search, Plus} from "lucide-react";
 import {useIsMobile} from "@/hooks/use-mobile";
 import { TagInput } from "@/components/ui/TagInput";
+import { ManageTagsDialog } from "@/components/modals/ManageTagsDialog";
 
 const ReportsList: React.FC = () => {
     const {user} = useAuth();
     const isMobile = useIsMobile();
-    const [localItems, setLocalItems] = React.useState(listLocalReports());
+    const [localItems, setLocalItems] = React.useState<Report[]>(listLocalReports());
     const [view, setView] = React.useState<"list" | "card">("list");
     const effectiveView = isMobile ? "card" : view;
     const [showArchived, setShowArchived] = React.useState(false);
@@ -39,6 +40,8 @@ const ReportsList: React.FC = () => {
     const [currentPage, setCurrentPage] = React.useState(1);
     const [searchQuery, setSearchQuery] = React.useState("");
     const [tagFilter, setTagFilter] = React.useState<string[]>([]);
+    const [tagDialogOpen, setTagDialogOpen] = React.useState(false);
+    const [selectedReport, setSelectedReport] = React.useState<Report | null>(null);
 
     const {data: remoteItems, refetch, isLoading} = useQuery({
         queryKey: ["reports", user?.id, showArchived],
@@ -59,11 +62,11 @@ const ReportsList: React.FC = () => {
         enabled: !!user,
     });
 
-    const items = user ? remoteItems || [] : localItems;
+    const items: Report[] = user ? remoteItems || [] : localItems;
     const archivedCount = archivedItems?.filter(item => item.archived).length || 0;
 
     // Filter items by search query, report type, and archived status
-    const filteredItems = items.filter((item: any) => {
+    const filteredItems = items.filter((item: Report) => {
         // First filter by archived status
         if (showArchived && !item.archived) return false;
         if (!showArchived && item.archived) return false;
@@ -114,9 +117,10 @@ const ReportsList: React.FC = () => {
                 setLocalItems(listLocalReports());
             }
             toast({title: "Report deleted"});
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
-            toast({title: "Failed to delete report", description: e?.message || "Please try again."});
+            const message = e instanceof Error ? e.message : String(e);
+            toast({title: "Failed to delete report", description: message || "Please try again."});
         }
     };
 
@@ -127,10 +131,16 @@ const ReportsList: React.FC = () => {
                 await refetch();
                 toast({title: archived ? "Report archived" : "Report restored"});
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
-            toast({title: "Failed to update report", description: e?.message || "Please try again."});
+            const message = e instanceof Error ? e.message : String(e);
+            toast({title: "Failed to update report", description: message || "Please try again."});
         }
+    };
+
+    const handleManageTags = (report: Report) => {
+        setSelectedReport(report);
+        setTagDialogOpen(true);
     };
 
     return (
@@ -257,11 +267,13 @@ const ReportsList: React.FC = () => {
                         {effectiveView === "list" ? (
                             <ReportsListView reports={paginatedItems} onDelete={onDelete}
                                              onArchive={user ? onArchive : undefined}
-                                             showArchived={showArchived}/>
+                                             showArchived={showArchived}
+                                             onManageTags={handleManageTags}/>
                         ) : (
                             <ReportsCardView reports={paginatedItems} onDelete={onDelete}
                                              onArchive={user ? onArchive : undefined}
-                                             showArchived={showArchived}/>
+                                             showArchived={showArchived}
+                                             onManageTags={handleManageTags}/>
                         )}
                         {filteredItems.length > 0 && (
                             <div className="flex items-center justify-between mt-4">
@@ -324,6 +336,27 @@ const ReportsList: React.FC = () => {
                     </>
                 )}
             </section>
+            {selectedReport && (
+                <ManageTagsDialog
+                    open={tagDialogOpen}
+                    onOpenChange={(open) => {
+                        setTagDialogOpen(open);
+                        if (!open) setSelectedReport(null);
+                    }}
+                    module="reports"
+                    recordId={selectedReport.id}
+                    initialTags={selectedReport.tags || []}
+                    onTagsUpdated={(tags) => {
+                        if (user) {
+                            refetch();
+                        } else {
+                            setLocalItems((prev) =>
+                                prev.map((r) => (r.id === selectedReport.id ? { ...r, tags } : r))
+                            );
+                        }
+                    }}
+                />
+            )}
         </>
     );
 };

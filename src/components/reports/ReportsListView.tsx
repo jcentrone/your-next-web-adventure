@@ -22,22 +22,26 @@ import {
   ShieldCheck,
   Home,
   Pencil,
+  Tag,
 } from "lucide-react";
 import { downloadWindMitigationReport } from "@/utils/fillWindMitigationPDF";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
+import type { Report } from "@/lib/reportSchemas";
 
 interface ReportsListViewProps {
-  reports: any[];
+  reports: Report[];
   onDelete: (id: string) => void;
   onArchive?: (id: string, archived: boolean) => void;
   showArchived?: boolean;
+  onManageTags: (report: Report) => void;
 }
 
 export const ReportsListView: React.FC<ReportsListViewProps> = ({
   reports,
   onDelete,
   onArchive,
-  showArchived: _showArchived = false
+  showArchived: _showArchived = false,
+  onManageTags,
 }) => {
   const getReportIcon = (type: string) => {
     if (type.includes("wind")) return <Wind className="h-4 w-4 text-muted-foreground" />;
@@ -102,6 +106,20 @@ export const ReportsListView: React.FC<ReportsListViewProps> = ({
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => onManageTags(report)}
+                      >
+                        <Tag className="h-4 w-4" />
+                        <span className="sr-only">Manage tags</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Manage tags</TooltipContent>
+                  </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button

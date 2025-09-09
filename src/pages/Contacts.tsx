@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateContactSchema, type Contact } from "@/lib/crmSchemas";
+import { z } from "zod";
 import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
@@ -25,6 +26,7 @@ import { ContactsListView } from "@/components/contacts/ContactsListView";
 import { ContactsCardView } from "@/components/contacts/ContactsCardView";
 import { ContactsFilter } from "@/components/contacts/ContactsFilter";
 import { TagInput } from "@/components/ui/TagInput";
+import { ManageTagsDialog } from "@/components/modals/ManageTagsDialog";
 import {
   Pagination,
   PaginationContent,
@@ -51,6 +53,8 @@ const Contacts: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const { data: contacts = [], isLoading } = useQuery({
     queryKey: ["contacts", user?.id, searchQuery],
@@ -211,7 +215,7 @@ const Contacts: React.FC = () => {
     },
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: z.infer<typeof CreateContactSchema>) => {
     if (editingContact) {
       updateMutation.mutate({ id: editingContact.id, updates: data });
     } else {
@@ -258,6 +262,11 @@ const Contacts: React.FC = () => {
     if (confirm(`Are you sure you want to delete ${contact.first_name} ${contact.last_name}?`)) {
       deleteMutation.mutate(contact.id);
     }
+  };
+
+  const handleManageTags = (contact: Contact) => {
+    setSelectedContact(contact);
+    setTagDialogOpen(true);
   };
 
   const getContactTypeColor = (type: string) => {
@@ -398,20 +407,22 @@ const Contacts: React.FC = () => {
             </CardContent>
           </Card>
         ) : effectiveView === "list" ? (
-          <ContactsListView 
+          <ContactsListView
             contacts={paginatedContacts}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onManageTags={handleManageTags}
             getContactTypeColor={getContactTypeColor}
             onSort={handleSort}
             sortField={sortField}
             sortDirection={sortDirection}
           />
         ) : (
-          <ContactsCardView 
+          <ContactsCardView
             contacts={paginatedContacts}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onManageTags={handleManageTags}
             getContactTypeColor={getContactTypeColor}
           />
         )}
@@ -475,6 +486,21 @@ const Contacts: React.FC = () => {
           </div>
         )}
       </div>
+      {selectedContact && (
+        <ManageTagsDialog
+          open={tagDialogOpen}
+          onOpenChange={(open) => {
+            setTagDialogOpen(open);
+            if (!open) setSelectedContact(null);
+          }}
+          module="contacts"
+          recordId={selectedContact.id}
+          initialTags={selectedContact.tags || []}
+          onTagsUpdated={() => {
+            queryClient.invalidateQueries({ queryKey: ["contacts"] });
+          }}
+        />
+      )}
     </>
   );
 };

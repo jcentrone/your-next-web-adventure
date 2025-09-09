@@ -3,23 +3,25 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Archive, ArchiveRestore, Eye, Pencil, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, Eye, Pencil, Trash2, Tag } from "lucide-react";
 import { downloadWindMitigationReport } from "@/utils/fillWindMitigationPDF";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import type { Report } from "@/lib/reportSchemas";
 
 interface ReportsCardViewProps {
-  reports: any[];
+  reports: Report[];
   onDelete: (id: string) => void;
   onArchive?: (id: string, archived: boolean) => void;
   showArchived?: boolean;
+  onManageTags: (report: Report) => void;
 }
 
-export const ReportsCardView: React.FC<ReportsCardViewProps> = ({ 
-  reports, 
-  onDelete, 
-  onArchive, 
-  showArchived = false 
+export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
+  reports,
+  onDelete,
+  onArchive,
+  showArchived = false,
+  onManageTags
 }) => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -41,12 +43,26 @@ export const ReportsCardView: React.FC<ReportsCardViewProps> = ({
           </div>
           <p className="text-sm text-muted-foreground mb-4">
             {/* inspectionDate is ISO; show local date */}
-            {new Date(r.inspectionDate).toLocaleDateString()} • {/* @ts-ignore clientName exists on both shapes */}
+            {new Date(r.inspectionDate).toLocaleDateString()} • {/* @ts-expect-error clientName exists on both shapes */}
             {r.clientName}
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             {!r.archived && (
               <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="border"
+                      onClick={() => onManageTags(r)}
+                    >
+                      <Tag className="h-4 w-4" />
+                      <span className="sr-only">Manage tags</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Manage tags</TooltipContent>
+                </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button asChild size="sm" variant="ghost" className="border">

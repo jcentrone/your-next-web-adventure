@@ -3,20 +3,23 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Edit, Trash2, Mail, Phone, Building, MapPin } from "lucide-react";
+import { Edit, Trash2, Mail, Phone, Building, MapPin, Tag } from "lucide-react";
+import type { Contact } from "@/lib/crmSchemas";
 
 interface ContactsCardViewProps {
-  contacts: any[];
-  onEdit: (contact: any) => void;
-  onDelete: (contact: any) => void;
+  contacts: Contact[];
+  onEdit: (contact: Contact) => void;
+  onDelete: (contact: Contact) => void;
+  onManageTags: (contact: Contact) => void;
   getContactTypeColor: (type: string) => string;
 }
 
-export const ContactsCardView: React.FC<ContactsCardViewProps> = ({ 
-  contacts, 
-  onEdit, 
-  onDelete, 
-  getContactTypeColor 
+export const ContactsCardView: React.FC<ContactsCardViewProps> = ({
+  contacts,
+  onEdit,
+  onDelete,
+  onManageTags,
+  getContactTypeColor
 }) => {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -99,8 +102,21 @@ export const ContactsCardView: React.FC<ContactsCardViewProps> = ({
               )}
             </CardContent>
           </Link>
-          
+
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onManageTags(contact);
+              }}
+              className="h-8 w-8 p-0"
+            >
+              <Tag className="h-4 w-4" />
+              <span className="sr-only">Manage tags</span>
+            </Button>
             <Button
               size="sm"
               variant="secondary"

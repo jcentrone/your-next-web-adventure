@@ -14,6 +14,7 @@ import { AccountsViewToggle } from "@/components/accounts/AccountsViewToggle";
 import { AccountsFilter } from "@/components/accounts/AccountsFilter";
 import { AccountsListView } from "@/components/accounts/AccountsListView";
 import type { Account } from "@/lib/accountSchemas";
+import { ManageTagsDialog } from "@/components/modals/ManageTagsDialog";
 
 export default function Accounts() {
   const isMobile = useIsMobile();
@@ -26,6 +27,8 @@ export default function Accounts() {
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -89,6 +92,11 @@ export default function Accounts() {
 
   const availableIndustries = [...new Set(accounts.map(account => account.industry).filter(Boolean))] as string[];
 
+  const handleManageTags = (account: Account) => {
+    setSelectedAccount(account);
+    setTagDialogOpen(true);
+  };
+
   const formatRevenue = (revenue?: number) => {
     if (!revenue) return null;
     return new Intl.NumberFormat('en-US', {
@@ -107,6 +115,7 @@ export default function Accounts() {
   }
 
   return (
+    <>
     <div className="container mx-auto p-6 space-y-6">
       {/* Mobile Header */}
       {isMobile ? (
@@ -216,9 +225,10 @@ export default function Accounts() {
           </CardContent>
         </Card>
       ) : effectiveView === "list" ? (
-        <AccountsListView 
-          accounts={filteredAccounts} 
+        <AccountsListView
+          accounts={filteredAccounts}
           formatRevenue={formatRevenue}
+          onManageTags={handleManageTags}
         />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -277,5 +287,23 @@ export default function Accounts() {
         </div>
       )}
     </div>
+    {selectedAccount && (
+      <ManageTagsDialog
+        open={tagDialogOpen}
+        onOpenChange={(open) => {
+          setTagDialogOpen(open);
+          if (!open) setSelectedAccount(null);
+        }}
+        module="accounts"
+        recordId={selectedAccount.id}
+        initialTags={selectedAccount.tags || []}
+        onTagsUpdated={(tags) => {
+          setAccounts((prev) =>
+            prev.map((a) => (a.id === selectedAccount.id ? { ...a, tags } : a))
+          );
+        }}
+      />
+    )}
+    </>
   );
 }
