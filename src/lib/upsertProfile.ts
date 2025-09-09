@@ -79,7 +79,8 @@ export async function upsertProfile(session: Session | null) {
           license_number: meta.license_number || undefined,
         });
       } catch (e) {
-        console.error('createOrganization error:', e instanceof Error ? e.message : e);
+        // Log error but don't block login - organization can be created later
+        console.error('createOrganization error:', e);
       }
     }
   }

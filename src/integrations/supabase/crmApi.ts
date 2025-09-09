@@ -106,7 +106,7 @@ export const appointmentsApi = {
       .select(`
         *,
         contacts:contacts(first_name, last_name, email, phone),
-        report:reports(title, status)
+        reports!fk_appointments_report(title, status)
       `)
       .eq('user_id', userId)
       .order('appointment_date', { ascending: true });
@@ -121,7 +121,7 @@ export const appointmentsApi = {
       .select(`
         *,
         contact:contacts(*),
-        report:reports(*)
+        reports!fk_appointments_report(*)
       `)
       .eq('id', id)
       .single();
