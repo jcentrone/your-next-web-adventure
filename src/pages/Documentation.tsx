@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { BookOpen, Smartphone, Camera, FileText, Users, Settings, Wind, Shield, Globe, CheckCircle, CheckSquare, ArrowRight, BarChart, Calendar, Clock, Download, Search, ChevronDown, ChevronRight, Star, AlertCircle, ExternalLink, PlayCircle, Eye, Home, Plus, Edit, Filter, Workflow, Zap, Link, MessageSquare, RefreshCw, Bell, Archive, Trash2, TrendingUp, Code, Database, Smartphone as Mobile, Monitor } from "lucide-react";
+import { BookOpen, Smartphone, Camera, FileText, Users, Settings, Wind, Shield, Globe, CheckCircle, CheckSquare, ArrowRight, BarChart, Calendar, Clock, Download, Search, ChevronDown, ChevronRight, Star, AlertCircle, ExternalLink, PlayCircle, Eye, Home, Plus, Edit, Filter, Workflow, Zap, Link, MessageSquare, RefreshCw, Bell, Archive, Trash2, TrendingUp, Code, Database, Smartphone as Mobile, Monitor, Navigation } from "lucide-react";
 const Documentation = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("getting-started");
@@ -880,46 +880,28 @@ const Documentation = () => {
                     <Collapsible>
                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
                         <ChevronRight className="w-4 h-4" />
-                        <span className="font-semibold">Calendar Integrations</span>
+                        <span className="font-semibold">Google Calendar Integration</span>
                         <Badge className="ml-auto">Popular</Badge>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="p-4 space-y-4">
                         <div className="space-y-4">
-                          <h4 className="font-semibold">Available Calendar Connections</h4>
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                              <strong>Google Calendar</strong>
-                              <ul className="list-disc pl-6 mt-2 text-muted-foreground">
-                                <li>Two-way sync of appointments</li>
-                                <li>Automatic conflict detection</li>
-                                <li>Mobile and web calendar access</li>
-                                <li>Shared calendar support</li>
-                              </ul>
-                            </div>
-                            <div>
-                              <strong>Outlook Calendar</strong>
-                              <ul className="list-disc pl-6 mt-2 text-muted-foreground">
-                                <li>Office 365 and Outlook.com support</li>
-                                <li>Teams meeting integration</li>
-                                <li>Exchange server compatibility</li>
-                                <li>Corporate calendar policies</li>
-                              </ul>
-                            </div>
+                          <h4 className="font-semibold">Calendar Connection</h4>
+                          <div>
+                            <strong>Google Calendar</strong>
+                            <ul className="list-disc pl-6 mt-2 text-muted-foreground">
+                              <li>Two-way sync of appointments</li>
+                              <li>Automatic conflict detection</li>
+                              <li>Mobile and web calendar access</li>
+                              <li>Shared calendar support</li>
+                            </ul>
                           </div>
 
                           <h4 className="font-semibold">Setup Process</h4>
                           <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
                             <li>Navigate to <strong>Settings → Integrations</strong></li>
-                            <li>Click <strong>Connect</strong> next to your preferred calendar</li>
+                            <li>Click <strong>Connect</strong> next to Google Calendar</li>
                             <li>Authorize Home Report Pro to access your calendar</li>
-                            <li>Configure sync settings:
-                              <ul className="list-disc pl-6 mt-2">
-                                <li>Which calendars to sync</li>
-                                <li>Sync direction (one-way or two-way)</li>
-                                <li>Sync frequency</li>
-                                <li>Event details to include</li>
-                              </ul>
-                            </li>
+                            <li>Configure sync settings and preferences</li>
                             <li>Test sync with a sample appointment</li>
                           </ol>
 
@@ -930,7 +912,7 @@ const Documentation = () => {
                             </h4>
                             <p className="text-sm text-muted-foreground">
                               If sync stops working, try disconnecting and reconnecting the integration. 
-                              Check that calendar permissions haven't changed in your Google or Microsoft account.
+                              Check that calendar permissions haven't changed in your Google account.
                             </p>
                           </div>
                         </div>
@@ -940,58 +922,44 @@ const Documentation = () => {
                     <Collapsible>
                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
                         <ChevronRight className="w-4 h-4" />
-                        <span className="font-semibold">Accounting Software Integration</span>
-                        <Badge variant="secondary" className="ml-auto">Business</Badge>
+                        <span className="font-semibold">OpenAI Integration</span>
+                        <Badge variant="secondary" className="ml-auto">AI-Powered</Badge>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="p-4 space-y-4">
                         <div className="space-y-4">
-                          <h4 className="font-semibold">Supported Accounting Platforms</h4>
-                          <div className="grid md:grid-cols-3 gap-4">
-                            <div>
-                              <strong>QuickBooks</strong>
-                              <ul className="list-disc pl-6 mt-2 text-muted-foreground text-sm">
-                                <li>Online and Desktop versions</li>
-                                <li>Automatic invoice creation</li>
-                                <li>Customer sync</li>
-                                <li>Payment tracking</li>
-                              </ul>
-                            </div>
-                            <div>
-                              <strong>Xero</strong>
-                              <ul className="list-disc pl-6 mt-2 text-muted-foreground text-sm">
-                                <li>Cloud-based accounting</li>
-                                <li>Invoice automation</li>
-                                <li>Bank feed integration</li>
-                                <li>Financial reporting</li>
-                              </ul>
-                            </div>
-                            <div>
-                              <strong>FreshBooks</strong>
-                              <ul className="list-disc pl-6 mt-2 text-muted-foreground text-sm">
-                                <li>Service-based business focus</li>
-                                <li>Time tracking integration</li>
-                                <li>Project-based invoicing</li>
-                                <li>Expense management</li>
-                              </ul>
-                            </div>
-                          </div>
+                          <h4 className="font-semibold">AI-Powered Defect Detection</h4>
+                          <p className="text-muted-foreground">
+                            Connect your OpenAI API key to enable intelligent analysis of inspection photos and automated defect detection.
+                          </p>
 
-                          <h4 className="font-semibold">Integration Benefits</h4>
+                          <h4 className="font-semibold">Features & Benefits</h4>
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li><strong>Automatic Invoicing:</strong> Generate invoices when reports are completed</li>
-                            <li><strong>Customer Sync:</strong> Keep contact information synchronized</li>
-                            <li><strong>Payment Tracking:</strong> Monitor payment status and overdue accounts</li>
-                            <li><strong>Financial Reporting:</strong> Better business insights and tax preparation</li>
-                            <li><strong>Time Savings:</strong> Eliminate double data entry</li>
+                            <li><strong>Photo Analysis:</strong> AI analyzes inspection photos to identify potential defects</li>
+                            <li><strong>Smart Suggestions:</strong> Get AI-generated descriptions and recommendations</li>
+                            <li><strong>Time Savings:</strong> Reduce manual inspection note-taking</li>
+                            <li><strong>Consistency:</strong> Standardized defect identification across inspections</li>
+                            <li><strong>Quality Assurance:</strong> Catch issues that might be overlooked</li>
                           </ul>
 
-                          <h4 className="font-semibold">Setup Requirements</h4>
-                          <ul className="list-disc pl-6 space-y-1 text-muted-foreground">
-                            <li>Active subscription to supported accounting software</li>
-                            <li>Admin access to accounting platform</li>
-                            <li>Chart of accounts configured for inspection services</li>
-                            <li>Tax settings and rates properly configured</li>
-                          </ul>
+                          <h4 className="font-semibold">Setup Process</h4>
+                          <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
+                            <li>Obtain an OpenAI API key from <strong>platform.openai.com</strong></li>
+                            <li>Navigate to <strong>Settings → Integrations</strong></li>
+                            <li>Enter your OpenAI API key in the designated field</li>
+                            <li>Click <strong>Save</strong> to activate the integration</li>
+                            <li>Start using AI analysis in your inspection reports</li>
+                          </ol>
+
+                          <div className="bg-orange-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2 flex items-center gap-2">
+                              <AlertCircle className="w-4 h-4" />
+                              API Usage Note
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              AI features consume OpenAI API credits based on usage. Monitor your OpenAI usage 
+                              dashboard to track costs and set spending limits as needed.
+                            </p>
+                          </div>
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
@@ -999,35 +967,45 @@ const Documentation = () => {
                     <Collapsible>
                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
                         <ChevronRight className="w-4 h-4" />
-                        <span className="font-semibold">Email & Communication Tools</span>
-                        <Badge variant="outline" className="ml-auto">Professional</Badge>
+                        <span className="font-semibold">Route Optimization</span>
+                        <Badge variant="outline" className="ml-auto">Built-in</Badge>
                       </CollapsibleTrigger>
                       <CollapsibleContent className="p-4 space-y-4">
                         <div className="space-y-4">
-                          <h4 className="font-semibold">Email Platform Integration</h4>
-                          <p className="text-muted-foreground">Connect your business email for seamless communication:</p>
+                          <h4 className="font-semibold">Navigation & Route Planning</h4>
+                          <p className="text-muted-foreground">
+                            Built-in route optimization helps you plan efficient travel between appointments using 
+                            Google Maps and Waze integration.
+                          </p>
+
+                          <h4 className="font-semibold">Features</h4>
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li><strong>Gmail:</strong> Send reports and confirmations from your Gmail account</li>
-                            <li><strong>Outlook:</strong> Microsoft 365 and Exchange integration</li>
-                            <li><strong>Custom SMTP:</strong> Use any email provider with SMTP settings</li>
+                            <li><strong>Optimized Routes:</strong> Calculate the most efficient path between multiple appointments</li>
+                            <li><strong>Real-time Traffic:</strong> Get current traffic conditions and delays</li>
+                            <li><strong>Multiple Navigation Apps:</strong> Choose between Google Maps and Waze</li>
+                            <li><strong>Time Estimates:</strong> Accurate travel time calculations</li>
+                            <li><strong>Fuel Savings:</strong> Reduce driving time and expenses</li>
                           </ul>
 
-                          <h4 className="font-semibold">Automated Email Features</h4>
-                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>Appointment confirmations and reminders</li>
-                            <li>Report delivery notifications</li>
-                            <li>Follow-up email sequences</li>
-                            <li>Custom email templates with merge fields</li>
-                            <li>Branded email signatures</li>
-                          </ul>
+                          <h4 className="font-semibold">How to Use</h4>
+                          <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
+                            <li>Navigate to <strong>Settings → Integrations</strong></li>
+                            <li>Enable the <strong>Route Optimization</strong> toggle</li>
+                            <li>View your daily calendar with multiple appointments</li>
+                            <li>Click the route optimization button to plan your route</li>
+                            <li>Choose your preferred navigation app (Google Maps or Waze)</li>
+                          </ol>
 
-                          <h4 className="font-semibold">SMS & Text Messaging</h4>
-                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                            <li>Appointment reminders via SMS</li>
-                            <li>Report completion notifications</li>
-                            <li>Emergency contact capabilities</li>
-                            <li>Two-way messaging with clients</li>
-                          </ul>
+                          <div className="bg-green-50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-2 flex items-center gap-2">
+                              <Navigation className="w-4 h-4" />
+                              Efficiency Tip
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                              Use route optimization when you have 3+ appointments in a day to maximize time savings. 
+                              The system considers traffic patterns and appointment durations.
+                            </p>
+                          </div>
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
