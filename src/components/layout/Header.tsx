@@ -69,7 +69,12 @@ const Header: React.FC = () => {
                     <img
                         src="/HomeReportPro_Logo-transparent-light.png"
                         alt="Home Report Pro"
-                        className="h-8 w-auto"
+                        className="h-8 w-auto block dark:hidden"
+                    />
+                    <img
+                        src="/HomeReportPro_Logo-transparent-dark.png"
+                        alt="Home Report Pro"
+                        className="h-8 w-auto hidden dark:block"
                     />
                 </Link>
 
@@ -151,7 +156,9 @@ const Header: React.FC = () => {
                                 <Link to="/" className="flex items-center gap-2 font-bold"
                                       onClick={() => setMobileMenuOpen(false)}>
                                     <img src="/HomeReportPro_Logo-transparent-light.png" alt="Home Report Pro"
-                                         className="h-6 w-auto"/>
+                                         className="h-6 w-auto block dark:hidden"/>
+                                    <img src="/HomeReportPro_Logo-transparent-dark.png" alt="Home Report Pro"
+                                         className="h-6 w-auto hidden dark:block"/>
                                 </Link>
                                 <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}
                                         className="h-6 w-6">
