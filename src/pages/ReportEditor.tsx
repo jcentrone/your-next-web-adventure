@@ -37,6 +37,7 @@ import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
 import { Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import ContactMultiSelect from "@/components/contacts/ContactMultiSelect";
+import FEATURE_FLAGS from "@/constants/featureFlags";
 
 // Lazy load wind mitigation editor at module level
 const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
@@ -98,10 +99,26 @@ const ReportEditor: React.FC = () => {
   // Get templates for the report type
   const { templates } = useReportTemplates(report?.reportType);
   const reportTemplate = templates.find(t => t.is_default) || templates[0] || null;
-  
+
   // Check if this is a category-aware report
   const reportCategory = report ? getReportCategory(report.reportType) : null;
-  const shouldUseCategoryEditor = reportCategory && reportTemplate;
+
+  // Readiness checks for enabling the new category-aware editor
+  // Toggle these once the corresponding features reach parity with the legacy editor
+  const hasTabs = false; // TODO: implement tabbed navigation in CategoryAwareReportEditor
+  const hasTemplates = !!reportTemplate; // templates must exist for the report type
+  const hasAnnotation = false; // TODO: support image annotation workflow
+  const hasAI = false; // TODO: integrate AI assistance
+
+  const categoryEditorReady =
+    FEATURE_FLAGS.ENABLE_CATEGORY_REPORT_EDITOR &&
+    hasTabs &&
+    hasTemplates &&
+    hasAnnotation &&
+    hasAI;
+
+  // Only use the new editor when all readiness checks pass
+  const shouldUseCategoryEditor = reportCategory && categoryEditorReady;
 
   const { data: recipientOptions = [] } = useQuery({
     queryKey: ["contacts", user?.id],
