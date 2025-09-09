@@ -973,26 +973,27 @@ const Documentation = () => {
                         <div className="space-y-4">
                           <h4 className="font-semibold">Navigation & Route Planning</h4>
                           <p className="text-muted-foreground">
-                            Built-in route optimization helps you plan efficient travel between appointments using 
+                            Built-in route optimization helps you plan efficient travel between appointments using
                             Google Maps and Waze integration.
                           </p>
 
                           <h4 className="font-semibold">Features</h4>
                           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                             <li><strong>Optimized Routes:</strong> Calculate the most efficient path between multiple appointments</li>
-                            <li><strong>Real-time Traffic:</strong> Get current traffic conditions and delays</li>
-                            <li><strong>Multiple Navigation Apps:</strong> Choose between Google Maps and Waze</li>
-                            <li><strong>Time Estimates:</strong> Accurate travel time calculations</li>
+                            <li><strong>Home Base & Return Trip:</strong> Start from your home base with an option to end the day back at home</li>
+                            <li><strong>Stored Daily Routes:</strong> Save routes with automatic mileage and cost calculations</li>
+                            <li><strong>Navigation Links:</strong> Open optimized routes in Google Maps or Waze</li>
                             <li><strong>Fuel Savings:</strong> Reduce driving time and expenses</li>
                           </ul>
 
                           <h4 className="font-semibold">How to Use</h4>
                           <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
-                            <li>Navigate to <strong>Settings → Integrations</strong></li>
+                            <li>Navigate to <strong>Settings → Integrations → Route Optimization</strong></li>
                             <li>Enable the <strong>Route Optimization</strong> toggle</li>
-                            <li>View your daily calendar with multiple appointments</li>
-                            <li>Click the route optimization button to plan your route</li>
-                            <li>Choose your preferred navigation app (Google Maps or Waze)</li>
+                            <li>Enter your <strong>home base</strong> address and choose whether to return there after your last appointment</li>
+                            <li>Open the <strong>Calendar</strong> and select a day with multiple appointments</li>
+                            <li>Click <strong>Optimize Route</strong> to generate and save your route</li>
+                            <li>Follow the link to <strong>Google Maps</strong> or <strong>Waze</strong> for navigation</li>
                           </ol>
 
                           <div className="bg-green-50 p-4 rounded-lg">
@@ -1001,8 +1002,7 @@ const Documentation = () => {
                               Efficiency Tip
                             </h4>
                             <p className="text-sm text-muted-foreground">
-                              Use route optimization when you have 3+ appointments in a day to maximize time savings. 
-                              The system considers traffic patterns and appointment durations.
+                              Set your home base and optimize routes for days with 3+ appointments to automatically track mileage and travel costs.
                             </p>
                           </div>
                         </div>
