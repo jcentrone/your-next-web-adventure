@@ -48,7 +48,6 @@ const AppWithOnboarding: React.FC = () => {
         <Route path="/auth/reset-password" element={lazyLoad(() => import("@/pages/ResetPassword"))} />
           <Route path="/reports" element={lazyLoad(() => import("@/pages/ReportsList"))} />
         <Route path="/reports/select-type" element={lazyLoad(() => import("@/pages/ReportTypeSelection"))} />
-        <Route path="/reports/new/custom/:customTypeId" element={lazyLoad(() => import("@/pages/CustomReportEditor"))} />
           <Route path="/reports/new" element={lazyLoad(() => import("@/pages/ReportNew"))} />
           <Route path="/reports/new/home-inspection" element={lazyLoad(() => import("@/pages/HomeInspectionNew"))} />
             <Route path="/reports/new/wind-mitigation" element={lazyLoad(() => import("@/pages/WindMitigationNew"))} />

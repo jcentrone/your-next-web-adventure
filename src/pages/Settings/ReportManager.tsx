@@ -2,22 +2,18 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wrench, FileText, FormInput, Settings, Trash2 } from "lucide-react";
+import { Wrench, FileText, FormInput, Settings } from "lucide-react";
 import ReportTypeSelector from "@/components/reports/ReportTypeSelector";
 import { UniversalSectionsList } from "@/components/sections/UniversalSectionsList";
 import { SectionFieldsPanel } from "@/components/sections/SectionFieldsPanel";
 import { FieldEditor } from "@/components/sections/FieldEditor";
 import { CustomSectionDialog } from "@/components/reports/CustomSectionDialog";
-import { useReportTemplates } from "@/hooks/useReportTemplates";
 import { useCustomSections } from "@/hooks/useCustomSections";
 import { useCustomFields } from "@/hooks/useCustomFields";
-import { useCustomReportTypes } from "@/hooks/useCustomReportTypes";
-import CustomReportTypeDialog from "@/components/reports/CustomReportTypeDialog";
 import { useSectionOrder } from "@/hooks/useSectionOrder";
 import { useAuth } from "@/contexts/AuthContext";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { getReportCategory, REPORT_CATEGORY_LABELS, REPORT_CATEGORY_DESCRIPTIONS, isDefectBasedReport } from "@/constants/reportCategories";
-import { useToast } from "@/hooks/use-toast";
 import type { Report } from "@/lib/reportSchemas";
 import type { CustomField } from "@/integrations/supabase/customFieldsApi";
 
@@ -29,65 +25,15 @@ export default function ReportManager() {
   const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<CustomField | undefined>();
 
-  const { templates, deleteTemplate } = useReportTemplates(); // Get all templates, not filtered by type
   const { customSections, createSection, deleteSection } = useCustomSections();
   const { customFields, createField, updateField, deleteField } = useCustomFields();
-  const { customTypes, deleteCustomType } = useCustomReportTypes();
   const { updateSectionOrder, getOrderedSections } = useSectionOrder(selectedReportType, customSections);
-  const { toast } = useToast();
 
   const reportCategory = getReportCategory(selectedReportType);
   const isDefectBased = isDefectBasedReport(selectedReportType);
 
-  // Get all available report types (standard + custom types)
-  const customReportTypeIds = customTypes.map(ct => ct.id);
-
   const handleOpenReportBuilder = () => {
     window.open("/report-builder", "_blank");
-  };
-
-  const handleDeleteCustomReportType = async (reportType: Report["reportType"]) => {
-    // Check if this is a custom report type ID
-    const customType = customTypes.find(ct => ct.id === reportType);
-    
-    if (customType) {
-      try {
-        await deleteCustomType(customType.id);
-        
-        // If we're currently viewing the deleted type, switch to home_inspection
-        if (selectedReportType === reportType) {
-          setSelectedReportType("home_inspection");
-        }
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to delete custom report type",
-          variant: "destructive",
-        });
-      }
-    } else {
-      // Legacy handling for template-based custom types
-      const templatesToDelete = templates.filter(t => t.report_type === reportType);
-      
-      try {
-        await Promise.all(templatesToDelete.map(t => deleteTemplate(t.id)));
-        toast({
-          title: "Success",
-          description: "Custom report type deleted successfully",
-        });
-        
-        // If we're currently viewing the deleted type, switch to home_inspection
-        if (selectedReportType === reportType) {
-          setSelectedReportType("home_inspection");
-        }
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to delete custom report type",
-          variant: "destructive",
-        });
-      }
-    }
   };
 
   const handleAddField = () => {
@@ -159,13 +105,7 @@ export default function ReportManager() {
                 Create new custom reports with tailored sections and fields
               </p>
             </div>
-            <div className="flex gap-2">
-              <CustomReportTypeDialog>
-                <Button variant="outline">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Custom Type
-                </Button>
-              </CustomReportTypeDialog>
+            <div>
               <Button onClick={handleOpenReportBuilder} className="flex items-center gap-2">
                 <Wrench className="w-4 h-4" />
                 Open Report Builder
@@ -195,7 +135,6 @@ export default function ReportManager() {
                   setSelectedSection(null);
                 }}
                 placeholder="Choose a report type to customize"
-                includeCustomTypes={true}
               />
             </div>
             {selectedReportType && (
@@ -206,16 +145,6 @@ export default function ReportManager() {
                     {isDefectBased ? <FileText className="w-3 h-3" /> : <FormInput className="w-3 h-3" />}
                     {REPORT_CATEGORY_LABELS[reportCategory]}
                   </Badge>
-                  {customReportTypeIds.includes(selectedReportType) && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteCustomReportType(selectedReportType)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {REPORT_CATEGORY_DESCRIPTIONS[reportCategory]}
@@ -229,13 +158,10 @@ export default function ReportManager() {
             <div>
               <div className="mb-4">
                 <h3 className="text-lg font-medium">
-                  Editing: {(() => {
-                    const customType = customTypes.find(ct => ct.id === selectedReportType);
-                    return customType ? customType.name : (REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
-                  })()}
+                  Editing: {REPORT_TYPE_LABELS[selectedReportType] || selectedReportType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  {isDefectBased 
+                  {isDefectBased
                     ? "Customize report sections and add fields for additional data collection"
                     : "Configure structured form fields and data collection elements"
                   }
