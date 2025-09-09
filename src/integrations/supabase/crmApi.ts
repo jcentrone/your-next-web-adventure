@@ -105,7 +105,7 @@ export const appointmentsApi = {
       .from('appointments')
       .select(`
         *,
-        contact:contacts(first_name, last_name, email, phone),
+        contacts:contacts(first_name, last_name, email, phone),
         report:reports(title, status)
       `)
       .eq('user_id', userId)

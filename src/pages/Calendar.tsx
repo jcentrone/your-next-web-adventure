@@ -853,9 +853,9 @@ const Calendar: React.FC = () => {
                                                                 {format(new Date(appointment.appointment_date), "MMM d, yyyy 'at' h:mm a")}
                                                                 {appointment.location && ` • ${appointment.location}`}
                                                             </p>
-                                                            {(appointment as any).contact && (
+                                                            {(appointment as any).contacts && (
                                                                 <p className="text-sm text-muted-foreground">
-                                                                    {(appointment as any).contact.first_name} {(appointment as any).contact.last_name}
+                                                                    {(appointment as any).contacts.first_name} {(appointment as any).contacts.last_name}
                                                                 </p>
                                                             )}
                                                             {appointment.description && (
@@ -921,7 +921,7 @@ const Calendar: React.FC = () => {
                         appointment={previewAppointment}
                         isOpen={!!previewAppointment}
                         onOpenChange={(open) => !open && setPreviewAppointment(null)}
-                        contact={(previewAppointment as any)?.contacts || (previewAppointment as any)?.contact}
+                        contact={(previewAppointment as any)?.contacts}
                         onNavigate={navigate}
                     />
 
