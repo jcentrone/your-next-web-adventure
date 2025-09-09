@@ -33,7 +33,7 @@ export function NewReportBuilder({ userId, category }: NewReportBuilderProps) {
 
   const [reportType] = useState<Report["reportType"]>(() => (`custom_${crypto.randomUUID()}`) as Report["reportType"]);
 
-  const { customSections, deleteSection } = useCustomSections();
+  const { customSections, deleteSection, loadCustomSections } = useCustomSections();
   const { customFields, createField, updateField, deleteField } = useCustomFields();
   const { toast } = useToast();
 
@@ -84,6 +84,7 @@ export function NewReportBuilder({ userId, category }: NewReportBuilderProps) {
   };
 
   const handleSectionCreated = async () => {
+    await loadCustomSections();
     setSectionDialogOpen(false);
   };
 
