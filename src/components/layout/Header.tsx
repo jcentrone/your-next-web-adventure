@@ -18,6 +18,7 @@ import {
     Calendar,
     CheckSquare,
     Download,
+    HelpCircle,
     FileText,
     Home,
     Menu,
@@ -343,6 +344,12 @@ const Header: React.FC = () => {
                                         <Link to="/settings" className="flex items-center gap-2" data-onboarding="settings-menu">
                                             <Settings className="h-4 w-4"/>
                                             Settings
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/support" className="flex items-center gap-2">
+                                            <HelpCircle className="h-4 w-4"/>
+                                            Support
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator/>
