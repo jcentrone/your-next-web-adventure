@@ -35,6 +35,7 @@ export type Database = {
           user_id: string
           website: string | null
           zip_code: string | null
+          tags: string[]
         }
         Insert: {
           address?: string | null
@@ -56,6 +57,7 @@ export type Database = {
           user_id: string
           website?: string | null
           zip_code?: string | null
+          tags?: string[]
         }
         Update: {
           address?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           user_id?: string
           website?: string | null
           zip_code?: string | null
+          tags?: string[]
         }
         Relationships: []
       }
@@ -419,6 +422,7 @@ export type Database = {
           phone: string | null
           place_id: string | null
           state: string | null
+          tags: string[]
           updated_at: string
           user_id: string
           zip_code: string | null
@@ -444,6 +448,7 @@ export type Database = {
           phone?: string | null
           place_id?: string | null
           state?: string | null
+          tags?: string[]
           updated_at?: string
           user_id: string
           zip_code?: string | null
@@ -469,6 +474,7 @@ export type Database = {
           phone?: string | null
           place_id?: string | null
           state?: string | null
+          tags?: string[]
           updated_at?: string
           user_id?: string
           zip_code?: string | null
@@ -959,6 +965,7 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          tags: string[]
         }
         Insert: {
           address: string
@@ -993,6 +1000,7 @@ export type Database = {
           title: string
           updated_at?: string
           user_id: string
+          tags?: string[]
         }
         Update: {
           address?: string
@@ -1027,6 +1035,7 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          tags?: string[]
         }
         Relationships: [
           {
