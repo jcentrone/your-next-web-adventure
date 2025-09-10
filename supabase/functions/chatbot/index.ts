@@ -95,16 +95,25 @@ serve(async (req) => {
       match_threshold: 0.7,
       match_count: 5,
     });
+    
     if (error) {
       console.error("match_support_articles error", error);
+      // Fallback to general knowledge if similarity search fails
     }
+    
     const context = (articles || [])
       .map((a: any) => `${a.title}\n${a.content}`)
       .join("\n---\n");
+    
+    console.log(`Found ${articles?.length || 0} relevant articles for query: "${question}"`);
+    
+    // If no relevant articles found, provide fallback context
+    const fallbackContext = articles && articles.length > 0 ? context : 
+      "You are a HomeReportPro support assistant. This is a home inspection reporting platform that helps inspectors create professional reports, manage appointments, and organize contacts.";
 
     const systemPrompt =
       "You are a helpful support assistant for HomeReportPro. Answer using the provided context. If unsure, set confidence to low.";
-    const userPrompt = `Context:\n${context}\n\nQuestion: ${question}\nReturn JSON with fields \\\"answer\\\" and \\\"confidence\\\" (high|low).`;
+    const userPrompt = `Context:\n${fallbackContext}\n\nQuestion: ${question}\nReturn JSON with fields \\\"answer\\\" and \\\"confidence\\\" (high|low).`;
 
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -113,7 +122,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-5-mini-2025-08-07",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -146,11 +155,21 @@ serve(async (req) => {
 
         const low = full.toLowerCase().includes('"confidence":"low"');
 
+        // Extract just the answer from the streaming response for storage
+        let extractedAnswer = full;
+        try {
+          const parsedResponse = JSON.parse(full);
+          extractedAnswer = parsedResponse.answer || full;
+        } catch (e) {
+          // If not valid JSON, use the full response
+          console.log("Response was not valid JSON, using full response");
+        }
+
         await client.from("support_messages").insert({
           conversation_id: conversationId,
           user_id: user.id,
           role: "assistant",
-          content: full,
+          content: extractedAnswer,
           confidence: low ? "low" : "high",
         });
 

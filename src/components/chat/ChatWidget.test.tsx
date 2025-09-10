@@ -37,7 +37,7 @@ describe("ChatWidget", () => {
     await screen.findByText("Hello from bot");
 
     const support = screen.getByRole("link", { name: /contact support/i });
-    expect(support).toHaveAttribute("href", "/support");
+    expect(support.getAttribute("href")).toBe("/support");
 
     spy.mockRestore();
   });

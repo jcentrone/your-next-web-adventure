@@ -12,30 +12,42 @@ export function ChatWidget() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
+    
     const userMessage: ChatMessage = { role: "user", content: input };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
-    const stream = await sendMessage(newMessages);
-    const reader = stream.getReader();
-    const decoder = new TextDecoder();
-    let assistant = "";
-    setMessages((msgs) => [...msgs, { role: "assistant", content: "" }]);
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      if (value) {
-        assistant += decoder.decode(value, { stream: true });
-        setMessages((msgs) => {
-          const updated = [...msgs];
-          updated[updated.length - 1] = { role: "assistant", content: assistant };
-          return updated;
-        });
+    
+    try {
+      const stream = await sendMessage(newMessages);
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
+      let assistant = "";
+      setMessages((msgs) => [...msgs, { role: "assistant", content: "" }]);
+      
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (value) {
+          assistant += decoder.decode(value, { stream: true });
+          setMessages((msgs) => {
+            const updated = [...msgs];
+            updated[updated.length - 1] = { role: "assistant", content: assistant };
+            return updated;
+          });
+        }
       }
+    } catch (error) {
+      console.error("Chat error:", error);
+      setMessages((msgs) => [...msgs, { 
+        role: "assistant", 
+        content: "I'm sorry, I encountered an error. Please try again or contact support if the issue persists." 
+      }]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -47,11 +59,28 @@ export function ChatWidget() {
       </DialogTrigger>
       <DialogContent className="flex max-h-[80vh] flex-col">
         <div className="mb-4 flex-1 space-y-2 overflow-y-auto">
+          {messages.length === 0 && (
+            <div className="text-center text-muted-foreground">
+              <p>Hi! I'm here to help you with HomeReportPro.</p>
+              <p>Ask me about creating reports, managing appointments, or any other questions!</p>
+            </div>
+          )}
           {messages.map((msg, idx) => (
             <div key={idx} className={`text-sm ${msg.role === "user" ? "text-right" : "text-left"}`}>
-              <span className="inline-block rounded-md bg-secondary px-2 py-1">{msg.content}</span>
+              <span className={`inline-block rounded-md px-2 py-1 ${
+                msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary"
+              }`}>
+                {msg.content}
+              </span>
             </div>
           ))}
+          {loading && (
+            <div className="text-left text-sm">
+              <span className="inline-block rounded-md bg-secondary px-2 py-1">
+                <span className="animate-pulse">Typing...</span>
+              </span>
+            </div>
+          )}
         </div>
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
