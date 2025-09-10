@@ -2,7 +2,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { MessageSquare, Mic, Volume2, VolumeX } from "lucide-react";
+import { MessageSquare, Mic, Volume2, VolumeX, Paperclip } from "lucide-react";
 import {
   sendMessage,
   type ChatMessage,
@@ -46,6 +46,7 @@ export function ChatWidget() {
   );
 
   const recognitionRef = React.useRef<any>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const sendTextRef = React.useRef<(text: string, file?: File | null) => void>();
 
@@ -416,32 +417,62 @@ export function ChatWidget() {
         {/* Input Form */}
         <div className="p-4 border-t bg-background">
           {preview && (
-            <div className="mb-2">
-              <img src={preview} alt="preview" className="max-h-32 rounded" />
+            <div className="mb-2 relative">
+              <img src={preview} alt="preview" className="max-h-32 rounded border" />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setImage(null);
+                  setPreview(null);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = "";
+                  }
+                }}
+                className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-background border shadow-sm hover:bg-destructive hover:text-destructive-foreground"
+              >
+                ×
+              </Button>
             </div>
           )}
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            {speechSupported && (
+          <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+            
+            <div className="flex gap-1">
+              {speechSupported && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={toggleListening}
+                  className={`flex-shrink-0 ${listening ? "animate-pulse text-red-500 border-red-200" : ""}`}
+                  aria-label={listening ? "Stop recording" : "Start recording"}
+                  disabled={loading}
+                >
+                  <Mic className="w-4 h-4" />
+                </Button>
+              )}
+              
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={toggleListening}
-                className={`flex-shrink-0 ${listening ? "animate-pulse text-red-500 border-red-200" : ""}`}
-                aria-label={listening ? "Stop recording" : "Start recording"}
-                disabled={loading}
+                onClick={() => fileInputRef.current?.click()}
+                aria-label="Attach image"
+                disabled={loading || listening}
+                className="flex-shrink-0"
               >
-                <Mic className="w-4 h-4" />
+                <Paperclip className="w-4 h-4" />
               </Button>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              aria-label="Upload image"
-              disabled={loading || listening}
-              className="flex-shrink-0"
-            />
+            </div>
+            
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -450,6 +481,7 @@ export function ChatWidget() {
               disabled={loading || listening}
               className="flex-1"
             />
+            
             <Button
               type="submit"
               disabled={loading || listening || (!input.trim() && !image)}
