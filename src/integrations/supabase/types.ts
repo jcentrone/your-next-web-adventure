@@ -1568,6 +1568,30 @@ export type Database = {
         }
         Relationships: []
       }
+      support_action_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          payload: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_articles: {
         Row: {
           content: string

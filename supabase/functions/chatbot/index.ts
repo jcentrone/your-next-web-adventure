@@ -137,7 +137,13 @@ const tools = [
   },
 ];
 
-async function handleToolCall(name: string, args: any, client: any, user: any) {
+async function handleToolCall(
+  name: string,
+  args: any,
+  client: any,
+  user: any,
+  conversationId?: string,
+) {
   const schemaMap = {
     create_account: CreateAccountSchema.omit({
       id: true,
@@ -174,12 +180,46 @@ async function handleToolCall(name: string, args: any, client: any, user: any) {
     const missing = parsed.error.issues.map((i: any) => i.path.join("."));
     return { missing };
   }
+
+  // Verify role before sensitive operations
+  if (name === "create_report") {
+    const { data: member } = await client
+      .from("organization_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const role = member?.role;
+    if (!role || role === "viewer") {
+      await client.from("support_action_logs").insert({
+        user_id: user.id,
+        action: name,
+        payload: { args: parsed.data, error: "unauthorized", conversation_id: conversationId },
+      });
+      return { error: "Unauthorized" };
+    }
+  }
+
   const { data, error } = await client
     .from(table)
     .insert({ ...parsed.data, user_id: user.id })
     .select()
     .single();
-  if (error) return { error: error.message };
+
+  if (error) {
+    await client.from("support_action_logs").insert({
+      user_id: user.id,
+      action: name,
+      payload: { args: parsed.data, error: error.message, conversation_id: conversationId },
+    });
+    return { error: error.message };
+  }
+
+  await client.from("support_action_logs").insert({
+    user_id: user.id,
+    action: name,
+    payload: { args: parsed.data, record: data, conversation_id: conversationId },
+  });
+
   return { record: data };
 }
 
@@ -390,7 +430,13 @@ serve(async (req) => {
         if (toolCall) {
           try {
             const args = JSON.parse(toolCall.arguments || '{}');
-            const result = await handleToolCall(toolCall.name, args, client, user);
+            const result = await handleToolCall(
+              toolCall.name,
+              args,
+              client,
+              user,
+              conversationId,
+            );
             let message;
             if (result.missing) {
               message = `Missing required fields: ${result.missing.join(', ')}`;
