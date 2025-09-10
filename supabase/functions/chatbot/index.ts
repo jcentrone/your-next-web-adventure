@@ -2,12 +2,125 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import {serve} from "https://deno.land/std@0.168.0/http/server.ts";
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {zodToJsonSchema} from "https://esm.sh/zod-to-json-schema@2.1.4";
+import {zodToJsonSchema} from "https://esm.sh/zod-to-json-schema@3.23.3";
+import {z} from "https://esm.sh/zod@3.23.8";
 
-// === Your schemas ===
-import {CreateAccountSchema} from "../../../src/lib/accountSchemas.ts";
-import {AppointmentSchema, CreateContactSchema, TaskSchema} from "../../../src/lib/crmSchemas.ts";
-import {BaseReportSchema} from "../../../src/lib/reportSchemas.ts";
+// === Inlined Zod Schemas ===
+const CreateAccountSchema = z.object({
+  name: z.string().min(1, "Account name is required"),
+  type: z.string().default("company"),
+  industry: z.string().optional(),
+  website: z.string().url().optional().or(z.literal("")),
+  phone: z.string().optional(),
+  email: z.string().email().optional().or(z.literal("")),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zip_code: z.string().optional(),
+  notes: z.string().optional(),
+  annual_revenue: z.number().optional(),
+  employee_count: z.number().optional(),
+  tags: z.array(z.string()).default([]),
+  organization_id: z.string().uuid().optional(),
+  is_active: z.boolean().default(true),
+});
+
+const CreateContactSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email().optional().or(z.literal("")).nullable(),
+  phone: z.string().optional().nullable(),
+  company: z.string().optional().nullable(),
+  contact_type: z.enum(["client", "realtor", "vendor", "contractor", "other"]),
+  account_id: z.string().nullable().optional(),
+  formatted_address: z.string().optional().nullable(),
+  place_id: z.string().optional().nullable(),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
+  address_components: z.any().optional().nullable(),
+  city: z.string().optional().nullable(),
+  state: z.string().optional().nullable(),
+  zip_code: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  tags: z.array(z.string()).default([]),
+  is_active: z.boolean().default(true),
+});
+
+const AppointmentSchema = z.object({
+  contact_id: z.string().nullable().optional(),
+  report_id: z.string().nullable().optional(),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  appointment_date: z.string(),
+  duration_minutes: z.number().default(120),
+  location: z.string().optional(),
+  status: z.enum(["scheduled", "confirmed", "in_progress", "completed", "cancelled", "rescheduled"]),
+});
+
+const TaskSchema = z.object({
+  assigned_to: z.string().nullable().optional(),
+  contact_id: z.string().nullable().optional(),
+  appointment_id: z.string().nullable().optional(),
+  report_id: z.string().nullable().optional(),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
+  status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
+  task_type: z.string().optional().nullable(),
+  due_date: z.string().nullable().optional(),
+  completed_at: z.string().nullable().optional(),
+});
+
+const BaseReportSchema = z.object({
+  title: z.string().min(1, "Report title is required"),
+  clientName: z.string().min(1, "Client name is required"),
+  address: z.string().min(1, "Address is required"),
+  clientEmail: z.string().optional(),
+  clientPhone: z.string().optional(),
+  county: z.string().optional(),
+  ofStories: z.string().optional(),
+  inspectionDate: z.string(),
+  weatherConditions: z.string().optional(),
+  status: z.enum(["Draft", "Final"]).default("Draft"),
+  contactIds: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).default([]),
+  finalComments: z.string().optional().default(""),
+  termsHtml: z.string().optional(),
+  agreementId: z.string().optional(),
+  appointmentId: z.string().optional(),
+  includeStandardsOfPractice: z.boolean().default(true),
+  coverImage: z.string().optional().default(""),
+  coverTemplate: z
+    .enum(["templateOne", "templateTwo", "templateThree", "templateFour", "templateFive", "templateSix",
+        "templateSeven", "templateEight", "templateNine", "templateTen", "templateEleven", "templateTwelve",
+        "templateThirteen", "templateFourteen", "templateFifteen", "templateSixteen"])
+    .default("templateOne"),
+  previewTemplate: z.enum(["classic", "modern", "minimal"]).default("classic"),
+  colorScheme: z
+    .enum(["default", "coralAmber", "indigoOrchid", "forestMint", "slateSky", "royalAqua", "burgundyGold", "emeraldLime", "navyOrange", "charcoalNeon", "cocoaPeach", "custom"])
+    .default("default"),
+  customColors: z
+    .object({
+        primary: z.string().optional(),
+        secondary: z.string().optional(),
+        accent: z.string().optional(),
+        headingText: z.string().optional(),
+        bodyText: z.string().optional(),
+    })
+    .optional(),
+  shareToken: z.string().optional(),
+  archived: z.boolean().default(false),
+  reportType: z.enum([
+    "home_inspection",
+    "wind_mitigation",
+    "fl_wind_mitigation_oir_b1_1802",
+    "fl_four_point_citizens",
+    "tx_coastal_windstorm_mitigation",
+    "ca_wildfire_defensible_space",
+    "roof_certification_nationwide",
+    "manufactured_home_insurance_prep",
+  ]),
+});
 
 // ====== Config / env ======
 const LOG_URL = Deno.env.get("LOG_SERVICE_URL");
@@ -68,19 +181,11 @@ function zodSchemaToJson(schema: any) {
 
 // ====== Tool registrations (OpenAI schema) ======
 const toolParameterSchemas = {
-    create_account: zodSchemaToJson(
-        CreateAccountSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-    ),
+    create_account: zodSchemaToJson(CreateAccountSchema),
     create_contact: zodSchemaToJson(CreateContactSchema),
-    create_report: zodSchemaToJson(
-        BaseReportSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-    ),
-    create_task: zodSchemaToJson(
-        TaskSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-    ),
-    create_appointment: zodSchemaToJson(
-        AppointmentSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-    ),
+    create_report: zodSchemaToJson(BaseReportSchema),
+    create_task: zodSchemaToJson(TaskSchema),
+    create_appointment: zodSchemaToJson(AppointmentSchema),
     // Plain JSON schema for search_support
     search_support: {
         type: "object",
@@ -199,11 +304,11 @@ async function handleToolCall(
     }
 
     const schemaMap = {
-        create_account: CreateAccountSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
+        create_account: CreateAccountSchema,
         create_contact: CreateContactSchema,
-        create_report: BaseReportSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-        create_task: TaskSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-        create_appointment: AppointmentSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
+        create_report: BaseReportSchema,
+        create_task: TaskSchema,
+        create_appointment: AppointmentSchema,
     } as const;
 
     const tableMap = {
