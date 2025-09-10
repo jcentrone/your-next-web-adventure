@@ -2,6 +2,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { MessageCircle } from "lucide-react";
 import { sendMessage, type ChatMessage } from "@/integrations/chatbot";
 
 export function ChatWidget() {
@@ -54,7 +55,7 @@ export function ChatWidget() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="fixed bottom-4 right-4 rounded-full shadow-lg" aria-label="Open chat">
-          Chat
+          <MessageCircle />
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[80vh] flex-col">
