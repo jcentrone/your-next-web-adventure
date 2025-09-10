@@ -4,6 +4,9 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { MessageCircle, Mic, Volume2, VolumeX } from "lucide-react";
 import { sendMessage, type ChatMessage } from "@/integrations/chatbot";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeSanitize from "rehype-sanitize";
 
 export function ChatWidget() {
   const [open, setOpen] = React.useState(false);
@@ -212,18 +215,24 @@ export function ChatWidget() {
           )}
           {messages.map((msg, idx) => (
             <div key={idx} className={`text-sm ${msg.role === "user" ? "text-right" : "text-left"}`}>
-              <span
+              <div
                 className={`inline-block rounded-md px-2 py-1 ${
                   msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary"
                 }`}
               >
-                {msg.content}
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeSanitize]}
+                  components={{ p: ({ node, ...props }) => <p {...props} className="m-0" /> }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
                 {msg.link && (
                   <a href={msg.link} className="ml-1 underline">
                     View
                   </a>
                 )}
-              </span>
+              </div>
             </div>
           ))}
           {loading && (

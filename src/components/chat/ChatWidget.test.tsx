@@ -18,8 +18,8 @@ describe("ChatWidget", () => {
   beforeEach(() => {
     localStorage.clear();
   });
-  it("opens dialog and streams response", async () => {
-    const stream = createStream("Hello from bot");
+  it("opens dialog and streams markdown response", async () => {
+    const stream = createStream("**bold**");
     const spy = vi
       .spyOn(chatbot, "sendMessage")
       .mockResolvedValue({ stream, tool: Promise.resolve({}) } as any);
@@ -39,7 +39,7 @@ describe("ChatWidget", () => {
 
     expect(spy).toHaveBeenCalledWith([{ role: "user", content: "Hi" }]);
 
-    await screen.findByText("Hello from bot");
+    await screen.findByText("bold", { selector: "strong" });
 
     const support = screen.getByRole("link", { name: /contact support/i });
     expect(support.getAttribute("href")).toBe("/support");
