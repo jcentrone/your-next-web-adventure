@@ -405,28 +405,46 @@ You are an expert assistant for HomeReportPro, a comprehensive home inspection r
 6. **search_support** - Use for general questions about how HomeReportPro works
    - Examples: "how do I add photos to a report?", "what's the difference between report types?"
 
-## Action-First Approach
-- **ALWAYS** call the appropriate tool when users request creation/scheduling actions
-- If required information is missing, call the tool with reasonable defaults/placeholders first, then ask for missing details
-- Be proactive - don't ask for every detail upfront, take action and refine as needed
+## Tool Requirements
+**create_contact** - Required: first_name, last_name (minimum for a contact)
+**create_account** - Required: name (company/business name)  
+**create_report** - Required: reportType, address (what kind of report and where)
+**create_task** - Required: title, due_date (what to do and when)
+**create_appointment** - Required: appointment_date, address (when and where)
+
+## Information Gathering Approach
+- **GATHER REQUIRED INFORMATION FIRST** before calling tools
+- When users request creation/scheduling actions, ask for the essential required details if they're missing
+- Only call tools when you have sufficient information to succeed
+- Be efficient - ask for just the required fields, optional fields can be added later
+
+## Handling Tool Results
+- If a tool returns missing field information, immediately ask the user for those specific fields
+- Be specific about what information is needed and why
+- Don't make the user guess - clearly state what's required
 
 ## Examples of Proper Responses
 User: "add a contact named Jim Jones"
-- IMMEDIATELY call create_contact with name "Jim" "Jones" and reasonable defaults
-- Then ask for any additional details they want to add
+- If you have a name, IMMEDIATELY call create_contact with the provided information
+- Then ask for any additional details they want to add (email, phone, etc.)
 
-User: "schedule an inspection for next Tuesday"
-- IMMEDIATELY call create_appointment with Tuesday's date and inspection details
-- Then ask for specific time, location, etc. if needed
+User: "schedule an inspection"
+- Ask: "I'd be happy to schedule that inspection! What's the property address and preferred date/time?"
+- Once provided, IMMEDIATELY call create_appointment
 
 User: "create a task to call the client back"
-- IMMEDIATELY call create_task with the task details
-- Then ask for due date, priority, etc. if needed
+- Ask: "Got it! What's the task description and when should it be completed?"
+- Once provided, IMMEDIATELY call create_task
+
+User: "create a client"
+- Ask: "I'll help you create a new client! What's their first and last name?"
+- Once provided, call create_contact and then offer to add additional details
 
 ## Important Guidelines
-- Always be helpful and take action when requested
-- Use tools proactively rather than asking endless questions
-- For missing required fields, use reasonable defaults and then ask for clarification
+- Always be helpful and gather information efficiently
+- Ask for required fields when missing, but don't ask for every detail upfront
+- Call tools only when you have enough information for them to succeed
+- If a tool indicates missing fields, ask for those specific fields clearly
 - Be conversational and friendly while being efficient
 - If users ask general "how to" questions, use search_support to find relevant documentation
 
@@ -707,8 +725,18 @@ serve(async (req) => {
                 for (const call of pendingCallsByIndex.values()) {
                     let toolContent: string;
                     try {
+                        await log("info", "executing tool call", {
+                            tool: call.function.name, 
+                            args: call.function.arguments
+                        });
+
                         const args = call.function.arguments ? JSON.parse(call.function.arguments) : {};
                         const result = await handleToolCall(call.function.name, args, client, user, conversationId);
+                        
+                        await log("info", "tool execution result", {
+                            tool: call.function.name,
+                            result: result
+                        });
                         
                         // Capture tool execution results for response headers
                         if ((result as any).record?.id) {
@@ -718,14 +746,29 @@ serve(async (req) => {
                         
                         if ((result as any).missing) {
                             toolMissingFields = (result as any).missing.join(", ");
-                            toolContent = JSON.stringify({missing: (result as any).missing});
+                            toolContent = JSON.stringify({
+                                missing: (result as any).missing,
+                                message: `I need some additional information to create this record. Please provide: ${(result as any).missing.join(", ")}`
+                            });
+                            await log("info", "tool missing fields", {
+                                tool: call.function.name,
+                                missing: (result as any).missing
+                            });
                         } else if ((result as any).error) {
                             toolContent = JSON.stringify({error: (result as any).error});
+                            await log("error", "tool execution error", {
+                                tool: call.function.name,
+                                error: (result as any).error
+                            });
                         } else {
                             toolContent = JSON.stringify(result); // includes {record} or {articles}
                         }
-                    } catch {
-                        toolContent = JSON.stringify({error: "Invalid tool call arguments"});
+                    } catch (e) {
+                        await log("error", "tool call exception", {
+                            tool: call.function.name,
+                            error: e.message
+                        });
+                        toolContent = JSON.stringify({error: "Invalid tool call arguments: " + e.message});
                     }
 
                     toolMessages.push({
