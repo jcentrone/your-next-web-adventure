@@ -391,48 +391,34 @@ const Calendar: React.FC = () => {
             console.error("Failed to optimize route", error);
         }
     };
+    const handleViewRoute = async () => {
+        let route = dailyRoute;
 
-    const handleOptimizeRoute = async () => {
-        try {
-            const result = await optimizeRouteForDate(selectedDate, selectedDateAppointments);
-            if (result) {
-                setRouteUrls(result);
-                setIsRouteDialogOpen(true);
-                const updated = await routeOptimizationApi.getDailyRoute(
+        if (!route) {
+            try {
+                route = await routeOptimizationApi.getDailyRoute(
                     format(selectedDate, "yyyy-MM-dd")
                 );
-                setDailyRoute(updated);
-            } else {
-                toast.error("Failed to optimize route");
+                setDailyRoute(route);
+            } catch (error) {
+                console.error("Failed to fetch daily route", error);
             }
-        } catch {
-            toast.error("Failed to optimize route");
         }
-    };
 
-    const handleViewRoute = () => {
-        if (!dailyRoute) return;
+        if (!route) return;
 
-        const googleMapsUrl = dailyRoute.google_maps_url;
-        const wazeUrl = dailyRoute.waze_url;
+        const googleMapsUrl = route.google_maps_url;
+        const wazeUrl = route.waze_url;
 
-        // If both URLs are available, show the choice dialog
-        if (googleMapsUrl && wazeUrl) {
+        if (googleMapsUrl || wazeUrl) {
             setRouteUrls({
                 googleMapsUrl,
                 wazeUrl,
-                totalDistanceMiles: dailyRoute.total_distance_miles,
-                totalDurationMinutes: dailyRoute.total_duration_minutes,
-                estimatedFuelCost: dailyRoute.estimated_fuel_cost,
+                totalDistanceMiles: route.total_distance_miles,
+                totalDurationMinutes: route.total_duration_minutes,
+                estimatedFuelCost: route.estimated_fuel_cost,
             });
             setIsRouteDialogOpen(true);
-            return;
-        }
-
-        // Otherwise open whichever URL is available
-        const url = googleMapsUrl || wazeUrl;
-        if (url) {
-            window.open(url, "_blank");
         }
     };
 
@@ -532,14 +518,9 @@ const Calendar: React.FC = () => {
                             >
                                 <Settings className="w-4 h-4" />
                             </Button>
-                            {(dailyRoute?.google_maps_url || dailyRoute?.waze_url) && (
+                            {selectedDateAppointments.length > 0 && (
                                 <Button variant="outline" onClick={handleViewRoute}>
                                     View Route
-                                </Button>
-                            )}
-                            {optimizeEnabled && !(dailyRoute?.google_maps_url || dailyRoute?.waze_url) && (
-                                <Button variant="outline" onClick={handleOptimizeRoute}>
-                                    Optimize Route
                                 </Button>
                             )}
                             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
