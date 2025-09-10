@@ -727,7 +727,6 @@ serve(async (req) => {
                     } catch {
                         toolContent = JSON.stringify({error: "Invalid tool call arguments"});
                     }
-                    }
 
                     toolMessages.push({
                         role: "tool",
