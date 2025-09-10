@@ -99,7 +99,7 @@ const tools = [
     type: "function",
     function: {
       name: "create_account",
-      description: "Create a new account record",
+      description: "Create a new account record when the user asks to create, add, or set up a new account. Use this when they provide account details like company name, contact information, or business details.",
       parameters: toolParameterSchemas.create_account,
     },
   },
@@ -107,7 +107,7 @@ const tools = [
     type: "function",
     function: {
       name: "create_contact",
-      description: "Create a new contact",
+      description: "Create a new contact when the user asks to add, create, or save contact information. Use this when they provide names, email addresses, phone numbers, or other contact details.",
       parameters: toolParameterSchemas.create_contact,
     },
   },
@@ -115,7 +115,7 @@ const tools = [
     type: "function",
     function: {
       name: "create_report",
-      description: "Create a new report",
+      description: "Create a new inspection report when the user asks to create, start, or generate a report. Use this when they mention inspection details, property addresses, or report types.",
       parameters: toolParameterSchemas.create_report,
     },
   },
@@ -123,7 +123,7 @@ const tools = [
     type: "function",
     function: {
       name: "create_task",
-      description: "Create a new task",
+      description: "Create a new task when the user asks to add, create, or schedule a task or to-do item. Use this when they mention follow-ups, reminders, or action items.",
       parameters: toolParameterSchemas.create_task,
     },
   },
@@ -131,7 +131,7 @@ const tools = [
     type: "function",
     function: {
       name: "create_appointment",
-      description: "Create a new appointment",
+      description: "Create a new appointment when the user asks to schedule, book, or create an appointment. Use this when they mention dates, times, locations, or meeting details.",
       parameters: toolParameterSchemas.create_appointment,
     },
   },
@@ -343,14 +343,20 @@ serve(async (req) => {
       "You are a HomeReportPro support assistant. This is a home inspection reporting platform that helps inspectors create professional reports, manage appointments, and organize contacts.";
 
     const systemPrompt =
-      "You are a helpful support assistant for HomeReportPro. Answer using the provided context. If you're uncertain about something, mention it in your response. Use Markdown formatting (lists, tables, code blocks) whenever it improves clarity.\n\n" +
-      "Available tools:\n" +
-      "- create_account: create a new account record\n" +
-      "- create_contact: create a new contact\n" +
-      "- create_report: create a new report\n" +
-      "- create_task: create a new task\n" +
-      "- create_appointment: create a new appointment\n\n" +
-      "Always invoke the matching tool. If required fields are missing, call the tool with placeholders and then ask for the missing data.";
+      "You are a HomeReportPro support assistant with the ability to perform actions on behalf of users. When users ask you to CREATE, ADD, MAKE, or SET UP anything (accounts, contacts, reports, tasks, appointments), you MUST use the appropriate tool to actually perform that action.\n\n" +
+      "CRITICAL: Always use tools when users request actions. Don't just provide instructions - actually do what they ask!\n\n" +
+      "Available actions you can perform:\n" +
+      "- create_account: Use when users want to create/add/set up a new account or company record\n" +
+      "- create_contact: Use when users want to add/create/save contact information\n" +
+      "- create_report: Use when users want to create/start/generate an inspection report\n" +
+      "- create_task: Use when users want to add/create tasks or to-do items\n" +
+      "- create_appointment: Use when users want to schedule/book appointments\n\n" +
+      "EXAMPLES:\n" +
+      "User: 'Create an account for ABC Inspections' → Use create_account tool\n" +
+      "User: 'Add a contact named John Smith' → Use create_contact tool\n" +
+      "User: 'I need to create a report for 123 Main St' → Use create_report tool\n\n" +
+      "If required fields are missing, use the tool with available information and ask for missing details. Always try to be helpful and use tools when appropriate.\n\n" +
+      "For general questions or information requests, provide helpful answers using the provided context. Use Markdown formatting for clarity.";
     const userPrompt = `Context:\n${fallbackContext}\n\nQuestion: ${question}`;
     const userMessageContent = imageUrl
       ? [
@@ -366,7 +372,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1-2025-04-14",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessageContent },
