@@ -156,29 +156,55 @@ serve(async (req) => {
     }
 
     let full = "";
+    let accumulatedContent = "";
     const stream = new ReadableStream({
       async start(controller) {
         const reader = aiRes.body!.getReader();
         const decoder = new TextDecoder();
+        let buffer = "";
+        
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          controller.enqueue(value);
-          full += decoder.decode(value, { stream: true });
+          
+          // Decode the chunk and add to buffer
+          const chunk = decoder.decode(value, { stream: true });
+          buffer += chunk;
+          
+          // Process complete lines from the buffer
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6); // Remove 'data: ' prefix
+              
+              if (data === '[DONE]') {
+                continue;
+              }
+              
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content;
+                
+                if (content) {
+                  // Send only the content to the client
+                  controller.enqueue(new TextEncoder().encode(content));
+                  accumulatedContent += content;
+                }
+              } catch (e) {
+                // Skip malformed JSON chunks
+                console.log("Skipping malformed chunk:", data.substring(0, 100));
+              }
+            }
+          }
         }
         controller.close();
 
-        const low = full.toLowerCase().includes('"confidence":"low"');
+        const low = accumulatedContent.toLowerCase().includes('low confidence') || accumulatedContent.toLowerCase().includes('uncertain');
 
-        // Extract just the answer from the streaming response for storage
-        let extractedAnswer = full;
-        try {
-          const parsedResponse = JSON.parse(full);
-          extractedAnswer = parsedResponse.answer || full;
-        } catch (e) {
-          // If not valid JSON, use the full response
-          console.log("Response was not valid JSON, using full response");
-        }
+        // Use the accumulated content from the stream
+        const extractedAnswer = accumulatedContent || "No response generated";
 
         await client.from("support_messages").insert({
           conversation_id: conversationId,
