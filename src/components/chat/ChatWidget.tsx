@@ -3,7 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { MessageSquare, Mic, Volume2, VolumeX } from "lucide-react";
-import { sendMessage, type ChatMessage } from "@/integrations/chatbot";
+import {
+  sendMessage,
+  type ChatMessage,
+  listConversations,
+  fetchMessages,
+  setConversationId as setConversationIdStorage,
+} from "@/integrations/chatbot";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
@@ -20,6 +33,15 @@ export function ChatWidget() {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("chatMuted") === "true";
   });
+  const [conversations, setConversations] = React.useState<
+    { id: string; created_at: string }[]
+  >([]);
+  const [conversationId, setConversationId] = React.useState<string | null>(
+    () => {
+      if (typeof window === "undefined") return null;
+      return localStorage.getItem("chat_conversation_id");
+    },
+  );
 
   const recognitionRef = React.useRef<any>(null);
 
@@ -99,12 +121,37 @@ export function ChatWidget() {
         ]);
       } finally {
         setLoading(false);
+        if (typeof window !== "undefined") {
+          const stored = localStorage.getItem("chat_conversation_id");
+          setConversationId(stored);
+          listConversations().then(setConversations).catch(console.error);
+        }
       }
     },
     [messages, loading]
   );
 
   sendTextRef.current = sendText;
+
+  React.useEffect(() => {
+    if (!open) return;
+    listConversations().then(setConversations).catch(console.error);
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    if (conversationId) {
+      fetchMessages(conversationId)
+        .then((data) =>
+          setMessages(
+            data.map((m: any) => ({ role: m.role, content: m.content })),
+          ),
+        )
+        .catch(console.error);
+    } else {
+      setMessages([]);
+    }
+  }, [conversationId, open]);
 
   React.useEffect(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
@@ -132,6 +179,27 @@ export function ChatWidget() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await sendText(input);
+  };
+
+  const handleSelectConversation = async (value: string) => {
+    if (value === "new") {
+      setConversationIdStorage(null);
+      setConversationId(null);
+      setMessages([]);
+      setFollowUp([]);
+      return;
+    }
+    setConversationIdStorage(value);
+    setConversationId(value);
+    setFollowUp([]);
+    try {
+      const data = await fetchMessages(value);
+      setMessages(
+        data.map((m: any) => ({ role: m.role, content: m.content })),
+      );
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   React.useEffect(() => {
@@ -207,6 +275,25 @@ export function ChatWidget() {
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <Select
+              value={conversationId ?? "new"}
+              onValueChange={handleSelectConversation}
+            >
+              <SelectTrigger
+                aria-label="Conversation history"
+                className="h-8 w-40 bg-primary-foreground/20 border-primary-foreground/20 text-primary-foreground"
+              >
+                <SelectValue placeholder="Select conversation" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">New conversation</SelectItem>
+                {conversations.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {new Date(c.created_at).toLocaleString()}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button
               type="button"
               variant="ghost"

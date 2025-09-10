@@ -16,7 +16,10 @@ function createStream(text: string) {
 
 describe("ChatWidget", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     localStorage.clear();
+    vi.spyOn(chatbot, "listConversations").mockResolvedValue([] as any);
+    vi.spyOn(chatbot, "fetchMessages").mockResolvedValue([] as any);
   });
   it("opens dialog and streams markdown response", async () => {
     const stream = createStream("**bold**");
@@ -103,6 +106,50 @@ describe("ChatWidget", () => {
     await screen.findByRole("button", { name: /address/i });
 
     spy.mockRestore();
+  });
+
+  it("loads messages from selected conversation", async () => {
+    const listSpy = vi
+      .spyOn(chatbot, "listConversations")
+      .mockResolvedValue([
+        { id: "1", created_at: "2024-01-01T00:00:00Z" },
+      ] as any);
+    const fetchSpy = vi
+      .spyOn(chatbot, "fetchMessages")
+      .mockResolvedValue([
+        { role: "assistant", content: "Previous reply" },
+      ] as any);
+
+    const user = userEvent.setup();
+    render(<ChatWidget />);
+
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /chat/i }));
+    });
+
+    expect(listSpy).toHaveBeenCalled();
+
+    const trigger = screen.getByRole("combobox", {
+      name: /conversation history/i,
+    });
+    await act(async () => {
+      trigger.focus();
+    });
+    await act(async () => {
+      await user.keyboard("{Enter}");
+    });
+
+    const dateStr = new Date("2024-01-01T00:00:00Z").toLocaleString();
+    await screen.findByText(dateStr);
+    await act(async () => {
+      await user.keyboard("{ArrowDown}{Enter}");
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith("1");
+    await screen.findByText("Previous reply");
+
+    listSpy.mockRestore();
+    fetchSpy.mockRestore();
   });
 
   it("speaks assistant messages and can be muted", async () => {
