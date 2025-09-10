@@ -79,9 +79,22 @@ serve(async (req) => {
       }),
     });
     if (!embedRes.ok) {
-      const text = await embedRes.text();
-      console.error("embedding error", text);
-      return new Response(JSON.stringify({ error: "Embedding failed" }), {
+      const errorText = await embedRes.text();
+      console.error("OpenAI embedding API error:", errorText);
+      
+      // Check if it's an API key issue
+      if (errorText.toLowerCase().includes('invalid_api_key') || errorText.toLowerCase().includes('incorrect api key')) {
+        return new Response(JSON.stringify({ 
+          error: "AI service configuration error. Please contact support." 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      return new Response(JSON.stringify({ 
+        error: "AI service temporarily unavailable. Please try again later." 
+      }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
