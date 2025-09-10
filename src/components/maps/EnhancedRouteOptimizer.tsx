@@ -231,6 +231,7 @@ export function EnhancedRouteOptimizer({
           totalDistanceMiles={optimizedRoute.total_distance_miles || optimizedRoute.totalDistanceMiles}
           totalDurationMinutes={optimizedRoute.total_duration_minutes || optimizedRoute.totalDurationMinutes}
           estimatedFuelCost={optimizedRoute.estimated_fuel_cost}
+          preferredNavApp={settings?.preferred_nav_app}
         />
       )}
     </>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +10,7 @@ interface RouteChoiceDialogProps {
   totalDistanceMiles?: number;
   totalDurationMinutes?: number;
   estimatedFuelCost?: number;
+  preferredNavApp?: "google_maps" | "waze";
 }
 
 export function RouteChoiceDialog({
@@ -20,11 +21,24 @@ export function RouteChoiceDialog({
   totalDistanceMiles,
   totalDurationMinutes,
   estimatedFuelCost,
+  preferredNavApp,
 }: RouteChoiceDialogProps) {
   const handleSelect = (url: string) => {
     onOpenChange(false);
     window.open(url, "_blank");
   };
+
+  useEffect(() => {
+    if (open && preferredNavApp) {
+      const url = preferredNavApp === "waze" ? wazeUrl : googleMapsUrl;
+      onOpenChange(false);
+      window.open(url, "_blank");
+    }
+  }, [open, preferredNavApp, googleMapsUrl, wazeUrl, onOpenChange]);
+
+  if (preferredNavApp) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
