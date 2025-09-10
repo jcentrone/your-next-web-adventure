@@ -194,97 +194,151 @@ export function ChatWidget() {
           <MessageSquare />
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex max-h-[80vh] flex-col">
-        <div className="mb-2 flex justify-end">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => setMuted((m) => !m)}
-            aria-label={muted ? "Unmute" : "Mute"}
-          >
-            {muted ? <VolumeX /> : <Volume2 />}
-          </Button>
+      <DialogContent className="fixed bottom-4 right-4 top-auto left-auto translate-x-0 translate-y-0 w-96 max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-2rem)] flex flex-col p-0 rounded-lg shadow-xl border">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary-foreground/20 rounded-full flex items-center justify-center">
+              <MessageSquare className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm">Bob</h3>
+              <p className="text-xs opacity-80">AI Assistant</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setMuted((m) => !m)}
+              aria-label={muted ? "Unmute" : "Mute"}
+              className="h-8 w-8 hover:bg-primary-foreground/20 text-primary-foreground"
+            >
+              {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
-        <div className="mb-4 flex-1 space-y-2 overflow-y-auto">
+        {/* Messages Area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/30">
           {messages.length === 0 && (
-            <div className="text-center text-muted-foreground">
-              <p>Hi! I'm here to help you with HomeReportPro.</p>
-              <p>Ask me about creating reports, managing appointments, or any other questions!</p>
+            <div className="text-center text-muted-foreground py-8">
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <MessageSquare className="w-6 h-6 text-primary" />
+              </div>
+              <p className="font-medium">Hi! I'm Bob, your AI assistant</p>
+              <p className="text-sm mt-1">I'm here to help you with HomeReportPro.</p>
+              <p className="text-sm">Ask me about creating reports, managing appointments, or any other questions!</p>
             </div>
           )}
           {messages.map((msg, idx) => (
-            <div key={idx} className={`text-sm ${msg.role === "user" ? "text-right" : "text-left"}`}>
-              <div
-                className={`inline-block rounded-md px-2 py-1 ${
-                  msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary"
-                }`}
-              >
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeSanitize]}
-                  components={{ p: ({ node, ...props }) => <p {...props} className="m-0" /> }}
-                >
-                  {msg.content}
-                </ReactMarkdown>
-                {msg.link && (
-                  <a href={msg.link} className="ml-1 underline">
-                    View
-                  </a>
+            <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div className="flex items-start gap-2 max-w-[80%]">
+                {msg.role === "assistant" && (
+                  <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <MessageSquare className="w-3 h-3 text-primary-foreground" />
+                  </div>
                 )}
+                <div
+                  className={`rounded-2xl px-3 py-2 text-sm ${
+                    msg.role === "user" 
+                      ? "bg-primary text-primary-foreground rounded-br-sm" 
+                      : "bg-background border rounded-bl-sm shadow-sm"
+                  }`}
+                >
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeSanitize]}
+                    components={{ p: ({ node, ...props }) => <p {...props} className="m-0" /> }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                  {msg.link && (
+                    <a href={msg.link} className="ml-1 underline hover:no-underline">
+                      View →
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           ))}
           {loading && (
-            <div className="text-left text-sm">
-              <span className="inline-block rounded-md bg-secondary px-2 py-1">
-                <span className="animate-pulse">Typing...</span>
-              </span>
+            <div className="flex justify-start">
+              <div className="flex items-start gap-2">
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <MessageSquare className="w-3 h-3 text-primary-foreground" />
+                </div>
+                <div className="bg-background border rounded-2xl rounded-bl-sm px-3 py-2 shadow-sm">
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
+        {/* Follow-up suggestions */}
         {followUp.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
-          {followUp.map((field) => (
-            <Button
-              key={field}
-              variant="secondary"
-              size="sm"
-              onClick={() => setInput((prev) => `${prev}${prev ? " " : ""}${field}: `)}
-              disabled={loading || listening}
-            >
-              {field}
-            </Button>
-          ))}
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        {speechSupported && (
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={toggleListening}
-            className={listening ? "animate-pulse text-red-500" : ""}
-            aria-label={listening ? "Stop recording" : "Start recording"}
-            disabled={loading}
-          >
-            <Mic />
-          </Button>
+          <div className="px-4 py-2 border-t bg-muted/50">
+            <p className="text-xs text-muted-foreground mb-2">Quick suggestions:</p>
+            <div className="flex flex-wrap gap-1">
+              {followUp.map((field) => (
+                <Button
+                  key={field}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setInput((prev) => `${prev}${prev ? " " : ""}${field}: `)}
+                  disabled={loading || listening}
+                  className="text-xs h-7 px-2"
+                >
+                  {field}
+                </Button>
+              ))}
+            </div>
+          </div>
         )}
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message"
-          aria-label="Message"
-          disabled={loading || listening}
-        />
-        <Button type="submit" disabled={loading || listening}>
-          Send
-        </Button>
-      </form>
-      <Button asChild variant="link" className="mt-2 self-end">
-        <a href="/support">Contact Support</a>
-      </Button>
+
+        {/* Input Form */}
+        <div className="p-4 border-t bg-background">
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            {speechSupported && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={toggleListening}
+                className={`flex-shrink-0 ${listening ? "animate-pulse text-red-500 border-red-200" : ""}`}
+                aria-label={listening ? "Stop recording" : "Start recording"}
+                disabled={loading}
+              >
+                <Mic className="w-4 h-4" />
+              </Button>
+            )}
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={listening ? "Listening..." : "Type your message..."}
+              aria-label="Message"
+              disabled={loading || listening}
+              className="flex-1"
+            />
+            <Button 
+              type="submit" 
+              disabled={loading || listening || !input.trim()}
+              className="flex-shrink-0"
+            >
+              Send
+            </Button>
+          </form>
+          
+          <div className="mt-2 text-center">
+            <Button asChild variant="link" size="sm" className="text-xs text-muted-foreground h-auto p-0">
+              <a href="/support">Need more help? Contact Support</a>
+            </Button>
+          </div>
+        </div>
     </DialogContent>
   </Dialog>
   );
