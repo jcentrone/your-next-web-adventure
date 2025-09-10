@@ -1,11 +1,27 @@
 import React from "react";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay, isToday, startOfDay, endOfDay, addWeeks, startOfWeek as getWeekStart, endOfWeek as getWeekEnd } from "date-fns";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  isSameMonth,
+  isSameDay,
+  isToday,
+  startOfDay,
+  endOfDay,
+  addWeeks,
+} from "date-fns";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar, CalendarDays, Clock } from "lucide-react";
 import type { Appointment, Contact } from "@/lib/crmSchemas";
 import type { CalendarSettings } from "./CalendarSettingsDialog";
+
+const getWeekStart = startOfWeek;
+const getWeekEnd = endOfWeek;
 
 type ViewMode = "day" | "week" | "month";
 
