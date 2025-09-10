@@ -78,9 +78,9 @@ export const routeOptimizationApi = {
       .from('daily_routes')
       .select('*')
       .eq('route_date', date)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error) throw error;
     return data;
   },
 

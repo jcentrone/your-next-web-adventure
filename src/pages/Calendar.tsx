@@ -81,7 +81,7 @@ const Calendar: React.FC = () => {
                 const route = await routeOptimizationApi.getDailyRoute(
                     format(selectedDate, "yyyy-MM-dd")
                 );
-                setDailyRoute(route);
+                setDailyRoute(route ?? null);
             } catch (error) {
                 console.error("Failed to load daily route", error);
             }
@@ -396,25 +396,25 @@ const Calendar: React.FC = () => {
             const route = await routeOptimizationApi.getDailyRoute(
                 format(selectedDate, "yyyy-MM-dd")
             );
+            if (!route) {
+                toast.error("No route data available");
+                return;
+            }
 
-            if (route) {
-                setDailyRoute(route);
+            setDailyRoute(route);
 
-                const googleMapsUrl = route.google_maps_url;
-                const wazeUrl = route.waze_url;
+            const googleMapsUrl = route.google_maps_url;
+            const wazeUrl = route.waze_url;
 
-                if (googleMapsUrl || wazeUrl) {
-                    setRouteUrls({
-                        googleMapsUrl,
-                        wazeUrl,
-                        totalDistanceMiles: route.total_distance_miles,
-                        totalDurationMinutes: route.total_duration_minutes,
-                        estimatedFuelCost: route.estimated_fuel_cost,
-                    });
-                    setIsRouteDialogOpen(true);
-                } else {
-                    toast.error("No route data available");
-                }
+            if (googleMapsUrl || wazeUrl) {
+                setRouteUrls({
+                    googleMapsUrl,
+                    wazeUrl,
+                    totalDistanceMiles: route.total_distance_miles,
+                    totalDurationMinutes: route.total_duration_minutes,
+                    estimatedFuelCost: route.estimated_fuel_cost,
+                });
+                setIsRouteDialogOpen(true);
             } else {
                 toast.error("No route data available");
             }
