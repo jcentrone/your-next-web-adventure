@@ -2,7 +2,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Mic } from "lucide-react";
 import { sendMessage, type ChatMessage } from "@/integrations/chatbot";
 
 export function ChatWidget() {
@@ -11,74 +11,146 @@ export function ChatWidget() {
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [followUp, setFollowUp] = React.useState<string[]>([]);
+  const [listening, setListening] = React.useState(false);
+  const [speechSupported, setSpeechSupported] = React.useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || loading) return;
-    
-    const userMessage: ChatMessage = { role: "user", content: input };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-    setInput("");
-    setFollowUp([]);
-    setLoading(true);
-    
-    try {
-      const { stream, tool } = await sendMessage(newMessages);
-      const reader = stream.getReader();
-      const decoder = new TextDecoder();
-      let assistant = "";
-      setMessages((msgs) => [...msgs, { role: "assistant", content: "" }]);
-      
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        if (value) {
-          assistant += decoder.decode(value, { stream: true });
+  const recognitionRef = React.useRef<any>(null);
+
+  const sendTextRef = React.useRef<(text: string) => void>();
+
+  const sendText = React.useCallback(
+    async (text: string) => {
+      if (!text.trim() || loading) return;
+
+      const userMessage: ChatMessage = { role: "user", content: text };
+      const newMessages = [...messages, userMessage];
+      setMessages(newMessages);
+      setInput("");
+      setFollowUp([]);
+      setLoading(true);
+
+      try {
+        const { stream, tool } = await sendMessage(newMessages);
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
+        let assistant = "";
+        setMessages((msgs) => [...msgs, { role: "assistant", content: "" }]);
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          if (value) {
+            assistant += decoder.decode(value, { stream: true });
+            setMessages((msgs) => {
+              const updated = [...msgs];
+              updated[updated.length - 1] = { role: "assistant", content: assistant };
+              return updated;
+            });
+          }
+        }
+
+        const info = await tool;
+        if (info.recordId && info.recordType) {
+          const base =
+            info.recordType === "account"
+              ? "/accounts"
+              : info.recordType === "report"
+              ? "/reports"
+              : `/${info.recordType}s`;
           setMessages((msgs) => {
             const updated = [...msgs];
-            updated[updated.length - 1] = { role: "assistant", content: assistant };
+            updated[updated.length - 1] = {
+              role: "assistant",
+              content: `✅ ${info.recordType.charAt(0).toUpperCase() + info.recordType.slice(1)} created:`,
+              link: `${base}/${info.recordId}`,
+            };
+            return updated;
+          });
+        } else if (info.missingFields?.length) {
+          setFollowUp(info.missingFields);
+          setMessages((msgs) => {
+            const updated = [...msgs];
+            updated[updated.length - 1] = {
+              role: "assistant",
+              content: `Please provide the following fields: ${info.missingFields.join(", ")}`,
+            };
             return updated;
           });
         }
+      } catch (error) {
+        console.error("Chat error:", error);
+        setMessages((msgs) => [
+          ...msgs,
+          {
+            role: "assistant",
+            content:
+              "I'm sorry, I encountered an error. Please try again or contact support if the issue persists.",
+          },
+        ]);
+      } finally {
+        setLoading(false);
       }
+    },
+    [messages, loading]
+  );
 
-      const info = await tool;
-      if (info.recordId && info.recordType) {
-        const base =
-          info.recordType === "account"
-            ? "/accounts"
-            : info.recordType === "report"
-            ? "/reports"
-            : `/${info.recordType}s`;
-        setMessages((msgs) => {
-          const updated = [...msgs];
-          updated[updated.length - 1] = {
-            role: "assistant",
-            content: `✅ ${info.recordType.charAt(0).toUpperCase() + info.recordType.slice(1)} created:`,
-            link: `${base}/${info.recordId}`,
-          };
-          return updated;
-        });
-      } else if (info.missingFields?.length) {
-        setFollowUp(info.missingFields);
-        setMessages((msgs) => {
-          const updated = [...msgs];
-          updated[updated.length - 1] = {
-            role: "assistant",
-            content: `Please provide the following fields: ${info.missingFields.join(", ")}`,
-          };
-          return updated;
-        });
+  sendTextRef.current = sendText;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendText(input);
+  };
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    recognition.interimResults = true;
+    recognitionRef.current = recognition;
+    setSpeechSupported(true);
+
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      let final = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) final += transcript;
+        else interim += transcript;
       }
-    } catch (error) {
-      console.error("Chat error:", error);
-      setMessages((msgs) => [...msgs, { 
-        role: "assistant", 
-        content: "I'm sorry, I encountered an error. Please try again or contact support if the issue persists." 
-      }]);
-    } finally {
-      setLoading(false);
+      setInput(final || interim);
+      if (final) {
+        recognition.stop();
+        setListening(false);
+        sendTextRef.current?.(final);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      setListening(false);
+      let message = "Sorry, I couldn't understand that. Please try again.";
+      if (event.error === "not-allowed") {
+        message = "Microphone access was denied.";
+      } else if (event.error === "no-speech") {
+        message = "No speech was detected. Please try again.";
+      }
+      setMessages((msgs) => [...msgs, { role: "assistant", content: message }]);
+    };
+
+    recognition.onend = () => {
+      setListening(false);
+    };
+  }, []);
+
+  const toggleListening = () => {
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+    if (listening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+      setListening(true);
     }
   };
 
@@ -123,34 +195,48 @@ export function ChatWidget() {
         </div>
         {followUp.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
-            {followUp.map((field) => (
-              <Button
-                key={field}
-                variant="secondary"
-                size="sm"
-                onClick={() => setInput((prev) => `${prev}${prev ? " " : ""}${field}: `)}
-              >
-                {field}
-              </Button>
-            ))}
-          </div>
-        )}
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message"
-            aria-label="Message"
-          />
-          <Button type="submit" disabled={loading}>
-            Send
+          {followUp.map((field) => (
+            <Button
+              key={field}
+              variant="secondary"
+              size="sm"
+              onClick={() => setInput((prev) => `${prev}${prev ? " " : ""}${field}: `)}
+              disabled={loading || listening}
+            >
+              {field}
+            </Button>
+          ))}
+        </div>
+      )}
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        {speechSupported && (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={toggleListening}
+            className={listening ? "animate-pulse text-red-500" : ""}
+            aria-label={listening ? "Stop recording" : "Start recording"}
+            disabled={loading}
+          >
+            <Mic />
           </Button>
-        </form>
-        <Button asChild variant="link" className="mt-2 self-end">
-          <a href="/support">Contact Support</a>
+        )}
+        <Input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Type your message"
+          aria-label="Message"
+          disabled={loading || listening}
+        />
+        <Button type="submit" disabled={loading || listening}>
+          Send
         </Button>
-      </DialogContent>
-    </Dialog>
+      </form>
+      <Button asChild variant="link" className="mt-2 self-end">
+        <a href="/support">Contact Support</a>
+      </Button>
+    </DialogContent>
+  </Dialog>
   );
 }
 
