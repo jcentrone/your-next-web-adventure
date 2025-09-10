@@ -78,11 +78,13 @@ export function EnhancedRouteOptimizer({
     try {
       // Build addresses array starting with home base
       const addresses = [settings.home_base_formatted_address];
-      
+      const appointmentsWithLocation: Appointment[] = [];
+
       // Add appointment locations
-      appointments.forEach(apt => {
+      appointments.forEach((apt) => {
         if (apt.location) {
           addresses.push(apt.location);
+          appointmentsWithLocation.push(apt);
         }
       });
 
@@ -93,17 +95,18 @@ export function EnhancedRouteOptimizer({
 
       // Get optimized route from Google Maps
       const route = await getOptimizedRoute(addresses);
-      
-      // Calculate total distance and duration (mock calculation for now)
-      const totalDistance = Math.random() * 50 + 20; // Mock: 20-70 miles
-      const totalDuration = Math.random() * 180 + 60; // Mock: 60-240 minutes
+      const totalDistance = route.totalDistanceMiles;
+      const totalDuration = route.totalDurationMinutes;
       const estimatedCost = totalDistance * (settings.mileage_rate || 0.67);
+      const optimizedOrder = route.waypointOrder.map(
+        (i) => appointmentsWithLocation[i].id
+      );
 
       // Save route to database
       const dailyRoute = await routeOptimizationApi.createOrUpdateDailyRoute({
         user_id: '', // Will be set by RLS
         route_date: selectedDate,
-        optimized_order: appointments.map(apt => apt.id),
+        optimized_order: optimizedOrder,
         total_distance_miles: totalDistance,
         total_duration_minutes: totalDuration,
         estimated_fuel_cost: estimatedCost,
