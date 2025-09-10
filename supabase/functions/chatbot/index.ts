@@ -381,15 +381,56 @@ function normalize(s: string) {
 }
 
 // ====== System prompt ======
-const systemPrompt = `
-When a user requests one of these actions, *always* invoke the matching tool.
-If required fields are missing, call the tool with placeholders and then ask the user for the missing information.
+const systemPrompt = `You are HomeReportPro Assistant, an AI chatbot designed to help home inspectors with their daily workflow and productivity.
 
-Example:
-User: "Schedule a task to call Alice."
-Assistant: (calls create_task with a placeholder due date)
-Assistant: "I've invoked create_task, but I still need a due date. When should it be due?"
-`;
+## Your Primary Role
+You are an expert assistant for HomeReportPro, a comprehensive home inspection reporting platform. Your main responsibility is to help inspectors by taking actions through the available tools when they ask you to create, add, or schedule something.
+
+## Available Tools & When to Use Them
+1. **create_contact** - Use when users want to add/create a new contact, client, realtor, vendor, or person
+   - Examples: "add a contact named Jim Jones", "create a new client", "add realtor Sarah Smith"
+   
+2. **create_account** - Use when users want to add/create a new company/business account
+   - Examples: "add ABC Realty company", "create account for Johnson Construction"
+   
+3. **create_report** - Use when users want to start/create a new inspection report
+   - Examples: "create a new inspection report", "start a report for 123 Main St"
+   
+4. **create_task** - Use when users want to add a task, to-do, or follow-up item
+   - Examples: "remind me to call the client", "add task to review photos"
+   
+5. **create_appointment** - Use when users want to schedule an inspection or meeting
+   - Examples: "schedule inspection for tomorrow", "book appointment with client"
+   
+6. **search_support** - Use for general questions about how HomeReportPro works
+   - Examples: "how do I add photos to a report?", "what's the difference between report types?"
+
+## Action-First Approach
+- **ALWAYS** call the appropriate tool when users request creation/scheduling actions
+- If required information is missing, call the tool with reasonable defaults/placeholders first, then ask for missing details
+- Be proactive - don't ask for every detail upfront, take action and refine as needed
+
+## Examples of Proper Responses
+User: "add a contact named Jim Jones"
+- IMMEDIATELY call create_contact with name "Jim" "Jones" and reasonable defaults
+- Then ask for any additional details they want to add
+
+User: "schedule an inspection for next Tuesday"
+- IMMEDIATELY call create_appointment with Tuesday's date and inspection details
+- Then ask for specific time, location, etc. if needed
+
+User: "create a task to call the client back"
+- IMMEDIATELY call create_task with the task details
+- Then ask for due date, priority, etc. if needed
+
+## Important Guidelines
+- Always be helpful and take action when requested
+- Use tools proactively rather than asking endless questions
+- For missing required fields, use reasonable defaults and then ask for clarification
+- Be conversational and friendly while being efficient
+- If users ask general "how to" questions, use search_support to find relevant documentation
+
+Remember: Your goal is to make inspectors more productive by quickly handling their requests through the available tools.`;
 
 // ====== Server ======
 serve(async (req) => {
@@ -482,10 +523,24 @@ serve(async (req) => {
             setOnce({type: "function", function: {name: "create_report"}});
         }
 
-        // Contact
-        if (/\b(create|add|new)\b.*\b(contact|lead|person)\b/i.test(q)) {
+        // Contact - improved pattern to catch more variations
+        if (/\b(create|add|new|make)\b.*\b(contact|lead|person|client|realtor|vendor|contractor)\b/i.test(q) ||
+            /\b(contact|client|person)\b.*\bnamed?\b/i.test(q)) {
             setOnce({type: "function", function: {name: "create_contact"}});
         }
+
+        // Task (to-do, remind, follow up)
+        if (/\b(create|add|make|new|remind|task|todo|to-do|follow)\b/i.test(q) && /\b(task|remind|follow|call|email|check)\b/i.test(q)) {
+            setOnce({type: "function", function: {name: "create_task"}});
+        }
+
+        await log("info", "tool choice analysis", {
+            question: question,
+            normalizedQuestion: q,
+            forcedToolChoice: forcedToolChoice,
+            contactMatch: /\b(create|add|new|make)\b.*\b(contact|lead|person|client|realtor|vendor|contractor)\b/i.test(q),
+            namedContactMatch: /\b(contact|client|person)\b.*\bnamed?\b/i.test(q)
+        });
 
         // Task
         if (/\b(create|add|new)\b.*\b(task|to-?do)\b/i.test(q)) {
@@ -502,8 +557,7 @@ serve(async (req) => {
                     {role: "system", content: systemPrompt},
                     {role: "user", content: userMessageContent as any},
                 ],
-                temperature: 0.7,
-                max_tokens: 1500,
+                max_completion_tokens: 1500,
                 stream: true,
                 tools,
                 tool_choice: forcedToolChoice || "auto",
@@ -513,7 +567,7 @@ serve(async (req) => {
 
         if (!firstRes.ok || !firstRes.body) {
             const text = await firstRes.text();
-            await log("error", "OpenAI request failed", {error: text});
+            await log("error", "OpenAI request failed", {error: text, model: MODEL});
             return new Response(JSON.stringify({error: "OpenAI request failed"}), {
                 status: 500, headers: {...corsHeaders, "Content-Type": "application/json"},
             });
@@ -681,14 +735,13 @@ serve(async (req) => {
                             assistantToolMessage,
                             ...toolMessages,
                         ],
-                        temperature: 0.7,
-                        max_tokens: 1500,
+                        max_completion_tokens: 1500,
                     }),
                 });
 
                 if (!followRes.ok || !followRes.body) {
                     const txt = await followRes.text();
-                    await log("error", "OpenAI follow-up failed", {error: txt});
+                    await log("error", "OpenAI follow-up failed", {error: txt, model: MODEL});
                     controller.enqueue(encoder.encode("Error: failed to generate final response."));
                     controller.close();
                     return;
