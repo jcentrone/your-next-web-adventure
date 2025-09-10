@@ -1,4 +1,4 @@
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -148,6 +148,40 @@ describe("ChatWidget", () => {
 
     delete (window as any).speechSynthesis;
     delete (window as any).SpeechSynthesisUtterance;
+    spy.mockRestore();
+  });
+
+  it("uploads image and includes it in API call", async () => {
+    const stream = createStream("image response");
+    const spy = vi
+      .spyOn(chatbot, "sendMessage")
+      .mockResolvedValue({ stream, tool: Promise.resolve({}) } as any);
+
+    const user = userEvent.setup();
+    render(<ChatWidget />);
+
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /chat/i }));
+    });
+
+    const file = new File(["hello"], "test.png", { type: "image/png" });
+    const upload = await screen.findByLabelText(/upload image/i);
+    await act(async () => {
+      await user.upload(upload, file);
+    });
+
+    const input = await screen.findByPlaceholderText(/type your message/i);
+    await act(async () => {
+      await user.type(input, "Hi");
+      await user.click(screen.getByRole("button", { name: /send/i }));
+    });
+
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    const sent = spy.mock.calls[0][0][0];
+    expect(sent.image).toMatch(/^data:image/);
+
+    await screen.findByRole("img", { name: /uploaded/i });
+
     spy.mockRestore();
   });
 });

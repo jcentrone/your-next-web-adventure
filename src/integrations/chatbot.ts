@@ -5,6 +5,7 @@ export type ChatMessage = {
   role: string;
   content: string;
   link?: string;
+  image?: string;
 };
 
 export type ToolCallInfo = {
