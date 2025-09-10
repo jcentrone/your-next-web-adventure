@@ -496,6 +496,7 @@ const Calendar: React.FC = () => {
                     totalDistanceMiles={routeUrls.totalDistanceMiles}
                     totalDurationMinutes={routeUrls.totalDurationMinutes}
                     estimatedFuelCost={routeUrls.estimatedFuelCost}
+                    preferredNavApp={routeSettings?.preferred_nav_app}
                 />
             )}
 
