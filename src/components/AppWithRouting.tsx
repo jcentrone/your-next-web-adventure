@@ -79,6 +79,7 @@ const AppWithRouting: React.FC = () => {
           <Route path="/documentation" element={lazyLoad(() => import("@/pages/Documentation"))} />
           <Route path="/internachi-standards" element={lazyLoad(() => import("@/pages/InternachiSOP"))} />
           <Route path="/defects-admin" element={lazyLoad(() => import("@/pages/DefectsAdmin"))} />
+          <Route path="/support-logs" element={lazyLoad(() => import("@/pages/SupportLogs"))} />
           <Route path="/report-builder" element={lazyLoad(() => import("@/pages/ReportBuilder"))} />
           <Route path="/settings/*" element={lazyLoad(() => import("@/pages/Settings"))} />
           <Route path="/sample-reports" element={lazyLoad(() => import("@/pages/SampleReports"))} />

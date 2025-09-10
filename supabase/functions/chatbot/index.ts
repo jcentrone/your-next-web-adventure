@@ -37,13 +37,34 @@ serve(async (req) => {
       });
     }
 
-    const { question } = await req.json();
+    const { messages, conversation_id } = await req.json();
+    const question = messages?.[messages.length - 1]?.content;
     if (!question) {
       return new Response(JSON.stringify({ error: "No question provided" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    let conversationId = conversation_id;
+    if (!conversationId) {
+      const { data: conv, error: convError } = await client
+        .from("support_conversations")
+        .insert({ user_id: user.id })
+        .select("id")
+        .single();
+      if (convError) {
+        console.error("create conversation error", convError);
+      }
+      conversationId = conv?.id;
+    }
+
+    await client.from("support_messages").insert({
+      conversation_id: conversationId,
+      user_id: user.id,
+      role: "user",
+      content: question,
+    });
 
     // create embedding for similarity search
     const embedRes = await fetch("https://api.openai.com/v1/embeddings", {
@@ -123,7 +144,22 @@ serve(async (req) => {
         }
         controller.close();
 
-        if (full.toLowerCase().includes('"confidence":"low"')) {
+        const low = full.toLowerCase().includes('"confidence":"low"');
+
+        await client.from("support_messages").insert({
+          conversation_id: conversationId,
+          user_id: user.id,
+          role: "assistant",
+          content: full,
+          confidence: low ? "low" : "high",
+        });
+
+        if (low) {
+          await client
+            .from("support_conversations")
+            .update({ escalated: true })
+            .eq("id", conversationId);
+
           await fetch(`${supabaseUrl}/functions/v1/send-support-email`, {
             method: "POST",
             headers: {
@@ -142,7 +178,11 @@ serve(async (req) => {
     });
 
     return new Response(stream, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "text/event-stream",
+        "x-conversation-id": conversationId || "",
+      },
     });
   } catch (err) {
     console.error("chatbot function error:", err);
