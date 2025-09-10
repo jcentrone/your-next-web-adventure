@@ -412,15 +412,27 @@ const Calendar: React.FC = () => {
 
     const handleViewRoute = () => {
         if (!dailyRoute) return;
-        if (dailyRoute.google_maps_url && dailyRoute.waze_url) {
+
+        const googleMapsUrl = dailyRoute.google_maps_url;
+        const wazeUrl = dailyRoute.waze_url;
+
+        // If both URLs are available, show the choice dialog
+        if (googleMapsUrl && wazeUrl) {
             setRouteUrls({
-                googleMapsUrl: dailyRoute.google_maps_url,
-                wazeUrl: dailyRoute.waze_url,
+                googleMapsUrl,
+                wazeUrl,
                 totalDistanceMiles: dailyRoute.total_distance_miles,
                 totalDurationMinutes: dailyRoute.total_duration_minutes,
                 estimatedFuelCost: dailyRoute.estimated_fuel_cost,
             });
             setIsRouteDialogOpen(true);
+            return;
+        }
+
+        // Otherwise open whichever URL is available
+        const url = googleMapsUrl || wazeUrl;
+        if (url) {
+            window.open(url, "_blank");
         }
     };
 
@@ -520,12 +532,12 @@ const Calendar: React.FC = () => {
                             >
                                 <Settings className="w-4 h-4" />
                             </Button>
-                            {dailyRoute?.google_maps_url && dailyRoute.waze_url && (
+                            {(dailyRoute?.google_maps_url || dailyRoute?.waze_url) && (
                                 <Button variant="outline" onClick={handleViewRoute}>
                                     View Route
                                 </Button>
                             )}
-                            {optimizeEnabled && (
+                            {optimizeEnabled && !(dailyRoute?.google_maps_url || dailyRoute?.waze_url) && (
                                 <Button variant="outline" onClick={handleOptimizeRoute}>
                                     Optimize Route
                                 </Button>
