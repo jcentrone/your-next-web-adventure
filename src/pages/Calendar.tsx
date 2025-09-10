@@ -392,33 +392,35 @@ const Calendar: React.FC = () => {
         }
     };
     const handleViewRoute = async () => {
-        let route = dailyRoute;
+        try {
+            const route = await routeOptimizationApi.getDailyRoute(
+                format(selectedDate, "yyyy-MM-dd")
+            );
 
-        if (!route) {
-            try {
-                route = await routeOptimizationApi.getDailyRoute(
-                    format(selectedDate, "yyyy-MM-dd")
-                );
+            if (route) {
                 setDailyRoute(route);
-            } catch (error) {
-                console.error("Failed to fetch daily route", error);
+
+                const googleMapsUrl = route.google_maps_url;
+                const wazeUrl = route.waze_url;
+
+                if (googleMapsUrl || wazeUrl) {
+                    setRouteUrls({
+                        googleMapsUrl,
+                        wazeUrl,
+                        totalDistanceMiles: route.total_distance_miles,
+                        totalDurationMinutes: route.total_duration_minutes,
+                        estimatedFuelCost: route.estimated_fuel_cost,
+                    });
+                    setIsRouteDialogOpen(true);
+                } else {
+                    toast.error("No route data available");
+                }
+            } else {
+                toast.error("No route data available");
             }
-        }
-
-        if (!route) return;
-
-        const googleMapsUrl = route.google_maps_url;
-        const wazeUrl = route.waze_url;
-
-        if (googleMapsUrl || wazeUrl) {
-            setRouteUrls({
-                googleMapsUrl,
-                wazeUrl,
-                totalDistanceMiles: route.total_distance_miles,
-                totalDurationMinutes: route.total_duration_minutes,
-                estimatedFuelCost: route.estimated_fuel_cost,
-            });
-            setIsRouteDialogOpen(true);
+        } catch (error) {
+            console.error("Failed to fetch daily route", error);
+            toast.error("Failed to fetch daily route");
         }
     };
 
