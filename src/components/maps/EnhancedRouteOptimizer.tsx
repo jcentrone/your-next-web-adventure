@@ -228,6 +228,9 @@ export function EnhancedRouteOptimizer({
           onOpenChange={setShowRouteDialog}
           googleMapsUrl={optimizedRoute.google_maps_url || optimizedRoute.googleMapsUrl}
           wazeUrl={optimizedRoute.waze_url || optimizedRoute.wazeUrl}
+          totalDistanceMiles={optimizedRoute.total_distance_miles || optimizedRoute.totalDistanceMiles}
+          totalDurationMinutes={optimizedRoute.total_duration_minutes || optimizedRoute.totalDurationMinutes}
+          estimatedFuelCost={optimizedRoute.estimated_fuel_cost}
         />
       )}
     </>
