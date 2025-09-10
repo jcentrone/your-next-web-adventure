@@ -17,7 +17,9 @@ function createStream(text: string) {
 describe("ChatWidget", () => {
   it("opens dialog and streams response", async () => {
     const stream = createStream("Hello from bot");
-    const spy = vi.spyOn(chatbot, "sendMessage").mockResolvedValue(stream as any);
+    const spy = vi
+      .spyOn(chatbot, "sendMessage")
+      .mockResolvedValue({ stream, tool: Promise.resolve({}) } as any);
 
     const user = userEvent.setup();
     render(<ChatWidget />);
@@ -38,6 +40,64 @@ describe("ChatWidget", () => {
 
     const support = screen.getByRole("link", { name: /contact support/i });
     expect(support.getAttribute("href")).toBe("/support");
+
+    spy.mockRestore();
+  });
+
+  it("renders record creation confirmation with link", async () => {
+    const stream = createStream('{"id":"1","type":"company"}');
+    const spy = vi
+      .spyOn(chatbot, "sendMessage")
+      .mockResolvedValue({
+        stream,
+        tool: Promise.resolve({ recordId: "1", recordType: "account" }),
+      } as any);
+
+    const user = userEvent.setup();
+    render(<ChatWidget />);
+
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /chat/i }));
+    });
+
+    const input = await screen.findByPlaceholderText(/type your message/i);
+    await act(async () => {
+      await user.type(input, "create an account");
+      await user.click(screen.getByRole("button", { name: /send/i }));
+    });
+
+    await screen.findByText(/Account created/i);
+    const link = screen.getByRole("link", { name: /view/i });
+    expect(link.getAttribute("href")).toBe("/accounts/1");
+
+    spy.mockRestore();
+  });
+
+  it("shows follow-up prompts when fields are missing", async () => {
+    const stream = createStream("Missing required fields: name, address");
+    const spy = vi
+      .spyOn(chatbot, "sendMessage")
+      .mockResolvedValue({
+        stream,
+        tool: Promise.resolve({ missingFields: ["name", "address"] }),
+      } as any);
+
+    const user = userEvent.setup();
+    render(<ChatWidget />);
+
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /chat/i }));
+    });
+
+    const input = await screen.findByPlaceholderText(/type your message/i);
+    await act(async () => {
+      await user.type(input, "create report");
+      await user.click(screen.getByRole("button", { name: /send/i }));
+    });
+
+    await screen.findByText(/Please provide the following fields: name, address/);
+    await screen.findByRole("button", { name: /name/i });
+    await screen.findByRole("button", { name: /address/i });
 
     spy.mockRestore();
   });
