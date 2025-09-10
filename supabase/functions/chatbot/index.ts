@@ -300,7 +300,12 @@ async function handleToolCall(
 
         await log("info", "search_support results", {count: articles.length, query});
 
-        return {articles};
+        return {
+            status: "ok",
+            message: `found ${articles.length} articles`,
+            data: {articles},
+            idempotency_key: crypto.randomUUID(),
+        };
     }
 
     const schemaMap = {
@@ -321,12 +326,23 @@ async function handleToolCall(
 
     const schema = (schemaMap as any)[name];
     const table = (tableMap as any)[name];
-    if (!schema || !table) return {error: "Unknown tool"};
+    if (!schema || !table) {
+        return {
+            status: "error",
+            message: "Unknown tool",
+            idempotency_key: crypto.randomUUID(),
+        };
+    }
 
     const parsed = schema.safeParse(args);
     if (!parsed.success) {
         const missing = parsed.error.issues.map((i: any) => i.path.join("."));
-        return {missing};
+        return {
+            status: "needs_input",
+            message: "Missing required fields",
+            missing_fields: missing,
+            idempotency_key: crypto.randomUUID(),
+        };
     }
 
     // role guard for reports
@@ -343,7 +359,11 @@ async function handleToolCall(
                 action: name,
                 payload: {args: parsed.data, error: "unauthorized", conversation_id: conversationId},
             });
-            return {error: "Unauthorized"};
+            return {
+                status: "error",
+                message: "Unauthorized",
+                idempotency_key: crypto.randomUUID(),
+            };
         }
     }
 
@@ -359,7 +379,12 @@ async function handleToolCall(
             action: name,
             payload: {args: parsed.data, error: error.message, conversation_id: conversationId},
         });
-        return {error: error.message};
+        return {
+            status: "error",
+            message: error.message,
+            idempotency_key: crypto.randomUUID(),
+            transient: true,
+        };
     }
 
     await client.from("support_action_logs").insert({
@@ -368,7 +393,12 @@ async function handleToolCall(
         payload: {args: parsed.data, record: data, conversation_id: conversationId},
     });
 
-    return {record: data};
+    return {
+        status: "ok",
+        message: "record created",
+        data: {record: data},
+        idempotency_key: crypto.randomUUID(),
+    };
 }
 
 // --- lightweight intent router to bias/force tool choice ---
@@ -378,6 +408,66 @@ function wantsLoginFlow(s: string) {
 
 function normalize(s: string) {
     return (s || "").toLowerCase();
+}
+
+type RouterIntent = { name: string; confidence: number };
+
+function strictRegexRouter(question: string): {intents: RouterIntent[]; reason: string} | null {
+    const intents: RouterIntent[] = [];
+    const q = normalize(question);
+    if (/\b(schedule|book|set|arrange)\b.*\b(appointment|meeting|inspection)\b/i.test(q)) {
+        intents.push({name: "create_appointment", confidence: 1});
+    }
+    if (/\b(create|add|make|set\s*up)\b.*\baccount\b(?!\s*(number|no\.?|id))/i.test(q) && !wantsLoginFlow(q)) {
+        intents.push({name: "create_account", confidence: 1});
+    }
+    if (/\b(create|start|generate|new)\b.*\b(report|inspection report)\b/i.test(q)) {
+        intents.push({name: "create_report", confidence: 1});
+    }
+    if (/\b(create|add|new|make)\b.*\b(contact|lead|person|client|realtor|vendor|contractor)\b/i.test(q) ||
+        /\b(contact|client|person)\b.*\bnamed?\b/i.test(q)) {
+        intents.push({name: "create_contact", confidence: 1});
+    }
+    if (/\b(create|add|make|new|remind|task|todo|to-do|follow)\b/i.test(q) && /\b(task|remind|follow|call|email|check)\b/i.test(q)) {
+        intents.push({name: "create_task", confidence: 1});
+    }
+    return intents.length ? {intents, reason: "regex"} : null;
+}
+
+async function routeIntents(question: string) {
+    const strict = strictRegexRouter(question);
+    if (strict) {
+        return {intents: strict.intents, force: true, reason: strict.reason};
+    }
+    try {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0,
+                messages: [
+                    {
+                        role: "system",
+                        content:
+                            "You are an intent router for a home inspection assistant. Valid intents: create_account, create_contact, create_report, create_task, create_appointment, search_support. Return JSON {intents:[{name,confidence}], force:boolean, reason:string}.",
+                    },
+                    {role: "user", content: question},
+                ],
+            }),
+        });
+        const data = await res.json();
+        const txt = data.choices?.[0]?.message?.content || "{}";
+        const parsed = JSON.parse(txt);
+        return {
+            intents: parsed.intents || [],
+            force: Boolean(parsed.force),
+            reason: parsed.reason || "",
+        };
+    } catch (e) {
+        await log("error", "router failed", {error: e.message});
+        return {intents: [], force: false, reason: "router_error"};
+    }
 }
 
 // ====== System prompt ======
@@ -447,6 +537,7 @@ User: "create a client"
 - If a tool indicates missing fields, ask for those specific fields clearly
 - Be conversational and friendly while being efficient
 - If users ask general "how to" questions, use search_support to find relevant documentation
+- Use only facts provided in tool messages. If a field is missing, ask for it. If a tool returns an error, explain it and propose next steps.
 
 Remember: Your goal is to make inspectors more productive by quickly handling their requests through the available tools.`;
 
@@ -525,62 +616,26 @@ serve(async (req) => {
             ? [{type: "text", text: question}, {type: "image_url", image_url: {url: imageUrl}}]
             : question;
 
-        // Router (first-hit wins)
-        const q = normalize(question);
+        const routerResult = await routeIntents(question);
         let forcedToolChoice: any = null;
-        const setOnce = (v: any) => {
-            if (!forcedToolChoice) forcedToolChoice = v;
-        };
-
-        // Appointment BEFORE report when “schedule/book” appears
-        if (/\b(schedule|book|set|arrange)\b.*\b(appointment|meeting|inspection)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_appointment"}});
+        if (routerResult.force && routerResult.intents.length > 0) {
+            forcedToolChoice = {type: "function", function: {name: routerResult.intents[0].name}};
         }
-
-        // CRM account (not signup), avoid "account number"
-        if (/\b(create|add|make|set\s*up)\b.*\baccount\b(?!\s*(number|no\.?|id))/i.test(q) && !wantsLoginFlow(q)) {
-            setOnce({type: "function", function: {name: "create_account"}});
-        }
-
-        // Report (start/new/generate)
-        if (/\b(create|start|generate|new)\b.*\b(report|inspection report)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_report"}});
-        }
-
-        // Contact - improved pattern to catch more variations
-        if (/\b(create|add|new|make)\b.*\b(contact|lead|person|client|realtor|vendor|contractor)\b/i.test(q) ||
-            /\b(contact|client|person)\b.*\bnamed?\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_contact"}});
-        }
-
-        // Task (to-do, remind, follow up)
-        if (/\b(create|add|make|new|remind|task|todo|to-do|follow)\b/i.test(q) && /\b(task|remind|follow|call|email|check)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_task"}});
-        }
-
-        await log("info", "tool choice analysis", {
-            question: question,
-            normalizedQuestion: q,
-            forcedToolChoice: forcedToolChoice,
-            contactMatch: /\b(create|add|new|make)\b.*\b(contact|lead|person|client|realtor|vendor|contractor)\b/i.test(q),
-            namedContactMatch: /\b(contact|client|person)\b.*\bnamed?\b/i.test(q)
-        });
-
-        // Task
-        if (/\b(create|add|new)\b.*\b(task|to-?do)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_task"}});
-        }
+        await log("info", "router decision", {question, routerResult});
 
         // ===== First model call (may produce tool_calls) =====
+        const messageList: any[] = [{role: "system", content: systemPrompt}];
+        if (forcedToolChoice) {
+            messageList.push({role: "system", content: `router_reason: ${routerResult.reason}`});
+        }
+        messageList.push({role: "user", content: userMessageContent as any});
+
         const firstRes = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: MODEL,
-                messages: [
-                    {role: "system", content: systemPrompt},
-                    {role: "user", content: userMessageContent as any},
-                ],
+                messages: messageList,
                 max_completion_tokens: 1500,
                 stream: true,
                 tools,
@@ -639,6 +694,7 @@ serve(async (req) => {
 
                     if (delta?.tool_calls) {
                         for (const tc of delta.tool_calls) {
+                            if (pendingCallsByIndex.size >= 3) break;
                             const idx = tc.index ?? 0;
                             let call = pendingCallsByIndex.get(idx);
                             if (!call) {
@@ -726,49 +782,34 @@ serve(async (req) => {
                     let toolContent: string;
                     try {
                         await log("info", "executing tool call", {
-                            tool: call.function.name, 
-                            args: call.function.arguments
+                            tool: call.function.name,
+                            args: call.function.arguments,
                         });
 
                         const args = call.function.arguments ? JSON.parse(call.function.arguments) : {};
                         const result = await handleToolCall(call.function.name, args, client, user, conversationId);
-                        
+
                         await log("info", "tool execution result", {
                             tool: call.function.name,
-                            result: result
+                            result: result,
                         });
-                        
-                        // Capture tool execution results for response headers
-                        if ((result as any).record?.id) {
-                            toolRecordId = (result as any).record.id;
+
+                        if (result.status === "ok" && (result.data as any)?.record?.id) {
+                            toolRecordId = (result.data as any).record.id;
                             toolRecordType = call.function.name.replace("create_", "");
                         }
-                        
-                        if ((result as any).missing) {
-                            toolMissingFields = (result as any).missing.join(", ");
-                            toolContent = JSON.stringify({
-                                missing: (result as any).missing,
-                                message: `I need some additional information to create this record. Please provide: ${(result as any).missing.join(", ")}`
-                            });
-                            await log("info", "tool missing fields", {
-                                tool: call.function.name,
-                                missing: (result as any).missing
-                            });
-                        } else if ((result as any).error) {
-                            toolContent = JSON.stringify({error: (result as any).error});
-                            await log("error", "tool execution error", {
-                                tool: call.function.name,
-                                error: (result as any).error
-                            });
-                        } else {
-                            toolContent = JSON.stringify(result); // includes {record} or {articles}
+
+                        if (result.status === "needs_input" && result.missing_fields) {
+                            toolMissingFields = result.missing_fields.join(", ");
                         }
+
+                        toolContent = JSON.stringify(result);
                     } catch (e) {
                         await log("error", "tool call exception", {
                             tool: call.function.name,
-                            error: e.message
+                            error: e.message,
                         });
-                        toolContent = JSON.stringify({error: "Invalid tool call arguments: " + e.message});
+                        toolContent = JSON.stringify({status: "error", message: "Invalid tool call arguments: " + e.message});
                     }
 
                     toolMessages.push({
