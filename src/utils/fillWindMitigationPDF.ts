@@ -467,7 +467,7 @@ export async function fillWindMitigationPDF(report: any): Promise<Blob> {
 
 
     const pdfBytes = await pdfDoc.save();
-    return new Blob([pdfBytes], {type: "application/pdf"});
+    return new Blob([new Uint8Array(pdfBytes)], {type: "application/pdf"});
 }
 
 export async function downloadWindMitigationReport(reportId: string) {

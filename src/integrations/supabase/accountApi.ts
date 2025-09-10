@@ -29,7 +29,7 @@ export async function exportReportData() {
       
       // If it's a Uint8Array (which JSZip generates), convert to blob
       if (response.data instanceof Uint8Array) {
-        return new Blob([response.data], { type: 'application/zip' });
+        return new Blob([new Uint8Array(response.data)], { type: 'application/zip' });
       }
       
       // If it's an ArrayBuffer, convert to blob
