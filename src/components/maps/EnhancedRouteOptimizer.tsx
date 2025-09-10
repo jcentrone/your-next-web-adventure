@@ -199,9 +199,9 @@ export function EnhancedRouteOptimizer({
                     {existingRoute.total_distance_miles?.toFixed(1)} miles • ${existingRoute.estimated_fuel_cost?.toFixed(2)} estimated
                   </p>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={openExistingRoute}
                 >
                   View Route
@@ -211,12 +211,12 @@ export function EnhancedRouteOptimizer({
           )}
 
           <div className="flex gap-2">
-            <Button 
-              onClick={handleOptimizeRoute}
+            <Button
+              onClick={existingRoute ? openExistingRoute : handleOptimizeRoute}
               disabled={isOptimizing || appointments.length === 0}
               className="flex-1"
             >
-              {isOptimizing ? 'Optimizing...' : existingRoute ? 'Re-optimize Route' : 'Optimize Route'}
+              {isOptimizing ? 'Optimizing...' : 'View Route'}
             </Button>
           </div>
         </CardContent>

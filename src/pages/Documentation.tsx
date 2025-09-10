@@ -992,8 +992,8 @@ const Documentation = () => {
                             <li>Enable the <strong>Route Optimization</strong> toggle</li>
                             <li>Enter your <strong>home base</strong> address and choose whether to return there after your last appointment</li>
                             <li>Open the <strong>Calendar</strong> and select a day with multiple appointments</li>
-                            <li>Click <strong>Optimize Route</strong> to generate and save your route</li>
-                            <li>Follow the link to <strong>Google Maps</strong> or <strong>Waze</strong> for navigation</li>
+                            <li>Your route is automatically optimized and saved</li>
+                            <li>Click <strong>View Route</strong> to open the optimized route and follow links to <strong>Google Maps</strong> or <strong>Waze</strong> for navigation</li>
                           </ol>
 
                           <div className="bg-green-50 p-4 rounded-lg">
@@ -1002,7 +1002,7 @@ const Documentation = () => {
                               Efficiency Tip
                             </h4>
                             <p className="text-sm text-muted-foreground">
-                              Set your home base and optimize routes for days with 3+ appointments to automatically track mileage and travel costs.
+                              Set your home base and let routes for days with 3+ appointments be automatically optimized to track mileage and travel costs.
                             </p>
                           </div>
                         </div>
@@ -1278,8 +1278,8 @@ const Documentation = () => {
                           <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
                             <li>Configure your home base address in Settings → Integrations → Route Optimization</li>
                             <li>Set your mileage rate and preferred navigation app</li>
-                            <li>On the Calendar page, use the "Optimize Route" button for any day with multiple appointments</li>
-                            <li>Choose your preferred navigation app (Google Maps or Waze) to start your optimized route</li>
+                            <li>On the Calendar page, days with multiple appointments are automatically optimized—click "View Route" to see the details</li>
+                            <li>Choose your preferred navigation app (Google Maps or Waze) to start navigating your optimized route</li>
                             <li>View mileage analytics in the Analytics page to track savings and expenses</li>
                           </ol>
 
