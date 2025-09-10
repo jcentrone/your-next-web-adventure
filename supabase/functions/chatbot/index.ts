@@ -3,11 +3,124 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import {serve} from "https://deno.land/std@0.168.0/http/server.ts";
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
 import {zodToJsonSchema} from "https://esm.sh/zod-to-json-schema@3.23.3";
+import {z} from "https://esm.sh/zod@3.23.8";
 
-// === Your schemas ===
-import {CreateAccountSchema} from "../../../src/lib/accountSchemas.ts";
-import {AppointmentSchema, CreateContactSchema, TaskSchema} from "../../../src/lib/crmSchemas.ts";
-import {BaseReportSchema} from "../../../src/lib/reportSchemas.ts";
+// === Inlined Zod Schemas ===
+const CreateAccountSchema = z.object({
+  name: z.string().min(1, "Account name is required"),
+  type: z.string().default("company"),
+  industry: z.string().optional(),
+  website: z.string().url().optional().or(z.literal("")),
+  phone: z.string().optional(),
+  email: z.string().email().optional().or(z.literal("")),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zip_code: z.string().optional(),
+  notes: z.string().optional(),
+  annual_revenue: z.number().optional(),
+  employee_count: z.number().optional(),
+  tags: z.array(z.string()).default([]),
+  organization_id: z.string().uuid().optional(),
+  is_active: z.boolean().default(true),
+});
+
+const CreateContactSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email().optional().or(z.literal("")).nullable(),
+  phone: z.string().optional().nullable(),
+  company: z.string().optional().nullable(),
+  contact_type: z.enum(["client", "realtor", "vendor", "contractor", "other"]),
+  account_id: z.string().nullable().optional(),
+  formatted_address: z.string().optional().nullable(),
+  place_id: z.string().optional().nullable(),
+  latitude: z.number().optional().nullable(),
+  longitude: z.number().optional().nullable(),
+  address_components: z.any().optional().nullable(),
+  city: z.string().optional().nullable(),
+  state: z.string().optional().nullable(),
+  zip_code: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  tags: z.array(z.string()).default([]),
+  is_active: z.boolean().default(true),
+});
+
+const AppointmentSchema = z.object({
+  contact_id: z.string().nullable().optional(),
+  report_id: z.string().nullable().optional(),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  appointment_date: z.string(),
+  duration_minutes: z.number().default(120),
+  location: z.string().optional(),
+  status: z.enum(["scheduled", "confirmed", "in_progress", "completed", "cancelled", "rescheduled"]),
+});
+
+const TaskSchema = z.object({
+  assigned_to: z.string().nullable().optional(),
+  contact_id: z.string().nullable().optional(),
+  appointment_id: z.string().nullable().optional(),
+  report_id: z.string().nullable().optional(),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "urgent"]),
+  status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
+  task_type: z.string().optional().nullable(),
+  due_date: z.string().nullable().optional(),
+  completed_at: z.string().nullable().optional(),
+});
+
+const BaseReportSchema = z.object({
+  title: z.string().min(1, "Report title is required"),
+  clientName: z.string().min(1, "Client name is required"),
+  address: z.string().min(1, "Address is required"),
+  clientEmail: z.string().optional(),
+  clientPhone: z.string().optional(),
+  county: z.string().optional(),
+  ofStories: z.string().optional(),
+  inspectionDate: z.string(),
+  weatherConditions: z.string().optional(),
+  status: z.enum(["Draft", "Final"]).default("Draft"),
+  contactIds: z.array(z.string()).optional().default([]),
+  tags: z.array(z.string()).default([]),
+  finalComments: z.string().optional().default(""),
+  termsHtml: z.string().optional(),
+  agreementId: z.string().optional(),
+  appointmentId: z.string().optional(),
+  includeStandardsOfPractice: z.boolean().default(true),
+  coverImage: z.string().optional().default(""),
+  coverTemplate: z
+    .enum(["templateOne", "templateTwo", "templateThree", "templateFour", "templateFive", "templateSix",
+        "templateSeven", "templateEight", "templateNine", "templateTen", "templateEleven", "templateTwelve",
+        "templateThirteen", "templateFourteen", "templateFifteen", "templateSixteen"])
+    .default("templateOne"),
+  previewTemplate: z.enum(["classic", "modern", "minimal"]).default("classic"),
+  colorScheme: z
+    .enum(["default", "coralAmber", "indigoOrchid", "forestMint", "slateSky", "royalAqua", "burgundyGold", "emeraldLime", "navyOrange", "charcoalNeon", "cocoaPeach", "custom"])
+    .default("default"),
+  customColors: z
+    .object({
+        primary: z.string().optional(),
+        secondary: z.string().optional(),
+        accent: z.string().optional(),
+        headingText: z.string().optional(),
+        bodyText: z.string().optional(),
+    })
+    .optional(),
+  shareToken: z.string().optional(),
+  archived: z.boolean().default(false),
+  reportType: z.enum([
+    "home_inspection",
+    "wind_mitigation",
+    "fl_wind_mitigation_oir_b1_1802",
+    "fl_four_point_citizens",
+    "tx_coastal_windstorm_mitigation",
+    "ca_wildfire_defensible_space",
+    "roof_certification_nationwide",
+    "manufactured_home_insurance_prep",
+  ]),
+});
 
 // ====== Config / env ======
 const LOG_URL = Deno.env.get("LOG_SERVICE_URL");
@@ -68,19 +181,11 @@ function zodSchemaToJson(schema: any) {
 
 // ====== Tool registrations (OpenAI schema) ======
 const toolParameterSchemas = {
-    create_account: zodSchemaToJson(
-        CreateAccountSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-    ),
+    create_account: zodSchemaToJson(CreateAccountSchema),
     create_contact: zodSchemaToJson(CreateContactSchema),
-    create_report: zodSchemaToJson(
-        BaseReportSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-    ),
-    create_task: zodSchemaToJson(
-        TaskSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-    ),
-    create_appointment: zodSchemaToJson(
-        AppointmentSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-    ),
+    create_report: zodSchemaToJson(BaseReportSchema),
+    create_task: zodSchemaToJson(TaskSchema),
+    create_appointment: zodSchemaToJson(AppointmentSchema),
     // Plain JSON schema for search_support
     search_support: {
         type: "object",
@@ -195,15 +300,20 @@ async function handleToolCall(
 
         await log("info", "search_support results", {count: articles.length, query});
 
-        return {articles};
+        return {
+            status: "ok",
+            message: `found ${articles.length} articles`,
+            data: {articles},
+            idempotency_key: crypto.randomUUID(),
+        };
     }
 
     const schemaMap = {
-        create_account: CreateAccountSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
+        create_account: CreateAccountSchema,
         create_contact: CreateContactSchema,
-        create_report: BaseReportSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-        create_task: TaskSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
-        create_appointment: AppointmentSchema.omit({id: true, created_at: true, updated_at: true, user_id: true}),
+        create_report: BaseReportSchema,
+        create_task: TaskSchema,
+        create_appointment: AppointmentSchema,
     } as const;
 
     const tableMap = {
@@ -216,12 +326,23 @@ async function handleToolCall(
 
     const schema = (schemaMap as any)[name];
     const table = (tableMap as any)[name];
-    if (!schema || !table) return {error: "Unknown tool"};
+    if (!schema || !table) {
+        return {
+            status: "error",
+            message: "Unknown tool",
+            idempotency_key: crypto.randomUUID(),
+        };
+    }
 
     const parsed = schema.safeParse(args);
     if (!parsed.success) {
         const missing = parsed.error.issues.map((i: any) => i.path.join("."));
-        return {missing};
+        return {
+            status: "needs_input",
+            message: "Missing required fields",
+            missing_fields: missing,
+            idempotency_key: crypto.randomUUID(),
+        };
     }
 
     // role guard for reports
@@ -238,7 +359,11 @@ async function handleToolCall(
                 action: name,
                 payload: {args: parsed.data, error: "unauthorized", conversation_id: conversationId},
             });
-            return {error: "Unauthorized"};
+            return {
+                status: "error",
+                message: "Unauthorized",
+                idempotency_key: crypto.randomUUID(),
+            };
         }
     }
 
@@ -254,7 +379,12 @@ async function handleToolCall(
             action: name,
             payload: {args: parsed.data, error: error.message, conversation_id: conversationId},
         });
-        return {error: error.message};
+        return {
+            status: "error",
+            message: error.message,
+            idempotency_key: crypto.randomUUID(),
+            transient: true,
+        };
     }
 
     await client.from("support_action_logs").insert({
@@ -263,7 +393,12 @@ async function handleToolCall(
         payload: {args: parsed.data, record: data, conversation_id: conversationId},
     });
 
-    return {record: data};
+    return {
+        status: "ok",
+        message: "record created",
+        data: {record: data},
+        idempotency_key: crypto.randomUUID(),
+    };
 }
 
 // --- lightweight intent router to bias/force tool choice ---
@@ -275,20 +410,146 @@ function normalize(s: string) {
     return (s || "").toLowerCase();
 }
 
-// ====== System prompt ======
-const systemPrompt = `
-When a user requests one of these actions, *always* invoke the matching tool.
-If required fields are missing, call the tool with placeholders and then ask the user for the missing information.
+type RouterIntent = { name: string; confidence: number };
 
-Example:
-User: "Schedule a task to call Alice."
-Assistant: (calls create_task with a placeholder due date)
-Assistant: "I've invoked create_task, but I still need a due date. When should it be due?"
-`;
+function strictRegexRouter(question: string): {intents: RouterIntent[]; reason: string} | null {
+    const intents: RouterIntent[] = [];
+    const q = normalize(question);
+    if (/\b(schedule|book|set|arrange)\b.*\b(appointment|meeting|inspection)\b/i.test(q)) {
+        intents.push({name: "create_appointment", confidence: 1});
+    }
+    if (/\b(create|add|make|set\s*up)\b.*\baccount\b(?!\s*(number|no\.?|id))/i.test(q) && !wantsLoginFlow(q)) {
+        intents.push({name: "create_account", confidence: 1});
+    }
+    if (/\b(create|start|generate|new)\b.*\b(report|inspection report)\b/i.test(q)) {
+        intents.push({name: "create_report", confidence: 1});
+    }
+    if (/\b(create|add|new|make)\b.*\b(contact|lead|person|client|realtor|vendor|contractor)\b/i.test(q) ||
+        /\b(contact|client|person)\b.*\bnamed?\b/i.test(q)) {
+        intents.push({name: "create_contact", confidence: 1});
+    }
+    if (/\b(create|add|make|new|remind|task|todo|to-do|follow)\b/i.test(q) && /\b(task|remind|follow|call|email|check)\b/i.test(q)) {
+        intents.push({name: "create_task", confidence: 1});
+    }
+    return intents.length ? {intents, reason: "regex"} : null;
+}
+
+async function routeIntents(question: string) {
+    const strict = strictRegexRouter(question);
+    if (strict) {
+        return {intents: strict.intents, force: true, reason: strict.reason};
+    }
+    try {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
+            body: JSON.stringify({
+                model: "gpt-4o-mini",
+                temperature: 0,
+                messages: [
+                    {
+                        role: "system",
+                        content:
+                            "You are an intent router for a home inspection assistant. Valid intents: create_account, create_contact, create_report, create_task, create_appointment, search_support. Return JSON {intents:[{name,confidence}], force:boolean, reason:string}.",
+                    },
+                    {role: "user", content: question},
+                ],
+            }),
+        });
+        const data = await res.json();
+        const txt = data.choices?.[0]?.message?.content || "{}";
+        const parsed = JSON.parse(txt);
+        return {
+            intents: parsed.intents || [],
+            force: Boolean(parsed.force),
+            reason: parsed.reason || "",
+        };
+    } catch (e) {
+        await log("error", "router failed", {error: e.message});
+        return {intents: [], force: false, reason: "router_error"};
+    }
+}
+
+// ====== System prompt ======
+const systemPrompt = `You are HomeReportPro Assistant, an AI chatbot designed to help home inspectors with their daily workflow and productivity.
+
+## Your Primary Role
+You are an expert assistant for HomeReportPro, a comprehensive home inspection reporting platform. Your main responsibility is to help inspectors by taking actions through the available tools when they ask you to create, add, or schedule something.
+
+## Available Tools & When to Use Them
+1. **create_contact** - Use when users want to add/create a new contact, client, realtor, vendor, or person
+   - Examples: "add a contact named Jim Jones", "create a new client", "add realtor Sarah Smith"
+   
+2. **create_account** - Use when users want to add/create a new company/business account
+   - Examples: "add ABC Realty company", "create account for Johnson Construction"
+   
+3. **create_report** - Use when users want to start/create a new inspection report
+   - Examples: "create a new inspection report", "start a report for 123 Main St"
+   
+4. **create_task** - Use when users want to add a task, to-do, or follow-up item
+   - Examples: "remind me to call the client", "add task to review photos"
+   
+5. **create_appointment** - Use when users want to schedule an inspection or meeting
+   - Examples: "schedule inspection for tomorrow", "book appointment with client"
+   
+6. **search_support** - Use for general questions about how HomeReportPro works
+   - Examples: "how do I add photos to a report?", "what's the difference between report types?"
+
+## Tool Requirements
+**create_contact** - Required: first_name, last_name (minimum for a contact)
+**create_account** - Required: name (company/business name)  
+**create_report** - Required: reportType, address (what kind of report and where)
+**create_task** - Required: title, due_date (what to do and when)
+**create_appointment** - Required: appointment_date, address (when and where)
+
+## Information Gathering Approach
+- **GATHER REQUIRED INFORMATION FIRST** before calling tools
+- When users request creation/scheduling actions, ask for the essential required details if they're missing
+- Only call tools when you have sufficient information to succeed
+- Be efficient - ask for just the required fields, optional fields can be added later
+
+## Handling Tool Results
+- If a tool returns missing field information, immediately ask the user for those specific fields
+- Be specific about what information is needed and why
+- Don't make the user guess - clearly state what's required
+
+## Examples of Proper Responses
+User: "add a contact named Jim Jones"
+- If you have a name, IMMEDIATELY call create_contact with the provided information
+- Then ask for any additional details they want to add (email, phone, etc.)
+
+User: "schedule an inspection"
+- Ask: "I'd be happy to schedule that inspection! What's the property address and preferred date/time?"
+- Once provided, IMMEDIATELY call create_appointment
+
+User: "create a task to call the client back"
+- Ask: "Got it! What's the task description and when should it be completed?"
+- Once provided, IMMEDIATELY call create_task
+
+User: "create a client"
+- Ask: "I'll help you create a new client! What's their first and last name?"
+- Once provided, call create_contact and then offer to add additional details
+
+## Important Guidelines
+- Always be helpful and gather information efficiently
+- Ask for required fields when missing, but don't ask for every detail upfront
+- Call tools only when you have enough information for them to succeed
+- If a tool indicates missing fields, ask for those specific fields clearly
+- Be conversational and friendly while being efficient
+- If users ask general "how to" questions, use search_support to find relevant documentation
+- Use only facts provided in tool messages. If a field is missing, ask for it. If a tool returns an error, explain it and propose next steps.
+
+Remember: Your goal is to make inspectors more productive by quickly handling their requests through the available tools.`;
 
 // ====== Server ======
 serve(async (req) => {
     const start = performance.now();
+    
+    // Variables to track tool execution results
+    let toolRecordId = "";
+    let toolRecordType = "";
+    let toolMissingFields = "";
+    
     await log("info", "chatbot request received");
 
     if (req.method === "OPTIONS") {
@@ -355,60 +616,37 @@ serve(async (req) => {
             ? [{type: "text", text: question}, {type: "image_url", image_url: {url: imageUrl}}]
             : question;
 
-        // Router (first-hit wins)
-        const q = normalize(question);
+        const routerResult = await routeIntents(question);
         let forcedToolChoice: any = null;
-        const setOnce = (v: any) => {
-            if (!forcedToolChoice) forcedToolChoice = v;
-        };
-
-        // Appointment BEFORE report when “schedule/book” appears
-        if (/\b(schedule|book|set|arrange)\b.*\b(appointment|meeting|inspection)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_appointment"}});
+        if (routerResult.force && routerResult.intents.length > 0) {
+            forcedToolChoice = {type: "function", function: {name: routerResult.intents[0].name}};
         }
-
-        // CRM account (not signup), avoid "account number"
-        if (/\b(create|add|make|set\s*up)\b.*\baccount\b(?!\s*(number|no\.?|id))/i.test(q) && !wantsLoginFlow(q)) {
-            setOnce({type: "function", function: {name: "create_account"}});
-        }
-
-        // Report (start/new/generate)
-        if (/\b(create|start|generate|new)\b.*\b(report|inspection report)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_report"}});
-        }
-
-        // Contact
-        if (/\b(create|add|new)\b.*\b(contact|lead|person)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_contact"}});
-        }
-
-        // Task
-        if (/\b(create|add|new)\b.*\b(task|to-?do)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_task"}});
-        }
+        await log("info", "router decision", {question, routerResult});
 
         // ===== First model call (may produce tool_calls) =====
+        const messageList: any[] = [{role: "system", content: systemPrompt}];
+        if (forcedToolChoice) {
+            messageList.push({role: "system", content: `router_reason: ${routerResult.reason}`});
+        }
+        messageList.push({role: "user", content: userMessageContent as any});
+
         const firstRes = await fetch("https://api.openai.com/v1/chat/completions", {
             method: "POST",
             headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: MODEL,
-                messages: [
-                    {role: "system", content: systemPrompt},
-                    {role: "user", content: userMessageContent as any},
-                ],
-                temperature: 0.7,
-                max_tokens: 1500,
+                messages: messageList,
+                max_completion_tokens: 1500,
                 stream: true,
                 tools,
                 tool_choice: forcedToolChoice || "auto",
-                parallel_tool_calls: false, // simpler while debugging
+                parallel_tool_calls: true, // simpler while debugging
             }),
         });
 
         if (!firstRes.ok || !firstRes.body) {
             const text = await firstRes.text();
-            await log("error", "OpenAI request failed", {error: text});
+            await log("error", "OpenAI request failed", {error: text, model: MODEL});
             return new Response(JSON.stringify({error: "OpenAI request failed"}), {
                 status: 500, headers: {...corsHeaders, "Content-Type": "application/json"},
             });
@@ -456,6 +694,7 @@ serve(async (req) => {
 
                     if (delta?.tool_calls) {
                         for (const tc of delta.tool_calls) {
+                            if (pendingCallsByIndex.size >= 3) break;
                             const idx = tc.index ?? 0;
                             let call = pendingCallsByIndex.get(idx);
                             if (!call) {
@@ -542,17 +781,35 @@ serve(async (req) => {
                 for (const call of pendingCallsByIndex.values()) {
                     let toolContent: string;
                     try {
+                        await log("info", "executing tool call", {
+                            tool: call.function.name,
+                            args: call.function.arguments,
+                        });
+
                         const args = call.function.arguments ? JSON.parse(call.function.arguments) : {};
                         const result = await handleToolCall(call.function.name, args, client, user, conversationId);
-                        if ((result as any).missing) {
-                            toolContent = JSON.stringify({missing: (result as any).missing});
-                        } else if ((result as any).error) {
-                            toolContent = JSON.stringify({error: (result as any).error});
-                        } else {
-                            toolContent = JSON.stringify(result); // includes {record} or {articles}
+
+                        await log("info", "tool execution result", {
+                            tool: call.function.name,
+                            result: result,
+                        });
+
+                        if (result.status === "ok" && (result.data as any)?.record?.id) {
+                            toolRecordId = (result.data as any).record.id;
+                            toolRecordType = call.function.name.replace("create_", "");
                         }
-                    } catch {
-                        toolContent = JSON.stringify({error: "Invalid tool call arguments"});
+
+                        if (result.status === "needs_input" && result.missing_fields) {
+                            toolMissingFields = result.missing_fields.join(", ");
+                        }
+
+                        toolContent = JSON.stringify(result);
+                    } catch (e) {
+                        await log("error", "tool call exception", {
+                            tool: call.function.name,
+                            error: e.message,
+                        });
+                        toolContent = JSON.stringify({status: "error", message: "Invalid tool call arguments: " + e.message});
                     }
 
                     toolMessages.push({
@@ -576,14 +833,13 @@ serve(async (req) => {
                             assistantToolMessage,
                             ...toolMessages,
                         ],
-                        temperature: 0.7,
-                        max_tokens: 1500,
+                        max_completion_tokens: 1500,
                     }),
                 });
 
                 if (!followRes.ok || !followRes.body) {
                     const txt = await followRes.text();
-                    await log("error", "OpenAI follow-up failed", {error: txt});
+                    await log("error", "OpenAI follow-up failed", {error: txt, model: MODEL});
                     controller.enqueue(encoder.encode("Error: failed to generate final response."));
                     controller.close();
                     return;
@@ -659,6 +915,9 @@ serve(async (req) => {
                 ...corsHeaders,
                 "Content-Type": "application/octet-stream",
                 "x-conversation-id": conversationId || "",
+                "x-tool-record-id": toolRecordId || "",
+                "x-tool-record-type": toolRecordType || "",
+                "x-tool-missing-fields": toolMissingFields || "",
             },
         });
     } catch (err) {
