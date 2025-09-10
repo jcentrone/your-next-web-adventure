@@ -9,6 +9,7 @@ export function ChatWidget() {
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [followUp, setFollowUp] = React.useState<string[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,10 +19,11 @@ export function ChatWidget() {
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
+    setFollowUp([]);
     setLoading(true);
     
     try {
-      const stream = await sendMessage(newMessages);
+      const { stream, tool } = await sendMessage(newMessages);
       const reader = stream.getReader();
       const decoder = new TextDecoder();
       let assistant = "";
@@ -38,6 +40,35 @@ export function ChatWidget() {
             return updated;
           });
         }
+      }
+
+      const info = await tool;
+      if (info.recordId && info.recordType) {
+        const base =
+          info.recordType === "account"
+            ? "/accounts"
+            : info.recordType === "report"
+            ? "/reports"
+            : `/${info.recordType}s`;
+        setMessages((msgs) => {
+          const updated = [...msgs];
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: `✅ ${info.recordType.charAt(0).toUpperCase() + info.recordType.slice(1)} created:`,
+            link: `${base}/${info.recordId}`,
+          };
+          return updated;
+        });
+      } else if (info.missingFields?.length) {
+        setFollowUp(info.missingFields);
+        setMessages((msgs) => {
+          const updated = [...msgs];
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: `Please provide the following fields: ${info.missingFields.join(", ")}`,
+          };
+          return updated;
+        });
       }
     } catch (error) {
       console.error("Chat error:", error);
@@ -67,10 +98,17 @@ export function ChatWidget() {
           )}
           {messages.map((msg, idx) => (
             <div key={idx} className={`text-sm ${msg.role === "user" ? "text-right" : "text-left"}`}>
-              <span className={`inline-block rounded-md px-2 py-1 ${
-                msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary"
-              }`}>
+              <span
+                className={`inline-block rounded-md px-2 py-1 ${
+                  msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-secondary"
+                }`}
+              >
                 {msg.content}
+                {msg.link && (
+                  <a href={msg.link} className="ml-1 underline">
+                    View
+                  </a>
+                )}
               </span>
             </div>
           ))}
@@ -82,6 +120,20 @@ export function ChatWidget() {
             </div>
           )}
         </div>
+        {followUp.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {followUp.map((field) => (
+              <Button
+                key={field}
+                variant="secondary"
+                size="sm"
+                onClick={() => setInput((prev) => `${prev}${prev ? " " : ""}${field}: `)}
+              >
+                {field}
+              </Button>
+            ))}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input
             value={input}
