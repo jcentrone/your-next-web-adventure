@@ -1,8 +1,16 @@
 // deno-lint-ignore-file no-explicit-any
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import {serve} from "https://deno.land/std@0.168.0/http/server.ts";
-import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
-import {zodToJsonSchema} from "https://esm.sh/zod-to-json-schema@2.1.4";
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { zodToJsonSchema } from "https://esm.sh/zod-to-json-schema@3.23.3";
+import { CreateAccountSchema } from "../../../src/lib/accountSchemas.ts";
+import {
+  CreateContactSchema,
+  TaskSchema,
+  AppointmentSchema,
+} from "../../../src/lib/crmSchemas.ts";
+import { BaseReportSchema } from "../../../src/lib/reportSchemas.ts";
 
 // === Your schemas ===
 import {CreateAccountSchema} from "../../../src/lib/accountSchemas.ts";
