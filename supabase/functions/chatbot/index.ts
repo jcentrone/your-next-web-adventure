@@ -343,7 +343,14 @@ serve(async (req) => {
       "You are a HomeReportPro support assistant. This is a home inspection reporting platform that helps inspectors create professional reports, manage appointments, and organize contacts.";
 
     const systemPrompt =
-      "You are a helpful support assistant for HomeReportPro. Answer using the provided context. If you're uncertain about something, mention it in your response. Use Markdown formatting (lists, tables, code blocks) whenever it improves clarity.";
+      "You are a helpful support assistant for HomeReportPro. Answer using the provided context. If you're uncertain about something, mention it in your response. Use Markdown formatting (lists, tables, code blocks) whenever it improves clarity.\n\n" +
+      "Available tools:\n" +
+      "- create_account: create a new account record\n" +
+      "- create_contact: create a new contact\n" +
+      "- create_report: create a new report\n" +
+      "- create_task: create a new task\n" +
+      "- create_appointment: create a new appointment\n\n" +
+      "When a user requests any of these actions, call the corresponding tool with the required arguments.";
     const userPrompt = `Context:\n${fallbackContext}\n\nQuestion: ${question}`;
     const userMessageContent = image
       ? [
@@ -368,6 +375,7 @@ serve(async (req) => {
         max_tokens: 1500,
         stream: true,
         tools,
+        tool_choice: "auto",
         response_format: "markdown",
       }),
     });
