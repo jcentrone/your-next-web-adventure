@@ -1,4 +1,5 @@
 import { ReadableStream } from 'stream/web'
+import { vi } from 'vitest'
 
 describe('chatbot tool call streaming', () => {
   const createSSEStream = (toolName: string) => {
@@ -63,4 +64,27 @@ describe('chatbot tool call streaming', () => {
       expect(found).toBe(tool)
     })
   }
+
+  it('sends tools and auto tool choice', async () => {
+    let captured: any
+    const stream = createSSEStream('create_account')
+    const fetchMock = vi.fn(async (_url, init: RequestInit) => {
+      captured = JSON.parse(String(init?.body))
+      return new Response(stream)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      body: JSON.stringify({
+        tools: tools.map((name) => ({ type: 'function', function: { name } })),
+        tool_choice: 'auto',
+      }),
+    })
+
+    expect(captured.tool_choice).toBe('auto')
+    expect(captured.tools.map((t: any) => t.function.name)).toEqual([...tools])
+
+    vi.unstubAllGlobals()
+  })
 })
