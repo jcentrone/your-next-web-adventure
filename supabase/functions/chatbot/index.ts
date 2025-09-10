@@ -340,7 +340,7 @@ serve(async (req) => {
       "You are a HomeReportPro support assistant. This is a home inspection reporting platform that helps inspectors create professional reports, manage appointments, and organize contacts.";
 
     const systemPrompt =
-      "You are a helpful support assistant for HomeReportPro. Answer using the provided context. If you're uncertain about something, mention it in your response.";
+      "You are a helpful support assistant for HomeReportPro. Answer using the provided context. If you're uncertain about something, mention it in your response. Use Markdown formatting (lists, tables, code blocks) whenever it improves clarity.";
     const userPrompt = `Context:\n${fallbackContext}\n\nQuestion: ${question}`;
 
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -359,6 +359,7 @@ serve(async (req) => {
         max_tokens: 1500,
         stream: true,
         tools,
+        response_format: "markdown",
       }),
     });
 
