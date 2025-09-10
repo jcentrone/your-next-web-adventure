@@ -54,7 +54,7 @@ export function ChatWidget() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="fixed bottom-4 right-4 rounded-full shadow-lg" aria-label="Open chat">
+        <Button variant="outline" className="fixed bottom-4 right-4 rounded-full shadow-lg" aria-label="Open chat">
           <MessageCircle />
         </Button>
       </DialogTrigger>
