@@ -1,6 +1,14 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { zodToJsonSchema } from "https://esm.sh/zod-to-json-schema@2.1.4";
+import { CreateAccountSchema } from "../../../src/lib/accountSchemas.ts";
+import {
+  CreateContactSchema,
+  TaskSchema,
+  AppointmentSchema,
+} from "../../../src/lib/crmSchemas.ts";
+import { BaseReportSchema } from "../../../src/lib/reportSchemas.ts";
 
 const LOG_URL = Deno.env.get("LOG_SERVICE_URL");
 const METRICS_URL = Deno.env.get("METRICS_SERVICE_URL");
@@ -54,6 +62,126 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+function zodSchemaToJson(schema: any) {
+  // use refStrategy none to inline definitions for OpenAI tools
+  return zodToJsonSchema(schema, { $refStrategy: "none" });
+}
+
+const toolParameterSchemas = {
+  create_account: zodSchemaToJson(
+    CreateAccountSchema.omit({
+      id: true,
+      created_at: true,
+      updated_at: true,
+      user_id: true,
+    }),
+  ),
+  create_contact: zodSchemaToJson(CreateContactSchema),
+  create_report: zodSchemaToJson(
+    BaseReportSchema.omit({
+      id: true,
+      created_at: true,
+      updated_at: true,
+      user_id: true,
+    }),
+  ),
+  create_task: zodSchemaToJson(
+    TaskSchema.omit({ id: true, created_at: true, updated_at: true, user_id: true }),
+  ),
+  create_appointment: zodSchemaToJson(
+    AppointmentSchema.omit({ id: true, created_at: true, updated_at: true, user_id: true }),
+  ),
+} as const;
+
+const tools = [
+  {
+    type: "function",
+    function: {
+      name: "create_account",
+      description: "Create a new account record",
+      parameters: toolParameterSchemas.create_account,
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_contact",
+      description: "Create a new contact",
+      parameters: toolParameterSchemas.create_contact,
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_report",
+      description: "Create a new report",
+      parameters: toolParameterSchemas.create_report,
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_task",
+      description: "Create a new task",
+      parameters: toolParameterSchemas.create_task,
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_appointment",
+      description: "Create a new appointment",
+      parameters: toolParameterSchemas.create_appointment,
+    },
+  },
+];
+
+async function handleToolCall(name: string, args: any, client: any, user: any) {
+  const schemaMap = {
+    create_account: CreateAccountSchema.omit({
+      id: true,
+      created_at: true,
+      updated_at: true,
+      user_id: true,
+    }),
+    create_contact: CreateContactSchema,
+    create_report: BaseReportSchema.omit({
+      id: true,
+      created_at: true,
+      updated_at: true,
+      user_id: true,
+    }),
+    create_task: TaskSchema.omit({ id: true, created_at: true, updated_at: true, user_id: true }),
+    create_appointment: AppointmentSchema.omit({ id: true, created_at: true, updated_at: true, user_id: true }),
+  } as const;
+
+  const tableMap = {
+    create_account: "accounts",
+    create_contact: "contacts",
+    create_report: "reports",
+    create_task: "tasks",
+    create_appointment: "appointments",
+  } as const;
+
+  const schema = (schemaMap as any)[name];
+  const table = (tableMap as any)[name];
+  if (!schema || !table) {
+    return { error: "Unknown tool" };
+  }
+  const parsed = schema.safeParse(args);
+  if (!parsed.success) {
+    const missing = parsed.error.issues.map((i: any) => i.path.join("."));
+    return { missing };
+  }
+  const { data, error } = await client
+    .from(table)
+    .insert({ ...parsed.data, user_id: user.id })
+    .select()
+    .single();
+  if (error) return { error: error.message };
+  return { record: data };
+}
 
 serve(async (req) => {
   const start = performance.now();
@@ -190,6 +318,7 @@ serve(async (req) => {
         temperature: 0.7,
         max_tokens: 1500,
         stream: true,
+        tools,
       }),
     });
 
@@ -209,43 +338,76 @@ serve(async (req) => {
         const reader = aiRes.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
-        
-        while (true) {
+        let toolCall: { name: string; arguments: string } | null = null;
+
+        outer: while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          
+
           // Decode the chunk and add to buffer
           const chunk = decoder.decode(value, { stream: true });
           buffer += chunk;
-          
+
           // Process complete lines from the buffer
           const lines = buffer.split('\n');
           buffer = lines.pop() || ''; // Keep incomplete line in buffer
-          
+
           for (const line of lines) {
             if (line.startsWith('data: ')) {
-              const data = line.slice(6); // Remove 'data: ' prefix
-              
-              if (data === '[DONE]') {
-                continue;
-              }
-              
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
               try {
                 const parsed = JSON.parse(data);
-                const content = parsed.choices?.[0]?.delta?.content;
-                
-                if (content) {
-                  // Send only the content to the client
-                  controller.enqueue(new TextEncoder().encode(content));
-                  accumulatedContent += content;
+                const delta = parsed.choices?.[0]?.delta;
+
+                if (delta?.content) {
+                  controller.enqueue(new TextEncoder().encode(delta.content));
+                  accumulatedContent += delta.content;
+                }
+
+                if (delta?.tool_calls) {
+                  const call = delta.tool_calls[0];
+                  if (!toolCall) {
+                    toolCall = { name: call.function?.name || '', arguments: '' };
+                  }
+                  if (call.function?.arguments) {
+                    toolCall.arguments += call.function.arguments;
+                  }
+                }
+
+                const finish = parsed.choices?.[0]?.finish_reason;
+                if (finish === 'tool_calls') {
+                  await reader.cancel();
+                  break outer;
                 }
               } catch (e) {
-                // Skip malformed JSON chunks
-                await log("error", "Skipping malformed chunk", { chunk: data.substring(0, 100) });
+                await log('error', 'Skipping malformed chunk', { chunk: data.substring(0, 100) });
               }
             }
           }
         }
+
+        if (toolCall) {
+          try {
+            const args = JSON.parse(toolCall.arguments || '{}');
+            const result = await handleToolCall(toolCall.name, args, client, user);
+            let message;
+            if (result.missing) {
+              message = `Missing required fields: ${result.missing.join(', ')}`;
+            } else if (result.error) {
+              message = `Error: ${result.error}`;
+            } else {
+              message = JSON.stringify(result.record);
+            }
+            controller.enqueue(new TextEncoder().encode(message));
+            accumulatedContent += message;
+          } catch (err) {
+            const msg = 'Invalid tool call arguments';
+            controller.enqueue(new TextEncoder().encode(msg));
+            accumulatedContent += msg;
+          }
+        }
+
         controller.close();
 
         const low = accumulatedContent.toLowerCase().includes('low confidence') || accumulatedContent.toLowerCase().includes('uncertain');
