@@ -48,7 +48,7 @@ export function EnhancedRouteOptimizer({
   const loadExistingRoute = async () => {
     try {
       const route = await routeOptimizationApi.getDailyRoute(selectedDate);
-      setExistingRoute(route);
+      setExistingRoute(route ?? null);
     } catch (error) {
       console.error('Error loading existing route:', error);
     }
