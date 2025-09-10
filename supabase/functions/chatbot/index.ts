@@ -253,7 +253,9 @@ serve(async (req) => {
     }
 
     const { messages, conversation_id } = await req.json();
-    const question = messages?.[messages.length - 1]?.content;
+    const last = messages?.[messages.length - 1];
+    const question = last?.content;
+    const image = last?.image;
     if (!question) {
       return new Response(JSON.stringify({ error: "No question provided" }), {
         status: 400,
@@ -279,6 +281,7 @@ serve(async (req) => {
       user_id: user.id,
       role: "user",
       content: question,
+      ...(image ? { image_url: image } : {}),
     });
 
     // create embedding for similarity search
@@ -342,6 +345,12 @@ serve(async (req) => {
     const systemPrompt =
       "You are a helpful support assistant for HomeReportPro. Answer using the provided context. If you're uncertain about something, mention it in your response. Use Markdown formatting (lists, tables, code blocks) whenever it improves clarity.";
     const userPrompt = `Context:\n${fallbackContext}\n\nQuestion: ${question}`;
+    const userMessageContent = image
+      ? [
+          { type: "text", text: userPrompt },
+          { type: "image_url", image_url: { url: image } },
+        ]
+      : userPrompt;
 
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -353,7 +362,7 @@ serve(async (req) => {
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "user", content: userMessageContent },
         ],
         temperature: 0.7,
         max_tokens: 1500,

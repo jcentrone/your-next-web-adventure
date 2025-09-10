@@ -25,6 +25,8 @@ export function ChatWidget() {
   const [open, setOpen] = React.useState(false);
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [input, setInput] = React.useState("");
+  const [image, setImage] = React.useState<File | null>(null);
+  const [preview, setPreview] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [followUp, setFollowUp] = React.useState<string[]>([]);
   const [listening, setListening] = React.useState(false);
@@ -45,19 +47,34 @@ export function ChatWidget() {
 
   const recognitionRef = React.useRef<any>(null);
 
-  const sendTextRef = React.useRef<(text: string) => void>();
+  const sendTextRef = React.useRef<(text: string, file?: File | null) => void>();
 
   const sendText = React.useCallback(
-    async (text: string) => {
-      if (!text.trim() || loading) return;
+    async (text: string, file?: File | null) => {
+      if ((!text.trim() && !file) || loading) return;
       if (typeof window !== "undefined" && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
 
-      const userMessage: ChatMessage = { role: "user", content: text };
+      let encoded: string | undefined;
+      if (file) {
+        encoded = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+      }
+      const userMessage: ChatMessage = {
+        role: "user",
+        content: text,
+        ...(encoded ? { image: encoded } : {}),
+      };
       const newMessages = [...messages, userMessage];
       setMessages(newMessages);
       setInput("");
+      setImage(null);
+      setPreview(null);
       setFollowUp([]);
       setLoading(true);
 
@@ -178,7 +195,13 @@ export function ChatWidget() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await sendText(input);
+    await sendText(input, image);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setImage(file);
+    setPreview(file ? URL.createObjectURL(file) : null);
   };
 
   const handleSelectConversation = async (value: string) => {
@@ -340,6 +363,9 @@ export function ChatWidget() {
                   >
                     {msg.content}
                   </ReactMarkdown>
+                  {msg.image && (
+                    <img src={msg.image} alt="uploaded" className="mt-2 rounded max-w-full" />
+                  )}
                   {msg.link && (
                     <a href={msg.link} className="ml-1 underline hover:no-underline">
                       View →
@@ -389,6 +415,11 @@ export function ChatWidget() {
 
         {/* Input Form */}
         <div className="p-4 border-t bg-background">
+          {preview && (
+            <div className="mb-2">
+              <img src={preview} alt="preview" className="max-h-32 rounded" />
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="flex gap-2">
             {speechSupported && (
               <Button
@@ -403,6 +434,14 @@ export function ChatWidget() {
                 <Mic className="w-4 h-4" />
               </Button>
             )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              aria-label="Upload image"
+              disabled={loading || listening}
+              className="flex-shrink-0"
+            />
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -411,9 +450,9 @@ export function ChatWidget() {
               disabled={loading || listening}
               className="flex-1"
             />
-            <Button 
-              type="submit" 
-              disabled={loading || listening || !input.trim()}
+            <Button
+              type="submit"
+              disabled={loading || listening || (!input.trim() && !image)}
               className="flex-shrink-0"
             >
               Send
