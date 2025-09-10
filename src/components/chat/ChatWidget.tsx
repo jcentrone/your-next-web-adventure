@@ -10,6 +10,7 @@ import {
   fetchMessages,
   setConversationId as setConversationIdStorage,
 } from "@/integrations/chatbot";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -47,6 +48,7 @@ export function ChatWidget() {
 
   const recognitionRef = React.useRef<any>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
   const sendTextRef = React.useRef<(text: string, file?: File | null) => void>();
 
@@ -57,29 +59,35 @@ export function ChatWidget() {
         window.speechSynthesis.cancel();
       }
 
-      let encoded: string | undefined;
-      if (file) {
-        encoded = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => reject(reader.error);
-          reader.readAsDataURL(file);
-        });
-      }
-      const userMessage: ChatMessage = {
-        role: "user",
-        content: text,
-        ...(encoded ? { image: encoded } : {}),
-      };
-      const newMessages = [...messages, userMessage];
-      setMessages(newMessages);
-      setInput("");
-      setImage(null);
-      setPreview(null);
-      setFollowUp([]);
       setLoading(true);
-
+      let imageUrl: string | undefined;
       try {
+        if (file) {
+          const fileName = `${Date.now()}-${file.name}`;
+          const { data, error } = await supabase.storage
+            .from("support-uploads")
+            .upload(fileName, file, { contentType: file.type });
+          if (error) {
+            throw error;
+          }
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("support-uploads").getPublicUrl(data.path);
+          imageUrl = publicUrl;
+        }
+
+        const userMessage: ChatMessage = {
+          role: "user",
+          content: text,
+          ...(imageUrl ? { image: imageUrl } : {}),
+        };
+        const newMessages = [...messages, userMessage];
+        setMessages(newMessages);
+        setInput("");
+        setImage(null);
+        setPreview(null);
+        setFollowUp([]);
+
         const { stream, tool } = await sendMessage(newMessages);
         const reader = stream.getReader();
         const decoder = new TextDecoder();
@@ -134,7 +142,9 @@ export function ChatWidget() {
           {
             role: "assistant",
             content:
-              "I'm sorry, I encountered an error. Please try again or contact support if the issue persists.",
+              file
+                ? "Failed to upload image. Please try again."
+                : "I'm sorry, I encountered an error. Please try again or contact support if the issue persists.",
           },
         ]);
       } finally {
@@ -201,6 +211,16 @@ export function ChatWidget() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
+    if (file && file.size > MAX_IMAGE_SIZE) {
+      setMessages((msgs) => [
+        ...msgs,
+        { role: "assistant", content: "Image must be smaller than 5MB." },
+      ]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      return;
+    }
     setImage(file);
     setPreview(file ? URL.createObjectURL(file) : null);
   };
@@ -443,6 +463,7 @@ export function ChatWidget() {
               accept="image/*"
               onChange={handleImageChange}
               className="hidden"
+              aria-label="Upload image"
             />
             
             <div className="flex gap-1">

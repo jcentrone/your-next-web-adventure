@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { ChatWidget } from "./ChatWidget";
 import * as chatbot from "@/integrations/chatbot";
+import { supabase } from "@/integrations/supabase/client";
 
 function createStream(text: string) {
   return new ReadableStream({
@@ -204,6 +205,14 @@ describe("ChatWidget", () => {
       .spyOn(chatbot, "sendMessage")
       .mockResolvedValue({ stream, tool: Promise.resolve({}) } as any);
 
+    const uploadMock = vi.fn().mockResolvedValue({ data: { path: "test.png" }, error: null });
+    const getPublicUrlMock = vi
+      .fn()
+      .mockReturnValue({ data: { publicUrl: "https://example.com/test.png" } });
+    const fromMock = vi
+      .spyOn(supabase.storage, "from")
+      .mockReturnValue({ upload: uploadMock, getPublicUrl: getPublicUrlMock } as any);
+
     const user = userEvent.setup();
     render(<ChatWidget />);
 
@@ -225,10 +234,30 @@ describe("ChatWidget", () => {
 
     await waitFor(() => expect(spy).toHaveBeenCalled());
     const sent = spy.mock.calls[0][0][0];
-    expect(sent.image).toMatch(/^data:image/);
+    expect(sent.image).toBe("https://example.com/test.png");
 
     await screen.findByRole("img", { name: /uploaded/i });
 
     spy.mockRestore();
+    fromMock.mockRestore();
+  });
+
+  it("rejects images over 5MB", async () => {
+    const user = userEvent.setup();
+    render(<ChatWidget />);
+
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /chat/i }));
+    });
+
+    const bigFile = new File([new ArrayBuffer(6 * 1024 * 1024)], "big.png", {
+      type: "image/png",
+    });
+    const upload = await screen.findByLabelText(/upload image/i);
+    await act(async () => {
+      await user.upload(upload, bigFile);
+    });
+
+    await screen.findByText(/Image must be smaller than 5MB/i);
   });
 });

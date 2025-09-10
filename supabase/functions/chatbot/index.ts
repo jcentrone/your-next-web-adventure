@@ -255,7 +255,7 @@ serve(async (req) => {
     const { messages, conversation_id } = await req.json();
     const last = messages?.[messages.length - 1];
     const question = last?.content;
-    const image = last?.image;
+    const imageUrl = last?.image;
     if (!question) {
       return new Response(JSON.stringify({ error: "No question provided" }), {
         status: 400,
@@ -281,7 +281,7 @@ serve(async (req) => {
       user_id: user.id,
       role: "user",
       content: question,
-      ...(image ? { image_url: image } : {}),
+      ...(imageUrl ? { image_url: imageUrl } : {}),
     });
 
     // create embedding for similarity search
@@ -352,10 +352,10 @@ serve(async (req) => {
       "- create_appointment: create a new appointment\n\n" +
       "Always invoke the matching tool. If required fields are missing, call the tool with placeholders and then ask for the missing data.";
     const userPrompt = `Context:\n${fallbackContext}\n\nQuestion: ${question}`;
-    const userMessageContent = image
+    const userMessageContent = imageUrl
       ? [
           { type: "text", text: userPrompt },
-          { type: "image_url", image_url: { url: image } },
+          { type: "image_url", image_url: { url: imageUrl } },
         ]
       : userPrompt;
 
