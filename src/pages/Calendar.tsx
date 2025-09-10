@@ -318,6 +318,7 @@ const Calendar: React.FC = () => {
         if (!homeBase) return;
 
         const addresses = [homeBase];
+        const appointmentsWithLocation: Appointment[] = [];
 
         dayAppointments.forEach(app => {
             let address = app.location;
@@ -329,7 +330,10 @@ const Calendar: React.FC = () => {
                         .join(", ");
                 }
             }
-            if (address) addresses.push(address);
+            if (address) {
+                addresses.push(address);
+                appointmentsWithLocation.push(app);
+            }
         });
 
         if (routeSettings.always_return_home && addresses.length > 1) {
@@ -339,10 +343,27 @@ const Calendar: React.FC = () => {
         if (addresses.length < 2) return;
 
         try {
-            const { googleMapsUrl, wazeUrl } = await getOptimizedRoute(addresses);
+            const {
+                googleMapsUrl,
+                wazeUrl,
+                totalDistanceMiles,
+                totalDurationMinutes,
+                waypointOrder,
+            } = await getOptimizedRoute(addresses);
+
+            const optimizedOrder = waypointOrder.map(
+                i => appointmentsWithLocation[i].id
+            );
+            const estimatedCost =
+                totalDistanceMiles * (routeSettings.mileage_rate || 0);
+
             await routeOptimizationApi.createOrUpdateDailyRoute({
                 user_id: user.id,
                 route_date: format(date, "yyyy-MM-dd"),
+                optimized_order: optimizedOrder,
+                total_distance_miles: totalDistanceMiles,
+                total_duration_minutes: totalDurationMinutes,
+                estimated_fuel_cost: estimatedCost,
                 start_address: addresses[0],
                 end_address: addresses[addresses.length - 1],
                 waypoints: addresses.slice(1, -1).map(addr => ({ address: addr })),

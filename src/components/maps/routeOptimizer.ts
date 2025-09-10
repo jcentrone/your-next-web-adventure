@@ -4,6 +4,9 @@ import { toast } from "@/hooks/use-toast";
 export interface OptimizedRoute {
   googleMapsUrl: string;
   wazeUrl: string;
+  totalDistanceMiles: number;
+  totalDurationMinutes: number;
+  waypointOrder: number[];
 }
 
 /**
@@ -55,7 +58,25 @@ export async function getOptimizedRoute(addresses: string[]): Promise<OptimizedR
       .map((c) => `&to=${c}`)
       .join("")}&navigate=yes`;
 
-    return { googleMapsUrl, wazeUrl };
+    const legs = result.routes[0].legs;
+    const totalDistanceMeters = legs.reduce(
+      (sum, leg) => sum + (leg.distance?.value || 0),
+      0
+    );
+    const totalDurationSeconds = legs.reduce(
+      (sum, leg) => sum + (leg.duration?.value || 0),
+      0
+    );
+    const totalDistanceMiles = totalDistanceMeters / 1609.344;
+    const totalDurationMinutes = totalDurationSeconds / 60;
+
+    return {
+      googleMapsUrl,
+      wazeUrl,
+      totalDistanceMiles,
+      totalDurationMinutes,
+      waypointOrder: order,
+    };
   } catch (error) {
     console.error("Error optimizing route:", error);
     toast({
