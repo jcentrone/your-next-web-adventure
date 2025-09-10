@@ -435,6 +435,12 @@ Remember: Your goal is to make inspectors more productive by quickly handling th
 // ====== Server ======
 serve(async (req) => {
     const start = performance.now();
+    
+    // Variables to track tool execution results
+    let toolRecordId = "";
+    let toolRecordType = "";
+    let toolMissingFields = "";
+    
     await log("info", "chatbot request received");
 
     if (req.method === "OPTIONS") {
@@ -703,7 +709,15 @@ serve(async (req) => {
                     try {
                         const args = call.function.arguments ? JSON.parse(call.function.arguments) : {};
                         const result = await handleToolCall(call.function.name, args, client, user, conversationId);
+                        
+                        // Capture tool execution results for response headers
+                        if ((result as any).record?.id) {
+                            toolRecordId = (result as any).record.id;
+                            toolRecordType = call.function.name.replace("create_", "");
+                        }
+                        
                         if ((result as any).missing) {
+                            toolMissingFields = (result as any).missing.join(", ");
                             toolContent = JSON.stringify({missing: (result as any).missing});
                         } else if ((result as any).error) {
                             toolContent = JSON.stringify({error: (result as any).error});
@@ -712,6 +726,7 @@ serve(async (req) => {
                         }
                     } catch {
                         toolContent = JSON.stringify({error: "Invalid tool call arguments"});
+                    }
                     }
 
                     toolMessages.push({
@@ -817,6 +832,9 @@ serve(async (req) => {
                 ...corsHeaders,
                 "Content-Type": "application/octet-stream",
                 "x-conversation-id": conversationId || "",
+                "x-tool-record-id": toolRecordId || "",
+                "x-tool-record-type": toolRecordType || "",
+                "x-tool-missing-fields": toolMissingFields || "",
             },
         });
     } catch (err) {

@@ -64,37 +64,17 @@ export async function sendMessage(
       const cid = res.headers.get("x-conversation-id");
       if (cid) setConversationId(cid);
 
-      const [stream, probe] = res.body.tee();
-      const tool = (async () => {
-        const reader = probe.getReader();
-        const decoder = new TextDecoder();
-        let full = "";
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          if (value) full += decoder.decode(value, { stream: true });
-        }
-        full += decoder.decode();
-        try {
-          const data = JSON.parse(full);
-          const recordId = data?.id ?? (Array.isArray(data) ? data[0]?.id : undefined);
-          const recordType = detectRecordType(data);
-          return recordId ? { recordId, recordType } : {};
-        } catch {
-          const prefix = "Missing required fields:";
-          if (full.startsWith(prefix)) {
-            const missingFields = full
-              .slice(prefix.length)
-              .split(",")
-              .map((f) => f.trim())
-              .filter(Boolean);
-            return { missingFields };
-          }
-          return {};
-        }
-      })();
+      const tool: Promise<ToolCallInfo> = Promise.resolve({
+        // Extract tool execution results from response headers
+        recordId: res.headers.get("x-tool-record-id") || undefined,
+        recordType: res.headers.get("x-tool-record-type") || undefined,
+        missingFields: res.headers.get("x-tool-missing-fields")
+          ?.split(",")
+          .map(f => f.trim())
+          .filter(Boolean)
+      });
 
-      return { stream, tool };
+      return { stream: res.body, tool };
     },
     retry: 3,
   });
