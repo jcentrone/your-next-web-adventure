@@ -7,6 +7,9 @@ interface RouteChoiceDialogProps {
   onOpenChange: (open: boolean) => void;
   googleMapsUrl: string;
   wazeUrl: string;
+  totalDistanceMiles?: number;
+  totalDurationMinutes?: number;
+  estimatedFuelCost?: number;
 }
 
 export function RouteChoiceDialog({
@@ -14,6 +17,9 @@ export function RouteChoiceDialog({
   onOpenChange,
   googleMapsUrl,
   wazeUrl,
+  totalDistanceMiles,
+  totalDurationMinutes,
+  estimatedFuelCost,
 }: RouteChoiceDialogProps) {
   const handleSelect = (url: string) => {
     onOpenChange(false);
@@ -27,6 +33,21 @@ export function RouteChoiceDialog({
           <DialogTitle>Choose Navigation App</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4">
+          {(totalDistanceMiles !== undefined ||
+            totalDurationMinutes !== undefined ||
+            estimatedFuelCost !== undefined) && (
+            <div className="text-sm space-y-1">
+              {totalDistanceMiles !== undefined && (
+                <p>Total distance: {totalDistanceMiles.toFixed(1)} mi</p>
+              )}
+              {totalDurationMinutes !== undefined && (
+                <p>Total duration: {Math.round(totalDurationMinutes)} mins</p>
+              )}
+              {estimatedFuelCost !== undefined && (
+                <p>Est. fuel cost: ${estimatedFuelCost.toFixed(2)}</p>
+              )}
+            </div>
+          )}
           <Button
             onClick={() => handleSelect(googleMapsUrl)}
             className="flex items-center gap-2"

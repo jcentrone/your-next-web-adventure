@@ -42,7 +42,7 @@ import { getOptimizedRoute } from "@/components/maps/routeOptimizer";
 import RouteChoiceDialog from "@/components/maps/RouteChoiceDialog";
 import { useNavigate } from "react-router-dom";
 import { useRouteOptimization } from "@/hooks/useRouteOptimization";
-import { routeOptimizationApi } from "@/integrations/supabase/routeOptimizationApi";
+import { routeOptimizationApi, type DailyRoute } from "@/integrations/supabase/routeOptimizationApi";
 
 const Calendar: React.FC = () => {
     const {user} = useAuth();
@@ -56,7 +56,8 @@ const Calendar: React.FC = () => {
     const [previewAppointment, setPreviewAppointment] = useState<Appointment | null>(null);
     const { settings: routeSettings, isEnabled: optimizeEnabled } = useRouteOptimization();
     const [isRouteDialogOpen, setIsRouteDialogOpen] = useState(false);
-    const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; wazeUrl: string } | null>(null);
+    const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; wazeUrl: string; totalDistanceMiles?: number; totalDurationMinutes?: number; estimatedFuelCost?: number } | null>(null);
+    const [dailyRoute, setDailyRoute] = useState<DailyRoute | null>(null);
     const [pendingDrop, setPendingDrop] = useState<{appointment: Appointment, newDate: Date} | null>(null);
     const [isTimeChangeDialogOpen, setIsTimeChangeDialogOpen] = useState(false);
     const [isCalendarSettingsOpen, setIsCalendarSettingsOpen] = useState(false);
@@ -73,6 +74,20 @@ const Calendar: React.FC = () => {
     useEffect(() => {
         handleSync();
     }, [user]);
+
+    useEffect(() => {
+        const loadDailyRoute = async () => {
+            try {
+                const route = await routeOptimizationApi.getDailyRoute(
+                    format(selectedDate, "yyyy-MM-dd")
+                );
+                setDailyRoute(route);
+            } catch (error) {
+                console.error("Failed to load daily route", error);
+            }
+        };
+        loadDailyRoute();
+    }, [selectedDate]);
 
     const {
         data: appointments = [] as Appointment[],
@@ -383,11 +398,29 @@ const Calendar: React.FC = () => {
             if (result) {
                 setRouteUrls(result);
                 setIsRouteDialogOpen(true);
+                const updated = await routeOptimizationApi.getDailyRoute(
+                    format(selectedDate, "yyyy-MM-dd")
+                );
+                setDailyRoute(updated);
             } else {
                 toast.error("Failed to optimize route");
             }
         } catch {
             toast.error("Failed to optimize route");
+        }
+    };
+
+    const handleViewRoute = () => {
+        if (!dailyRoute) return;
+        if (dailyRoute.google_maps_url && dailyRoute.waze_url) {
+            setRouteUrls({
+                googleMapsUrl: dailyRoute.google_maps_url,
+                wazeUrl: dailyRoute.waze_url,
+                totalDistanceMiles: dailyRoute.total_distance_miles,
+                totalDurationMinutes: dailyRoute.total_duration_minutes,
+                estimatedFuelCost: dailyRoute.estimated_fuel_cost,
+            });
+            setIsRouteDialogOpen(true);
         }
     };
 
@@ -460,6 +493,9 @@ const Calendar: React.FC = () => {
                     onOpenChange={setIsRouteDialogOpen}
                     googleMapsUrl={routeUrls.googleMapsUrl}
                     wazeUrl={routeUrls.wazeUrl}
+                    totalDistanceMiles={routeUrls.totalDistanceMiles}
+                    totalDurationMinutes={routeUrls.totalDurationMinutes}
+                    estimatedFuelCost={routeUrls.estimatedFuelCost}
                 />
             )}
 
@@ -476,13 +512,18 @@ const Calendar: React.FC = () => {
                             <Button variant="outline" onClick={handleSync}>
                                 Refresh
                             </Button>
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 size="icon"
                                 onClick={() => setIsCalendarSettingsOpen(true)}
                             >
                                 <Settings className="w-4 h-4" />
                             </Button>
+                            {dailyRoute?.google_maps_url && dailyRoute.waze_url && (
+                                <Button variant="outline" onClick={handleViewRoute}>
+                                    View Route
+                                </Button>
+                            )}
                             {optimizeEnabled && (
                                 <Button variant="outline" onClick={handleOptimizeRoute}>
                                     Optimize Route
