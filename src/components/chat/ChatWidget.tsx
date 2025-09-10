@@ -188,7 +188,7 @@ export function ChatWidget() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="secondary" size="lg" className="fixed bottom-4 right-4 rounded-full shadow-lg" aria-label="Open chat">
-          <MessageCircle size={40} />
+          <MessageCircle className="w-8 h-8" />
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[80vh] flex-col">
