@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useRef} from "react";
 import {useAuth} from "@/contexts/AuthContext";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
 import {appointmentsApi, contactsApi} from "@/integrations/supabase/crmApi";
@@ -41,6 +41,8 @@ import {syncExternalEvents} from "@/integrations/syncExternalEvents";
 import { getOptimizedRoute } from "@/components/maps/routeOptimizer";
 import RouteChoiceDialog from "@/components/maps/RouteChoiceDialog";
 import { useNavigate } from "react-router-dom";
+import { useRouteOptimization } from "@/hooks/useRouteOptimization";
+import { routeOptimizationApi } from "@/integrations/supabase/routeOptimizationApi";
 
 const Calendar: React.FC = () => {
     const {user} = useAuth();
@@ -52,7 +54,7 @@ const Calendar: React.FC = () => {
     const [deleteAppointment, setDeleteAppointment] = useState<Appointment | null>(null);
     const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
     const [previewAppointment, setPreviewAppointment] = useState<Appointment | null>(null);
-    const [optimizeEnabled] = useState(() => localStorage.getItem("optimizeRoute") === "true");
+    const { settings: routeSettings, isEnabled: optimizeEnabled } = useRouteOptimization();
     const [isRouteDialogOpen, setIsRouteDialogOpen] = useState(false);
     const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; wazeUrl: string } | null>(null);
     const [pendingDrop, setPendingDrop] = useState<{appointment: Appointment, newDate: Date} | null>(null);
@@ -60,6 +62,7 @@ const Calendar: React.FC = () => {
     const [isCalendarSettingsOpen, setIsCalendarSettingsOpen] = useState(false);
     const { settings: calendarSettings, updateSettings: updateCalendarSettings } = useCalendarSettings();
     const [appointmentsView, setAppointmentsView] = useState<'day' | 'all'>("day");
+    const previousDateRef = useRef<Date | null>(null);
 
     const handleSync = async () => {
         if (!user) return;
@@ -107,6 +110,11 @@ const Calendar: React.FC = () => {
                 outlookCalendar.createEvent(user!.id, appointment),
                 appleCalendar.createEvent(user!.id, appointment),
             ]);
+            const appointmentDate = new Date(appointment.appointment_date);
+            const dayAppointments = appointments
+                .filter(a => format(new Date(a.appointment_date), "yyyy-MM-dd") === format(appointmentDate, "yyyy-MM-dd"));
+            dayAppointments.push(appointment);
+            await optimizeRouteForDate(appointmentDate, dayAppointments);
         },
         onError: () => {
             toast.error("Failed to create appointment");
@@ -128,6 +136,19 @@ const Calendar: React.FC = () => {
                 outlookCalendar.updateEvent(user!.id, appointment),
                 appleCalendar.updateEvent(user!.id, appointment),
             ]);
+            const appointmentDate = new Date(appointment.appointment_date);
+            const dayAppointments = appointments
+                .filter(a => a.id !== appointment.id && format(new Date(a.appointment_date), "yyyy-MM-dd") === format(appointmentDate, "yyyy-MM-dd"));
+            dayAppointments.push(appointment);
+            await optimizeRouteForDate(appointmentDate, dayAppointments);
+
+            const previousDate = previousDateRef.current;
+            previousDateRef.current = null;
+            if (previousDate && format(previousDate, "yyyy-MM-dd") !== format(appointmentDate, "yyyy-MM-dd")) {
+                const prevDayAppointments = appointments
+                    .filter(a => a.id !== appointment.id && format(new Date(a.appointment_date), "yyyy-MM-dd") === format(previousDate, "yyyy-MM-dd"));
+                await optimizeRouteForDate(previousDate, prevDayAppointments);
+            }
         },
         onError: () => {
             toast.error("Failed to update appointment");
@@ -140,12 +161,19 @@ const Calendar: React.FC = () => {
             if (!user) return;
             queryClient.invalidateQueries({queryKey: ["appointments", user!.id]});
             toast.success("Appointment deleted successfully");
+            const deleted = deleteAppointment;
             setDeleteAppointment(null);
             await Promise.all([
                 googleCalendar.deleteEvent(user!.id, id as string),
                 outlookCalendar.deleteEvent(user!.id, id as string),
                 appleCalendar.deleteEvent(user!.id, id as string),
             ]);
+            if (deleted) {
+                const appointmentDate = new Date(deleted.appointment_date);
+                const dayAppointments = appointments
+                    .filter(a => a.id !== id && format(new Date(a.appointment_date), "yyyy-MM-dd") === format(appointmentDate, "yyyy-MM-dd"));
+                await optimizeRouteForDate(appointmentDate, dayAppointments);
+            }
         },
         onError: () => {
             toast.error("Failed to delete appointment");
@@ -226,6 +254,7 @@ const Calendar: React.FC = () => {
         };
 
         if (editingAppointment) {
+            previousDateRef.current = new Date(editingAppointment.appointment_date);
             updateMutation.mutate({id: editingAppointment.id, data: appointmentData});
         } else {
             createMutation.mutate(appointmentData);
@@ -279,26 +308,64 @@ const Calendar: React.FC = () => {
         format(selectedDate, "yyyy-MM-dd")
     );
 
-    const handleOptimizeRoute = async () => {
-        // Compute an optimized route using the Google Maps JS API
-        const addresses = selectedDateAppointments
-            .map(app => {
-                if (app.location) return app.location;
+    const optimizeRouteForDate = async (
+        date: Date,
+        dayAppointments: Appointment[]
+    ): Promise<{ googleMapsUrl: string; wazeUrl: string } | void> => {
+        if (!optimizeEnabled || !routeSettings || !user) return;
+
+        const homeBase = routeSettings.home_base_formatted_address || routeSettings.home_base_address;
+        if (!homeBase) return;
+
+        const addresses = [homeBase];
+
+        dayAppointments.forEach(app => {
+            let address = app.location;
+            if (!address && app.contact_id) {
                 const contact = contacts.find(c => c.id === app.contact_id);
-                if (!contact) return null;
-                const parts = [contact.address, contact.city, contact.state, contact.zip_code].filter(Boolean);
-                return parts.join(", ");
-            })
-            .filter((a): a is string => !!a);
-        if (addresses.length < 2) {
-            toast.error("Need at least two appointments with addresses");
-            return;
+                if (contact) {
+                    address = [contact.address, contact.city, contact.state, contact.zip_code]
+                        .filter(Boolean)
+                        .join(", ");
+                }
+            }
+            if (address) addresses.push(address);
+        });
+
+        if (routeSettings.always_return_home && addresses.length > 1) {
+            addresses.push(homeBase);
         }
+
+        if (addresses.length < 2) return;
+
         try {
             const { googleMapsUrl, wazeUrl } = await getOptimizedRoute(addresses);
-            setRouteUrls({ googleMapsUrl, wazeUrl });
-            setIsRouteDialogOpen(true);
-        } catch (e) {
+            await routeOptimizationApi.createOrUpdateDailyRoute({
+                user_id: user.id,
+                route_date: format(date, "yyyy-MM-dd"),
+                start_address: addresses[0],
+                end_address: addresses[addresses.length - 1],
+                waypoints: addresses.slice(1, -1).map(addr => ({ address: addr })),
+                google_maps_url: googleMapsUrl,
+                waze_url: wazeUrl,
+                is_optimized: true,
+            });
+            return { googleMapsUrl, wazeUrl };
+        } catch (error) {
+            console.error("Failed to optimize route", error);
+        }
+    };
+
+    const handleOptimizeRoute = async () => {
+        try {
+            const result = await optimizeRouteForDate(selectedDate, selectedDateAppointments);
+            if (result) {
+                setRouteUrls(result);
+                setIsRouteDialogOpen(true);
+            } else {
+                toast.error("Failed to optimize route");
+            }
+        } catch {
             toast.error("Failed to optimize route");
         }
     };
@@ -333,10 +400,12 @@ const Calendar: React.FC = () => {
             contact_id: appointment.contact_id,
             status: appointment.status,
         };
-        
-        updateMutation.mutate({ 
-            id: appointment.id, 
-            data: appointmentData 
+
+        previousDateRef.current = originalDate;
+
+        updateMutation.mutate({
+            id: appointment.id,
+            data: appointmentData
         });
         
         setPendingDrop(null);
