@@ -190,11 +190,11 @@ export function ChatWidget() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" size="lg" className="fixed bottom-4 right-4 rounded-xl shadow-lg [&>svg]:!w-8 [&>svg]:!h-8 p-4" aria-label="Open chat">
+        <Button variant="secondary" size="lg" className="fixed bottom-4 right-4 rounded-xl shadow-lg [&>svg]:!w-8 [&>svg]:!h-8 p-4 z-50" aria-label="Open chat">
           <MessageSquare />
         </Button>
       </DialogTrigger>
-      <DialogContent className="fixed bottom-4 right-4 top-auto left-auto translate-x-0 translate-y-0 w-96 max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-2rem)] flex flex-col p-0 rounded-lg shadow-xl border">
+      <DialogContent className="fixed bottom-4 right-4 top-auto left-auto translate-x-0 translate-y-0 w-96 max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-2rem)] flex flex-col p-0 rounded-lg shadow-xl border z-50">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
           <div className="flex items-center gap-2">
