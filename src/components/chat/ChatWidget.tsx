@@ -2,7 +2,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { MessageCircle, Mic } from "lucide-react";
+import { MessageCircle, Mic, Volume2, VolumeX } from "lucide-react";
 import { sendMessage, type ChatMessage } from "@/integrations/chatbot";
 
 export function ChatWidget() {
@@ -13,6 +13,10 @@ export function ChatWidget() {
   const [followUp, setFollowUp] = React.useState<string[]>([]);
   const [listening, setListening] = React.useState(false);
   const [speechSupported, setSpeechSupported] = React.useState(false);
+  const [muted, setMuted] = React.useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("chatMuted") === "true";
+  });
 
   const recognitionRef = React.useRef<any>(null);
 
@@ -21,6 +25,9 @@ export function ChatWidget() {
   const sendText = React.useCallback(
     async (text: string) => {
       if (!text.trim() || loading) return;
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
 
       const userMessage: ChatMessage = { role: "user", content: text };
       const newMessages = [...messages, userMessage];
@@ -96,6 +103,29 @@ export function ChatWidget() {
 
   sendTextRef.current = sendText;
 
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    localStorage.setItem("chatMuted", muted ? "true" : "false");
+    if (muted) {
+      window.speechSynthesis.cancel();
+    }
+  }, [muted]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    if (loading) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant" || muted) return;
+    window.speechSynthesis.speak(new SpeechSynthesisUtterance(last.content));
+  }, [messages, loading, muted]);
+
+  React.useEffect(() => {
+    if (!open && typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  }, [open]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await sendText(input);
@@ -162,6 +192,17 @@ export function ChatWidget() {
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[80vh] flex-col">
+        <div className="mb-2 flex justify-end">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setMuted((m) => !m)}
+            aria-label={muted ? "Unmute" : "Mute"}
+          >
+            {muted ? <VolumeX /> : <Volume2 />}
+          </Button>
+        </div>
         <div className="mb-4 flex-1 space-y-2 overflow-y-auto">
           {messages.length === 0 && (
             <div className="text-center text-muted-foreground">
