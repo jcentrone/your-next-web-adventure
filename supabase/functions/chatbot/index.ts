@@ -125,8 +125,8 @@ serve(async (req) => {
       "You are a HomeReportPro support assistant. This is a home inspection reporting platform that helps inspectors create professional reports, manage appointments, and organize contacts.";
 
     const systemPrompt =
-      "You are a helpful support assistant for HomeReportPro. Answer using the provided context. If unsure, set confidence to low.";
-    const userPrompt = `Context:\n${fallbackContext}\n\nQuestion: ${question}\nReturn JSON with fields \\\"answer\\\" and \\\"confidence\\\" (high|low).`;
+      "You are a helpful support assistant for HomeReportPro. Answer using the provided context. If you're uncertain about something, mention it in your response.";
+    const userPrompt = `Context:\n${fallbackContext}\n\nQuestion: ${question}`;
 
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
