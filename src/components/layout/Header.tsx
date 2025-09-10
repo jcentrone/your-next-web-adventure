@@ -1,5 +1,5 @@
 import React from "react";
-import {Link, useNavigate} from "react-router-dom";
+import {Link, useNavigate, useLocation} from "react-router-dom";
 import {Button} from "@/components/ui/button";
 import {useAuth} from "@/contexts/AuthContext";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
@@ -35,6 +35,7 @@ import {NotificationCenter} from "@/components/notifications/NotificationCenter"
 const Header: React.FC = () => {
     const {user, signOut} = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const isMobile = useIsMobile();
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const {isInstallable, install} = usePWAInstall();
@@ -86,43 +87,43 @@ const Header: React.FC = () => {
                     {user ? (
                         <>
                             <Link to="/dashboard"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/dashboard' ? 'text-primary' : ''}`}
                                   data-onboarding="dashboard">
                                 <Home className="h-4 w-4"/>
                                 Dashboard
                             </Link>
                             <Link to="/reports"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname.startsWith('/reports') ? 'text-primary' : ''}`}
                                   data-onboarding="reports">
                                 <FileText className="h-4 w-4"/>
                                 Reports
                             </Link>
                             <Link to="/accounts"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname.startsWith('/accounts') ? 'text-primary' : ''}`}
                                   data-onboarding="accounts">
                                 <Building2 className="h-4 w-4"/>
                                 Accounts
                             </Link>
                             <Link to="/contacts"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname.startsWith('/contacts') ? 'text-primary' : ''}`}
                                   data-onboarding="contacts">
                                 <Users className="h-4 w-4"/>
                                 Contacts
                             </Link>
                             <Link to="/calendar"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/calendar' ? 'text-primary' : ''}`}
                                   data-onboarding="calendar">
                                 <Calendar className="h-4 w-4"/>
                                 Calendar
                             </Link>
                             <Link to="/tasks"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : ''}`}
                                   data-onboarding="tasks">
                                 <CheckSquare className="h-4 w-4"/>
                                 Tasks
                             </Link>
                             <Link to="/analytics"
-                                  className="flex items-center gap-2 transition-colors hover:text-primary"
+                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/analytics' ? 'text-primary' : ''}`}
                                   data-onboarding="analytics">
                                 <BarChart3 className="h-4 w-4"/>
                                 Analytics
@@ -174,37 +175,37 @@ const Header: React.FC = () => {
                                     <>
                                         {/* Reordered navigation */}
                                         <Link to="/dashboard"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/dashboard' ? 'text-primary' : 'text-foreground'}`}
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Dashboard
                                         </Link>
                                         <Link to="/reports"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              className={`transition-colors py-2 hover:text-primary ${location.pathname.startsWith('/reports') ? 'text-primary' : 'text-foreground'}`}
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Reports
                                         </Link>
                                         <Link to="/accounts"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              className={`transition-colors py-2 hover:text-primary ${location.pathname.startsWith('/accounts') ? 'text-primary' : 'text-foreground'}`}
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Accounts
                                         </Link>
                                         <Link to="/contacts"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              className={`transition-colors py-2 hover:text-primary ${location.pathname.startsWith('/contacts') ? 'text-primary' : 'text-foreground'}`}
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Contacts
                                         </Link>
                                         <Link to="/calendar"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/calendar' ? 'text-primary' : 'text-foreground'}`}
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Calendar
                                         </Link>
                                         <Link to="/tasks"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : 'text-foreground'}`}
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Tasks
                                         </Link>
                                         <Link to="/analytics"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
+                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/analytics' ? 'text-primary' : 'text-foreground'}`}
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Analytics
                                         </Link>
