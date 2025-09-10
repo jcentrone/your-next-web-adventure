@@ -376,7 +376,6 @@ serve(async (req) => {
         stream: true,
         tools,
         tool_choice: "auto",
-        response_format: "markdown",
       }),
     });
 
