@@ -2,7 +2,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { MessageCircle, Mic, Volume2, VolumeX } from "lucide-react";
+import { MessageSquare, Mic, Volume2, VolumeX } from "lucide-react";
 import { sendMessage, type ChatMessage } from "@/integrations/chatbot";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -190,8 +190,8 @@ export function ChatWidget() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary" size="lg" className="fixed bottom-4 right-4 rounded-xl shadow-lg [&>svg]:!w-8 [&>svg]:!h-8" aria-label="Open chat">
-          <MessageCircle />
+        <Button variant="secondary" size="lg" className="fixed bottom-4 right-4 rounded-xl shadow-lg [&>svg]:!w-8 [&>svg]:!h-8 p-4" aria-label="Open chat">
+          <MessageSquare />
         </Button>
       </DialogTrigger>
       <DialogContent className="flex max-h-[80vh] flex-col">
