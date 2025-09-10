@@ -350,7 +350,7 @@ serve(async (req) => {
       "- create_report: create a new report\n" +
       "- create_task: create a new task\n" +
       "- create_appointment: create a new appointment\n\n" +
-      "When a user requests any of these actions, call the corresponding tool with the required arguments.";
+      "Always invoke the matching tool. If required fields are missing, call the tool with placeholders and then ask for the missing data.";
     const userPrompt = `Context:\n${fallbackContext}\n\nQuestion: ${question}`;
     const userMessageContent = image
       ? [
