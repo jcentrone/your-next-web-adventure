@@ -117,3 +117,14 @@ Route optimization and address autocomplete rely on the Google Maps API. If thes
 features aren't working, ad blockers or privacy extensions may be blocking
 requests to `maps.googleapis.com`. Whitelist this domain or disable the blocking
 extension to restore full functionality.
+
+## Support Article Embeddings
+
+The `support_articles` table stores documentation content and an embedding vector for semantic search. To generate embeddings from existing documentation pages and populate this table, run:
+
+```sh
+# Required environment variables: OPENAI_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+npx ts-node scripts/embed-support-articles.ts
+```
+
+The script scans `src/pages` for files containing the term "documentation", creates embeddings using OpenAI's `text-embedding-3-small` model, and inserts the results into Supabase.
