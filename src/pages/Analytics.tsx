@@ -473,7 +473,7 @@ export default function Analytics() {
         </TabsContent>
 
         <TabsContent value="mileage" className="space-y-4">
-          <MileageAnalytics />
+          <MileageAnalytics dateRange={{ from: dateRange.startDate, to: dateRange.endDate }} />
         </TabsContent>
       </Tabs>
     </div>

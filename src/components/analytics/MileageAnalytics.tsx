@@ -4,15 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Route, DollarSign, Calendar, TrendingUp, Download } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { DateRangePicker } from '@/components/DateRangePicker';
 import { routeOptimizationApi } from '@/integrations/supabase/routeOptimizationApi';
-import { format, subMonths } from 'date-fns';
+import { format } from 'date-fns';
 
-export function MileageAnalytics() {
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
-    from: subMonths(new Date(), 3),
-    to: new Date(),
-  });
+interface MileageAnalyticsProps {
+  dateRange: { from: Date; to: Date };
+}
+
+export function MileageAnalytics({ dateRange }: MileageAnalyticsProps) {
   const [analytics, setAnalytics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -95,16 +94,8 @@ export function MileageAnalytics() {
 
   return (
     <div className="space-y-6">
-      {/* Date Range Picker and Export */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <DateRangePicker
-            value={dateRange}
-            onChange={(range) => {
-              if (range?.from && range?.to) {
-                setDateRange({ from: range.from, to: range.to });
-              }
-            }}
-          />
+      {/* Export Button */}
+      <div className="flex justify-end">
         <Button onClick={exportMileageReport} variant="outline" size="sm">
           <Download className="h-4 w-4 mr-2" />
           Export Report
