@@ -15,6 +15,9 @@ function createStream(text: string) {
 }
 
 describe("ChatWidget", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
   it("opens dialog and streams response", async () => {
     const stream = createStream("Hello from bot");
     const spy = vi
@@ -99,6 +102,52 @@ describe("ChatWidget", () => {
     await screen.findByRole("button", { name: /name/i });
     await screen.findByRole("button", { name: /address/i });
 
+    spy.mockRestore();
+  });
+
+  it("speaks assistant messages and can be muted", async () => {
+    const spy = vi.spyOn(chatbot, "sendMessage");
+    spy.mockResolvedValueOnce({ stream: createStream("Hi there"), tool: Promise.resolve({}) } as any);
+    spy.mockResolvedValueOnce({ stream: createStream("Second message"), tool: Promise.resolve({}) } as any);
+
+    const speak = vi.fn();
+    const cancel = vi.fn();
+    (window as any).speechSynthesis = { speak, cancel };
+    (window as any).SpeechSynthesisUtterance = function (this: any, text: string) {
+      this.text = text;
+    } as any;
+
+    const user = userEvent.setup();
+    render(<ChatWidget />);
+
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /chat/i }));
+    });
+
+    const input = await screen.findByPlaceholderText(/type your message/i);
+
+    await act(async () => {
+      await user.type(input, "hello");
+      await user.click(screen.getByRole("button", { name: /send/i }));
+    });
+
+    await screen.findByText("Hi there");
+    expect(speak).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /mute/i }));
+    });
+
+    await act(async () => {
+      await user.type(input, "again");
+      await user.click(screen.getByRole("button", { name: /send/i }));
+    });
+
+    await screen.findByText("Second message");
+    expect(speak).toHaveBeenCalledTimes(1);
+
+    delete (window as any).speechSynthesis;
+    delete (window as any).SpeechSynthesisUtterance;
     spy.mockRestore();
   });
 });
