@@ -14,7 +14,22 @@ export type ToolCallInfo = {
 };
 
 const queryClient = new QueryClient();
-let conversationId: string | null = null;
+const CONVERSATION_KEY = "chat_conversation_id";
+let conversationId: string | null =
+  typeof localStorage !== "undefined"
+    ? localStorage.getItem(CONVERSATION_KEY)
+    : null;
+
+export function setConversationId(id: string | null) {
+  conversationId = id;
+  if (typeof localStorage !== "undefined") {
+    if (id) {
+      localStorage.setItem(CONVERSATION_KEY, id);
+    } else {
+      localStorage.removeItem(CONVERSATION_KEY);
+    }
+  }
+}
 
 function detectRecordType(record: any): string | undefined {
   if (record?.reportType) return "report";
@@ -46,7 +61,7 @@ export async function sendMessage(
         throw new Error("Chatbot request failed");
       }
       const cid = res.headers.get("x-conversation-id");
-      if (cid) conversationId = cid;
+      if (cid) setConversationId(cid);
 
       const [stream, probe] = res.body.tee();
       const tool = (async () => {
@@ -84,4 +99,23 @@ export async function sendMessage(
   });
 }
 
-export default { sendMessage };
+export async function listConversations() {
+  const { data, error } = await supabase
+    .from("support_conversations")
+    .select("id, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchMessages(convoId: string) {
+  const { data, error } = await supabase
+    .from("support_messages")
+    .select("*")
+    .eq("conversation_id", convoId)
+    .order("created_at");
+  if (error) throw error;
+  return data;
+}
+
+export default { sendMessage, listConversations, fetchMessages, setConversationId };
