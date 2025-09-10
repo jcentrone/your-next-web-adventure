@@ -640,7 +640,7 @@ serve(async (req) => {
                 stream: true,
                 tools,
                 tool_choice: forcedToolChoice || "auto",
-                parallel_tool_calls: false, // simpler while debugging
+                parallel_tool_calls: true, // simpler while debugging
             }),
         });
 
