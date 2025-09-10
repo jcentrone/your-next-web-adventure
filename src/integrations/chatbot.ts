@@ -7,12 +7,13 @@ export type ChatMessage = {
 };
 
 const queryClient = new QueryClient();
+let conversationId: string | null = null;
 
 export async function sendMessage(
   messages: ChatMessage[],
 ): Promise<ReadableStream<Uint8Array>> {
   return queryClient.fetchQuery<ReadableStream<Uint8Array>>({
-    queryKey: ["chatbot", messages],
+    queryKey: ["chatbot", messages, conversationId],
     queryFn: async () => {
       const {
         data: { session },
@@ -23,11 +24,13 @@ export async function sendMessage(
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ messages, conversation_id: conversationId }),
       });
       if (!res.ok || !res.body) {
         throw new Error("Chatbot request failed");
       }
+      const cid = res.headers.get("x-conversation-id");
+      if (cid) conversationId = cid;
       return res.body;
     },
     retry: 3,
