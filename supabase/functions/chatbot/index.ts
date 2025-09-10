@@ -2,6 +2,50 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const LOG_URL = Deno.env.get("LOG_SERVICE_URL");
+const METRICS_URL = Deno.env.get("METRICS_SERVICE_URL");
+
+async function log(
+  level: "info" | "error",
+  message: string,
+  metadata: Record<string, unknown> = {},
+) {
+  console[level](message, metadata);
+  if (LOG_URL) {
+    try {
+      await fetch(LOG_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          level,
+          message,
+          metadata,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+    } catch (err) {
+      console.error("failed to send log", err);
+    }
+  }
+}
+
+async function emitMetric(
+  name: string,
+  value: number,
+  tags: Record<string, string> = {},
+) {
+  if (!METRICS_URL) return;
+  try {
+    await fetch(METRICS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, value, tags, timestamp: new Date().toISOString() }),
+    });
+  } catch (err) {
+    console.error("failed to emit metric", err);
+  }
+}
+
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const openaiKey = Deno.env.get("OPENAI_API_KEY")!;
@@ -12,6 +56,9 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  const start = performance.now();
+  await log("info", "chatbot request received");
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -54,7 +101,7 @@ serve(async (req) => {
         .select("id")
         .single();
       if (convError) {
-        console.error("create conversation error", convError);
+        await log("error", "create conversation error", { error: convError });
       }
       conversationId = conv?.id;
     }
@@ -80,7 +127,7 @@ serve(async (req) => {
     });
     if (!embedRes.ok) {
       const errorText = await embedRes.text();
-      console.error("OpenAI embedding API error:", errorText);
+      await log("error", "OpenAI embedding API error", { error: errorText });
       
       // Check if it's an API key issue
       if (errorText.toLowerCase().includes('invalid_api_key') || errorText.toLowerCase().includes('incorrect api key')) {
@@ -110,15 +157,15 @@ serve(async (req) => {
     });
     
     if (error) {
-      console.error("match_support_articles error", error);
+      await log("error", "match_support_articles error", { error });
       // Fallback to general knowledge if similarity search fails
     }
-    
+
     const context = (articles || [])
       .map((a: any) => `${a.title}\n${a.content}`)
       .join("\n---\n");
-    
-    console.log(`Found ${articles?.length || 0} relevant articles for query: "${question}"`);
+
+    await log("info", "article search results", { count: articles?.length || 0, question });
     
     // If no relevant articles found, provide fallback context
     const fallbackContext = articles && articles.length > 0 ? context : 
@@ -148,7 +195,7 @@ serve(async (req) => {
 
     if (!aiRes.ok || !aiRes.body) {
       const text = await aiRes.text();
-      console.error("OpenAI request failed", text);
+      await log("error", "OpenAI request failed", { error: text });
       return new Response(JSON.stringify({ error: "OpenAI request failed" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -194,7 +241,7 @@ serve(async (req) => {
                 }
               } catch (e) {
                 // Skip malformed JSON chunks
-                console.log("Skipping malformed chunk:", data.substring(0, 100));
+                await log("error", "Skipping malformed chunk", { chunk: data.substring(0, 100) });
               }
             }
           }
@@ -220,6 +267,14 @@ serve(async (req) => {
             .update({ escalated: true })
             .eq("id", conversationId);
 
+          await log("info", "conversation escalated", {
+            conversationId,
+            userId: user.id,
+          });
+          await emitMetric("chatbot_escalations", 1, {
+            conversation_id: String(conversationId),
+          });
+
           await fetch(`${supabaseUrl}/functions/v1/send-support-email`, {
             method: "POST",
             headers: {
@@ -237,6 +292,13 @@ serve(async (req) => {
       },
     });
 
+    const duration = performance.now() - start;
+    await emitMetric("chatbot_response_time_ms", duration);
+    await log("info", "chatbot response sent", {
+      conversationId,
+      duration,
+    });
+
     return new Response(stream, {
       headers: {
         ...corsHeaders,
@@ -245,7 +307,9 @@ serve(async (req) => {
       },
     });
   } catch (err) {
-    console.error("chatbot function error:", err);
+    await log("error", "chatbot function error", { error: err });
+    const duration = performance.now() - start;
+    await emitMetric("chatbot_response_time_ms", duration);
     return new Response(JSON.stringify({ error: "Unexpected error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
