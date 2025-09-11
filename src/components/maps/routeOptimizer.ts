@@ -79,13 +79,9 @@ export async function getOptimizedRoute(addresses: string[]): Promise<OptimizedR
     };
   } catch (error) {
     console.error("Error optimizing route:", error);
-    toast({
-      title: "Route optimization blocked",
-      description:
-        "Disable blocking extensions or whitelist maps.googleapis.com and try again.",
-      variant: "destructive",
-    });
-    reportIfMapsJsBlocked();
+    
+    // Let the loadGoogleMapsApi function handle the specific error messaging
+    // Don't show a generic message here since it masks the real issue
     throw error;
   }
 }

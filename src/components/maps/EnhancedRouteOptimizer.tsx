@@ -130,11 +130,22 @@ export function EnhancedRouteOptimizer({
       });
     } catch (error) {
       console.error('Error optimizing route:', error);
-      toast({
-        title: 'Optimization failed',
-        description: 'Could not optimize route. Please try again.',
-        variant: 'destructive',
-      });
+      
+      // Don't show a generic error - let the Google Maps API errors bubble up
+      // with their specific error messages from loadGoogleMapsApi
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Only show a toast if it's not a Google Maps API error (those are handled in loadGoogleMapsApi)
+      if (!errorMessage.includes('Google Maps') && !errorMessage.includes('API key')) {
+        toast({
+          title: 'Route optimization failed',
+          description: 'Unable to calculate optimal route. The system will still work without route optimization.',
+          variant: 'destructive',
+        });
+      }
+      
+      // Don't throw - let the calling component handle the failure gracefully
+      console.warn('Route optimization failed, but continuing without it');
     } finally {
       setIsOptimizing(false);
     }
