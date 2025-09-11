@@ -218,32 +218,92 @@ export default function EmbeddedRouteMap({
     const google = window.google;
     const route = directionsResult.routes[0];
     const leg = route.legs[0];
+    const finalLeg = route.legs[route.legs.length - 1];
+    
+    // Check if this is a round trip (same start and end)
+    const isRoundTrip = route.start_address === route.end_address;
 
-    // Add start marker (Home Base)
-    new google.maps.Marker({
-      position: leg.start_location,
-      map: mapInstance.current,
-      title: 'Home Base (Start)',
-      label: { text: 'A', color: 'white', fontWeight: 'bold' },
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 20,
-        fillColor: '#10B981',
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 3,
-      },
-    });
+    if (isRoundTrip) {
+      // Option 3: Combined START/END marker for round trips
+      new google.maps.Marker({
+        position: leg.start_location,
+        map: mapInstance.current,
+        title: 'Home Base (Start & End)',
+        label: { text: '🏠', color: 'white', fontWeight: 'bold', fontSize: '14px' },
+        icon: {
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          scale: 25,
+          fillColor: '#8B5CF6', // Purple to distinguish from other markers
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 3,
+          rotation: 0,
+        },
+      });
+      
+      // Add a secondary text marker for "START/END" label
+      new google.maps.Marker({
+        position: {
+          lat: leg.start_location.lat() + 0.0003, // Slight offset for label
+          lng: leg.start_location.lng()
+        },
+        map: mapInstance.current,
+        title: 'Home Base (Start & End)',
+        label: { 
+          text: 'START/END', 
+          color: '#8B5CF6', 
+          fontWeight: 'bold',
+          fontSize: '10px'
+        },
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 1,
+          fillOpacity: 0,
+          strokeOpacity: 0,
+        },
+      });
+    } else {
+      // Separate start and end markers for non-round trips
+      new google.maps.Marker({
+        position: leg.start_location,
+        map: mapInstance.current,
+        title: 'Start Location',
+        label: { text: 'START', color: 'white', fontWeight: 'bold', fontSize: '8px' },
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 20,
+          fillColor: '#10B981',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 3,
+        },
+      });
 
-    // Add waypoint markers for appointments
+      // Add end marker
+      new google.maps.Marker({
+        position: finalLeg.end_location,
+        map: mapInstance.current,
+        title: 'Final Destination',
+        label: { text: 'END', color: 'white', fontWeight: 'bold', fontSize: '8px' },
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 20,
+          fillColor: '#EF4444',
+          fillOpacity: 1,
+          strokeColor: '#ffffff',
+          strokeWeight: 3,
+        },
+      });
+    }
+
+    // Add appointment markers with numbers instead of letters
     route.legs.forEach((leg: any, index: number) => {
       if (index < route.legs.length - 1) { // Don't mark the final destination here
-        const letterCode = String.fromCharCode(66 + index); // B, C, D, etc.
         new google.maps.Marker({
           position: leg.end_location,
           map: mapInstance.current,
           title: `Appointment ${index + 1}`,
-          label: { text: letterCode, color: 'white', fontWeight: 'bold' },
+          label: { text: (index + 1).toString(), color: 'white', fontWeight: 'bold' },
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
             scale: 20,
@@ -255,27 +315,6 @@ export default function EmbeddedRouteMap({
         });
       }
     });
-
-    // Add end marker if it's different from start
-    const finalLeg = route.legs[route.legs.length - 1];
-    const isRoundTrip = route.start_address === route.end_address;
-    
-    if (!isRoundTrip) {
-      new google.maps.Marker({
-        position: finalLeg.end_location,
-        map: mapInstance.current,
-        title: 'Final Destination',
-        label: { text: 'END', color: 'white', fontWeight: 'bold' },
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 20,
-          fillColor: '#EF4444',
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 3,
-        },
-      });
-    }
   };
 
   const recenterMap = () => {
