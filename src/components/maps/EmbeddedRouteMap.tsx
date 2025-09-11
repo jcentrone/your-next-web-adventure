@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,78 @@ import {
 } from 'lucide-react';
 import { loadGoogleMapsApi } from './loadGoogleMapsApi';
 import { useToast } from '@/hooks/use-toast';
+
+// Custom tooltip marker component
+const TooltipMarker = ({ address }: { address: string }) => (
+  <div className="relative">
+    <div className="bg-primary text-primary-foreground px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 whitespace-nowrap text-sm font-medium">
+      <Home className="h-4 w-4" />
+      <div>
+        <div className="font-semibold">Home Base</div>
+        <div className="text-xs opacity-90 max-w-[200px] truncate">{address}</div>
+      </div>
+    </div>
+    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-primary"></div>
+  </div>
+);
+
+// Custom overlay class for Google Maps
+class CustomOverlay {
+  private position: any;
+  private containerDiv: HTMLDivElement;
+  private address: string;
+  private root: any;
+  private map: any;
+
+  constructor(position: any, address: string) {
+    this.position = position;
+    this.address = address;
+    this.containerDiv = document.createElement('div');
+    this.containerDiv.style.position = 'absolute';
+    this.containerDiv.style.transform = 'translate(-50%, -100%)';
+    this.containerDiv.style.zIndex = '1000';
+    this.containerDiv.style.pointerEvents = 'none';
+  }
+
+  setMap(map: any) {
+    this.map = map;
+    if (map) {
+      this.onAdd();
+    } else {
+      this.onRemove();
+    }
+  }
+
+  onAdd() {
+    if (this.map) {
+      const mapDiv = this.map.getDiv();
+      mapDiv.appendChild(this.containerDiv);
+      this.root = createRoot(this.containerDiv);
+      this.root.render(<TooltipMarker address={this.address} />);
+      this.draw();
+    }
+  }
+
+  draw() {
+    if (this.map) {
+      const projection = this.map.getProjection();
+      if (projection) {
+        const position = projection.fromLatLngToDivPixel(this.position);
+        if (position) {
+          this.containerDiv.style.left = position.x + 'px';
+          this.containerDiv.style.top = position.y + 'px';
+        }
+      }
+    }
+  }
+
+  onRemove() {
+    if (this.containerDiv.parentNode) {
+      this.root?.unmount();
+      this.containerDiv.parentNode.removeChild(this.containerDiv);
+    }
+  }
+}
 
 interface EmbeddedRouteMapProps {
   route: {
@@ -171,7 +244,11 @@ export default function EmbeddedRouteMap({
 
       // Clear any existing markers first
       if (customMarkers.current.length > 0) {
-        customMarkers.current.forEach(marker => marker.setMap(null));
+        customMarkers.current.forEach(marker => {
+          if (marker.setMap) {
+            marker.setMap(null);
+          }
+        });
         customMarkers.current = [];
       }
 
@@ -240,30 +317,13 @@ export default function EmbeddedRouteMap({
     const isRoundTrip = route.start_address === route.end_address;
 
     if (isRoundTrip) {
-      // Create a home base marker with tooltip-style appearance
-      const homeMarker = new google.maps.Marker({
-        position: leg.start_location,
-        map: mapInstance.current,
-        title: `Home Base - Start & End Point\n${route.start_address || ''}`,
-        icon: {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 20,
-          fillColor: '#8B5CF6',
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
-          rotation: 0,
-        },
-        label: {
-          text: '🏠',
-          color: '#ffffff',
-          fontWeight: 'bold',
-          fontSize: '16px'
-        },
-        zIndex: 1000,
-      });
-      
-      customMarkers.current.push(homeMarker);
+      // Create a custom tooltip overlay for home base
+      const homeOverlay = new CustomOverlay(
+        leg.start_location, 
+        route.start_address || 'Home Base'
+      );
+      homeOverlay.setMap(mapInstance.current);
+      customMarkers.current.push(homeOverlay);
     } else {
       // Separate start and end markers for non-round trips
       const startMarker = new google.maps.Marker({
