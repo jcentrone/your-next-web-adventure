@@ -607,29 +607,22 @@ serve(async (req) => {
             : question;
 
         const routerResult = await routeIntents(question);
-        let forcedToolChoice: any = null;
-        if (routerResult.force && routerResult.intents.length > 0) {
-            forcedToolChoice = {type: "function", name: routerResult.intents[0].name};
-
-        }
         await log("info", "router decision", {question, routerResult});
 
         // ===== First model call (may produce tool_calls) =====
-        const messageList: any[] = [{role: "system", content: systemPrompt}];
-        if (forcedToolChoice) {
-            messageList.push({role: "system", content: `router_reason: ${routerResult.reason}`});
-        }
-        messageList.push({role: "user", content: userMessageContent as any});
+        const messageList: any[] = [
+            {role: "system", content: systemPrompt},
+            {role: "user", content: userMessageContent as any},
+        ];
 
         const firstRes = await fetch("https://api.openai.com/v1/responses", {
-
             method: "POST",
             headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: MODEL,
                 input: messageList,
                 tools,
-                tool_choice: forcedToolChoice || "auto",
+                tool_choice: "auto",
                 max_output_tokens: 1500,
             }),
         });
@@ -646,7 +639,6 @@ serve(async (req) => {
 
         let accumulatedAssistantText = "";
         const assistantToolMessage: any = {role: "assistant", content: [] as any[]};
-
 
         type PendingCall = {
             id: string;
@@ -665,7 +657,7 @@ serve(async (req) => {
                     continue;
                 }
 
-              // The Responses API emits tool calls as content items with
+                // The Responses API emits tool calls as content items with
                 // type "tool_call" and nests the name/arguments under
                 // part.function. Handle that shape here.
                 if (part.type === "tool_call" && part.function) {
@@ -693,7 +685,6 @@ serve(async (req) => {
                             name: part.name || "",
                             arguments: part.arguments || "",
                         },
-
                     });
                 }
             }
@@ -756,7 +747,6 @@ serve(async (req) => {
                         function: {name: c.function.name, arguments: c.function.arguments},
                     });
                 }
-
 
                 const toolMessages: any[] = [];
                 for (const call of pendingCallsByIndex.values()) {
