@@ -337,7 +337,8 @@ const Calendar: React.FC = () => {
             if (!address && app.contact_id) {
                 const contact = contacts.find(c => c.id === app.contact_id);
                 if (contact) {
-                    address = [contact.address, contact.city, contact.state, contact.zip_code]
+                    // Use formatted_address first (full address), then fall back to constructing from components
+                    address = contact.formatted_address || [contact.address, contact.city, contact.state, contact.zip_code]
                         .filter(Boolean)
                         .join(", ");
                 }
@@ -624,7 +625,7 @@ const Calendar: React.FC = () => {
                                                                             (c) => c.id === value
                                                                         );
                                                                         const fullAddress = selectedContact
-                                                                            ? [
+                                                                            ? selectedContact.formatted_address || [
                                                                                 selectedContact.address,
                                                                                 selectedContact.city,
                                                                                 selectedContact.state,
