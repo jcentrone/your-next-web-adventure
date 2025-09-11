@@ -2,6 +2,31 @@ declare global {
   interface Window {
     google: {
       maps: {
+        Map: new (
+          element: HTMLElement,
+          options?: any
+        ) => any;
+        Marker: new (
+          options?: any
+        ) => any;
+        DirectionsService: new () => any;
+        DirectionsRenderer: new (
+          options?: any
+        ) => any;
+        Geocoder: new () => any;
+        SymbolPath: {
+          CIRCLE: any;
+          BACKWARD_CLOSED_ARROW: any;
+          BACKWARD_OPEN_ARROW: any;
+          FORWARD_CLOSED_ARROW: any;
+          FORWARD_OPEN_ARROW: any;
+        };
+        TravelMode: {
+          DRIVING: any;
+          WALKING: any;
+          BICYCLING: any;
+          TRANSIT: any;
+        };
         places: {
           Autocomplete: new (
             input: HTMLInputElement,
@@ -34,6 +59,31 @@ declare global {
   
   var google: {
     maps: {
+      Map: new (
+        element: HTMLElement,
+        options?: any
+      ) => any;
+      Marker: new (
+        options?: any
+      ) => any;
+      DirectionsService: new () => any;
+      DirectionsRenderer: new (
+        options?: any
+      ) => any;
+      Geocoder: new () => any;
+      SymbolPath: {
+        CIRCLE: any;
+        BACKWARD_CLOSED_ARROW: any;
+        BACKWARD_OPEN_ARROW: any;
+        FORWARD_CLOSED_ARROW: any;
+        FORWARD_OPEN_ARROW: any;
+      };
+      TravelMode: {
+        DRIVING: any;
+        WALKING: any;
+        BICYCLING: any;
+        TRANSIT: any;
+      };
       places: {
         Autocomplete: new (
           input: HTMLInputElement,
