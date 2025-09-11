@@ -1,4 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import {serve} from "https://deno.land/std@0.168.0/http/server.ts";
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
@@ -441,13 +442,12 @@ async function routeIntents(question: string) {
         return {intents: strict.intents, force: true, reason: strict.reason};
     }
     try {
-        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        const res = await fetch("https://api.openai.com/v1/responses", {
             method: "POST",
             headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
             body: JSON.stringify({
-                model: "gpt-4o-mini",
-                temperature: 0,
-                messages: [
+                model: "gpt-4.1-mini",
+                input: [
                     {
                         role: "system",
                         content:
@@ -455,10 +455,12 @@ async function routeIntents(question: string) {
                     },
                     {role: "user", content: question},
                 ],
+                max_output_tokens: 200,
             }),
         });
         const data = await res.json();
-        const txt = data.choices?.[0]?.message?.content || "{}";
+        const txt = data.output?.[0]?.content?.[0]?.text || "{}";
+
         const parsed = JSON.parse(txt);
         return {
             intents: parsed.intents || [],
@@ -631,21 +633,20 @@ serve(async (req) => {
         }
         messageList.push({role: "user", content: userMessageContent as any});
 
-        const firstRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        const firstRes = await fetch("https://api.openai.com/v1/responses", {
+
             method: "POST",
             headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: MODEL,
-                messages: messageList,
-                max_tokens: MAX_TOKENS,
-                stream: true,
+                input: messageList,
                 tools,
                 tool_choice: forcedToolChoice || "auto",
-                parallel_tool_calls: true, // simpler while debugging
+                max_output_tokens: 1500,
             }),
         });
 
-        if (!firstRes.ok || !firstRes.body) {
+        if (!firstRes.ok) {
             const text = await firstRes.text();
             await log("error", "OpenAI request failed", {status: firstRes.status, error: text, model: MODEL});
             return new Response(JSON.stringify({error: "OpenAI request failed"}), {
@@ -653,9 +654,10 @@ serve(async (req) => {
             });
         }
 
-        // Accumulate content & tool_calls from the first stream
+        const firstJson = await firstRes.json();
+
         let accumulatedAssistantText = "";
-        const assistantToolMessage: any = {role: "assistant", content: "", tool_calls: [] as any[]};
+        const assistantToolMessage: any = {role: "assistant", content: [] as any[], tool_calls: [] as any[]};
 
         type PendingCall = {
             id: string;
@@ -665,60 +667,21 @@ serve(async (req) => {
         };
         const pendingCallsByIndex = new Map<number, PendingCall>();
 
-        const reader = firstRes.body.getReader();
-        const decoder = new TextDecoder();
-
-        let buffer = "";
-        let sawToolCallsFinish = false;
-
-        while (true) {
-            const {done, value} = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, {stream: true});
-
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-                if (!line.startsWith("data: ")) continue;
-                const payload = line.slice(6).trim();
-                if (payload === "[DONE]") continue;
-
-                try {
-                    const parsed = JSON.parse(payload);
-                    const choice = parsed.choices?.[0];
-                    const delta = choice?.delta;
-
-                    if (delta?.content) {
-                        accumulatedAssistantText += delta.content;
-                    }
-
-                    if (delta?.tool_calls) {
-                        for (const tc of delta.tool_calls) {
-                            if (pendingCallsByIndex.size >= 3) break;
-                            const idx = tc.index ?? 0;
-                            let call = pendingCallsByIndex.get(idx);
-                            if (!call) {
-                                call = {
-                                    id: tc.id || `call_${idx}`,
-                                    index: idx,
-                                    type: "function",
-                                    function: {name: tc.function?.name || "", arguments: ""},
-                                };
-                                pendingCallsByIndex.set(idx, call);
-                            }
-                            if (tc.id) call.id = tc.id;
-                            if (tc.function?.name) call.function.name = tc.function.name;
-                            if (tc.function?.arguments) call.function.arguments += tc.function.arguments;
-                        }
-                    }
-
-                    const finish = choice?.finish_reason;
-                    if (finish === "tool_calls") {
-                        sawToolCallsFinish = true;
-                    }
-                } catch {
-                    // ignore malformed partials
+        const outputs = firstJson.output || [];
+        for (const out of outputs) {
+            if (out.role !== "assistant") continue;
+            for (const part of out.content || []) {
+                if (part.type === "output_text" && part.text) {
+                    accumulatedAssistantText += part.text;
+                }
+                if (part.type === "function_call") {
+                    const idx = pendingCallsByIndex.size;
+                    pendingCallsByIndex.set(idx, {
+                        id: part.id || `call_${idx}`,
+                        index: idx,
+                        type: "function",
+                        function: {name: part.name || "", arguments: part.arguments || ""},
+                    });
                 }
             }
         }
@@ -728,9 +691,8 @@ serve(async (req) => {
             async start(controller) {
                 const encoder = new TextEncoder();
 
-                // If no tool calls, stream the first text (often general answer),
-                // then persist and exit.
-                if (!sawToolCallsFinish || pendingCallsByIndex.size === 0) {
+                // If no tool calls, return the first text and exit.
+                if (pendingCallsByIndex.size === 0) {
                     if (accumulatedAssistantText) {
                         controller.enqueue(encoder.encode(accumulatedAssistantText));
                     }
@@ -771,7 +733,9 @@ serve(async (req) => {
                 }
 
                 // ===== Execute ALL pending tool calls =====
-                assistantToolMessage.content = accumulatedAssistantText; // may be empty; include anyway
+                if (accumulatedAssistantText) {
+                    (assistantToolMessage.content as any[]).push({type: "text", text: accumulatedAssistantText});
+                }
                 assistantToolMessage.tool_calls = Array.from(pendingCallsByIndex.values()).map((c) => ({
                     id: c.id,
                     type: "function",
@@ -822,19 +786,19 @@ serve(async (req) => {
                 }
 
                 // ===== Second model call (model sees tool outputs and produces final answer) =====
-                const followRes = await fetch("https://api.openai.com/v1/chat/completions", {
+                const followRes = await fetch("https://api.openai.com/v1/responses", {
                     method: "POST",
                     headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
                     body: JSON.stringify({
                         model: MODEL,
                         stream: true,
-                        messages: [
+                        input: [
                             {role: "system", content: systemPrompt},
                             {role: "user", content: userMessageContent as any},
                             assistantToolMessage,
                             ...toolMessages,
                         ],
-                        max_tokens: MAX_TOKENS,
+                        max_output_tokens: 1500,
                     }),
                 });
 
@@ -849,16 +813,16 @@ serve(async (req) => {
                 const fReader = followRes.body.getReader();
                 const fDecoder = new TextDecoder();
                 let finalText = "";
-                let buffer = "";
+                let fBuffer = "";
+
 
                 while (true) {
                     const {value, done} = await fReader.read();
                     if (done) break;
 
-                    buffer += fDecoder.decode(value, {stream: true});
-
-                    const lines = buffer.split("\n");
-                    buffer = lines.pop() || "";
+                    fBuffer += fDecoder.decode(value, {stream: true});
+                    const lines = fBuffer.split("\n");
+                    fBuffer = lines.pop() || "";
 
                     for (const line of lines) {
                         if (!line.startsWith("data: ")) continue;
@@ -867,15 +831,31 @@ serve(async (req) => {
 
                         try {
                             const parsed = JSON.parse(payload);
-                            const delta = parsed.choices?.[0]?.delta;
-                            const content = delta?.content ?? "";
-                            if (content) {
-                                finalText += content;
-                                controller.enqueue(encoder.encode(content));
+                            if (
+                                parsed.type === "response.output_text.delta" &&
+                                typeof parsed.delta === "string"
+                            ) {
+                                finalText += parsed.delta;
+                                controller.enqueue(encoder.encode(parsed.delta));
                             }
                         } catch {
-                            // ignore
+                            // ignore JSON parse errors
                         }
+                    }
+                }
+
+                if (fBuffer) {
+                    try {
+                        const parsed = JSON.parse(fBuffer);
+                        if (
+                            parsed.type === "response.output_text.delta" &&
+                            typeof parsed.delta === "string"
+                        ) {
+                            finalText += parsed.delta;
+                            controller.enqueue(encoder.encode(parsed.delta));
+                        }
+                    } catch {
+                        // ignore leftover
                     }
                 }
 
