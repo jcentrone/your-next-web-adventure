@@ -56,7 +56,7 @@ export async function getOptimizedRoute(addresses: string[]): Promise<OptimizedR
       0
     );
     const totalDistanceMiles = totalDistanceMeters / 1609.344;
-    const totalDurationMinutes = totalDurationSeconds / 60;
+    const totalDurationMinutes = Math.round(totalDurationSeconds / 60);
 
     return {
       googleMapsUrl,
