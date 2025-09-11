@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { MileageAnalytics } from "@/components/analytics/MileageAnalytics";
+import { ExpenseAnalytics } from "@/components/analytics/ExpenseAnalytics";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface AnalyticsData {
@@ -330,11 +331,12 @@ export default function Analytics() {
 
       {/* Charts */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="reports">Report Analysis</TabsTrigger>
             <TabsTrigger value="activity">Activity Trends</TabsTrigger>
             <TabsTrigger value="mileage">Mileage</TabsTrigger>
+            <TabsTrigger value="expenses">Expenses</TabsTrigger>
           </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -474,6 +476,10 @@ export default function Analytics() {
 
         <TabsContent value="mileage" className="space-y-4">
           <MileageAnalytics dateRange={{ from: dateRange.startDate, to: dateRange.endDate }} />
+        </TabsContent>
+
+        <TabsContent value="expenses" className="space-y-4">
+          <ExpenseAnalytics dateRange={{ from: dateRange.startDate, to: dateRange.endDate }} />
         </TabsContent>
       </Tabs>
     </div>
