@@ -809,6 +809,50 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          amount: number
+          category: string | null
+          created_at: string
+          description: string | null
+          expense_date: string
+          id: string
+          organization_id: string
+          receipt_url: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          expense_date: string
+          id?: string
+          organization_id: string
+          receipt_url?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          expense_date?: string
+          id?: string
+          organization_id?: string
+          receipt_url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_agreements: {
         Row: {
           agreement_html: string | null
@@ -2386,4 +2430,6 @@ export const Constants = {
       task_status: ["pending", "in_progress", "completed", "cancelled"],
     },
   },
-} as const
+  } as const
+
+export type Expense = Database["public"]["Tables"]["expenses"]["Row"]
