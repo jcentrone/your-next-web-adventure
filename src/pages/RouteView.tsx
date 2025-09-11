@@ -20,6 +20,7 @@ import {
 import { routeOptimizationApi } from '@/integrations/supabase/routeOptimizationApi';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
+import EmbeddedRouteMap from '@/components/maps/EmbeddedRouteMap';
 
 interface Appointment {
   id: string;
@@ -233,6 +234,13 @@ export default function RouteView() {
           <Progress value={progress} className="w-full" />
         </CardContent>
       </Card>
+
+      {/* Embedded Navigation Map */}
+      <EmbeddedRouteMap 
+        route={route}
+        appointments={appointments}
+        onToggleComplete={handleToggleComplete}
+      />
 
       {/* Route Stops */}
       <Card>
