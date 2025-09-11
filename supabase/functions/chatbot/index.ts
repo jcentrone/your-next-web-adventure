@@ -673,14 +673,38 @@ serve(async (req) => {
             for (const part of out.content || []) {
                 if (part.type === "output_text" && part.text) {
                     accumulatedAssistantText += part.text;
+                    continue;
                 }
+
+                // The Responses API emits tool calls as content items with
+                // type "tool_call" and nests the name/arguments under
+                // part.function. Handle that shape here.
+                if (part.type === "tool_call" && part.function) {
+                    const idx = pendingCallsByIndex.size;
+                    const fnArgs = typeof part.function.arguments === "string"
+                        ? part.function.arguments
+                        : JSON.stringify(part.function.arguments || {});
+                    pendingCallsByIndex.set(idx, {
+                        id: part.id || `call_${idx}`,
+                        index: idx,
+                        type: "function",
+                        function: {name: part.function.name || "", arguments: fnArgs},
+                    });
+                }
+
+                // Legacy compatibility: some older Responses versions used
+                // "function_call" with top-level name/arguments fields.
                 if (part.type === "function_call") {
                     const idx = pendingCallsByIndex.size;
                     pendingCallsByIndex.set(idx, {
                         id: part.id || `call_${idx}`,
                         index: idx,
                         type: "function",
-                        function: {name: part.name || "", arguments: part.arguments || ""},
+                        function: {
+                            name: part.name || "",
+                            arguments: part.arguments || "",
+                        },
+
                     });
                 }
             }
@@ -815,7 +839,6 @@ serve(async (req) => {
                 let finalText = "";
                 let fBuffer = "";
 
-
                 while (true) {
                     const {value, done} = await fReader.read();
                     if (done) break;
@@ -824,7 +847,7 @@ serve(async (req) => {
                     const lines = fBuffer.split("\n");
                     fBuffer = lines.pop() || "";
 
-                    for (const line of lines) {
+                  for (const line of lines) {
                         if (!line.startsWith("data: ")) continue;
                         const payload = line.slice(6).trim();
                         if (payload === "[DONE]") continue;
