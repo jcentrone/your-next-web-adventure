@@ -42,6 +42,7 @@ export default function EmbeddedRouteMap({
   const directionsRenderer = useRef<any>(null);
   const mapInstance = useRef<any>(null);
   const userLocationMarker = useRef<any>(null);
+  const customMarkers = useRef<any[]>([]); // Store custom markers for cleanup
   const [isLoading, setIsLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -142,6 +143,13 @@ export default function EmbeddedRouteMap({
       // Calculate and display route
       await displayRoute();
       
+      // Add custom markers after a small delay to ensure route is rendered
+      setTimeout(() => {
+        if (directions) {
+          addCustomMarkers(directions);
+        }
+      }, 100);
+      
       setIsLoading(false);
     } catch (error) {
       console.error('Error initializing map:', error);
@@ -161,10 +169,16 @@ export default function EmbeddedRouteMap({
       const google = await loadGoogleMapsApi();
       const directionsService = new google.maps.DirectionsService();
 
-      // Build proper route structure: Home Base (A) → Appointments (B,C,D...) → Home Base (final)
+      // Clear any existing markers first
+      if (customMarkers.current.length > 0) {
+        customMarkers.current.forEach(marker => marker.setMap(null));
+        customMarkers.current = [];
+      }
+
+      // Build route structure: NEVER add home base as waypoint
       const waypoints = [];
       
-      // Add all appointment locations as waypoints
+      // Add ONLY appointment locations as waypoints
       if (route.waypoints && route.waypoints.length > 0) {
         route.waypoints.forEach(wp => {
           waypoints.push({
@@ -174,30 +188,32 @@ export default function EmbeddedRouteMap({
         });
       }
 
-      // For round trips, add home base as the final waypoint to ensure A→B→C→A pattern
-      // This ensures proper waypoint lettering (A, B, C, A)
-      if (route.start_address && (!route.end_address || route.end_address === route.start_address)) {
-        waypoints.push({
-          location: route.start_address,
-          stopover: true,
-        });
-      }
-
-      // Set destination - use end_address if different from start, otherwise use start address
+      // Set destination - for round trips, use start address as destination
       const destination = (route.end_address && route.end_address !== route.start_address) 
         ? route.end_address 
         : route.start_address;
 
       const result = await directionsService.route({
-        origin: route.start_address, // Always start from home base (A)
-        destination: destination, // End destination
-        waypoints: waypoints, // All stops in between
+        origin: route.start_address, // Start from home base
+        destination: destination, // End at home base (for round trips) or different location
+        waypoints: waypoints, // Only appointments, NO home base
         optimizeWaypoints: false, // Maintain intended order
         travelMode: google.maps.TravelMode.DRIVING,
       });
 
+      // Ensure suppressMarkers is set to true
+      directionsRenderer.current.setOptions({
+        suppressMarkers: true,
+        suppressInfoWindows: false
+      });
+      
       directionsRenderer.current.setDirections(result);
       setDirections(result);
+      
+      // Add custom markers after route is set
+      setTimeout(() => {
+        addCustomMarkers(result);
+      }, 100);
 
       // Add custom markers for better visualization
       addCustomMarkers(result);
@@ -225,7 +241,7 @@ export default function EmbeddedRouteMap({
 
     if (isRoundTrip) {
       // Option 3: Combined START/END marker for round trips
-      new google.maps.Marker({
+      const homeMarker = new google.maps.Marker({
         position: leg.start_location,
         map: mapInstance.current,
         title: 'Home Base (Start & End)',
@@ -240,9 +256,10 @@ export default function EmbeddedRouteMap({
           rotation: 0,
         },
       });
+      customMarkers.current.push(homeMarker);
       
       // Add a secondary text marker for "START/END" label
-      new google.maps.Marker({
+      const labelMarker = new google.maps.Marker({
         position: {
           lat: leg.start_location.lat() + 0.0003, // Slight offset for label
           lng: leg.start_location.lng()
@@ -262,9 +279,10 @@ export default function EmbeddedRouteMap({
           strokeOpacity: 0,
         },
       });
+      customMarkers.current.push(labelMarker);
     } else {
       // Separate start and end markers for non-round trips
-      new google.maps.Marker({
+      const startMarker = new google.maps.Marker({
         position: leg.start_location,
         map: mapInstance.current,
         title: 'Start Location',
@@ -278,9 +296,10 @@ export default function EmbeddedRouteMap({
           strokeWeight: 3,
         },
       });
+      customMarkers.current.push(startMarker);
 
       // Add end marker
-      new google.maps.Marker({
+      const endMarker = new google.maps.Marker({
         position: finalLeg.end_location,
         map: mapInstance.current,
         title: 'Final Destination',
@@ -294,12 +313,13 @@ export default function EmbeddedRouteMap({
           strokeWeight: 3,
         },
       });
+      customMarkers.current.push(endMarker);
     }
 
     // Add appointment markers with numbers instead of letters
     route.legs.forEach((leg: any, index: number) => {
       if (index < route.legs.length - 1) { // Don't mark the final destination here
-        new google.maps.Marker({
+        const appointmentMarker = new google.maps.Marker({
           position: leg.end_location,
           map: mapInstance.current,
           title: `Appointment ${index + 1}`,
@@ -313,6 +333,7 @@ export default function EmbeddedRouteMap({
             strokeWeight: 3,
           },
         });
+        customMarkers.current.push(appointmentMarker);
       }
     });
   };
