@@ -11,18 +11,21 @@ interface ExpenseItemProps {
 }
 
 export const ExpenseItem: React.FC<ExpenseItemProps> = ({ expense, onEdit, onDelete }) => {
+  const handleEdit = () => onEdit(expense);
+  const handleDelete = () => onDelete(expense.id);
+
   const actions: ActionItem[] = [
     {
       key: "edit",
       label: "Edit",
       icon: <Pencil className="h-4 w-4" />,
-      onClick: () => onEdit(expense),
+      onClick: handleEdit,
     },
     {
       key: "delete",
       label: "Delete",
       icon: <Trash2 className="h-4 w-4" />,
-      onClick: () => onDelete(expense.id),
+      onClick: handleDelete,
       variant: "destructive",
     },
   ];

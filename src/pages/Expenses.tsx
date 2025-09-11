@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { getMyOrganization, type Organization } from "@/integrations/supabase/organizationsApi";
 import Seo from "@/components/Seo";
-import ExpenseForm from "@/components/expenses/ExpenseForm";
 import { ExpenseList } from "@/components/expenses/ExpenseList";
 
 const Expenses: React.FC = () => {
@@ -27,7 +26,6 @@ const Expenses: React.FC = () => {
     <>
       <Seo title="Expenses" />
       <div className="space-y-6">
-        <ExpenseForm userId={user.id} organizationId={organization.id} />
         <ExpenseList userId={user.id} organizationId={organization.id} />
       </div>
     </>

@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import ExpenseForm from "./ExpenseForm";
 import ExpenseItem from "./ExpenseItem";
@@ -18,7 +19,7 @@ interface ExpenseListProps {
 export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [showForm, setShowForm] = React.useState(false);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
 
   const { data: expenses = [], isLoading } = useQuery({
@@ -43,7 +44,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
 
   const handleEdit = (expense: Expense) => {
     setEditingExpense(expense);
-    setShowForm(true);
+    setIsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -52,69 +53,79 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
 
   const handleAdd = () => {
     setEditingExpense(null);
-    setShowForm(true);
   };
 
   const handleFormSuccess = () => {
-    setShowForm(false);
+    setIsDialogOpen(false);
     setEditingExpense(null);
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Expenses</CardTitle>
-        <Button size="sm" onClick={handleAdd}>
-          <Plus className="h-4 w-4 mr-2" /> Add Expense
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {showForm && (
-          <div className="mb-6">
-            <ExpenseForm
-              expense={editingExpense ?? undefined}
-              userId={userId}
-              organizationId={organizationId}
-              onSuccess={handleFormSuccess}
-              onCancel={() => setShowForm(false)}
-            />
+    <Dialog
+      open={isDialogOpen}
+      onOpenChange={(open) => {
+        setIsDialogOpen(open);
+        if (!open) setEditingExpense(null);
+      }}
+    >
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Expenses</CardTitle>
+          <DialogTrigger asChild>
+            <Button size="sm" onClick={handleAdd}>
+              <Plus className="h-4 w-4 mr-2" /> Add Expense
+            </Button>
+          </DialogTrigger>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={5}>Loading...</TableCell>
+                  </TableRow>
+                )}
+                {!isLoading && expenses && expenses.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5}>No expenses found.</TableCell>
+                  </TableRow>
+                )}
+                {expenses?.map((exp) => (
+                  <ExpenseItem
+                    key={exp.id}
+                    expense={exp}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        )}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading && (
-                <TableRow>
-                  <TableCell colSpan={5}>Loading...</TableCell>
-                </TableRow>
-              )}
-              {!isLoading && expenses && expenses.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5}>No expenses found.</TableCell>
-                </TableRow>
-              )}
-              {expenses?.map((exp) => (
-                <ExpenseItem
-                  key={exp.id}
-                  expense={exp}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{editingExpense ? "Edit Expense" : "Add Expense"}</DialogTitle>
+        </DialogHeader>
+        <ExpenseForm
+          expense={editingExpense ?? undefined}
+          userId={userId}
+          organizationId={organizationId}
+          onSuccess={handleFormSuccess}
+          onCancel={() => setIsDialogOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
   );
 };
 
