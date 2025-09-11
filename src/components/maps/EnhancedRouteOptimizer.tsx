@@ -37,6 +37,13 @@ export function EnhancedRouteOptimizer({
     loadExistingRoute();
   }, [selectedDate]);
 
+  // Reload existing route when settings change (e.g., home base address updated)
+  useEffect(() => {
+    if (settings) {
+      loadExistingRoute();
+    }
+  }, [settings?.home_base_formatted_address]);
+
   const loadSettings = async () => {
     try {
       const routeSettings = await routeOptimizationApi.getSettings();

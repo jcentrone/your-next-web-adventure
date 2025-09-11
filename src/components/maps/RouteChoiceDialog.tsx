@@ -48,17 +48,8 @@ export function RouteChoiceDialog({
     }
   };
 
-  useEffect(() => {
-    if (open && preferredNavApp) {
-      const url = preferredNavApp === "waze" ? wazeUrl : googleMapsUrl;
-      onOpenChange(false);
-      window.open(url, "_blank");
-    }
-  }, [open, preferredNavApp, googleMapsUrl, wazeUrl, onOpenChange]);
-
-  if (preferredNavApp) {
-    return null;
-  }
+  // Always show the dialog first to give user choice between in-app and external navigation
+  // The preferred app will be highlighted but not auto-opened
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -101,26 +92,30 @@ export function RouteChoiceDialog({
               <Button 
                 onClick={openGoogleMaps}
                 disabled={!googleMapsUrl}
-                variant="outline"
+                variant={preferredNavApp === 'google_maps' ? 'default' : 'outline'}
                 className="flex items-center justify-center gap-2 h-12"
               >
                 <img src="/google-maps.svg" alt="Google Maps" className="h-5 w-5" />
                 <div className="text-left">
                   <div className="font-medium text-sm">Google Maps</div>
-                  <div className="text-xs text-muted-foreground">External</div>
+                  <div className="text-xs text-muted-foreground">
+                    {preferredNavApp === 'google_maps' ? 'Preferred' : 'External'}
+                  </div>
                 </div>
               </Button>
               
               <Button 
                 onClick={openWaze}
                 disabled={!wazeUrl}
-                variant="outline"
+                variant={preferredNavApp === 'waze' ? 'default' : 'outline'}
                 className="flex items-center justify-center gap-2 h-12"
               >
                 <img src="/waze.svg" alt="Waze" className="h-5 w-5" />
                 <div className="text-left">
                   <div className="font-medium text-sm">Waze</div>
-                  <div className="text-xs text-muted-foreground">External</div>
+                  <div className="text-xs text-muted-foreground">
+                    {preferredNavApp === 'waze' ? 'Preferred' : 'External'}
+                  </div>
                 </div>
               </Button>
             </div>

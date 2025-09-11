@@ -3,6 +3,7 @@ import { toast } from '@/hooks/use-toast';
 
 let loader: Loader | null = null;
 let loadPromise: Promise<any> | null = null;
+let isLoaded = false;
 
 export function reportMapsJsBlocked() {
   try {
@@ -88,7 +89,14 @@ function getSpecificErrorMessage(error: any): { title: string; description: stri
 }
 
 export async function loadGoogleMapsApi(): Promise<any> {
+  // Return immediately if already loaded
+  if (isLoaded && window.google?.maps) {
+    console.log('Google Maps API already loaded');
+    return window.google;
+  }
+
   if (loadPromise) {
+    console.log('Google Maps API already loading, waiting for existing promise...');
     return loadPromise;
   }
 
@@ -101,15 +109,20 @@ export async function loadGoogleMapsApi(): Promise<any> {
 
   console.log('Loading Google Maps API with key:', apiKey.substring(0, 10) + '...');
 
-  loader = new Loader({ 
-    apiKey, 
-    libraries: ['places'] // Add libraries that might be needed
-  });
+  // Only create loader if not already created
+  if (!loader) {
+    loader = new Loader({ 
+      apiKey, 
+      libraries: ['places'],
+      version: 'weekly' // Use consistent version
+    });
+  }
   
   loadPromise = (async () => {
     try {
-      const google = await loader.load();
+      const google = await loader!.load();
       console.log('Google Maps API loaded successfully');
+      isLoaded = true;
       return google;
     } catch (error) {
       console.error('Failed to load Google Maps API:', error);
@@ -125,8 +138,10 @@ export async function loadGoogleMapsApi(): Promise<any> {
         reportIfMapsJsBlocked();
       }
       
+      // Reset on error so we can try again
       loader = null;
       loadPromise = null;
+      isLoaded = false;
       throw error;
     }
   })();
