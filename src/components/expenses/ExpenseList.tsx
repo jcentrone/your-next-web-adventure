@@ -21,16 +21,9 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
   const [showForm, setShowForm] = React.useState(false);
   const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
 
-  const { data: expenses, isLoading } = useQuery({
+  const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["expenses"],
     queryFn: () => expenseApi.listExpenses(),
-    onError: (error: Error) => {
-      toast({
-        title: "Error loading expenses",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
   });
 
   const deleteMutation = useMutation({

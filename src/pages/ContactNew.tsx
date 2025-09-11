@@ -13,7 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateContactSchema } from "@/lib/crmSchemas";
-import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
+import { AddressAutocompleteField } from "@/components/contacts/AddressAutocompleteField";
 import { useToast } from "@/hooks/use-toast";
 import Seo from "@/components/Seo";
 
@@ -208,49 +208,11 @@ const ContactNew: React.FC = () => {
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
+                <AddressAutocompleteField
+                  form={form}
                   name="formatted_address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
-                      <FormControl>
-                         <AddressAutocomplete
-                           value={field.value}
-                           onAddressChange={(addressData) => {
-                             field.onChange(addressData.formatted_address);
-                             form.setValue('place_id', addressData.place_id);
-                             form.setValue('latitude', addressData.latitude);
-                             form.setValue('longitude', addressData.longitude);
-                             form.setValue('address_components', addressData.address_components);
-                             
-                             // Extract city, state, zip from address components if available
-                             const components = addressData.address_components || [];
-                             let city = '';
-                             let state = '';
-                             let zipCode = '';
-
-                             components.forEach((component: any) => {
-                               const types = component.types || [];
-                               if (types.includes('locality')) {
-                                 city = component.long_name;
-                               } else if (types.includes('administrative_area_level_1')) {
-                                 state = component.short_name;
-                               } else if (types.includes('postal_code')) {
-                                 zipCode = component.long_name;
-                               }
-                             });
-
-                             form.setValue('city', city);
-                             form.setValue('state', state);
-                             form.setValue('zip_code', zipCode);
-                           }}
-                           placeholder="Search for an address..."
-                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Address"
+                  placeholder="Start typing an address..."
                 />
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

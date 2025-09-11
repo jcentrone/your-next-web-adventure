@@ -33,6 +33,7 @@ import {DraggableCalendarGrid} from "@/components/calendar/DraggableCalendarGrid
 import {TimeChangeConfirmDialog} from "@/components/calendar/TimeChangeConfirmDialog";
 import {CalendarSettingsDialog} from "@/components/calendar/CalendarSettingsDialog";
 import {useCalendarSettings} from "@/hooks/useCalendarSettings";
+import { getCompleteAddress } from "@/lib/addressUtils";
 import AppointmentPreviewDialog from "@/components/calendar/AppointmentPreviewDialog";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as outlookCalendar from "@/integrations/outlookCalendar";
@@ -337,10 +338,7 @@ const Calendar: React.FC = () => {
             if (!address && app.contact_id) {
                 const contact = contacts.find(c => c.id === app.contact_id);
                 if (contact) {
-                    // Use formatted_address first (full address), then fall back to constructing from components
-                    address = contact.formatted_address || [contact.address, contact.city, contact.state, contact.zip_code]
-                        .filter(Boolean)
-                        .join(", ");
+                    address = getCompleteAddress(contact);
                 }
             }
             if (address) {
@@ -625,15 +623,8 @@ const Calendar: React.FC = () => {
                                                                             (c) => c.id === value
                                                                         );
                                                                         const fullAddress = selectedContact
-                                                                            ? selectedContact.formatted_address || [
-                                                                                selectedContact.address,
-                                                                                selectedContact.city,
-                                                                                selectedContact.state,
-                                                                                selectedContact.zip_code,
-                                                                            ]
-                                                                                  .filter(Boolean)
-                                                                                  .join(", ")
-                                                                            : "";
+                                                                             ? getCompleteAddress(selectedContact)
+                                                                             : "";
 
                                                                         field.onChange(value);
                                                                         form.setValue("location", fullAddress);

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Edit, Trash2, Mail, Phone, Building, MapPin, Tag } from "lucide-react";
 import { ActionsMenu, ActionItem } from "@/components/ui/actions-menu";
 import type { Contact } from "@/lib/crmSchemas";
+import { AddressDisplay } from "@/components/common/AddressDisplay";
 
 interface ContactsCardViewProps {
   contacts: Contact[];
@@ -88,14 +89,7 @@ export const ContactsCardView: React.FC<ContactsCardViewProps> = ({
                   </span>
                 </div>
               )}
-              {(contact.address || contact.city || contact.state) && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="w-3 h-3" />
-                  <span>
-                    {contact.address || `${contact.city || ''}${contact.city && contact.state ? ', ' : ''}${contact.state || ''}`}
-                  </span>
-                </div>
-              )}
+              <AddressDisplay contact={contact} showIcon={true} />
               {contact.notes && (
                 <p className="text-xs text-muted-foreground line-clamp-2">
                   {contact.notes}
