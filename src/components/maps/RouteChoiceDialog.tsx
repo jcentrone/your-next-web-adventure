@@ -1,16 +1,19 @@
 import React, { useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Navigation } from 'lucide-react';
 
 interface RouteChoiceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  googleMapsUrl: string;
-  wazeUrl: string;
+  googleMapsUrl?: string;
+  wazeUrl?: string;
   totalDistanceMiles?: number;
   totalDurationMinutes?: number;
   estimatedFuelCost?: number;
   preferredNavApp?: "google_maps" | "waze";
+  routeId?: string;
 }
 
 export function RouteChoiceDialog({
@@ -22,10 +25,27 @@ export function RouteChoiceDialog({
   totalDurationMinutes,
   estimatedFuelCost,
   preferredNavApp,
+  routeId
 }: RouteChoiceDialogProps) {
-  const handleSelect = (url: string) => {
-    onOpenChange(false);
-    window.open(url, "_blank");
+  const navigate = useNavigate();
+
+  const openGoogleMaps = () => {
+    if (googleMapsUrl) {
+      window.open(googleMapsUrl, '_blank');
+    }
+  };
+
+  const openWaze = () => {
+    if (wazeUrl) {
+      window.open(wazeUrl, '_blank');
+    }
+  };
+
+  const viewInApp = () => {
+    if (routeId) {
+      navigate(`/route/${routeId}`);
+      onOpenChange(false);
+    }
   };
 
   useEffect(() => {
@@ -44,35 +64,67 @@ export function RouteChoiceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle>Choose Navigation App</DialogTitle>
+          <DialogTitle>View Your Route</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-4">
           {(totalDistanceMiles !== undefined ||
             totalDurationMinutes !== undefined ||
             estimatedFuelCost !== undefined) && (
-            <div className="text-sm space-y-1">
+            <div className="text-sm space-y-1 p-3 bg-muted rounded-lg">
               {totalDistanceMiles !== undefined && (
-                <p>Total distance: {totalDistanceMiles.toFixed(1)} mi</p>
+                <p><strong>Distance:</strong> {totalDistanceMiles.toFixed(1)} miles</p>
               )}
               {totalDurationMinutes !== undefined && (
-                <p>Total duration: {Math.round(totalDurationMinutes)} mins</p>
+                <p><strong>Duration:</strong> {Math.round(totalDurationMinutes)} minutes</p>
               )}
               {estimatedFuelCost !== undefined && (
-                <p>Est. fuel cost: ${estimatedFuelCost.toFixed(2)}</p>
+                <p><strong>Est. Cost:</strong> ${estimatedFuelCost.toFixed(2)}</p>
               )}
             </div>
           )}
-          <Button
-            onClick={() => handleSelect(googleMapsUrl)}
-            className="flex items-center gap-2"
-          >
-            <img src="/google-maps.svg" alt="Google Maps" className="h-5 w-5" />
-            Google Maps
-          </Button>
-          <Button onClick={() => handleSelect(wazeUrl)} className="flex items-center gap-2">
-            <img src="/waze.svg" alt="Waze" className="h-5 w-5" />
-            Waze
-          </Button>
+          
+          <div className="space-y-3">
+            <Button 
+              onClick={viewInApp}
+              disabled={!routeId}
+              className="w-full flex items-center justify-center gap-2 h-12"
+              size="lg"
+            >
+              <Navigation className="h-5 w-5" />
+              <div>
+                <div className="font-medium">View Route in App</div>
+                <div className="text-xs opacity-80">Track progress & manage stops</div>
+              </div>
+            </Button>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <Button 
+                onClick={openGoogleMaps}
+                disabled={!googleMapsUrl}
+                variant="outline"
+                className="flex items-center justify-center gap-2 h-12"
+              >
+                <img src="/google-maps.svg" alt="Google Maps" className="h-5 w-5" />
+                <div className="text-left">
+                  <div className="font-medium text-sm">Google Maps</div>
+                  <div className="text-xs text-muted-foreground">External</div>
+                </div>
+              </Button>
+              
+              <Button 
+                onClick={openWaze}
+                disabled={!wazeUrl}
+                variant="outline"
+                className="flex items-center justify-center gap-2 h-12"
+              >
+                <img src="/waze.svg" alt="Waze" className="h-5 w-5" />
+                <div className="text-left">
+                  <div className="font-medium text-sm">Waze</div>
+                  <div className="text-xs text-muted-foreground">External</div>
+                </div>
+              </Button>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

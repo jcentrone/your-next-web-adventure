@@ -98,6 +98,24 @@ export const routeOptimizationApi = {
     return data;
   },
 
+  async getDailyRouteById(routeId: string): Promise<DailyRoute | null> {
+    console.log('Fetching daily route by ID:', routeId);
+
+    const { data, error } = await supabase
+      .from('daily_routes')
+      .select('*')
+      .eq('id', routeId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching daily route by ID:', error);
+      throw error;
+    }
+
+    console.log('Daily route by ID fetch result:', data ? `Found route ${data.id}` : 'No route found');
+    return data;
+  },
+
   async createOrUpdateDailyRoute(route: Omit<DailyRoute, 'id' | 'created_at' | 'updated_at'>): Promise<DailyRoute> {
     console.log('Creating/updating daily route:', { 
       user_id: route.user_id, 

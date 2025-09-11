@@ -108,6 +108,16 @@ export function EnhancedRouteOptimizer({
 
       console.log('Route optimization addresses:', addresses);
 
+      // Check if we have any actual appointment locations
+      if (appointmentsWithLocation.length === 0) {
+        toast({
+          title: "No appointments with locations",
+          description: "Add locations to your appointments to optimize your route.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (addresses.length < 2) {
         toast({
           title: "Insufficient Data",
@@ -288,6 +298,7 @@ export function EnhancedRouteOptimizer({
           totalDurationMinutes={optimizedRoute.total_duration_minutes || optimizedRoute.totalDurationMinutes}
           estimatedFuelCost={optimizedRoute.estimated_fuel_cost}
           preferredNavApp={settings?.preferred_nav_app}
+          routeId={optimizedRoute.id}
         />
       )}
     </>
