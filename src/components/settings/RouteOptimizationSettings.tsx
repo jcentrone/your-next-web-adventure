@@ -18,7 +18,6 @@ export function RouteOptimizationSettings() {
     default_enabled: true,
     mileage_rate: 0.67,
     always_return_home: true,
-    preferred_nav_app: 'google_maps',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -152,7 +151,7 @@ export function RouteOptimizationSettings() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <div className="space-y-2">
             <Label htmlFor="mileage-rate">Mileage Rate ($/mile)</Label>
             <Input
@@ -169,22 +168,6 @@ export function RouteOptimizationSettings() {
             <p className="text-sm text-muted-foreground">
               IRS standard rate: $0.67/mile (2024)
             </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="nav-app">Preferred Navigation App</Label>
-            <Select
-              value={settings.preferred_nav_app || 'google_maps'}
-              onValueChange={(value) => setSettings(prev => ({ ...prev, preferred_nav_app: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="google_maps">Google Maps</SelectItem>
-                <SelectItem value="waze">Waze</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </div>
 

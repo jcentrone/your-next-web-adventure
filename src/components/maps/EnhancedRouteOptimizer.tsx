@@ -168,7 +168,6 @@ export function EnhancedRouteOptimizer({
         end_address: settings.always_return_home ? settings.home_base_formatted_address : addresses[addresses.length - 1],
         waypoints: addresses.slice(1, -1).map(addr => ({ address: addr })),
         google_maps_url: route.googleMapsUrl,
-        waze_url: route.wazeUrl,
         is_optimized: true,
       });
 
@@ -299,12 +298,9 @@ export function EnhancedRouteOptimizer({
         <RouteChoiceDialog
           open={showRouteDialog}
           onOpenChange={setShowRouteDialog}
-          googleMapsUrl={optimizedRoute.google_maps_url || optimizedRoute.googleMapsUrl}
-          wazeUrl={optimizedRoute.waze_url || optimizedRoute.wazeUrl}
           totalDistanceMiles={optimizedRoute.total_distance_miles || optimizedRoute.totalDistanceMiles}
           totalDurationMinutes={optimizedRoute.total_duration_minutes || optimizedRoute.totalDurationMinutes}
           estimatedFuelCost={optimizedRoute.estimated_fuel_cost}
-          preferredNavApp={settings?.preferred_nav_app}
           routeId={optimizedRoute.id}
         />
       )}

@@ -12,7 +12,6 @@ export interface RouteOptimizationSettings {
   default_enabled?: boolean;
   mileage_rate?: number;
   always_return_home?: boolean;
-  preferred_nav_app?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -30,7 +29,6 @@ export interface DailyRoute {
   end_address?: string;
   waypoints?: any;
   google_maps_url?: string;
-  waze_url?: string;
   is_optimized?: boolean;
   created_at?: string;
   updated_at?: string;

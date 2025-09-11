@@ -3,7 +3,6 @@ import { toast } from "@/hooks/use-toast";
 
 export interface OptimizedRoute {
   googleMapsUrl: string;
-  wazeUrl: string;
   totalDistanceMiles: number;
   totalDurationMinutes: number;
   waypointOrder: number[];
@@ -47,17 +46,6 @@ export async function getOptimizedRoute(addresses: string[]): Promise<OptimizedR
         : ""
     }`;
 
-    const coords: string[] = [];
-    result.routes[0].legs.forEach((leg) => {
-      coords.push(`${leg.start_location.lat()},${leg.start_location.lng()}`);
-    });
-    const lastLeg = result.routes[0].legs[result.routes[0].legs.length - 1];
-    coords.push(`${lastLeg.end_location.lat()},${lastLeg.end_location.lng()}`);
-    const wazeUrl = `https://waze.com/ul?from=${coords[0]}${coords
-      .slice(1)
-      .map((c) => `&to=${c}`)
-      .join("")}&navigate=yes`;
-
     const legs = result.routes[0].legs;
     const totalDistanceMeters = legs.reduce(
       (sum, leg) => sum + (leg.distance?.value || 0),
@@ -72,7 +60,6 @@ export async function getOptimizedRoute(addresses: string[]): Promise<OptimizedR
 
     return {
       googleMapsUrl,
-      wazeUrl,
       totalDistanceMiles,
       totalDurationMinutes,
       waypointOrder: order,

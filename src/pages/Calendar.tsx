@@ -56,7 +56,7 @@ const Calendar: React.FC = () => {
     const [previewAppointment, setPreviewAppointment] = useState<Appointment | null>(null);
     const { settings: routeSettings, isEnabled: optimizeEnabled } = useRouteOptimization();
     const [isRouteDialogOpen, setIsRouteDialogOpen] = useState(false);
-    const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; wazeUrl: string; totalDistanceMiles?: number; totalDurationMinutes?: number; estimatedFuelCost?: number } | null>(null);
+    const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; totalDistanceMiles?: number; totalDurationMinutes?: number; estimatedFuelCost?: number } | null>(null);
     const [dailyRoute, setDailyRoute] = useState<DailyRoute | null>(null);
     const [pendingDrop, setPendingDrop] = useState<{appointment: Appointment, newDate: Date} | null>(null);
     const [isTimeChangeDialogOpen, setIsTimeChangeDialogOpen] = useState(false);
@@ -326,7 +326,7 @@ const Calendar: React.FC = () => {
     const optimizeRouteForDate = async (
         date: Date,
         dayAppointments: Appointment[]
-    ): Promise<{ googleMapsUrl: string; wazeUrl: string } | void> => {
+    ): Promise<{ googleMapsUrl: string } | void> => {
         if (!optimizeEnabled || !routeSettings || !user) return;
 
         const homeBase = routeSettings.home_base_formatted_address || routeSettings.home_base_address;
@@ -360,7 +360,6 @@ const Calendar: React.FC = () => {
         try {
             const {
                 googleMapsUrl,
-                wazeUrl,
                 totalDistanceMiles,
                 totalDurationMinutes,
                 waypointOrder,
@@ -383,10 +382,9 @@ const Calendar: React.FC = () => {
                 end_address: addresses[addresses.length - 1],
                 waypoints: addresses.slice(1, -1).map(addr => ({ address: addr })),
                 google_maps_url: googleMapsUrl,
-                waze_url: wazeUrl,
                 is_optimized: true,
             });
-            return { googleMapsUrl, wazeUrl };
+            return { googleMapsUrl };
         } catch (error) {
             console.error("Failed to optimize route", error);
         }
@@ -404,12 +402,10 @@ const Calendar: React.FC = () => {
             setDailyRoute(route);
 
             const googleMapsUrl = route.google_maps_url;
-            const wazeUrl = route.waze_url;
 
-            if (googleMapsUrl || wazeUrl) {
+            if (googleMapsUrl) {
                 setRouteUrls({
                     googleMapsUrl,
-                    wazeUrl,
                     totalDistanceMiles: route.total_distance_miles,
                     totalDurationMinutes: route.total_duration_minutes,
                     estimatedFuelCost: route.estimated_fuel_cost,
@@ -491,12 +487,10 @@ const Calendar: React.FC = () => {
                 <RouteChoiceDialog
                     open={isRouteDialogOpen}
                     onOpenChange={setIsRouteDialogOpen}
-                    googleMapsUrl={routeUrls.googleMapsUrl}
-                    wazeUrl={routeUrls.wazeUrl}
                     totalDistanceMiles={routeUrls.totalDistanceMiles}
                     totalDurationMinutes={routeUrls.totalDurationMinutes}
                     estimatedFuelCost={routeUrls.estimatedFuelCost}
-                    preferredNavApp={routeSettings?.preferred_nav_app as "google_maps" | "waze" | undefined}
+                    routeId={dailyRoute?.id}
                 />
             )}
 

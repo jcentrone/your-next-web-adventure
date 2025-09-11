@@ -82,12 +82,6 @@ export default function RouteView() {
     }
   };
 
-  const openInWaze = () => {
-    if (route?.waze_url) {
-      window.open(route.waze_url, '_blank');
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
@@ -142,10 +136,6 @@ export default function RouteView() {
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" onClick={openInWaze}>
-            Open in Waze
-            <ExternalLink className="h-4 w-4 ml-2" />
-          </Button>
           <Button onClick={openInGoogleMaps}>
             <Navigation className="h-4 w-4 mr-2" />
             Open in Google Maps
