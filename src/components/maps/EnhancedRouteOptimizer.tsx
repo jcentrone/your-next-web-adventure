@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Route, Clock, DollarSign, AlertCircle } from 'lucide-react';
 import { getOptimizedRoute } from './routeOptimizer';
-import { RouteChoiceDialog } from './RouteChoiceDialog';
 import { routeOptimizationApi } from '@/integrations/supabase/routeOptimizationApi';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -26,9 +26,8 @@ export function EnhancedRouteOptimizer({
   selectedDate, 
   onRouteOptimized 
 }: EnhancedRouteOptimizerProps) {
+  const navigate = useNavigate();
   const [isOptimizing, setIsOptimizing] = useState(false);
-  const [optimizedRoute, setOptimizedRoute] = useState<any>(null);
-  const [showRouteDialog, setShowRouteDialog] = useState(false);
   const [settings, setSettings] = useState<any>(null);
   const [existingRoute, setExistingRoute] = useState<any>(null);
 
@@ -173,16 +172,16 @@ export function EnhancedRouteOptimizer({
 
       console.log('Route saved successfully:', dailyRoute.id);
 
-      setOptimizedRoute({ ...route, ...dailyRoute });
       setExistingRoute(dailyRoute);
-      setShowRouteDialog(true);
-      
       onRouteOptimized?.(dailyRoute);
 
       toast({
         title: 'Route optimized',
         description: `Saved ${totalDistance.toFixed(1)} miles, estimated $${estimatedCost.toFixed(2)}`,
       });
+
+      // Navigate directly to the route page
+      navigate(`/route/${dailyRoute.id}`);
     } catch (error) {
       console.error('Route optimization failed:', error);
       
@@ -213,9 +212,8 @@ export function EnhancedRouteOptimizer({
   };
 
   const openExistingRoute = () => {
-    if (existingRoute?.google_maps_url) {
-      setOptimizedRoute(existingRoute);
-      setShowRouteDialog(true);
+    if (existingRoute?.id) {
+      navigate(`/route/${existingRoute.id}`);
     }
   };
 
@@ -288,22 +286,11 @@ export function EnhancedRouteOptimizer({
               disabled={isOptimizing || appointments.length === 0}
               className="flex-1"
             >
-              {isOptimizing ? 'Optimizing...' : 'View Route'}
+              {isOptimizing ? 'Optimizing...' : existingRoute ? 'View Route' : 'Optimize Route'}
             </Button>
           </div>
         </CardContent>
       </Card>
-
-      {optimizedRoute && (
-        <RouteChoiceDialog
-          open={showRouteDialog}
-          onOpenChange={setShowRouteDialog}
-          totalDistanceMiles={optimizedRoute.total_distance_miles || optimizedRoute.totalDistanceMiles}
-          totalDurationMinutes={optimizedRoute.total_duration_minutes || optimizedRoute.totalDurationMinutes}
-          estimatedFuelCost={optimizedRoute.estimated_fuel_cost}
-          routeId={optimizedRoute.id}
-        />
-      )}
     </>
   );
 }

@@ -39,7 +39,6 @@ import * as outlookCalendar from "@/integrations/outlookCalendar";
 import * as appleCalendar from "@/integrations/appleCalendar";
 import {syncExternalEvents} from "@/integrations/syncExternalEvents";
 import { getOptimizedRoute } from "@/components/maps/routeOptimizer";
-import RouteChoiceDialog from "@/components/maps/RouteChoiceDialog";
 import { useNavigate } from "react-router-dom";
 import { useRouteOptimization } from "@/hooks/useRouteOptimization";
 import { routeOptimizationApi, type DailyRoute } from "@/integrations/supabase/routeOptimizationApi";
@@ -55,8 +54,6 @@ const Calendar: React.FC = () => {
     const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
     const [previewAppointment, setPreviewAppointment] = useState<Appointment | null>(null);
     const { settings: routeSettings, isEnabled: optimizeEnabled } = useRouteOptimization();
-    const [isRouteDialogOpen, setIsRouteDialogOpen] = useState(false);
-    const [routeUrls, setRouteUrls] = useState<{ googleMapsUrl: string; totalDistanceMiles?: number; totalDurationMinutes?: number; estimatedFuelCost?: number } | null>(null);
     const [dailyRoute, setDailyRoute] = useState<DailyRoute | null>(null);
     const [pendingDrop, setPendingDrop] = useState<{appointment: Appointment, newDate: Date} | null>(null);
     const [isTimeChangeDialogOpen, setIsTimeChangeDialogOpen] = useState(false);
@@ -400,20 +397,9 @@ const Calendar: React.FC = () => {
             }
 
             setDailyRoute(route);
-
-            const googleMapsUrl = route.google_maps_url;
-
-            if (googleMapsUrl) {
-                setRouteUrls({
-                    googleMapsUrl,
-                    totalDistanceMiles: route.total_distance_miles,
-                    totalDurationMinutes: route.total_duration_minutes,
-                    estimatedFuelCost: route.estimated_fuel_cost,
-                });
-                setIsRouteDialogOpen(true);
-            } else {
-                toast.error("No route data available");
-            }
+            
+            // Navigate directly to the route page
+            navigate(`/route/${route.id}`);
         } catch (error) {
             console.error("Failed to fetch daily route", error);
             toast.error("Failed to fetch daily route");
@@ -483,16 +469,6 @@ const Calendar: React.FC = () => {
                 title="Calendar - Home Report Pro"
                 description="Manage your inspection appointments and schedule with an integrated calendar system."
             />
-            {routeUrls && (
-                <RouteChoiceDialog
-                    open={isRouteDialogOpen}
-                    onOpenChange={setIsRouteDialogOpen}
-                    totalDistanceMiles={routeUrls.totalDistanceMiles}
-                    totalDurationMinutes={routeUrls.totalDurationMinutes}
-                    estimatedFuelCost={routeUrls.estimatedFuelCost}
-                    routeId={dailyRoute?.id}
-                />
-            )}
 
             <div className="container mx-auto p-6 space-y-6">
                 <div className="flex flex-col w-full items-center justify-center">
