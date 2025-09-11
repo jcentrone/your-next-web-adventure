@@ -402,22 +402,65 @@ serve(async (req) => {
         log("debug", "first_call_assistant_text", {len: assistantText.length});
 
         // Collect tool calls
+        // Collect tool calls (support multiple shapes) + log content part types
         type PendingCall = { id: string; name: string; args: any };
+
         const calls: PendingCall[] = [];
+        const partTypeTally: Record<string, number> = {};
+
+        function safeParseArgs(raw: any) {
+            try {
+                if (typeof raw === "string") return raw ? JSON.parse(raw) : {};
+                return raw || {};
+            } catch {
+                return {}; // don't crash on bad JSON, we'll log later when executing
+            }
+        }
+
         for (const out of firstJson.output ?? []) {
-            if (out.role !== "assistant") continue;
-            for (const part of out.content ?? []) {
-                if (part.type === "tool_call" && part.function) {
-                    const name = part.function.name || "";
-                    const raw = part.function.arguments ?? {};
+            if (out?.role !== "assistant") continue;
+            for (const part of out?.content ?? []) {
+                const t = String(part?.type ?? "unknown");
+                partTypeTally[t] = (partTypeTally[t] ?? 0) + 1;
+
+                // 1) Responses modern: tool_use
+                // shape: { type:"tool_use", id, name, input }
+                if (t === "tool_use" && part?.name) {
                     calls.push({
-                        id: part.id || crypto.randomUUID(),
-                        name,
-                        args: raw,
+                        id: part?.id || crypto.randomUUID(),
+                        name: part?.name,
+                        args: part?.input ?? {},
                     });
+                    continue;
+                }
+
+                // 2) Responses older: tool_call with .function
+                // shape: { type:"tool_call", id, function:{ name, arguments } }
+                if (t === "tool_call" && part?.function?.name) {
+                    calls.push({
+                        id: part?.id || crypto.randomUUID(),
+                        name: part?.function?.name,
+                        args: safeParseArgs(part?.function?.arguments),
+                    });
+                    continue;
+                }
+
+                // 3) Very old: function_call
+                // shape: { type:"function_call", id, name, arguments }
+                if (t === "function_call" && part?.name) {
+                    calls.push({
+                        id: part?.id || crypto.randomUUID(),
+                        name: part?.name,
+                        args: safeParseArgs(part?.arguments),
+                    });
+                    continue;
                 }
             }
         }
+
+        log("info", "tool_calls_detected", {count: calls.length, names: calls.map(c => c.name).join(",")});
+        log("debug", "first_call_part_types", partTypeTally);
+
         headerToolCount = calls.length;
         headerToolNames = calls.map(c => c.name).join(",");
 
