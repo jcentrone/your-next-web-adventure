@@ -82,6 +82,27 @@ export default function RouteView() {
     }
   };
 
+  const openInWaze = () => {
+    if (!route) return;
+    
+    // Generate Waze URL with all stops
+    const addresses = [];
+    if (route.start_address) addresses.push(route.start_address);
+    if (route.waypoints) {
+      route.waypoints.forEach((waypoint: any) => {
+        if (waypoint.address) addresses.push(waypoint.address);
+      });
+    }
+    if (route.end_address && route.end_address !== route.start_address) {
+      addresses.push(route.end_address);
+    }
+
+    if (addresses.length >= 2) {
+      const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(addresses[addresses.length - 1])}&navigate=yes`;
+      window.open(wazeUrl, '_blank');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
@@ -138,7 +159,11 @@ export default function RouteView() {
         <div className="flex gap-2">
           <Button onClick={openInGoogleMaps}>
             <Navigation className="h-4 w-4 mr-2" />
-            Open in Google Maps
+            Google Maps
+          </Button>
+          <Button variant="outline" onClick={openInWaze}>
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Waze
           </Button>
         </div>
       </div>
