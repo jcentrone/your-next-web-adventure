@@ -1,4 +1,5 @@
 // deno-lint-ignore-file no-explicit-any
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-require-imports */
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import {serve} from "https://deno.land/std@0.168.0/http/server.ts";
 import {createClient} from "https://esm.sh/@supabase/supabase-js@2";
@@ -202,52 +203,40 @@ const toolParameterSchemas = {
 const tools = [
     {
         type: "function",
-        function: {
-            name: "create_account",
-            description: "Create a new CRM/company account record.",
-            parameters: toolParameterSchemas.create_account,
-        },
+        name: "create_account",
+        description: "Create a new CRM/company account record.",
+        parameters: toolParameterSchemas.create_account,
     },
     {
         type: "function",
-        function: {
-            name: "create_contact",
-            description: "Create a new person/lead/contact.",
-            parameters: toolParameterSchemas.create_contact,
-        },
+        name: "create_contact",
+        description: "Create a new person/lead/contact.",
+        parameters: toolParameterSchemas.create_contact,
     },
     {
         type: "function",
-        function: {
-            name: "create_report",
-            description: "Create a new inspection report for a property.",
-            parameters: toolParameterSchemas.create_report,
-        },
+        name: "create_report",
+        description: "Create a new inspection report for a property.",
+        parameters: toolParameterSchemas.create_report,
     },
     {
         type: "function",
-        function: {
-            name: "create_task",
-            description: "Create a to-do/follow-up task.",
-            parameters: toolParameterSchemas.create_task,
-        },
+        name: "create_task",
+        description: "Create a to-do/follow-up task.",
+        parameters: toolParameterSchemas.create_task,
     },
     {
         type: "function",
-        function: {
-            name: "create_appointment",
-            description: "Create/schedule an appointment or inspection time.",
-            parameters: toolParameterSchemas.create_appointment,
-        },
+        name: "create_appointment",
+        description: "Create/schedule an appointment or inspection time.",
+        parameters: toolParameterSchemas.create_appointment,
     },
     {
         type: "function",
-        function: {
-            name: "search_support",
-            description:
-                "Search HomeReportPro support articles when the user asks general 'how/why' questions or you need product docs. Prefer action tools when the user asks you to create/add/schedule something.",
-            parameters: toolParameterSchemas.search_support,
-        },
+        name: "search_support",
+        description:
+            "Search HomeReportPro support articles when the user asks general 'how/why' questions or you need product docs. Prefer action tools when the user asks you to create/add/schedule something.",
+        parameters: toolParameterSchemas.search_support,
     },
 ] as const;
 
@@ -300,7 +289,12 @@ async function handleToolCall(
 
         await log("info", "search_support results", {count: articles.length, query});
 
-        return {articles};
+        return {
+            status: "ok",
+            message: `found ${articles.length} articles`,
+            data: {articles},
+            idempotency_key: crypto.randomUUID(),
+        };
     }
 
     const schemaMap = {
@@ -321,12 +315,23 @@ async function handleToolCall(
 
     const schema = (schemaMap as any)[name];
     const table = (tableMap as any)[name];
-    if (!schema || !table) return {error: "Unknown tool"};
+    if (!schema || !table) {
+        return {
+            status: "error",
+            message: "Unknown tool",
+            idempotency_key: crypto.randomUUID(),
+        };
+    }
 
     const parsed = schema.safeParse(args);
     if (!parsed.success) {
         const missing = parsed.error.issues.map((i: any) => i.path.join("."));
-        return {missing};
+        return {
+            status: "needs_input",
+            message: "Missing required fields",
+            missing_fields: missing,
+            idempotency_key: crypto.randomUUID(),
+        };
     }
 
     // role guard for reports
@@ -343,7 +348,11 @@ async function handleToolCall(
                 action: name,
                 payload: {args: parsed.data, error: "unauthorized", conversation_id: conversationId},
             });
-            return {error: "Unauthorized"};
+            return {
+                status: "error",
+                message: "Unauthorized",
+                idempotency_key: crypto.randomUUID(),
+            };
         }
     }
 
@@ -359,7 +368,12 @@ async function handleToolCall(
             action: name,
             payload: {args: parsed.data, error: error.message, conversation_id: conversationId},
         });
-        return {error: error.message};
+        return {
+            status: "error",
+            message: error.message,
+            idempotency_key: crypto.randomUUID(),
+            transient: true,
+        };
     }
 
     await client.from("support_action_logs").insert({
@@ -368,7 +382,12 @@ async function handleToolCall(
         payload: {args: parsed.data, record: data, conversation_id: conversationId},
     });
 
-    return {record: data};
+    return {
+        status: "ok",
+        message: "record created",
+        data: {record: data},
+        idempotency_key: crypto.randomUUID(),
+    };
 }
 
 // --- lightweight intent router to bias/force tool choice ---
@@ -378,6 +397,66 @@ function wantsLoginFlow(s: string) {
 
 function normalize(s: string) {
     return (s || "").toLowerCase();
+}
+
+type RouterIntent = { name: string; confidence: number };
+
+function strictRegexRouter(question: string): {intents: RouterIntent[]; reason: string} | null {
+    const intents: RouterIntent[] = [];
+    const q = normalize(question);
+    if (/\b(schedule|book|set|arrange)\b.*\b(appointment|meeting|inspection)\b/i.test(q)) {
+        intents.push({name: "create_appointment", confidence: 1});
+    }
+    if (/\b(create|add|make|set\s*up)\b.*\baccount\b(?!\s*(number|no\.?|id))/i.test(q) && !wantsLoginFlow(q)) {
+        intents.push({name: "create_account", confidence: 1});
+    }
+    if (/\b(create|start|generate|new)\b.*\b(report|inspection report)\b/i.test(q)) {
+        intents.push({name: "create_report", confidence: 1});
+    }
+    if (/\b(create|add|new|make)\b.*\b(contact|lead|person|client|realtor|vendor|contractor)\b/i.test(q) ||
+        /\b(contact|client|person)\b.*\bnamed?\b/i.test(q)) {
+        intents.push({name: "create_contact", confidence: 1});
+    }
+    if (/\b(create|add|make|new|remind|task|todo|to-do|follow)\b/i.test(q) && /\b(task|remind|follow|call|email|check)\b/i.test(q)) {
+        intents.push({name: "create_task", confidence: 1});
+    }
+    return intents.length ? {intents, reason: "regex"} : null;
+}
+
+async function routeIntents(question: string) {
+    const strict = strictRegexRouter(question);
+    if (strict) {
+        return {intents: strict.intents, force: true, reason: strict.reason};
+    }
+    try {
+        const res = await fetch("https://api.openai.com/v1/responses", {
+            method: "POST",
+            headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
+            body: JSON.stringify({
+                model: "gpt-4.1-mini",
+                input: [
+                    {
+                        role: "system",
+                        content:
+                            "You are an intent router for a home inspection assistant. Valid intents: create_account, create_contact, create_report, create_task, create_appointment, search_support. Return JSON {intents:[{name,confidence}], force:boolean, reason:string}.",
+                    },
+                    {role: "user", content: question},
+                ],
+                max_output_tokens: 200,
+            }),
+        });
+        const data = await res.json();
+        const txt = data.output?.[0]?.content?.[0]?.text || "{}";
+        const parsed = JSON.parse(txt);
+        return {
+            intents: parsed.intents || [],
+            force: Boolean(parsed.force),
+            reason: parsed.reason || "",
+        };
+    } catch (e) {
+        await log("error", "router failed", {error: e.message});
+        return {intents: [], force: false, reason: "router_error"};
+    }
 }
 
 // ====== System prompt ======
@@ -447,6 +526,7 @@ User: "create a client"
 - If a tool indicates missing fields, ask for those specific fields clearly
 - Be conversational and friendly while being efficient
 - If users ask general "how to" questions, use search_support to find relevant documentation
+- Use only facts provided in tool messages. If a field is missing, ask for it. If a tool returns an error, explain it and propose next steps.
 
 Remember: Your goal is to make inspectors more productive by quickly handling their requests through the available tools.`;
 
@@ -525,71 +605,28 @@ serve(async (req) => {
             ? [{type: "text", text: question}, {type: "image_url", image_url: {url: imageUrl}}]
             : question;
 
-        // Router (first-hit wins)
-        const q = normalize(question);
-        let forcedToolChoice: any = null;
-        const setOnce = (v: any) => {
-            if (!forcedToolChoice) forcedToolChoice = v;
-        };
-
-        // Appointment BEFORE report when “schedule/book” appears
-        if (/\b(schedule|book|set|arrange)\b.*\b(appointment|meeting|inspection)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_appointment"}});
-        }
-
-        // CRM account (not signup), avoid "account number"
-        if (/\b(create|add|make|set\s*up)\b.*\baccount\b(?!\s*(number|no\.?|id))/i.test(q) && !wantsLoginFlow(q)) {
-            setOnce({type: "function", function: {name: "create_account"}});
-        }
-
-        // Report (start/new/generate)
-        if (/\b(create|start|generate|new)\b.*\b(report|inspection report)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_report"}});
-        }
-
-        // Contact - improved pattern to catch more variations
-        if (/\b(create|add|new|make)\b.*\b(contact|lead|person|client|realtor|vendor|contractor)\b/i.test(q) ||
-            /\b(contact|client|person)\b.*\bnamed?\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_contact"}});
-        }
-
-        // Task (to-do, remind, follow up)
-        if (/\b(create|add|make|new|remind|task|todo|to-do|follow)\b/i.test(q) && /\b(task|remind|follow|call|email|check)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_task"}});
-        }
-
-        await log("info", "tool choice analysis", {
-            question: question,
-            normalizedQuestion: q,
-            forcedToolChoice: forcedToolChoice,
-            contactMatch: /\b(create|add|new|make)\b.*\b(contact|lead|person|client|realtor|vendor|contractor)\b/i.test(q),
-            namedContactMatch: /\b(contact|client|person)\b.*\bnamed?\b/i.test(q)
-        });
-
-        // Task
-        if (/\b(create|add|new)\b.*\b(task|to-?do)\b/i.test(q)) {
-            setOnce({type: "function", function: {name: "create_task"}});
-        }
+        const routerResult = await routeIntents(question);
+        await log("info", "router decision", {question, routerResult});
 
         // ===== First model call (may produce tool_calls) =====
-        const firstRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        const messageList: any[] = [
+            {role: "system", content: systemPrompt},
+            {role: "user", content: userMessageContent as any},
+        ];
+
+        const firstRes = await fetch("https://api.openai.com/v1/responses", {
             method: "POST",
             headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
             body: JSON.stringify({
                 model: MODEL,
-                messages: [
-                    {role: "system", content: systemPrompt},
-                    {role: "user", content: userMessageContent as any},
-                ],
-                max_completion_tokens: 1500,
-                stream: true,
+                input: messageList,
                 tools,
-                tool_choice: forcedToolChoice || "auto",
-                parallel_tool_calls: false, // simpler while debugging
+                tool_choice: "auto",
+                max_output_tokens: 1500,
             }),
         });
 
-        if (!firstRes.ok || !firstRes.body) {
+        if (!firstRes.ok) {
             const text = await firstRes.text();
             await log("error", "OpenAI request failed", {error: text, model: MODEL});
             return new Response(JSON.stringify({error: "OpenAI request failed"}), {
@@ -597,9 +634,10 @@ serve(async (req) => {
             });
         }
 
-        // Accumulate content & tool_calls from the first stream
+        const firstJson = await firstRes.json();
+
         let accumulatedAssistantText = "";
-        const assistantToolMessage: any = {role: "assistant", content: "", tool_calls: [] as any[]};
+        const assistantToolMessage: any = {role: "assistant", content: [] as any[]};
 
         type PendingCall = {
             id: string;
@@ -609,59 +647,44 @@ serve(async (req) => {
         };
         const pendingCallsByIndex = new Map<number, PendingCall>();
 
-        const reader = firstRes.body.getReader();
-        const decoder = new TextDecoder();
+        const outputs = firstJson.output || [];
+        for (const out of outputs) {
+            if (out.role !== "assistant") continue;
+            for (const part of out.content || []) {
+                if (part.type === "output_text" && part.text) {
+                    accumulatedAssistantText += part.text;
+                    continue;
+                }
 
-        let buffer = "";
-        let sawToolCallsFinish = false;
+                // The Responses API emits tool calls as content items with
+                // type "tool_call" and nests the name/arguments under
+                // part.function. Handle that shape here.
+                if (part.type === "tool_call" && part.function) {
+                    const idx = pendingCallsByIndex.size;
+                    const fnArgs = typeof part.function.arguments === "string"
+                        ? part.function.arguments
+                        : JSON.stringify(part.function.arguments || {});
+                    pendingCallsByIndex.set(idx, {
+                        id: part.id || `call_${idx}`,
+                        index: idx,
+                        type: "function",
+                        function: {name: part.function.name || "", arguments: fnArgs},
+                    });
+                }
 
-        while (true) {
-            const {done, value} = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, {stream: true});
-
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || "";
-
-            for (const line of lines) {
-                if (!line.startsWith("data: ")) continue;
-                const payload = line.slice(6).trim();
-                if (payload === "[DONE]") continue;
-
-                try {
-                    const parsed = JSON.parse(payload);
-                    const choice = parsed.choices?.[0];
-                    const delta = choice?.delta;
-
-                    if (delta?.content) {
-                        accumulatedAssistantText += delta.content;
-                    }
-
-                    if (delta?.tool_calls) {
-                        for (const tc of delta.tool_calls) {
-                            const idx = tc.index ?? 0;
-                            let call = pendingCallsByIndex.get(idx);
-                            if (!call) {
-                                call = {
-                                    id: tc.id || `call_${idx}`,
-                                    index: idx,
-                                    type: "function",
-                                    function: {name: tc.function?.name || "", arguments: ""},
-                                };
-                                pendingCallsByIndex.set(idx, call);
-                            }
-                            if (tc.id) call.id = tc.id;
-                            if (tc.function?.name) call.function.name = tc.function.name;
-                            if (tc.function?.arguments) call.function.arguments += tc.function.arguments;
-                        }
-                    }
-
-                    const finish = choice?.finish_reason;
-                    if (finish === "tool_calls") {
-                        sawToolCallsFinish = true;
-                    }
-                } catch {
-                    // ignore malformed partials
+                // Legacy compatibility: some older Responses versions used
+                // "function_call" with top-level name/arguments fields.
+                if (part.type === "function_call") {
+                    const idx = pendingCallsByIndex.size;
+                    pendingCallsByIndex.set(idx, {
+                        id: part.id || `call_${idx}`,
+                        index: idx,
+                        type: "function",
+                        function: {
+                            name: part.name || "",
+                            arguments: part.arguments || "",
+                        },
+                    });
                 }
             }
         }
@@ -671,9 +694,8 @@ serve(async (req) => {
             async start(controller) {
                 const encoder = new TextEncoder();
 
-                // If no tool calls, stream the first text (often general answer),
-                // then persist and exit.
-                if (!sawToolCallsFinish || pendingCallsByIndex.size === 0) {
+                // If no tool calls, return the first text and exit.
+                if (pendingCallsByIndex.size === 0) {
                     if (accumulatedAssistantText) {
                         controller.enqueue(encoder.encode(accumulatedAssistantText));
                     }
@@ -714,61 +736,50 @@ serve(async (req) => {
                 }
 
                 // ===== Execute ALL pending tool calls =====
-                assistantToolMessage.content = accumulatedAssistantText; // may be empty; include anyway
-                assistantToolMessage.tool_calls = Array.from(pendingCallsByIndex.values()).map((c) => ({
-                    id: c.id,
-                    type: "function",
-                    function: {name: c.function.name, arguments: c.function.arguments},
-                }));
+                if (accumulatedAssistantText) {
+                    (assistantToolMessage.content as any[]).push({type: "text", text: accumulatedAssistantText});
+                }
+                for (const c of pendingCallsByIndex.values()) {
+                    (assistantToolMessage.content as any[]).push({
+                        type: "tool_call",
+                        id: c.id,
+                        function: {name: c.function.name, arguments: c.function.arguments},
+                    });
+                }
 
                 const toolMessages: any[] = [];
                 for (const call of pendingCallsByIndex.values()) {
                     let toolContent: string;
                     try {
                         await log("info", "executing tool call", {
-                            tool: call.function.name, 
-                            args: call.function.arguments
+                            tool: call.function.name,
+                            args: call.function.arguments,
                         });
 
                         const args = call.function.arguments ? JSON.parse(call.function.arguments) : {};
                         const result = await handleToolCall(call.function.name, args, client, user, conversationId);
-                        
+
                         await log("info", "tool execution result", {
                             tool: call.function.name,
-                            result: result
+                            result: result,
                         });
-                        
-                        // Capture tool execution results for response headers
-                        if ((result as any).record?.id) {
-                            toolRecordId = (result as any).record.id;
+
+                        if (result.status === "ok" && (result.data as any)?.record?.id) {
+                            toolRecordId = (result.data as any).record.id;
                             toolRecordType = call.function.name.replace("create_", "");
                         }
-                        
-                        if ((result as any).missing) {
-                            toolMissingFields = (result as any).missing.join(", ");
-                            toolContent = JSON.stringify({
-                                missing: (result as any).missing,
-                                message: `I need some additional information to create this record. Please provide: ${(result as any).missing.join(", ")}`
-                            });
-                            await log("info", "tool missing fields", {
-                                tool: call.function.name,
-                                missing: (result as any).missing
-                            });
-                        } else if ((result as any).error) {
-                            toolContent = JSON.stringify({error: (result as any).error});
-                            await log("error", "tool execution error", {
-                                tool: call.function.name,
-                                error: (result as any).error
-                            });
-                        } else {
-                            toolContent = JSON.stringify(result); // includes {record} or {articles}
+
+                        if (result.status === "needs_input" && result.missing_fields) {
+                            toolMissingFields = result.missing_fields.join(", ");
                         }
+
+                        toolContent = JSON.stringify(result);
                     } catch (e) {
                         await log("error", "tool call exception", {
                             tool: call.function.name,
-                            error: e.message
+                            error: e.message,
                         });
-                        toolContent = JSON.stringify({error: "Invalid tool call arguments: " + e.message});
+                        toolContent = JSON.stringify({status: "error", message: "Invalid tool call arguments: " + e.message});
                     }
 
                     toolMessages.push({
@@ -780,19 +791,19 @@ serve(async (req) => {
                 }
 
                 // ===== Second model call (model sees tool outputs and produces final answer) =====
-                const followRes = await fetch("https://api.openai.com/v1/chat/completions", {
+                const followRes = await fetch("https://api.openai.com/v1/responses", {
                     method: "POST",
                     headers: {Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json"},
                     body: JSON.stringify({
                         model: MODEL,
                         stream: true,
-                        messages: [
+                        input: [
                             {role: "system", content: systemPrompt},
                             {role: "user", content: userMessageContent as any},
                             assistantToolMessage,
                             ...toolMessages,
                         ],
-                        max_completion_tokens: 1500,
+                        max_output_tokens: 1500,
                     }),
                 });
 
@@ -807,13 +818,15 @@ serve(async (req) => {
                 const fReader = followRes.body.getReader();
                 const fDecoder = new TextDecoder();
                 let finalText = "";
+                let fBuffer = "";
 
                 while (true) {
                     const {value, done} = await fReader.read();
                     if (done) break;
 
-                    const chunk = fDecoder.decode(value, {stream: true});
-                    const lines = chunk.split("\n");
+                    fBuffer += fDecoder.decode(value, {stream: true});
+                    const lines = fBuffer.split("\n");
+                    fBuffer = lines.pop() || "";
                     for (const line of lines) {
                         if (!line.startsWith("data: ")) continue;
                         const payload = line.slice(6).trim();
@@ -821,15 +834,31 @@ serve(async (req) => {
 
                         try {
                             const parsed = JSON.parse(payload);
-                            const delta = parsed.choices?.[0]?.delta;
-                            const content = delta?.content ?? "";
-                            if (content) {
-                                finalText += content;
-                                controller.enqueue(encoder.encode(content));
+                            if (
+                                parsed.type === "response.output_text.delta" &&
+                                typeof parsed.delta === "string"
+                            ) {
+                                finalText += parsed.delta;
+                                controller.enqueue(encoder.encode(parsed.delta));
                             }
                         } catch {
-                            // ignore
+                            // ignore JSON parse errors
                         }
+                    }
+                }
+
+                if (fBuffer) {
+                    try {
+                        const parsed = JSON.parse(fBuffer);
+                        if (
+                            parsed.type === "response.output_text.delta" &&
+                            typeof parsed.delta === "string"
+                        ) {
+                            finalText += parsed.delta;
+                            controller.enqueue(encoder.encode(parsed.delta));
+                        }
+                    } catch {
+                        // ignore leftover
                     }
                 }
 
