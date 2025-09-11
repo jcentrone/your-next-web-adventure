@@ -204,52 +204,40 @@ const toolParameterSchemas = {
 const tools = [
     {
         type: "function",
-        function: {
-            name: "create_account",
-            description: "Create a new CRM/company account record.",
-            parameters: toolParameterSchemas.create_account,
-        },
+        name: "create_account",
+        description: "Create a new CRM/company account record.",
+        parameters: toolParameterSchemas.create_account,
     },
     {
         type: "function",
-        function: {
-            name: "create_contact",
-            description: "Create a new person/lead/contact.",
-            parameters: toolParameterSchemas.create_contact,
-        },
+        name: "create_contact",
+        description: "Create a new person/lead/contact.",
+        parameters: toolParameterSchemas.create_contact,
     },
     {
         type: "function",
-        function: {
-            name: "create_report",
-            description: "Create a new inspection report for a property.",
-            parameters: toolParameterSchemas.create_report,
-        },
+        name: "create_report",
+        description: "Create a new inspection report for a property.",
+        parameters: toolParameterSchemas.create_report,
     },
     {
         type: "function",
-        function: {
-            name: "create_task",
-            description: "Create a to-do/follow-up task.",
-            parameters: toolParameterSchemas.create_task,
-        },
+        name: "create_task",
+        description: "Create a to-do/follow-up task.",
+        parameters: toolParameterSchemas.create_task,
     },
     {
         type: "function",
-        function: {
-            name: "create_appointment",
-            description: "Create/schedule an appointment or inspection time.",
-            parameters: toolParameterSchemas.create_appointment,
-        },
+        name: "create_appointment",
+        description: "Create/schedule an appointment or inspection time.",
+        parameters: toolParameterSchemas.create_appointment,
     },
     {
         type: "function",
-        function: {
-            name: "search_support",
-            description:
-                "Search HomeReportPro support articles when the user asks general 'how/why' questions or you need product docs. Prefer action tools when the user asks you to create/add/schedule something.",
-            parameters: toolParameterSchemas.search_support,
-        },
+        name: "search_support",
+        description:
+            "Search HomeReportPro support articles when the user asks general 'how/why' questions or you need product docs. Prefer action tools when the user asks you to create/add/schedule something.",
+        parameters: toolParameterSchemas.search_support,
     },
 ] as const;
 
@@ -460,7 +448,6 @@ async function routeIntents(question: string) {
         });
         const data = await res.json();
         const txt = data.output?.[0]?.content?.[0]?.text || "{}";
-
         const parsed = JSON.parse(txt);
         return {
             intents: parsed.intents || [],
@@ -622,7 +609,8 @@ serve(async (req) => {
         const routerResult = await routeIntents(question);
         let forcedToolChoice: any = null;
         if (routerResult.force && routerResult.intents.length > 0) {
-            forcedToolChoice = {type: "function", function: {name: routerResult.intents[0].name}};
+            forcedToolChoice = {type: "function", name: routerResult.intents[0].name};
+
         }
         await log("info", "router decision", {question, routerResult});
 
@@ -657,7 +645,8 @@ serve(async (req) => {
         const firstJson = await firstRes.json();
 
         let accumulatedAssistantText = "";
-        const assistantToolMessage: any = {role: "assistant", content: [] as any[], tool_calls: [] as any[]};
+        const assistantToolMessage: any = {role: "assistant", content: [] as any[]};
+
 
         type PendingCall = {
             id: string;
@@ -676,7 +665,7 @@ serve(async (req) => {
                     continue;
                 }
 
-                // The Responses API emits tool calls as content items with
+              // The Responses API emits tool calls as content items with
                 // type "tool_call" and nests the name/arguments under
                 // part.function. Handle that shape here.
                 if (part.type === "tool_call" && part.function) {
@@ -760,11 +749,14 @@ serve(async (req) => {
                 if (accumulatedAssistantText) {
                     (assistantToolMessage.content as any[]).push({type: "text", text: accumulatedAssistantText});
                 }
-                assistantToolMessage.tool_calls = Array.from(pendingCallsByIndex.values()).map((c) => ({
-                    id: c.id,
-                    type: "function",
-                    function: {name: c.function.name, arguments: c.function.arguments},
-                }));
+                for (const c of pendingCallsByIndex.values()) {
+                    (assistantToolMessage.content as any[]).push({
+                        type: "tool_call",
+                        id: c.id,
+                        function: {name: c.function.name, arguments: c.function.arguments},
+                    });
+                }
+
 
                 const toolMessages: any[] = [];
                 for (const call of pendingCallsByIndex.values()) {
@@ -846,8 +838,7 @@ serve(async (req) => {
                     fBuffer += fDecoder.decode(value, {stream: true});
                     const lines = fBuffer.split("\n");
                     fBuffer = lines.pop() || "";
-
-                  for (const line of lines) {
+                    for (const line of lines) {
                         if (!line.startsWith("data: ")) continue;
                         const payload = line.slice(6).trim();
                         if (payload === "[DONE]") continue;
