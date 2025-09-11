@@ -398,6 +398,24 @@ serve(async (req) => {
             });
         }
 
+        // log the raw model output (trim large strings)
+        function trimDeep(obj: any, max = 300): any {
+            if (typeof obj === "string") {
+                return obj.length > max ? obj.slice(0, max) + "..." : obj;
+            }
+            if (Array.isArray(obj)) return obj.map(x => trimDeep(x, max));
+            if (obj && typeof obj === "object") {
+                const out: any = {};
+                for (const [k, v] of Object.entries(obj)) {
+                    out[k] = trimDeep(v, max);
+                }
+                return out;
+            }
+            return obj;
+        }
+
+        log("debug", "first_model_response", trimDeep(firstJson, 300));
+
         const assistantText = extractAssistantText(firstJson);
         log("debug", "first_call_assistant_text", {len: assistantText.length});
 
@@ -530,6 +548,7 @@ serve(async (req) => {
                     }
                 });
             }
+            log("debug", "follow_model_response", trimDeep(followText, 300));
 
             let followJson: any = {};
             try {
