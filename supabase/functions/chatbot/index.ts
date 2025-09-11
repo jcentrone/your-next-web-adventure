@@ -848,13 +848,17 @@ serve(async (req) => {
                 const fReader = followRes.body.getReader();
                 const fDecoder = new TextDecoder();
                 let finalText = "";
+                let buffer = "";
 
                 while (true) {
                     const {value, done} = await fReader.read();
                     if (done) break;
 
-                    const chunk = fDecoder.decode(value, {stream: true});
-                    const lines = chunk.split("\n");
+                    buffer += fDecoder.decode(value, {stream: true});
+
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop() || "";
+
                     for (const line of lines) {
                         if (!line.startsWith("data: ")) continue;
                         const payload = line.slice(6).trim();
