@@ -336,31 +336,31 @@ serve(async (req) => {
 
     try {
         if (!openaiKey) {
-            return new Response(JSON.stringify({error: "Missing OPENAI_API_KEY"}), {
+            return new Response("Missing OPENAI_API_KEY", {
                 status: 500,
-                headers: {...CORS, "Content-Type": "application/json"}
+                headers: {...CORS, "Content-Type": "text/plain"}
             });
         }
 
         const jwt = req.headers.get("Authorization")?.replace("Bearer ", "");
-        if (!jwt) return new Response(JSON.stringify({error: "Unauthorized"}), {
+        if (!jwt) return new Response("Unauthorized", {
             status: 401,
-            headers: {...CORS, "Content-Type": "application/json"}
+            headers: {...CORS, "Content-Type": "text/plain"}
         });
 
         const client = createClient(supabaseUrl, serviceKey);
         const {data: {user}} = await client.auth.getUser(jwt);
-        if (!user) return new Response(JSON.stringify({error: "Unauthorized"}), {
+        if (!user) return new Response("Unauthorized", {
             status: 401,
-            headers: {...CORS, "Content-Type": "application/json"}
+            headers: {...CORS, "Content-Type": "text/plain"}
         });
 
         const body = await req.json();
         const messages = body?.messages;
         if (!Array.isArray(messages) || messages.length === 0) {
-            return new Response(JSON.stringify({error: "No messages"}), {
+            return new Response("No messages", {
                 status: 400,
-                headers: {...CORS, "Content-Type": "application/json"}
+                headers: {...CORS, "Content-Type": "text/plain"}
             });
         }
 
@@ -382,9 +382,9 @@ serve(async (req) => {
         const firstText = await firstRes.text();
         if (!firstRes.ok) {
             log("error", "first_call_failed", {status: firstRes.status, body: firstText.slice(0, 1000)});
-            return new Response(JSON.stringify({error: "OpenAI request failed"}), {
+            return new Response("OpenAI request failed", {
                 status: 500,
-                headers: {...CORS, "Content-Type": "application/json"}
+                headers: {...CORS, "Content-Type": "text/plain"}
             });
         }
         let firstJson: any = {};
@@ -392,9 +392,9 @@ serve(async (req) => {
             firstJson = JSON.parse(firstText);
         } catch (e) {
             log("error", "first_call_json_parse_failed", {error: String(e), snippet: firstText.slice(0, 300)});
-            return new Response(JSON.stringify({error: "Bad OpenAI JSON"}), {
+            return new Response("Bad OpenAI JSON", {
                 status: 500,
-                headers: {...CORS, "Content-Type": "application/json"}
+                headers: {...CORS, "Content-Type": "text/plain"}
             });
         }
 
@@ -538,11 +538,11 @@ serve(async (req) => {
             const followText = await followRes.text();
             if (!followRes.ok) {
                 log("error", "follow_call_failed", {status: followRes.status, body: followText.slice(0, 1000)});
-                return new Response(JSON.stringify({error: "OpenAI follow-up failed"}), {
+                return new Response("OpenAI follow-up failed", {
                     status: 500,
                     headers: {
                         ...CORS,
-                        "Content-Type": "application/json",
+                        "Content-Type": "text/plain",
                         "x-tool-calls": String(headerToolCount),
                         "x-tool-names": headerToolNames
                     }
@@ -573,10 +573,19 @@ serve(async (req) => {
                 }
             }
 
-            return new Response(JSON.stringify({message: finalText}), {
+            // Create a readable stream for the text response
+            const stream = new ReadableStream({
+                start(controller) {
+                    const encoder = new TextEncoder();
+                    controller.enqueue(encoder.encode(finalText));
+                    controller.close();
+                }
+            });
+
+            return new Response(stream, {
                 headers: {
                     ...CORS,
-                    "Content-Type": "application/json",
+                    "Content-Type": "text/plain",
                     "x-tool-calls": String(headerToolCount),
                     "x-tool-names": headerToolNames,
                     "x-follow-text": headerHadFollowText
@@ -584,16 +593,24 @@ serve(async (req) => {
             });
         }
 
-        // No tools → return first-pass text
+        // No tools → return first-pass text as stream
         const noToolText = assistantText || "";
-        return new Response(JSON.stringify({message: noToolText}), {
-            headers: {...CORS, "Content-Type": "application/json", "x-tool-calls": "0", "x-follow-text": "0"},
+        const stream = new ReadableStream({
+            start(controller) {
+                const encoder = new TextEncoder();
+                controller.enqueue(encoder.encode(noToolText));
+                controller.close();
+            }
+        });
+
+        return new Response(stream, {
+            headers: {...CORS, "Content-Type": "text/plain", "x-tool-calls": "0", "x-follow-text": "0"},
         });
     } catch (e) {
         log("error", "handler_exception", {error: String(e)});
-        return new Response(JSON.stringify({error: "Unexpected error"}), {
+        return new Response("Unexpected error", {
             status: 500,
-            headers: {...CORS, "Content-Type": "application/json"},
+            headers: {...CORS, "Content-Type": "text/plain"},
         });
     } finally {
         log("debug", "duration_ms", {ms: Math.round(performance.now() - started)});
