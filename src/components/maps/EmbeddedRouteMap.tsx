@@ -240,46 +240,22 @@ export default function EmbeddedRouteMap({
     const isRoundTrip = route.start_address === route.end_address;
 
     if (isRoundTrip) {
-      // Option 3: Combined START/END marker for round trips
+      // Create a home base marker with tooltip-style appearance
       const homeMarker = new google.maps.Marker({
         position: leg.start_location,
         map: mapInstance.current,
-        title: 'Home Base (Start & End)',
-        label: { text: '🏠', color: 'white', fontWeight: 'bold', fontSize: '14px' },
+        title: `🏠 Home Base\n${route.start_address || ''}\nSTART • END`,
         icon: {
-          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-          scale: 25,
-          fillColor: '#8B5CF6', // Purple to distinguish from other markers
+          path: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+          scale: 1.5,
+          fillColor: '#8B5CF6',
           fillOpacity: 1,
           strokeColor: '#ffffff',
-          strokeWeight: 3,
-          rotation: 0,
+          strokeWeight: 2,
         },
       });
-      customMarkers.current.push(homeMarker);
       
-      // Add a secondary text marker for "START/END" label
-      const labelMarker = new google.maps.Marker({
-        position: {
-          lat: leg.start_location.lat() + 0.0003, // Slight offset for label
-          lng: leg.start_location.lng()
-        },
-        map: mapInstance.current,
-        title: 'Home Base (Start & End)',
-        label: { 
-          text: 'START/END', 
-          color: '#8B5CF6', 
-          fontWeight: 'bold',
-          fontSize: '10px'
-        },
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 1,
-          fillOpacity: 0,
-          strokeOpacity: 0,
-        },
-      });
-      customMarkers.current.push(labelMarker);
+      customMarkers.current.push(homeMarker);
     } else {
       // Separate start and end markers for non-round trips
       const startMarker = new google.maps.Marker({
@@ -316,7 +292,7 @@ export default function EmbeddedRouteMap({
       customMarkers.current.push(endMarker);
     }
 
-    // Add appointment markers with numbers instead of letters
+    // Add appointment markers with numbers
     route.legs.forEach((leg: any, index: number) => {
       if (index < route.legs.length - 1) { // Don't mark the final destination here
         const appointmentMarker = new google.maps.Marker({
