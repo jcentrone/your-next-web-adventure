@@ -74,24 +74,54 @@ export const routeOptimizationApi = {
 
   // Daily Routes CRUD
   async getDailyRoute(date: string): Promise<DailyRoute | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('No authenticated user when fetching daily route');
+      return null;
+    }
+
+    console.log('Fetching daily route for:', { user_id: user.id, date });
+
     const { data, error } = await supabase
       .from('daily_routes')
       .select('*')
+      .eq('user_id', user.id)
       .eq('route_date', date)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching daily route:', error);
+      throw new Error(`Failed to fetch route: ${error.message}`);
+    }
+
+    console.log('Daily route fetch result:', data ? `Found route ${data.id}` : 'No route found');
     return data;
   },
 
   async createOrUpdateDailyRoute(route: Omit<DailyRoute, 'id' | 'created_at' | 'updated_at'>): Promise<DailyRoute> {
+    console.log('Creating/updating daily route:', { 
+      user_id: route.user_id, 
+      route_date: route.route_date,
+      total_distance_miles: route.total_distance_miles,
+      waypoints_count: Array.isArray(route.waypoints) ? route.waypoints.length : 0
+    });
+
     const { data, error } = await supabase
       .from('daily_routes')
-      .upsert(route, { onConflict: 'user_id,route_date' })
+      .upsert(route, { 
+        onConflict: 'user_id,route_date',
+        ignoreDuplicates: false 
+      })
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating/updating daily route:', error);
+      console.error('Route data being saved:', route);
+      throw new Error(`Failed to save route: ${error.message}`);
+    }
+
+    console.log('Successfully saved daily route:', data.id);
     return data;
   },
 

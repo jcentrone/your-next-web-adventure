@@ -5,6 +5,7 @@ import { MapPin, Route, Clock, DollarSign, AlertCircle } from 'lucide-react';
 import { getOptimizedRoute } from './routeOptimizer';
 import { RouteChoiceDialog } from './RouteChoiceDialog';
 import { routeOptimizationApi } from '@/integrations/supabase/routeOptimizationApi';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 interface Appointment {
@@ -49,8 +50,10 @@ export function EnhancedRouteOptimizer({
     try {
       const route = await routeOptimizationApi.getDailyRoute(selectedDate);
       setExistingRoute(route ?? null);
+      console.log('Existing route loaded:', route ? `Route ${route.id} found` : 'No existing route');
     } catch (error) {
       console.error('Error loading existing route:', error);
+      setExistingRoute(null);
     }
   };
 
@@ -73,6 +76,16 @@ export function EnhancedRouteOptimizer({
       return;
     }
 
+    console.log('Starting route optimization for:', { 
+      selectedDate, 
+      appointmentCount: appointments.length,
+      settings: { 
+        home_base: settings.home_base_formatted_address,
+        return_home: settings.always_return_home,
+        mileage_rate: settings.mileage_rate 
+      }
+    });
+
     setIsOptimizing(true);
 
     try {
@@ -93,8 +106,26 @@ export function EnhancedRouteOptimizer({
         addresses.push(settings.home_base_formatted_address);
       }
 
+      console.log('Route optimization addresses:', addresses);
+
+      if (addresses.length < 2) {
+        toast({
+          title: "Insufficient Data",
+          description: "Need at least one appointment with location to optimize route.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Get optimized route from Google Maps
+      console.log('Calling Google Maps optimization...');
       const route = await getOptimizedRoute(addresses);
+      console.log('Google Maps optimization result:', {
+        distance: route.totalDistanceMiles,
+        duration: route.totalDurationMinutes,
+        waypointOrder: route.waypointOrder
+      });
+
       const totalDistance = route.totalDistanceMiles;
       const totalDuration = route.totalDurationMinutes;
       const estimatedCost = totalDistance * (settings.mileage_rate || 0.67);
@@ -103,8 +134,14 @@ export function EnhancedRouteOptimizer({
       );
 
       // Save route to database
+      console.log('Saving route to database...');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const dailyRoute = await routeOptimizationApi.createOrUpdateDailyRoute({
-        user_id: '', // Will be set by RLS
+        user_id: user.id,
         route_date: selectedDate,
         optimized_order: optimizedOrder,
         total_distance_miles: totalDistance,
@@ -118,6 +155,8 @@ export function EnhancedRouteOptimizer({
         is_optimized: true,
       });
 
+      console.log('Route saved successfully:', dailyRoute.id);
+
       setOptimizedRoute({ ...route, ...dailyRoute });
       setExistingRoute(dailyRoute);
       setShowRouteDialog(true);
@@ -129,23 +168,29 @@ export function EnhancedRouteOptimizer({
         description: `Saved ${totalDistance.toFixed(1)} miles, estimated $${estimatedCost.toFixed(2)}`,
       });
     } catch (error) {
-      console.error('Error optimizing route:', error);
+      console.error('Route optimization failed:', error);
       
-      // Don't show a generic error - let the Google Maps API errors bubble up
-      // with their specific error messages from loadGoogleMapsApi
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
       
-      // Only show a toast if it's not a Google Maps API error (those are handled in loadGoogleMapsApi)
-      if (!errorMessage.includes('Google Maps') && !errorMessage.includes('API key')) {
-        toast({
-          title: 'Route optimization failed',
-          description: 'Unable to calculate optimal route. The system will still work without route optimization.',
-          variant: 'destructive',
-        });
+      // Check for specific error types
+      let userFriendlyMessage = errorMessage;
+      if (errorMessage.includes('API key')) {
+        userFriendlyMessage = "Google Maps API key is not configured or invalid";
+      } else if (errorMessage.includes('quota')) {
+        userFriendlyMessage = "Google Maps API quota exceeded. Try again later.";
+      } else if (errorMessage.includes('service not enabled')) {
+        userFriendlyMessage = "Google Maps Directions API is not enabled";
+      } else if (errorMessage.includes('network')) {
+        userFriendlyMessage = "Network error. Check your internet connection.";
+      } else if (errorMessage.includes('Failed to save route')) {
+        userFriendlyMessage = "Route calculated but failed to save to database";
       }
       
-      // Don't throw - let the calling component handle the failure gracefully
-      console.warn('Route optimization failed, but continuing without it');
+      toast({
+        title: "Route Optimization Failed",
+        description: userFriendlyMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsOptimizing(false);
     }
