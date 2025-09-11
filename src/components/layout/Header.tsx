@@ -18,6 +18,7 @@ import {
     Building2,
     Calendar,
     CheckSquare,
+    DollarSign,
     Download,
     HelpCircle,
     FileText,
@@ -40,6 +41,7 @@ const Header: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const {isInstallable, install} = usePWAInstall();
     const {isActive, currentStep} = useOnboarding();
+    const userMetadata = user?.user_metadata as { avatar_url?: string; picture?: string } | undefined;
     
     // Auto-open user menu during settings onboarding step
     const [userMenuOpen, setUserMenuOpen] = React.useState(false);
@@ -122,6 +124,12 @@ const Header: React.FC = () => {
                                 <CheckSquare className="h-4 w-4"/>
                                 Tasks
                             </Link>
+                            <Link to="/expenses"
+                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname.startsWith('/expenses') ? 'text-primary' : ''}`}
+                                  data-onboarding="expenses">
+                                <DollarSign className="h-4 w-4"/>
+                                Expenses
+                            </Link>
                             <Link to="/analytics"
                                   className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/analytics' ? 'text-primary' : ''}`}
                                   data-onboarding="analytics">
@@ -203,6 +211,11 @@ const Header: React.FC = () => {
                                               className={`transition-colors py-2 hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : 'text-foreground'}`}
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Tasks
+                                        </Link>
+                                        <Link to="/expenses"
+                                              className={`transition-colors py-2 hover:text-primary ${location.pathname.startsWith('/expenses') ? 'text-primary' : 'text-foreground'}`}
+                                              onClick={() => setMobileMenuOpen(false)}>
+                                            Expenses
                                         </Link>
                                         <Link to="/analytics"
                                               className={`transition-colors py-2 hover:text-primary ${location.pathname === '/analytics' ? 'text-primary' : 'text-foreground'}`}
@@ -319,7 +332,7 @@ const Header: React.FC = () => {
                                         data-onboarding="user-menu">
                                         <Avatar className="h-9 w-9">
                                             <AvatarImage
-                                                src={(user.user_metadata as any)?.avatar_url || (user.user_metadata as any)?.picture}
+                                                src={userMetadata?.avatar_url || userMetadata?.picture}
                                                 alt="avatar"/>
                                             <AvatarFallback>{initials || "U"}</AvatarFallback>
                                         </Avatar>

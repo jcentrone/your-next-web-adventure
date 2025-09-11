@@ -20,7 +20,7 @@ const LoadingFallback = () => (
 );
 
 const lazyLoad = (
-  loader: () => Promise<{ default: React.ComponentType<any> }>
+  loader: () => Promise<{ default: React.ComponentType<unknown> }>
 ) => {
   const C = React.lazy(loader);
   return (
@@ -76,6 +76,7 @@ const AppWithRouting: React.FC = () => {
           <Route path="/calendar" element={lazyLoad(() => import("@/components/calendar/CalendarWrapper"))} />
           <Route path="/route/:routeId" element={lazyLoad(() => import("@/pages/RouteView"))} />
           <Route path="/tasks" element={lazyLoad(() => import("@/pages/Tasks"))} />
+          <Route path="/expenses" element={lazyLoad(() => import("@/pages/Expenses"))} />
           <Route path="/support" element={lazyLoad(() => import("@/pages/ContactSupport"))} />
           <Route path="/documentation" element={lazyLoad(() => import("@/pages/Documentation"))} />
           <Route path="/internachi-standards" element={lazyLoad(() => import("@/pages/InternachiSOP"))} />
