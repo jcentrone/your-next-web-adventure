@@ -133,6 +133,7 @@ const openaiKey = Deno.env.get("OPENAI_API_KEY")!;
 
 // Use a current tool-capable model
 const MODEL = "gpt-4.1"; // or "gpt-4o-2024-08-06"
+const MAX_TOKENS = Number(Deno.env.get("CHATBOT_MAX_TOKENS") ?? "1500");
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -628,7 +629,7 @@ serve(async (req) => {
 
         if (!firstRes.ok) {
             const text = await firstRes.text();
-            await log("error", "OpenAI request failed", {error: text, model: MODEL});
+            await log("error", "OpenAI request failed", {status: firstRes.status, error: text, model: MODEL});
             return new Response(JSON.stringify({error: "OpenAI request failed"}), {
                 status: 500, headers: {...corsHeaders, "Content-Type": "application/json"},
             });
@@ -809,7 +810,7 @@ serve(async (req) => {
 
                 if (!followRes.ok || !followRes.body) {
                     const txt = await followRes.text();
-                    await log("error", "OpenAI follow-up failed", {error: txt, model: MODEL});
+                    await log("error", "OpenAI follow-up failed", {status: followRes.status, error: txt, model: MODEL});
                     controller.enqueue(encoder.encode("Error: failed to generate final response."));
                     controller.close();
                     return;
