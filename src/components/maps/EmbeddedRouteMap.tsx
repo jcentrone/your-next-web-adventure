@@ -89,22 +89,37 @@ export default function EmbeddedRouteMap({
   };
 
   const displayRoute = async () => {
-    if (!directionsRenderer.current || !route.start_address || !route.end_address) return;
+    if (!directionsRenderer.current || !route.start_address) return;
 
     try {
       const google = await loadGoogleMapsApi();
       const directionsService = new google.maps.DirectionsService();
 
-      const waypoints = route.waypoints?.map(wp => ({
-        location: wp.address,
-        stopover: true,
-      })) || [];
+      // Ensure home base (start_address) is always waypoint A by making it the origin
+      // and all other locations (including waypoints and end_address if different) are waypoints
+      const allWaypoints = [];
+      
+      // Add route waypoints
+      if (route.waypoints) {
+        route.waypoints.forEach(wp => {
+          allWaypoints.push({
+            location: wp.address,
+            stopover: true,
+          });
+        });
+      }
+      
+      // Determine destination - if end_address is different from start, use it as final destination
+      // Otherwise, return to start (round trip)
+      const destination = route.end_address && route.end_address !== route.start_address 
+        ? route.end_address 
+        : route.start_address;
 
       const result = await directionsService.route({
-        origin: route.start_address,
-        destination: route.end_address,
-        waypoints,
-        optimizeWaypoints: true,
+        origin: route.start_address, // Home base is always origin (waypoint A)
+        destination,
+        waypoints: allWaypoints,
+        optimizeWaypoints: false, // Don't optimize to preserve intended order
         travelMode: google.maps.TravelMode.DRIVING,
       });
 
