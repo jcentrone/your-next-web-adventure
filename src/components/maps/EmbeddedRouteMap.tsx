@@ -244,15 +244,23 @@ export default function EmbeddedRouteMap({
       const homeMarker = new google.maps.Marker({
         position: leg.start_location,
         map: mapInstance.current,
-        title: `🏠 Home Base\n${route.start_address || ''}\nSTART • END`,
+        title: `Home Base - Start & End Point\n${route.start_address || ''}`,
         icon: {
-          path: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
-          scale: 1.5,
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          scale: 20,
           fillColor: '#8B5CF6',
           fillOpacity: 1,
           strokeColor: '#ffffff',
           strokeWeight: 2,
+          rotation: 0,
         },
+        label: {
+          text: '🏠',
+          color: '#ffffff',
+          fontWeight: 'bold',
+          fontSize: '16px'
+        },
+        zIndex: 1000,
       });
       
       customMarkers.current.push(homeMarker);
@@ -295,19 +303,26 @@ export default function EmbeddedRouteMap({
     // Add appointment markers with numbers
     route.legs.forEach((leg: any, index: number) => {
       if (index < route.legs.length - 1) { // Don't mark the final destination here
+        const appointmentNumber = index + 1; // Start numbering from 1
         const appointmentMarker = new google.maps.Marker({
           position: leg.end_location,
           map: mapInstance.current,
-          title: `Appointment ${index + 1}`,
-          label: { text: (index + 1).toString(), color: 'white', fontWeight: 'bold' },
+          title: `Appointment ${appointmentNumber}\n${leg.end_address || ''}`,
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
-            scale: 20,
-            fillColor: '#3B82F6',
+            scale: 15,
+            fillColor: '#22C55E',
             fillOpacity: 1,
             strokeColor: '#ffffff',
-            strokeWeight: 3,
+            strokeWeight: 2,
           },
+          label: {
+            text: appointmentNumber.toString(),
+            color: '#ffffff',
+            fontWeight: 'bold',
+            fontSize: '12px'
+          },
+          zIndex: 500,
         });
         customMarkers.current.push(appointmentMarker);
       }
