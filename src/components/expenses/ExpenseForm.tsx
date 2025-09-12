@@ -21,7 +21,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Camera } from "lucide-react";
+import { Camera, Upload } from "lucide-react";
+import { CameraCapture } from "@/components/reports/CameraCapture";
 
 interface ExpenseFormProps {
   expense?: Expense;
@@ -56,6 +57,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = React.useState(false);
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -100,6 +102,20 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
       });
     },
   });
+
+  const handleCameraCapture = (file: File) => {
+    const fileList = {
+      0: file,
+      length: 1,
+      item: (index: number) => index === 0 ? file : null,
+      [Symbol.iterator]: function* () {
+        yield file;
+      }
+    } as FileList;
+    
+    form.setValue("receipt", fileList);
+    setIsCameraOpen(false);
+  };
 
   const onSubmit = (values: FormValues) => {
     let receiptUrl = expense?.receipt_url ?? null;
@@ -202,18 +218,34 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                     ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     onChange={(e) => field.onChange(e.target.files)}
                     className="hidden"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setIsCameraOpen(true)}
+                      title="Take Photo"
+                    >
+                      <Camera className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                      title="Upload File"
+                    >
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {field.value && field.value[0] && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {field.value[0].name}
+                    </p>
+                  )}
                 </>
               </FormControl>
               <FormMessage />
@@ -231,6 +263,11 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
           </Button>
         </div>
       </form>
+      <CameraCapture
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onCapture={handleCameraCapture}
+      />
     </Form>
   );
 };
