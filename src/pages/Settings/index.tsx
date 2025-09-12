@@ -18,7 +18,8 @@ import {
   Calendar,
   Shield,
   Settings2,
-  Bell
+  Bell,
+  DollarSign
 } from "lucide-react";
 import EmailTemplate from "./EmailTemplate";
 import Account from "./Account";
@@ -32,6 +33,7 @@ import Booking from "./Booking";
 import Services from "./Services";
 import ReportManager from "./ReportManager";
 import Notifications from "./Notifications";
+import Expenses from "./Expenses";
 import { Button } from "@/components/ui/button";
 
 const Settings: React.FC = () => {
@@ -73,6 +75,7 @@ const Settings: React.FC = () => {
     { id: "notifications", label: "Notifications", icon: Bell, description: "Configure push notification preferences" },
     { id: "integrations", label: "Integrations", icon: Plug, description: "Connect third-party services" },
     { id: "services", label: "Services", icon: Briefcase, description: "Manage your service offerings" },
+    { id: "expenses", label: "Expenses", icon: DollarSign, description: "Manage expense categories" },
     { id: "booking", label: "Booking", icon: Calendar, description: "Configure your booking page" },
     { id: "report-manager", label: "Report Manager", icon: Settings2, description: "Manage sections, fields, and templates for all reports" },
     ...(isAdminOrOwner ? [{ id: "advanced", label: "Advanced", icon: Shield, description: "Advanced system settings" }] : []),
@@ -91,6 +94,7 @@ const Settings: React.FC = () => {
       case "notifications": return <Notifications />;
       case "integrations": return <Integrations />;
       case "services": return <Services />;
+      case "expenses": return <Expenses />;
       case "booking": return <Booking />;
       case "report-manager": return <ReportManager />;
       case "advanced": return isAdminOrOwner ? <Advanced /> : null;

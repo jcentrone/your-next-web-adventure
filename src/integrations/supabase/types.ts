@@ -813,6 +813,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_archived: boolean
           is_default: boolean
           name: string
           organization_id: string | null
@@ -822,6 +823,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_archived?: boolean
           is_default?: boolean
           name: string
           organization_id?: string | null
@@ -831,6 +833,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_archived?: boolean
           is_default?: boolean
           name?: string
           organization_id?: string | null
@@ -2097,6 +2100,10 @@ export type Database = {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      check_category_usage: {
+        Args: { category_name: string; user_uuid: string }
+        Returns: number
       }
       generate_default_terms_html: {
         Args: Record<PropertyKey, never>

@@ -39,10 +39,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
     { field: "expense_date", direction: "desc" }
   );
 
-  // Fetch expense categories
+  // Fetch expense categories (only active ones for filtering)
   const { data: categories = [] } = useQuery({
     queryKey: ["expense-categories"],
-    queryFn: () => expenseCategoriesApi.listExpenseCategories(),
+    queryFn: () => expenseCategoriesApi.listExpenseCategories(false),
   });
 
   // Create categories list for filter

@@ -63,10 +63,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   
-  // Fetch expense categories
+  // Fetch expense categories (only active ones)
   const { data: categories = [], refetch: refetchCategories } = useQuery({
     queryKey: ["expense-categories"],
-    queryFn: () => expenseCategoriesApi.listExpenseCategories(),
+    queryFn: () => expenseCategoriesApi.listExpenseCategories(false),
   });
 
   // Create new category mutation
