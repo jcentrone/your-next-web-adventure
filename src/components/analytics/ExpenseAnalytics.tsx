@@ -53,10 +53,10 @@ export function ExpenseAnalytics({ dateRange }: ExpenseAnalyticsProps) {
 
   const exportCSV = async () => {
     try {
-      const expenses = await expenseApi.listExpenses(
-        format(dateRange.from, 'yyyy-MM-dd'),
-        format(dateRange.to, 'yyyy-MM-dd')
-      );
+      const expenses = await expenseApi.listExpenses({
+        startDate: format(dateRange.from, 'yyyy-MM-dd'),
+        endDate: format(dateRange.to, 'yyyy-MM-dd'),
+      });
 
       const csvHeaders = ['Date', 'Category', 'Description', 'Amount'];
       const csvRows = expenses.map((exp) => [
