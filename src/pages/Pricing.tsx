@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Link } from 'react-router-dom';
 import { marketingFeatures } from '@/constants/marketingFeatures';
 import {
+  ArrowRight,
   Check,
   Star,
   Zap,
@@ -72,6 +73,21 @@ const Pricing = () => {
               route optimization, mileage logging, and expense reporting with CSV export. Start with 5 free reports,
               then unlimited access for $50/month or $45/month when billed annually.
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                asChild
+                size="lg"
+                className="text-lg px-8 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+              >
+                <Link to="/auth?mode=signup">
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Start Free Trial
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="text-lg px-8">
+                <Link to="/features">Explore Features</Link>
+              </Button>
+            </div>
           </div>
         </section>
 
@@ -202,8 +218,15 @@ const Pricing = () => {
                 {/* CTA Buttons */}
                 <div className="mt-8 pt-6 border-t border-muted text-center">
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button asChild size="lg" className="text-lg px-8">
-                      <Link to="/auth?mode=signup">Get 5 Free Reports</Link>
+                    <Button
+                      asChild
+                      size="lg"
+                      className="text-lg px-8 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+                    >
+                      <Link to="/auth?mode=signup">
+                        <ArrowRight className="mr-2 h-4 w-4" />
+                        Start Free Trial
+                      </Link>
                     </Button>
                     <Button asChild variant="outline" size="lg" className="text-lg px-8">
                       <Link to="/features">View All Features</Link>
@@ -347,8 +370,15 @@ const Pricing = () => {
                   route optimization, mileage logging, and expense reporting with CSV export. Get started with 5
                   free reports today!
                 </p>
-                <Button asChild size="lg" className="text-lg px-8">
-                  <Link to="/auth?mode=signup">Get 5 Free Reports - No Credit Card Required</Link>
+                <Button
+                  asChild
+                  size="lg"
+                  className="text-lg px-8 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+                >
+                  <Link to="/auth?mode=signup">
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    Start Free Trial - No Credit Card Required
+                  </Link>
                 </Button>
               </CardContent>
             </Card>

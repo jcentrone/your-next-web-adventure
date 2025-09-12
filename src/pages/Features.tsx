@@ -1,28 +1,33 @@
 import React from 'react';
 import Seo from '@/components/Seo';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { marketingFeatures } from '@/constants/marketingFeatures';
-import { CheckCircle, Zap } from 'lucide-react';
+import { marketingFeatures, type MarketingFeature } from '@/constants/marketingFeatures';
+import featureColorMap from '@/constants/featureColors';
+import { ArrowRight, CheckCircle, Zap } from 'lucide-react';
+
+type Feature = MarketingFeature & { color: string };
 
 const Features = () => {
-  const features = marketingFeatures.filter((feature) =>
-    [
-      'Professional Reports',
-      'Photo & Media Management',
-      'Mobile-First Design',
-      'Cloud Synchronization',
-      'Contact & Account Management',
-      'Scheduling & Tasks',
-      'Analytics & Insights',
-      'Security & Compliance',
-      'Customization Options',
-      'Route Optimization',
-      'Mileage Tracking',
-      'Expense Reporting'
-    ].includes(feature.title)
-  );
+  const features: Feature[] = marketingFeatures
+    .filter((feature) =>
+      [
+        'Professional Reports',
+        'Photo & Media Management',
+        'Mobile-First Design',
+        'Cloud Synchronization',
+        'Contact & Account Management',
+        'Scheduling & Tasks',
+        'Analytics & Insights',
+        'Security & Compliance',
+        'Customization Options',
+        'Route Optimization',
+        'Mileage Tracking',
+        'Expense Reporting'
+      ].includes(feature.title)
+    )
+    .map((feature) => ({ ...feature, color: featureColorMap[feature.title] }));
 
   return (
     <>
@@ -42,12 +47,22 @@ const Features = () => {
               </h1>
             </div>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Everything you need to run a successful home inspection business, 
+              Everything you need to run a successful home inspection business,
               from report generation to client management and business analytics.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="text-lg px-8">
-                <Link to="/auth?mode=signup">Start Free Trial</Link>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center">
+              <Button
+                asChild
+                size="lg"
+                className="text-lg px-8 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+              >
+                <Link to="/auth?mode=signup">
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Start Free Trial
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="text-lg px-8">
+                <Link to="/pricing">View Pricing</Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="text-lg px-8">
                 <Link to="/sample-reports">View Sample Reports</Link>
@@ -67,32 +82,28 @@ const Features = () => {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {features.map((feature, index) => (
+              {features.map((feature) => (
                 <Card
-                  key={index}
-                  className="group hover:shadow-lg transition-all duration-300 border-muted/50 hover:border-primary/20"
+                  key={feature.title}
+                  className="p-8 rounded-3xl border bg-card backdrop-blur-sm hover:shadow-lg transition"
                 >
-                  <CardHeader>
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                        <feature.icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  <div className="flex flex-col h-full">
+                    <div
+                      className={`w-14 h-14 mb-6 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center text-white`}
+                    >
+                      <feature.icon className="w-7 h-7" />
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      {feature.description}
-                    </p>
-                    <ul className="space-y-2">
-                      {feature.bullets.map((bullet, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                          <span>{bullet}</span>
+                    <h3 className="font-semibold text-xl mb-4 text-card-foreground">{feature.title}</h3>
+                    <p className="text-muted-foreground mb-6 leading-relaxed">{feature.description}</p>
+                    <ul className="space-y-2 mt-auto">
+                      {feature.bullets.map((bullet) => (
+                        <li key={bullet} className="flex items-start gap-2">
+                          <CheckCircle className="w-4 h-4 text-primary mt-0.5" />
+                          <span className="text-sm text-muted-foreground">{bullet}</span>
                         </li>
                       ))}
                     </ul>
-                  </CardContent>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -109,8 +120,15 @@ const Features = () => {
                   Join thousands of home inspectors who trust Home Report Pro to run their business efficiently.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button asChild size="lg" className="text-lg px-8">
-                    <Link to="/auth?mode=signup">Start Your Free Trial</Link>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="text-lg px-8 py-3 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+                  >
+                    <Link to="/auth?mode=signup">
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                      Start Free Trial
+                    </Link>
                   </Button>
                   <Button asChild variant="outline" size="lg" className="text-lg px-8">
                     <Link to="/pricing">View Pricing</Link>

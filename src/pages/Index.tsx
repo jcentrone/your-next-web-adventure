@@ -2,13 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Seo from "@/components/Seo";
 import { marketingFeatures, type MarketingFeature } from "@/constants/marketingFeatures";
+import featureColorMap from "@/constants/featureColors";
 import {
   ArrowRight,
-  Globe,
+  Star,
   Smartphone,
   CheckCircle,
   Clock,
-  Star,
   Layers,
   FileText
 } from "lucide-react";
@@ -17,18 +17,6 @@ import { useAuth } from "@/contexts/AuthContext";
 
 
 type Feature = MarketingFeature & { color: string };
-
-const colorMap: Record<string, string> = {
-  "Progressive Web App": "from-blue-500 to-indigo-500",
-  "Wind Mitigation Specialist": "from-amber-500 to-orange-600",
-  "Photo & Media Management": "from-purple-500 to-pink-500",
-  "Contact & Account Management": "from-blue-500 to-indigo-500",
-  "Professional Templates": "from-purple-500 to-violet-500",
-  "Seamless Integrations": "from-slate-500 to-gray-600",
-  "Route Optimization": "from-green-500 to-emerald-600",
-  "Mileage Tracking": "from-teal-500 to-cyan-600",
-  "Expense Reporting": "from-rose-500 to-red-600",
-};
 
 const features: Feature[] = marketingFeatures
   .filter((feature) =>
@@ -44,7 +32,7 @@ const features: Feature[] = marketingFeatures
       "Expense Reporting",
     ].includes(feature.title)
   )
-  .map((feature) => ({ ...feature, color: colorMap[feature.title] }));
+  .map((feature) => ({ ...feature, color: featureColorMap[feature.title] }));
 
 
 const FeatureCard = ({ icon: Icon, title, description, bullets, color }: Feature) => (
@@ -160,9 +148,16 @@ const Index = () => {
                     </Link>
                   </Button>
                 </div>
-                <Button size="lg" variant="outline" className="text-base px-8 py-3 border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5">
-                  <Globe className="mr-2 w-4 h-4" />
-                  Watch Demo
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-base px-8 py-3 border-2 border-primary/20 hover:border-primary/40 hover:bg-primary/5"
+                  asChild
+                >
+                  <Link to="/pricing">
+                    <Star className="mr-2 w-4 h-4" />
+                    View Pricing
+                  </Link>
                 </Button>
               </>
             )}
@@ -416,9 +411,11 @@ const Index = () => {
                     Start Free Trial
                   </Link>
                 </Button>
-                <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg" >
-                  <Globe className="mr-2 w-4 h-4" />
-                  Watch Demo
+                <Button size="lg" className="bg-white text-primary hover:bg-white/90 shadow-lg" asChild>
+                  <Link to="/pricing">
+                    <Star className="mr-2 w-4 h-4" />
+                    View Pricing
+                  </Link>
                 </Button>
               </div>
             )}
