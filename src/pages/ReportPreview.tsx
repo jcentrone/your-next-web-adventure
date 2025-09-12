@@ -215,16 +215,22 @@ const ReportPreview: React.FC = () => {
         try {
             const next = {...report, coverTemplate: tplId} as Report;
             if (user) {
+                console.log("Updating cover template for report:", report.id, "to:", tplId);
                 await dbUpdateReport(next);
                 setReport(next);
+                console.log("Cover template updated successfully");
             } else {
                 saveLocalReport(next);
                 setReport(next);
             }
             toast({title: "Cover template updated", description: `Applied ${tplId}`});
-        } catch (e) {
-            console.error(e);
-            toast({title: "Failed to update cover template", description: "Please try again.", variant: "destructive"});
+        } catch (e: any) {
+            console.error("Cover template update error:", e);
+            toast({
+                title: "Failed to update cover template", 
+                description: e?.message || "Please try again.", 
+                variant: "destructive"
+            });
         } finally {
             setSavingCoverTpl(false);
         }
@@ -236,16 +242,22 @@ const ReportPreview: React.FC = () => {
         try {
             const next = {...report, previewTemplate: tplId} as Report;
             if (user) {
+                console.log("Updating style template for report:", report.id, "to:", tplId);
                 await dbUpdateReport(next);
                 setReport(next);
+                console.log("Style template updated successfully");
             } else {
                 saveLocalReport(next);
                 setReport(next);
             }
             toast({title: "Style updated", description: `Applied ${tplId}`});
-        } catch (e) {
-            console.error(e);
-            toast({title: "Failed to update style", description: "Please try again.", variant: "destructive"});
+        } catch (e: any) {
+            console.error("Style template update error:", e);
+            toast({
+                title: "Failed to update style", 
+                description: e?.message || "Please try again.", 
+                variant: "destructive"
+            });
         } finally {
             setSavingStyleTpl(false);
         }
@@ -261,8 +273,10 @@ const ReportPreview: React.FC = () => {
                 customColors: scheme === "custom" ? colors : undefined,
             } as Report;
             if (user) {
+                console.log("Updating color scheme for report:", report.id, "to:", scheme);
                 await dbUpdateReport(next);
                 setReport(next);
+                console.log("Color scheme updated successfully");
             } else {
                 saveLocalReport(next);
                 setReport(next);
@@ -271,9 +285,13 @@ const ReportPreview: React.FC = () => {
                 title: "Color scheme updated",
                 description: scheme === "custom" ? "Applied custom scheme" : `Applied ${scheme}`,
             });
-        } catch (e) {
-            console.error(e);
-            toast({title: "Failed to update color scheme", description: "Please try again.", variant: "destructive"});
+        } catch (e: any) {
+            console.error("Color scheme update error:", e);
+            toast({
+                title: "Failed to update color scheme", 
+                description: e?.message || "Please try again.", 
+                variant: "destructive"
+            });
         } finally {
             setSavingColorScheme(false);
         }

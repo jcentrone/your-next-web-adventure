@@ -146,11 +146,22 @@ const ReportEditor: React.FC = () => {
   // Custom sections hook
   const { customSections, loadCustomSections } = useCustomSections();
 
-  const { data: upcomingAppointments = [] } = useQuery({
+  const { data: upcomingAppointments = [], error: appointmentsError } = useQuery({
     queryKey: ["appointments", user?.id],
-    queryFn: () => appointmentsApi.getUpcoming(user!.id, 50),
+    queryFn: async () => {
+      console.log("Fetching upcoming appointments for user:", user!.id);
+      const appointments = await appointmentsApi.getUpcoming(user!.id, 50);
+      console.log("Retrieved appointments:", appointments);
+      return appointments;
+    },
     enabled: selectApptDialogOpen && !!user,
   });
+
+  React.useEffect(() => {
+    if (appointmentsError) {
+      console.error("Appointments fetch error:", appointmentsError);
+    }
+  }, [appointmentsError]);
 
   React.useEffect(() => {
     if (report && !report.appointmentId && !linkDialogDismissed && user) {
