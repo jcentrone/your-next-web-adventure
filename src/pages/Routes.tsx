@@ -45,10 +45,6 @@ export default function Routes() {
   const { data: routes = [], isLoading } = useQuery({
     queryKey: ['daily-routes', dateRange?.from?.toISOString().split('T')[0], dateRange?.to?.toISOString().split('T')[0]],
     queryFn: () => {
-      console.log('Fetching routes with date range:', {
-        from: dateRange?.from?.toISOString().split('T')[0],
-        to: dateRange?.to?.toISOString().split('T')[0]
-      });
       return routeOptimizationApi.getDailyRoutes(
         dateRange?.from?.toISOString().split('T')[0],
         dateRange?.to?.toISOString().split('T')[0]
@@ -60,25 +56,10 @@ export default function Routes() {
   // Filter routes by selected date if one is selected
   const filteredRoutes = selectedDate 
     ? routes.filter(route => {
-        // Direct comparison since route_date is already in YYYY-MM-DD format
         const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-        const match = route.route_date === selectedDateStr;
-        console.log('Filtering routes:', {
-          routeDate: route.route_date,
-          selectedDateStr,
-          match,
-          routeId: route.id
-        });
-        return match;
+        return route.route_date === selectedDateStr;
       })
     : routes;
-
-  console.log('Route filtering summary:', {
-    totalRoutes: routes.length,
-    selectedDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null,
-    filteredRoutes: filteredRoutes.length,
-    availableDates: routes.map(r => r.route_date)
-  });
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredRoutes.length / routesPerPage);
@@ -100,8 +81,14 @@ export default function Routes() {
   const handleSingleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
     if (date) {
-      // When a single date is selected, clear the date range to avoid conflicts
-      setDateRange(undefined);
+      // When a single date is selected, create a single-day date range for the query
+      setDateRange({ from: date, to: date });
+    } else {
+      // If no date selected, reset to default week range
+      setDateRange({
+        from: startOfWeek(new Date()),
+        to: endOfWeek(new Date())
+      });
     }
     setCurrentPage(1);
   };
