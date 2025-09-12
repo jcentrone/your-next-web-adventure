@@ -3,7 +3,7 @@ import {Link, useLocation, useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button";
 import {useAuth} from "@/contexts/AuthContext";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
-import {Sheet, SheetContent, SheetTrigger} from "@/components/ui/sheet";
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -24,12 +24,11 @@ import {
     FileText,
     HelpCircle,
     Home,
-    Menu,
     MoreHorizontal,
     Navigation,
     Settings,
     Users,
-    X
+    
 } from "lucide-react";
 import {useIsMobile} from "@/hooks/use-mobile";
 import {usePWAInstall} from "@/hooks/usePWAInstall";
@@ -42,7 +41,7 @@ const Header: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const isMobile = useIsMobile();
-    const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+    
     const {isInstallable, install} = usePWAInstall();
     const {isActive, currentStep} = useOnboarding();
     const {
@@ -165,157 +164,6 @@ const Header: React.FC = () => {
                 </nav>
 
 
-                {/* Mobile Navigation */}
-                {isMobile && (
-                    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="md:hidden">
-                                <Menu className="h-5 w-5"/>
-                                <span className="sr-only">Toggle menu</span>
-                            </Button>
-                        </SheetTrigger>
-
-                        <SheetContent side="left" className="w-64">
-                            <div className="flex items-center justify-between mb-6">
-                                <Link to="/" className="flex items-center gap-2 font-bold"
-                                      onClick={() => setMobileMenuOpen(false)}>
-                                    <img src="/HomeReportPro_Logo-transparent-light.png" alt="Home Report Pro"
-                                         className="h-6 w-auto block dark:hidden"/>
-                                    <img src="/HomeReportPro_Logo-transparent-dark.png" alt="Home Report Pro"
-                                         className="h-6 w-auto hidden dark:block"/>
-                                </Link>
-                                <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(false)}
-                                        className="h-6 w-6">
-                                    <X className="h-4 w-4"/>
-                                </Button>
-                            </div>
-
-                            <nav className="flex flex-col space-y-4">
-                                {user ? (
-                                    <>
-                                        {/* Reordered navigation */}
-                                        <Link to="/dashboard"
-                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/dashboard' ? 'text-primary' : 'text-foreground'}`}
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Dashboard
-                                        </Link>
-                                        <Link to="/reports"
-                                              className={`transition-colors py-2 hover:text-primary ${location.pathname.startsWith('/reports') ? 'text-primary' : 'text-foreground'}`}
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Reports
-                                        </Link>
-                                        <Link to="/accounts"
-                                              className={`transition-colors py-2 hover:text-primary ${location.pathname.startsWith('/accounts') ? 'text-primary' : 'text-foreground'}`}
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Accounts
-                                        </Link>
-                                        <Link to="/contacts"
-                                              className={`transition-colors py-2 hover:text-primary ${location.pathname.startsWith('/contacts') ? 'text-primary' : 'text-foreground'}`}
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Contacts
-                                        </Link>
-                                        <Link to="/calendar"
-                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/calendar' ? 'text-primary' : 'text-foreground'}`}
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Calendar
-                                        </Link>
-                                        <Link to="/routes"
-                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/routes' ? 'text-primary' : 'text-foreground'}`}
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Routes
-                                        </Link>
-                                        <Link to="/tasks"
-                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : 'text-foreground'}`}
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Tasks
-                                        </Link>
-                                        <Link to="/expenses"
-                                              className={`transition-colors py-2 hover:text-primary ${location.pathname.startsWith('/expenses') ? 'text-primary' : 'text-foreground'}`}
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Expenses
-                                        </Link>
-                                        <Link to="/analytics"
-                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/analytics' ? 'text-primary' : 'text-foreground'}`}
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Analytics
-                                        </Link>
-
-                                        {/* Settings */}
-                                        <Link to="/settings"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Settings
-                                        </Link>
-
-                                        {/* Optional PWA install */}
-                                        {isInstallable && (
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start gap-2"
-                                                onClick={() => {
-                                                    install();
-                                                    setMobileMenuOpen(false);
-                                                }}
-                                            >
-                                                <Download className="h-4 w-4"/>
-                                                Install App
-                                            </Button>
-                                        )}
-
-                                        {/* Auth actions */}
-                                        <div className="border-t pt-4 mt-4">
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-start"
-                                                onClick={async () => {
-                                                    try {
-                                                        await signOut();
-                                                        setMobileMenuOpen(false);
-                                                        navigate("/");
-                                                    } catch (error) {
-                                                        console.error("Sign out failed:", error);
-                                                    }
-                                                }}
-                                            >
-                                                Sign out
-                                            </Button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Link to="/features"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Features
-                                        </Link>
-                                        <Link to="/pricing"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Pricing
-                                        </Link>
-                                        <Link to="/sample-reports"
-                                              className="text-foreground hover:text-primary transition-colors py-2"
-                                              onClick={() => setMobileMenuOpen(false)}>
-                                            Sample Reports
-                                        </Link>
-                                        <div className="border-t pt-4 mt-4 space-y-2">
-                                            <Button variant="outline" className="w-full" asChild>
-                                                <Link to="/auth?mode=signin" onClick={() => setMobileMenuOpen(false)}>
-                                                    Sign in
-                                                </Link>
-                                            </Button>
-                                            <Button className="w-full" asChild>
-                                                <Link to="/auth?mode=signup" onClick={() => setMobileMenuOpen(false)}>
-                                                    Sign up
-                                                </Link>
-                                            </Button>
-                                        </div>
-                                    </>
-                                )}
-                            </nav>
-                        </SheetContent>
-                    </Sheet>
-                )}
 
 
                 <div className="flex items-center gap-2">
