@@ -69,11 +69,7 @@ const CoverTemplateTwo: React.FC<CoverTemplateProps> = ({
                     ) : (
                         <div className="w-full h-full bg-black/20"/>
                     )}
-                    {/* Subtle overlay to normalize poor images */}
-                    <div
-                        className="absolute inset-0"
-                        style={{backgroundColor: `hsl(var(--secondary) / 0.35)`}}
-                    />
+
                 </div>
             </section>
 
