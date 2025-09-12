@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Link } from 'react-router-dom';
+import { marketingFeatures } from '@/constants/marketingFeatures';
 import {
   Check,
   Star,
@@ -23,26 +24,7 @@ import {
 const Pricing = () => {
   const [isAnnual, setIsAnnual] = React.useState(false);
 
-  const features = [
-    "Unlimited inspection reports",
-    "Professional report templates",
-    "Photo annotation & media management",
-    "Mobile app with offline sync",
-    "Contact & client management",
-    "Calendar & appointment scheduling",
-    "Task management & reminders",
-    "Business analytics & insights",
-    "Digital signatures",
-    "Custom branding & templates",
-    "Cloud storage & backup",
-    "Multi-device synchronization",
-    "Email report sharing",
-    "Data export capabilities",
-    "Priority customer support",
-    "Route optimization",
-    "Mileage logging",
-    "Expense reporting & CSV export"
-  ];
+  const features = marketingFeatures.map((f) => f.title);
 
   const websiteFeatures = [
     "Custom design tailored to your brand",
