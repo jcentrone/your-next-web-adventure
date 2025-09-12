@@ -27,29 +27,28 @@ export const AppointmentSearchFilters: React.FC<AppointmentSearchFiltersProps> =
 }) => {
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-        <Input
-          placeholder="Search appointments, contacts, locations..."
-          value={filters.query}
-          onChange={(e) => onFiltersChange({ query: e.target.value })}
-          className="pl-10 pr-10"
-        />
-        {filters.query && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-            onClick={() => onFiltersChange({ query: '' })}
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        )}
-      </div>
-
-      {/* Filter Row */}
+      {/* Search and Filters Row */}
       <div className="flex flex-wrap items-center gap-2">
+        {/* Search Bar */}
+        <div className="relative flex-1 min-w-[280px]">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search appointments, contacts, locations..."
+            value={filters.query}
+            onChange={(e) => onFiltersChange({ query: e.target.value })}
+            className="pl-10 pr-10"
+          />
+          {filters.query && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+              onClick={() => onFiltersChange({ query: '' })}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
         {/* Status Filter */}
         <Select
           value={filters.status}
