@@ -81,51 +81,15 @@ export function DateRangePicker({
     const range = getDateRangeFromPreset(preset);
     onChange(range);
   };
-  return <div className="flex gap-2">
-                <Select onValueChange={handlePresetChange}>
-                    <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Quick select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {datePresets.map(preset => <SelectItem key={preset.value} value={preset.value}>
-                                {preset.label}
-                            </SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-[240px] justify-start text-left font-normal",
-                            !value && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {value?.from ? (
-                            value.to ? (
-                              <>
-                                {format(value.from, "LLL dd, y")} -{" "}
-                                {format(value.to, "LLL dd, y")}
-                              </>
-                            ) : (
-                              format(value.from, "LLL dd, y")
-                            )
-                          ) : (
-                            <span>Pick a date range</span>
-                          )}
-                        </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                    <div className="p-3 border-b">
-                        <div className="text-sm font-medium">Select Date Range</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                            Choose start and end dates for your analytics period
-                        </div>
-                    </div>
-                    <Calendar initialFocus mode="range" defaultMonth={value?.from} selected={value} onSelect={onChange} numberOfMonths={2} className="pointer-events-auto" />
-                </PopoverContent>
-                </Popover>
-            </div>;
+  return <Select onValueChange={handlePresetChange} defaultValue="thisWeek">
+                <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="This Week" />
+                </SelectTrigger>
+                <SelectContent>
+                    {datePresets.map(preset => <SelectItem key={preset.value} value={preset.value}>
+                            {preset.label}
+                        </SelectItem>)}
+                </SelectContent>
+            </Select>;
 }
 export default DateRangePicker;

@@ -18,12 +18,14 @@ import {
     Building2,
     Calendar,
     CheckSquare,
+    ChevronDown,
     DollarSign,
     Download,
     HelpCircle,
     FileText,
     Home,
     Menu,
+    MoreHorizontal,
     Navigation,
     Settings,
     Users,
@@ -33,6 +35,7 @@ import {useIsMobile} from "@/hooks/use-mobile";
 import {usePWAInstall} from "@/hooks/usePWAInstall";
 import {useOnboarding} from "@/components/onboarding/OnboardingManager";
 import {NotificationCenter} from "@/components/notifications/NotificationCenter";
+import {useResponsiveNavigation} from "@/hooks/useResponsiveNavigation";
 
 const Header: React.FC = () => {
     const {user, signOut} = useAuth();
@@ -42,6 +45,7 @@ const Header: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const {isInstallable, install} = usePWAInstall();
     const {isActive, currentStep} = useOnboarding();
+    const {visibleItems, hiddenItems, hasMoreItems, shouldShowResponsiveNav, isActive: isItemActive} = useResponsiveNavigation();
     const userMetadata = user?.user_metadata as { avatar_url?: string; picture?: string } | undefined;
     
     // Auto-open user menu during settings onboarding step
@@ -87,63 +91,58 @@ const Header: React.FC = () => {
 
                 {/* Desktop Navigation */}
                 <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-                    {user ? (
+                    {user && shouldShowResponsiveNav ? (
                         <>
-                            <Link to="/dashboard"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/dashboard' ? 'text-primary' : ''}`}
-                                  data-onboarding="dashboard">
-                                <Home className="h-4 w-4"/>
-                                Dashboard
-                            </Link>
-                            <Link to="/reports"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname.startsWith('/reports') ? 'text-primary' : ''}`}
-                                  data-onboarding="reports">
-                                <FileText className="h-4 w-4"/>
-                                Reports
-                            </Link>
-                            <Link to="/accounts"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname.startsWith('/accounts') ? 'text-primary' : ''}`}
-                                  data-onboarding="accounts">
-                                <Building2 className="h-4 w-4"/>
-                                Accounts
-                            </Link>
-                            <Link to="/contacts"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname.startsWith('/contacts') ? 'text-primary' : ''}`}
-                                  data-onboarding="contacts">
-                                <Users className="h-4 w-4"/>
-                                Contacts
-                            </Link>
-                            <Link to="/calendar"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/calendar' ? 'text-primary' : ''}`}
-                                  data-onboarding="calendar">
-                                <Calendar className="h-4 w-4"/>
-                                Calendar
-                            </Link>
-                            <Link to="/routes"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/routes' ? 'text-primary' : ''}`}>
-                                <Navigation className="h-4 w-4"/>
-                                Routes
-                            </Link>
-                            <Link to="/tasks"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : ''}`}
-                                  data-onboarding="tasks">
-                                <CheckSquare className="h-4 w-4"/>
-                                Tasks
-                            </Link>
-                            <Link to="/expenses"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname.startsWith('/expenses') ? 'text-primary' : ''}`}
-                                  data-onboarding="expenses">
-                                <DollarSign className="h-4 w-4"/>
-                                Expenses
-                            </Link>
-                            <Link to="/analytics"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/analytics' ? 'text-primary' : ''}`}
-                                  data-onboarding="analytics">
-                                <BarChart3 className="h-4 w-4"/>
-                                Analytics
-                            </Link>
+                            {/* Visible navigation items */}
+                            {visibleItems.map((item) => {
+                                const IconComponent = item.icon;
+                                return (
+                                    <Link
+                                        key={item.id}
+                                        to={item.to}
+                                        className={`flex items-center gap-2 transition-colors hover:text-primary ${
+                                            isItemActive(item) ? 'text-primary' : ''
+                                        }`}
+                                        data-onboarding={item.id}
+                                    >
+                                        <IconComponent className="h-4 w-4" />
+                                        {item.label}
+                                    </Link>
+                                );
+                            })}
+                            
+                            {/* More menu for hidden items */}
+                            {hasMoreItems && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary">
+                                            <MoreHorizontal className="h-4 w-4"/>
+                                            More
+                                            <ChevronDown className="h-3 w-3"/>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="bg-background border z-50">
+                                        {hiddenItems.map((item) => {
+                                            const IconComponent = item.icon;
+                                            return (
+                                                <DropdownMenuItem key={item.id} asChild>
+                                                    <Link 
+                                                        to={item.to} 
+                                                        className={`flex items-center gap-2 w-full ${
+                                                            isItemActive(item) ? 'text-primary' : ''
+                                                        }`}
+                                                    >
+                                                        <IconComponent className="h-4 w-4"/>
+                                                        {item.label}
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                            );
+                                        })}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
                         </>
-                    ) : (
+                    ) : !user ? (
                         <>
                             <Link to="/features" className="transition-colors hover:text-primary">
                                 Features
@@ -155,7 +154,7 @@ const Header: React.FC = () => {
                                 Sample Reports
                             </Link>
                         </>
-                    )}
+                    ) : null}
                 </nav>
 
 
@@ -364,6 +363,18 @@ const Header: React.FC = () => {
                                         <Link to="/reports" className="flex items-center gap-2">
                                             <FileText className="h-4 w-4"/>
                                             My Reports
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/routes" className="flex items-center gap-2">
+                                            <Navigation className="h-4 w-4"/>
+                                            Routes
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/expenses" className="flex items-center gap-2">
+                                            <DollarSign className="h-4 w-4"/>
+                                            Expenses
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
