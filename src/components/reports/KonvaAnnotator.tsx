@@ -73,6 +73,23 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     y: stageSize.height / image.height
   } : { x: 1, y: 1 };
 
+  // Attach event handlers to all objects in layer
+  const attachEventHandlers = useCallback((layer: Konva.Layer) => {
+    console.log("Attaching event handlers to", layer.children?.length, "objects");
+    layer.children?.forEach((child) => {
+      if (child instanceof Konva.Shape || child instanceof Konva.Group) {
+        child.off('click');
+        child.off('dblclick');
+        child.on('click', handleObjectClick);
+        if (child instanceof Konva.Text) {
+          child.on('dblclick', handleObjectDoubleClick);
+        }
+        child.draggable(true);
+        console.log("Attached handlers to", child.getClassName(), child.id());
+      }
+    });
+  }, []);
+
   // Load initial annotations
   useEffect(() => {
     if (layerRef.current) {
@@ -80,14 +97,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       if (initialAnnotations) {
         try {
           Konva.Node.create(initialAnnotations, layerRef.current);
-          // Attach click handlers to loaded annotations
-          layerRef.current.children?.forEach((child) => {
-            if (child instanceof Konva.Shape) {
-              child.on('click', handleObjectClick);
-              child.on('dblclick', handleObjectDoubleClick);
-              child.draggable(true);
-            }
-          });
+          attachEventHandlers(layerRef.current);
         } catch (err) {
           console.warn("Failed to load annotations", err);
         }
@@ -100,8 +110,10 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
 
   // Update transformer when selected objects change
   useEffect(() => {
+    console.log("Selected objects changed:", selectedObjects.length, selectedObjects.map(obj => obj.getClassName()));
     if (transformerRef.current) {
       transformerRef.current.nodes(selectedObjects);
+      transformerRef.current.visible(selectedObjects.length > 0);
       transformerRef.current.getLayer()?.batchDraw();
     }
   }, [selectedObjects]);
@@ -146,6 +158,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     const prev = history[historyIndex - 1];
     layerRef.current.destroyChildren();
     Konva.Node.create(prev, layerRef.current);
+    attachEventHandlers(layerRef.current);
     layerRef.current.draw();
     setSelectedObjects([]);
     transformerRef.current?.nodes([]);
@@ -157,6 +170,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     const next = history[historyIndex + 1];
     layerRef.current.destroyChildren();
     Konva.Node.create(next, layerRef.current);
+    attachEventHandlers(layerRef.current);
     layerRef.current.draw();
     setSelectedObjects([]);
     transformerRef.current?.nodes([]);
@@ -172,11 +186,14 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
   };
 
   const handleObjectClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    console.log("Object clicked:", e.target.getClassName(), "Tool:", activeTool);
     if (activeTool === "select") {
       const node = e.target as Konva.Group | Konva.Shape;
       
       // Single click to select
       const isSelected = selectedObjects.includes(node);
+      console.log("Object is selected:", isSelected);
+      
       if (e.evt.ctrlKey || e.evt.metaKey) {
         // Multi-select
         if (isSelected) {
@@ -196,9 +213,11 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
 
   const handleObjectDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     const node = e.target as Konva.Shape;
+    console.log("Object double-clicked:", node.getClassName(), "Is text:", node instanceof Konva.Text);
     
     // Double click on text to edit
     if (node instanceof Konva.Text && activeTool === "select") {
+      console.log("Opening text editor for:", node.text());
       setEditingTextNode(node);
       setEditingText(node.text());
       setIsTextEditing(true);
@@ -263,9 +282,11 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     }
 
     if (shape) {
+      console.log("Creating shape:", shape.getClassName());
       shape.on('click', handleObjectClick);
       if (shape instanceof Konva.Text) {
         shape.on('dblclick', handleObjectDoubleClick);
+        console.log("Added double-click handler to text:", shape.text());
       }
       layerRef.current.add(shape);
       return shape;
@@ -295,6 +316,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       line.on('click', handleObjectClick);
       layerRef.current.add(line);
       setDrawLine(line);
+      console.log("Created draw line");
     }
   };
 
@@ -430,18 +452,18 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
             <Layer listening={false}>
               {image && <KonvaImage image={image} scaleX={imageScale.x} scaleY={imageScale.y} />}
             </Layer>
-            <Layer ref={layerRef} />
-            <Layer>
+            <Layer ref={layerRef}>
               <Transformer
                 ref={transformerRef}
                 borderEnabled={true}
-                borderStroke="#4A90E2"
-                borderStrokeWidth={1}
-                anchorStroke="#4A90E2"
-                anchorFill="white"
-                anchorSize={8}
-                anchorStrokeWidth={1}
+                borderStroke="#3b82f6"
+                borderStrokeWidth={2}
+                anchorStroke="#3b82f6"
+                anchorFill="#ffffff"
+                anchorSize={10}
+                anchorStrokeWidth={2}
                 keepRatio={false}
+                visible={selectedObjects.length > 0}
                 enabledAnchors={[
                   'top-left',
                   'top-center',
@@ -458,6 +480,10 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
                     return oldBox;
                   }
                   return newBox;
+                }}
+                onTransformEnd={(e) => {
+                  console.log("Transform ended for:", e.target.getClassName());
+                  saveHistory();
                 }}
               />
             </Layer>
