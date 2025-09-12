@@ -387,7 +387,7 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
                         <Textarea 
                           value={applyPlaceholders(selected.description, values)} 
                           readOnly 
-                          className="min-h-24" 
+                          className="min-h-32" 
                         />
                       </div>
                       
@@ -417,7 +417,7 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
                       {selected.recommendation ? (
                         <div>
                           <div className="text-sm font-medium mb-1">Recommendation</div>
-                          <Textarea value={selected.recommendation} readOnly className="min-h-20" />
+                          <Textarea value={selected.recommendation} readOnly className="min-h-28" />
                         </div>
                       ) : (
                         <p className="text-sm text-muted-foreground">No recommendation provided for this defect.</p>
