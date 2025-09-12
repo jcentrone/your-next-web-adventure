@@ -92,10 +92,12 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         child.on('click', (e) => {
           e.cancelBubble = true;
           if (activeTool === 'select') {
+            console.log("Object clicked:", child.getClassName());
             setSelectedObjects([child]);
             if (transformerRef.current) {
               transformerRef.current.nodes([child]);
               transformerRef.current.moveToTop();
+              transformerRef.current.getLayer()?.batchDraw();
             }
           }
         });
@@ -207,29 +209,35 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
   };
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // Check if we're clicking on a transformer handle/anchor - let transformer handle it
+    const target = e.target;
+    if (target.getClassName() === 'Transformer' || target.hasName('_anchor')) {
+      console.log("Clicked on transformer, skipping stage handling");
+      return;
+    }
+
     const pos = e.target.getStage()?.getPointerPosition();
     if (!pos || !layerRef.current) return;
 
     if (activeTool === "select") {
-      const clickedOnEmpty = e.target === e.target.getStage();
+      const clickedOnEmpty = e.target === e.target.getStage() || e.target.getClassName() === 'Image';
       if (clickedOnEmpty) {
+        console.log("Clicked on empty area, clearing selection");
         setSelectedObjects([]);
         return;
       }
       
       const clickedNode = e.target;
       
-      // Prevent selecting the transformer itself or stage
-      if (clickedNode.getClassName() === 'Transformer' || clickedNode === e.target.getStage()) {
+      // Don't handle if it's the transformer or stage or image
+      if (clickedNode.getClassName() === 'Transformer' || 
+          clickedNode === e.target.getStage() || 
+          clickedNode.getClassName() === 'Image') {
         return;
       }
       
-      const isSelected = selectedObjects.includes(clickedNode);
-      
-      if (!isSelected) {
-        console.log("Selecting object:", clickedNode.getClassName());
-        setSelectedObjects([clickedNode]);
-      }
+      console.log("Selecting object:", clickedNode.getClassName());
+      setSelectedObjects([clickedNode]);
       return;
     }
 
@@ -430,16 +438,23 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     }
   };
 
-  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // Only handle stage clicks for clearing selection when in select mode
     if (activeTool !== "select") return;
+    
+    // Check if we clicked on transformer or anchor
+    const target = e.target;
+    if (target.getClassName() === 'Transformer' || target.hasName('_anchor')) {
+      return;
+    }
     
     const clickedOnEmpty = e.target === e.target.getStage() || e.target.getClassName() === 'Image';
     if (clickedOnEmpty) {
+      console.log("Stage click - clearing selection");
       setSelectedObjects([]);
       if (transformerRef.current) {
         transformerRef.current.nodes([]);
       }
-      return;
     }
   };
 
@@ -537,7 +552,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
-            onClick={handleClick}
+            onClick={handleStageClick}
           >
             <Layer>
               {image && (
@@ -555,8 +570,8 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
                 visible={selectedObjects.length > 0}
                 boundBoxFunc={(oldBox, newBox) => {
                   // Allow more flexible bounds - just ensure minimum size
-                  const minWidth = 20;
-                  const minHeight = 20;
+                  const minWidth = 10;
+                  const minHeight = 10;
                   
                   if (newBox.width < minWidth) {
                     newBox.width = minWidth;
@@ -574,14 +589,20 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
                 ]}
                 rotateEnabled={false}
                 borderEnabled={true}
-                anchorFill="#4285f4"
-                anchorStroke="#1976d2"
-                anchorSize={10}
+                anchorFill="#ffffff"
+                anchorStroke="#0066ff"
+                anchorSize={12}
                 anchorCornerRadius={2}
-                borderStroke="#4285f4"
+                borderStroke="#0066ff"
                 borderStrokeWidth={2}
                 keepRatio={false}
                 centeredScaling={false}
+                shouldOverdrawWholeArea={true}
+                listening={true}
+                onTransformEnd={() => {
+                  console.log("Transform ended");
+                  saveHistory();
+                }}
               />
             </Layer>
           </Stage>
