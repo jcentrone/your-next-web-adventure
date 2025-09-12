@@ -1300,6 +1300,43 @@ const Documentation = () => {
                     <Collapsible>
                       <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
                         <ChevronRight className="w-4 h-4" />
+                        <span className="font-semibold">Expense Tracking & CSV Export</span>
+                        <Badge className="ml-auto">Finance</Badge>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="p-4 space-y-4">
+                        <div className="space-y-4">
+                          <p className="text-sm text-muted-foreground">
+                            Record business purchases and stay organized for tax season.
+                          </p>
+
+                          <h4 className="font-semibold">Tracking Expenses</h4>
+                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <li>Log the date, category, description, and amount for every expense</li>
+                            <li>Create custom categories to match your bookkeeping needs</li>
+                            <li>Attach receipts so documentation is easy to find later</li>
+                          </ul>
+
+                          <h4 className="font-semibold">Exporting to CSV</h4>
+                          <ol className="list-decimal pl-6 space-y-2 text-muted-foreground">
+                            <li>Open the <strong>Expenses</strong> page and apply any filters</li>
+                            <li>Click the <strong>Export CSV</strong> button to download your records</li>
+                            <li>Import the file into accounting software or share it with your tax professional</li>
+                          </ol>
+
+                          <h4 className="font-semibold">Best Practices</h4>
+                          <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                            <li>Maintain consistent categories such as Supplies, Marketing, and Travel</li>
+                            <li>Separate personal and business expenses to avoid commingling</li>
+                            <li>Review and export expenses monthly to stay prepared for taxes</li>
+                            <li>Retain digital or paper receipts for accurate record keeping</li>
+                          </ul>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-2 w-full text-left p-4 hover:bg-muted rounded-lg">
+                        <ChevronRight className="w-4 h-4" />
                         <span className="font-semibold">Date Range & Filtering</span>
                         <Badge variant="outline" className="ml-auto">Controls</Badge>
                       </CollapsibleTrigger>
