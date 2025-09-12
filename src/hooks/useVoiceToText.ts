@@ -52,21 +52,27 @@ export const useVoiceToText = ({
   useEffect(() => {
     // Check if speech recognition is supported
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    console.log('Speech recognition supported:', !!SpeechRecognition);
     setIsSupported(!!SpeechRecognition);
 
     if (SpeechRecognition) {
+      console.log('Creating speech recognition instance');
       recognitionRef.current = new SpeechRecognition();
       const recognition = recognitionRef.current;
 
       recognition.continuous = continuous;
       recognition.interimResults = interimResults;
       recognition.lang = language;
+      
+      console.log('Speech recognition settings:', { continuous, interimResults, language });
 
       recognition.onstart = () => {
+        console.log('Speech recognition started');
         setIsRecording(true);
       };
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
+        console.log('Speech recognition result event fired');
         let finalTranscript = '';
         let interimTranscript = '';
         
@@ -90,6 +96,7 @@ export const useVoiceToText = ({
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        console.error('Speech recognition error:', event.error, event.message);
         setIsRecording(false);
         if (onError) {
           onError(event.error || 'Speech recognition error occurred');
@@ -97,6 +104,7 @@ export const useVoiceToText = ({
       };
 
       recognition.onend = () => {
+        console.log('Speech recognition ended');
         setIsRecording(false);
       };
     }
@@ -109,10 +117,13 @@ export const useVoiceToText = ({
   }, [onResult, onError, continuous, interimResults, language]);
 
   const startListening = useCallback(() => {
+    console.log('startListening called, isRecording:', isRecording);
     if (recognitionRef.current && !isRecording) {
       try {
+        console.log('Starting speech recognition...');
         recognitionRef.current.start();
       } catch (error) {
+        console.error('Failed to start speech recognition:', error);
         if (onError) {
           onError('Failed to start speech recognition');
         }
