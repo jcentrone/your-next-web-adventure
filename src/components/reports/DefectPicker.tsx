@@ -106,6 +106,7 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
   const [myLibrary, setMyLibrary] = React.useState<DefectTemplate[]>([]);
   const [showCreate, setShowCreate] = React.useState(false);
   const [justAddedBlank, setJustAddedBlank] = React.useState(false);
+  const [currentStep, setCurrentStep] = React.useState<1 | 2 | 3>(1);
   const { user } = useAuth();
   const isMobile = useIsMobile();
 
@@ -174,8 +175,16 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
     if (!open) {
       setJustAddedBlank(false);
       setShowCreate(false);
+      setCurrentStep(1);
     }
   }, [open]);
+
+  // Reset step when defect selection changes
+  React.useEffect(() => {
+    if (selected) {
+      setCurrentStep(1);
+    }
+  }, [selected]);
 
   const list = React.useMemo(() => {
     const pool = [...myLibrary, ...library].filter((d) => d.section === sectionName);
@@ -296,72 +305,156 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
                   Select a defect template above to preview and insert.
                 </p>
               ) : (
-                <div className="space-y-3">
-                  <div>
-                    <div className="text-sm font-medium mb-1">Description</div>
-                    <Textarea value={selected.description} readOnly className="min-h-24" />
+                <div className="space-y-4">
+                  {/* Step indicator */}
+                  <div className="flex items-center justify-center space-x-2 mb-4">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      1
+                    </div>
+                    <div className={`w-8 h-1 ${currentStep >= 2 ? 'bg-primary' : 'bg-muted'}`} />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      2
+                    </div>
+                    <div className={`w-8 h-1 ${currentStep >= 3 ? 'bg-primary' : 'bg-muted'}`} />
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      currentStep >= 3 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    }`}>
+                      3
+                    </div>
                   </div>
-                  {extractPlaceholders(selected.description).length > 0 && (
-                    <div>
-                      <div className="text-sm font-medium flex items-center gap-2">
-                        Fill Description Placeholders
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
-                                className="inline-flex items-center justify-center"
-                                aria-label="What are description placeholders?"
-                              >
-                                <Info className="h-4 w-4 text-muted-foreground" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Replace bracketed tokens like [location] before inserting the narrative.
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+
+                  {/* Step 1: Placeholders */}
+                  {currentStep === 1 && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-medium">Fill Template Details</h3>
+                      <p className="text-sm text-muted-foreground">Selected: {selected.title}</p>
+                      
+                      {extractPlaceholders(selected.description).length > 0 ? (
+                        <div>
+                          <div className="text-sm font-medium flex items-center gap-2 mb-3">
+                            Fill Description Placeholders
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center justify-center"
+                                    aria-label="What are description placeholders?"
+                                  >
+                                    <Info className="h-4 w-4 text-muted-foreground" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Replace bracketed tokens like [location] before inserting the narrative.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          <div className="space-y-2">
+                            {extractPlaceholders(selected.description).map((k) => (
+                              <Input
+                                key={k}
+                                placeholder={k}
+                                value={values[k] || ""}
+                                onChange={(e) => setValues((p) => ({ ...p, [k]: e.target.value }))}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No placeholders to fill for this defect.</p>
+                      )}
+                      
+                      <Button 
+                        className="w-full" 
+                        onClick={() => setCurrentStep(2)}
+                      >
+                        Next: Preview Description
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Step 2: Description Preview */}
+                  {currentStep === 2 && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-medium">Preview Description</h3>
+                      <div>
+                        <div className="text-sm font-medium mb-1">Final Description</div>
+                        <Textarea 
+                          value={applyPlaceholders(selected.description, values)} 
+                          readOnly 
+                          className="min-h-24" 
+                        />
                       </div>
-                      <div className="mt-2 space-y-2">
-                        {extractPlaceholders(selected.description).map((k) => (
-                          <Input
-                            key={k}
-                            placeholder={k}
-                            value={values[k] || ""}
-                            onChange={(e) => setValues((p) => ({ ...p, [k]: e.target.value }))}
-                          />
-                        ))}
+                      
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1" 
+                          onClick={() => setCurrentStep(1)}
+                        >
+                          Back
+                        </Button>
+                        <Button 
+                          className="flex-1" 
+                          onClick={() => setCurrentStep(3)}
+                        >
+                          Next: Recommendation
+                        </Button>
                       </div>
                     </div>
                   )}
-                  {selected.recommendation && (
-                    <div>
-                      <div className="text-sm font-medium mb-1">Recommendation</div>
-                      <Textarea value={selected.recommendation} readOnly className="min-h-20" />
+
+                  {/* Step 3: Recommendation and Insert */}
+                  {currentStep === 3 && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-medium">Recommendation & Insert</h3>
+                      
+                      {selected.recommendation ? (
+                        <div>
+                          <div className="text-sm font-medium mb-1">Recommendation</div>
+                          <Textarea value={selected.recommendation} readOnly className="min-h-20" />
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No recommendation provided for this defect.</p>
+                      )}
+                      
+                      {selected.media_guidance && (
+                        <p className="text-xs text-muted-foreground">Media guidance: {selected.media_guidance}</p>
+                      )}
+                      
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline" 
+                          className="flex-1" 
+                          onClick={() => setCurrentStep(2)}
+                        >
+                          Back
+                        </Button>
+                        <Button
+                          className="flex-1"
+                          onClick={() => {
+                            const narrative = applyPlaceholders(selected.description, values);
+                            onInsert({
+                              title: selected.title,
+                              narrative,
+                              severity: mapSeverity(selected.severity),
+                              recommendation: selected.recommendation,
+                              mediaGuidance: selected.media_guidance,
+                              defectId: toId(selected),
+                            });
+                            onOpenChange(false);
+                          }}
+                        >
+                          Insert into Section
+                        </Button>
+                      </div>
                     </div>
                   )}
-                  {selected.media_guidance && (
-                    <p className="text-xs text-muted-foreground">Media guidance: {selected.media_guidance}</p>
-                  )}
-                  <div className="pt-2">
-                    <Button
-                      className="w-full"
-                      onClick={() => {
-                        const narrative = applyPlaceholders(selected.description, values);
-                        onInsert({
-                          title: selected.title,
-                          narrative,
-                          severity: mapSeverity(selected.severity),
-                          recommendation: selected.recommendation,
-                          mediaGuidance: selected.media_guidance,
-                          defectId: toId(selected),
-                        });
-                        onOpenChange(false);
-                      }}
-                    >
-                      Insert into section
-                    </Button>
-                  </div>
                 </div>
               )}
             </div>
