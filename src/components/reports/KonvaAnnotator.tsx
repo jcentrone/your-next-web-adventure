@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { AnnotationToolbar } from "@/components/annotation/AnnotationToolbar";
-import { Stage, Layer, Image as KonvaImage } from "react-konva";
+import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
 import Konva from "konva";
 import useImage from "use-image";
 
@@ -26,21 +27,26 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
 }) => {
   const stageRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
+  const transformerRef = useRef<Konva.Transformer | null>(null);
   const [image] = useImage(imageUrl);
-  const [stageSize, setStageSize] = useState({ width: 800, height: 600 });
+  const [stageSize, setStageSize] = useState({ width: 500, height: 300 });
   const [activeTool, setActiveTool] = useState<ToolType>("select");
   const [activeColor, setActiveColor] = useState("#ef4444");
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawLine, setDrawLine] = useState<Konva.Line | null>(null);
+  const [selectedObjects, setSelectedObjects] = useState<(Konva.Group | Konva.Shape)[]>([]);
+  const [isTextEditing, setIsTextEditing] = useState(false);
+  const [editingText, setEditingText] = useState("");
+  const [editingTextNode, setEditingTextNode] = useState<Konva.Text | null>(null);
   const startPoint = useRef<{ x: number; y: number } | null>(null);
 
-  // adjust stage size to image with reasonable max size
+  // Adjust stage size to image with smaller max size
   useEffect(() => {
     if (image) {
-      const MAX_WIDTH = 600;
-      const MAX_HEIGHT = 400;
+      const MAX_WIDTH = 500;
+      const MAX_HEIGHT = 300;
       
       let { width, height } = image;
       
@@ -67,7 +73,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     y: stageSize.height / image.height
   } : { x: 1, y: 1 };
 
-  // load initial annotations
+  // Load initial annotations
   useEffect(() => {
     if (layerRef.current) {
       layerRef.current.destroyChildren();
@@ -84,7 +90,31 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialAnnotations, isOpen]);
 
-  const saveHistory = () => {
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isOpen) return;
+      
+      if (e.key === 'Delete' && selectedObjects.length > 0) {
+        selectedObjects.forEach(node => node.destroy());
+        setSelectedObjects([]);
+        transformerRef.current?.nodes([]);
+        layerRef.current?.batchDraw();
+        saveHistory();
+      }
+      
+      if (e.key === 'Escape') {
+        setSelectedObjects([]);
+        transformerRef.current?.nodes([]);
+        setActiveTool("select");
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, selectedObjects]);
+
+  const saveHistory = useCallback(() => {
     if (!layerRef.current) return;
     const json = layerRef.current.toJSON();
     setHistory((prev) => {
@@ -93,7 +123,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       setHistoryIndex(next.length - 1);
       return next;
     });
-  };
+  }, [historyIndex]);
 
   const handleUndo = () => {
     if (historyIndex <= 0 || !layerRef.current) return;
@@ -101,6 +131,8 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     layerRef.current.destroyChildren();
     Konva.Node.create(prev, layerRef.current);
     layerRef.current.draw();
+    setSelectedObjects([]);
+    transformerRef.current?.nodes([]);
     setHistoryIndex(historyIndex - 1);
   };
 
@@ -110,11 +142,121 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     layerRef.current.destroyChildren();
     Konva.Node.create(next, layerRef.current);
     layerRef.current.draw();
+    setSelectedObjects([]);
+    transformerRef.current?.nodes([]);
     setHistoryIndex(historyIndex + 1);
+  };
+
+  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    // If clicking on stage background, deselect all
+    if (e.target === e.target.getStage()) {
+      setSelectedObjects([]);
+      transformerRef.current?.nodes([]);
+    }
+  };
+
+  const handleObjectClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (activeTool === "select") {
+      const node = e.target as Konva.Group | Konva.Shape;
+      
+      // Double click on text to edit
+      if (node instanceof Konva.Text && e.evt.detail === 2) {
+        setEditingTextNode(node);
+        setEditingText(node.text());
+        setIsTextEditing(true);
+        return;
+      }
+      
+      // Single click to select
+      const isSelected = selectedObjects.includes(node);
+      if (e.evt.ctrlKey || e.evt.metaKey) {
+        // Multi-select
+        if (isSelected) {
+          const newSelection = selectedObjects.filter(obj => obj !== node);
+          setSelectedObjects(newSelection);
+          transformerRef.current?.nodes(newSelection);
+        } else {
+          const newSelection = [...selectedObjects, node];
+          setSelectedObjects(newSelection);
+          transformerRef.current?.nodes(newSelection);
+        }
+      } else {
+        // Single select
+        setSelectedObjects([node]);
+        transformerRef.current?.nodes([node]);
+      }
+      e.cancelBubble = true;
+    }
+  };
+
+  const createAnnotationShape = (type: ToolType, startPos: { x: number; y: number }, endPos: { x: number; y: number }) => {
+    if (!layerRef.current) return null;
+
+    let shape: Konva.Shape | null = null;
+
+    switch (type) {
+      case "arrow":
+        shape = new Konva.Arrow({
+          points: [startPos.x, startPos.y, endPos.x, endPos.y],
+          stroke: activeColor,
+          fill: activeColor,
+          strokeWidth: 3,
+          draggable: true,
+        });
+        break;
+      case "line":
+        shape = new Konva.Line({
+          points: [startPos.x, startPos.y, endPos.x, endPos.y],
+          stroke: activeColor,
+          strokeWidth: 3,
+          draggable: true,
+        });
+        break;
+      case "rectangle":
+        shape = new Konva.Rect({
+          x: Math.min(startPos.x, endPos.x),
+          y: Math.min(startPos.y, endPos.y),
+          width: Math.abs(endPos.x - startPos.x),
+          height: Math.abs(endPos.y - startPos.y),
+          stroke: activeColor,
+          strokeWidth: 3,
+          draggable: true,
+        });
+        break;
+      case "circle":
+        shape = new Konva.Circle({
+          x: startPos.x,
+          y: startPos.y,
+          radius: Math.hypot(endPos.x - startPos.x, endPos.y - startPos.y),
+          stroke: activeColor,
+          strokeWidth: 3,
+          draggable: true,
+        });
+        break;
+      case "text":
+        shape = new Konva.Text({
+          x: endPos.x,
+          y: endPos.y,
+          text: "Double-click to edit",
+          fill: activeColor,
+          fontSize: 24,
+          draggable: true,
+        });
+        break;
+    }
+
+    if (shape) {
+      shape.on('click', handleObjectClick);
+      layerRef.current.add(shape);
+      return shape;
+    }
+
+    return null;
   };
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (activeTool === "select") return;
+    
     const pos = e.target.getStage()?.getPointerPosition();
     if (!pos || !layerRef.current) return;
     startPoint.current = pos;
@@ -128,7 +270,9 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         lineCap: "round",
         lineJoin: "round",
         globalCompositeOperation: "source-over",
+        draggable: true,
       });
+      line.on('click', handleObjectClick);
       layerRef.current.add(line);
       setDrawLine(line);
     }
@@ -157,66 +301,38 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       return;
     }
 
-    const { x, y } = startPoint.current;
-    switch (activeTool) {
-      case "arrow":
-        layerRef.current.add(
-          new Konva.Arrow({
-            points: [x, y, pos.x, pos.y],
-            stroke: activeColor,
-            fill: activeColor,
-            strokeWidth: 3,
-          })
-        );
-        break;
-      case "line":
-        layerRef.current.add(
-          new Konva.Line({
-            points: [x, y, pos.x, pos.y],
-            stroke: activeColor,
-            strokeWidth: 3,
-          })
-        );
-        break;
-      case "rectangle":
-        layerRef.current.add(
-          new Konva.Rect({
-            x: Math.min(x, pos.x),
-            y: Math.min(y, pos.y),
-            width: Math.abs(pos.x - x),
-            height: Math.abs(pos.y - y),
-            stroke: activeColor,
-            strokeWidth: 3,
-          })
-        );
-        break;
-      case "circle":
-        layerRef.current.add(
-          new Konva.Circle({
-            x,
-            y,
-            radius: Math.hypot(pos.x - x, pos.y - y),
-            stroke: activeColor,
-            strokeWidth: 3,
-          })
-        );
-        break;
-      case "text":
-        layerRef.current.add(
-          new Konva.Text({
-            x: pos.x,
-            y: pos.y,
-            text: "Text",
-            fill: activeColor,
-            fontSize: 24,
-            draggable: true,
-          })
-        );
-        break;
+    if (activeTool !== "select") {
+      const shape = createAnnotationShape(activeTool, startPoint.current, pos);
+      if (shape) {
+        layerRef.current.draw();
+        saveHistory();
+      }
     }
-    layerRef.current.draw();
-    saveHistory();
+
     startPoint.current = null;
+  };
+
+  const handleTextEdit = () => {
+    if (editingTextNode && editingText.trim()) {
+      editingTextNode.text(editingText);
+      layerRef.current?.batchDraw();
+      saveHistory();
+    }
+    setIsTextEditing(false);
+    setEditingTextNode(null);
+    setEditingText("");
+  };
+
+  const handleBringToFront = () => {
+    selectedObjects.forEach(node => node.moveToTop());
+    layerRef.current?.batchDraw();
+    saveHistory();
+  };
+
+  const handleSendToBack = () => {
+    selectedObjects.forEach(node => node.moveToBottom());
+    layerRef.current?.batchDraw();
+    saveHistory();
   };
 
   const handleSave = async () => {
@@ -244,6 +360,21 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
             canUndo={historyIndex > 0}
             canRedo={historyIndex < history.length - 1}
           />
+          
+          {selectedObjects.length > 0 && (
+            <div className="flex gap-2 p-2 bg-muted rounded">
+              <Button size="sm" variant="outline" onClick={handleBringToFront}>
+                Bring to Front
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleSendToBack}>
+                Send to Back
+              </Button>
+              <span className="text-sm text-muted-foreground self-center">
+                {selectedObjects.length} selected • Press Delete to remove
+              </span>
+            </div>
+          )}
+
           <Stage
             width={stageSize.width}
             height={stageSize.height}
@@ -251,17 +382,59 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
             onMouseDown={handleMouseDown}
             onMousemove={handleMouseMove}
             onMouseup={handleMouseUp}
+            onClick={handleStageClick}
           >
             <Layer listening={false}>
               {image && <KonvaImage image={image} scaleX={imageScale.x} scaleY={imageScale.y} />}
             </Layer>
             <Layer ref={layerRef} />
+            <Layer>
+              <Transformer
+                ref={transformerRef}
+                boundBoxFunc={(oldBox, newBox) => {
+                  // Limit resize to positive dimensions
+                  if (newBox.width < 5 || newBox.height < 5) {
+                    return oldBox;
+                  }
+                  return newBox;
+                }}
+              />
+            </Layer>
           </Stage>
+          
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
             <Button onClick={handleSave}>Save</Button>
           </div>
         </div>
+
+        {/* Text editing dialog */}
+        {isTextEditing && (
+          <Dialog open={isTextEditing} onOpenChange={setIsTextEditing}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit Text</DialogTitle>
+              </DialogHeader>
+              <Input
+                value={editingText}
+                onChange={(e) => setEditingText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleTextEdit();
+                  }
+                }}
+                autoFocus
+                placeholder="Enter text..."
+              />
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsTextEditing(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleTextEdit}>Save</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </DialogContent>
     </Dialog>
   );
