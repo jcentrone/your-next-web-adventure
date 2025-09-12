@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import * as googleCalendar from "@/integrations/googleCalendar";
+import { supabase } from "@/integrations/supabase/client";
 
 const GoogleCallback = () => {
   const navigate = useNavigate();
@@ -19,24 +20,21 @@ const GoogleCallback = () => {
 
     (async () => {
       try {
-        const res = await fetch("https://oauth2.googleapis.com/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
+        // Use Supabase edge function for secure OAuth token exchange
+        const { data: tokenData, error } = await supabase.functions.invoke('oauth-token-exchange', {
+          body: {
+            provider: 'google',
             code,
-            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || "",
-            client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET || "",
-            redirect_uri: `${window.location.origin}/oauth/google`,
-            grant_type: "authorization_code",
-          }),
+            state,
+            redirect_uri: `${window.location.origin}/oauth/google`
+          }
         });
-        if (res.ok) {
-          const token = await res.json();
-          await googleCalendar.handleOAuthCallback(state, token);
-          queryClient.invalidateQueries({
-            queryKey: ["google-calendar-connected", state],
-          });
-        }
+        
+        if (error) throw error;
+        await googleCalendar.handleOAuthCallback(state, tokenData);
+        queryClient.invalidateQueries({
+          queryKey: ["google-calendar-connected", state],
+        });
       } finally {
         navigate("/settings/integrations");
       }
