@@ -25,7 +25,7 @@ interface ExpenseListProps {
 }
 
 const categories = [
-  { label: "All", value: "" },
+  { label: "All", value: "all" },
   { label: "Travel", value: "travel" },
   { label: "Supplies", value: "supplies" },
   { label: "Meals", value: "meals" },
@@ -39,7 +39,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
   const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
   const [searchInput, setSearchInput] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [selectedCategory, setSelectedCategory] = React.useState("");
+  const [selectedCategory, setSelectedCategory] = React.useState("all");
   const [sort, setSort] = React.useState<{ field: "expense_date" | "amount"; direction: "asc" | "desc" }>(
     { field: "expense_date", direction: "desc" }
   );
@@ -52,7 +52,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
   const queryParams = React.useMemo(
     () => ({
       search: searchTerm || undefined,
-      category: selectedCategory || undefined,
+      category: selectedCategory && selectedCategory !== "all" ? selectedCategory : undefined,
       sortBy: sort.field,
       sortDir: sort.direction,
     }),
