@@ -19,28 +19,31 @@ interface CategoryAwareReportEditorProps {
   report: Report;
   onReportChange: (report: Report) => void;
   template?: ReportTemplate | null;
+  onAnnotate?: (findingId: string, mediaId: string, mediaUrl: string) => void;
 }
 
 export function CategoryAwareReportEditor({ 
   report, 
   onReportChange, 
-  template 
+  template,
+  onAnnotate
 }: CategoryAwareReportEditorProps) {
   const reportCategory = getReportCategory(report.reportType);
   const isDefectBased = isDefectBasedReport(report.reportType);
   const { customFields: _customFields } = useCustomFields();
 
   if (isDefectBased) {
-    return <DefectBasedReportEditor report={report} onReportChange={onReportChange} template={template} />;
+    return <DefectBasedReportEditor report={report} onReportChange={onReportChange} template={template} onAnnotate={onAnnotate} />;
   } else {
-    return <FormBasedReportEditor report={report} onReportChange={onReportChange} template={template} />;
+    return <FormBasedReportEditor report={report} onReportChange={onReportChange} template={template} onAnnotate={onAnnotate} />;
   }
 }
 
 function DefectBasedReportEditor({
   report,
   onReportChange,
-  template
+  template,
+  onAnnotate
 }: CategoryAwareReportEditorProps) {
   const [selectedSection, setSelectedSection] = React.useState<string | null>(null);
   const [activeTab, setActiveTab] = React.useState<"info" | "observations">("info");
@@ -397,7 +400,8 @@ return (
                                             });
                                             return;
                                           }
-                                          nav(`/reports/${report.id}/findings/${finding.id}/media/${m.id}/annotate`);
+                                          // Open annotation modal - need to pass these props from parent
+                                          onAnnotate?.(finding.id, m.id, m.url);
                                         }}
                                       >
                                         <Edit3 className="w-4 h-4 text-orange-500" />
@@ -500,7 +504,8 @@ return (
 function FormBasedReportEditor({ 
   report, 
   onReportChange, 
-  template 
+  template,
+  onAnnotate
 }: CategoryAwareReportEditorProps) {
   const [selectedSectionKey, setSelectedSectionKey] = React.useState<string | null>(null);
   const { customFields } = useCustomFields();

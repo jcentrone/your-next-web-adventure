@@ -370,6 +370,15 @@ const ReportEditor: React.FC = () => {
     };
   }, [user, report?.coverImage]);
 
+  const handleAnnotateImage = (findingId: string, mediaId: string, mediaUrl: string) => {
+    setAnnotatorImage({
+      url: mediaUrl,
+      mediaId,
+      findingId
+    });
+    setAnnotatorOpen(true);
+  };
+
   if (!report) return null;
 
   // Use category-aware editor if template is available
@@ -403,6 +412,7 @@ const ReportEditor: React.FC = () => {
                 report={report}
                 onReportChange={setReport}
                 template={reportTemplate}
+                onAnnotate={handleAnnotateImage}
               />
             </div>
           </main>
@@ -623,6 +633,7 @@ const ReportEditor: React.FC = () => {
     setCameraOpen(false);
     setCurrentFindingId(null);
   };
+
 
   const handleAnnotationSave = async (annotations: string, imageBlob: Blob) => {
     if (!annotatorImage) return;
@@ -1328,8 +1339,13 @@ const ReportEditor: React.FC = () => {
                                                 return;
                                               }
                                               
-                                              // Navigate to annotation page using the correct route pattern
-                                              nav(`/reports/${report.id}/findings/${f.id}/media/${m.id}/annotate`);
+                                              // Open annotation modal
+                                              setAnnotatorImage({
+                                                url: mediaUrlMap[m.id] || m.url,
+                                                mediaId: m.id,
+                                                findingId: f.id
+                                              });
+                                              setAnnotatorOpen(true);
                                             }}
                                           >
                                             <Edit3 className="w-4 h-4 text-orange-500" />
