@@ -14,12 +14,51 @@ const Documentation = () => {
   const [openSections, setOpenSections] = useState<string[]>([]);
   const title = "Documentation | Home Report Pro - Complete User Guide";
   const description = "Comprehensive documentation for Home Report Pro. Learn how to use our platform for professional home inspections, wind mitigation reports, and more.";
+  
   const toggleSection = (sectionId: string) => {
     setOpenSections(prev => prev.includes(sectionId) ? prev.filter(id => id !== sectionId) : [...prev, sectionId]);
   };
+  
   const openSingleSection = (sectionId: string) => {
     setOpenSections([sectionId]);
   };
+
+  // Search functionality
+  const searchInText = (text: string, query: string): boolean => {
+    return text.toLowerCase().includes(query.toLowerCase());
+  };
+
+  const getFilteredContent = () => {
+    if (!searchQuery.trim()) return null;
+    
+    const query = searchQuery.trim();
+    const results: any[] = [];
+    
+    // Search through all documentation content
+    const searchableContent = [
+      { category: "getting-started", title: "Account Registration", content: "sign up email password verification profile setup inspector certification business information branding logo signature" },
+      { category: "getting-started", title: "PWA Installation", content: "mobile app install android ios chrome safari home screen offline functionality" },
+      { category: "getting-started", title: "First Report", content: "create report home inspection wind mitigation property details sections observations photos" },
+      { category: "contacts", title: "Contact Management", content: "clients realtors vendors contractors add contact information relationships" },
+      { category: "reports", title: "Report Creation", content: "home inspection reports wind mitigation 4-point roof certification manufactured home templates" },
+      { category: "calendar", title: "Calendar & Booking", content: "appointments scheduling booking widget calendar integration time slots" },
+      { category: "integrations", title: "Integrations", content: "google calendar outlook showing time acuity calendly third party apps" },
+      { category: "settings", title: "Settings", content: "account settings organization branding email templates notifications preferences" },
+      { category: "analytics", title: "Analytics", content: "reports analytics dashboard performance metrics expenses tracking" },
+      { category: "advanced", title: "Advanced Features", content: "custom sections templates automation workflows bulk operations" },
+      { category: "troubleshooting", title: "Troubleshooting", content: "login problems sync issues pdf generation performance help support" }
+    ];
+
+    searchableContent.forEach(item => {
+      if (searchInText(item.title, query) || searchInText(item.content, query)) {
+        results.push(item);
+      }
+    });
+
+    return results;
+  };
+
+  const filteredResults = getFilteredContent();
   const categories = [{
     id: "getting-started",
     label: "Getting Started",
@@ -100,7 +139,56 @@ const Documentation = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            <Tabs value={activeCategory} onValueChange={setActiveCategory}>
+            {/* Search Results */}
+            {filteredResults && filteredResults.length > 0 ? (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Search Results</h2>
+                  <Badge variant="secondary">{filteredResults.length} result{filteredResults.length !== 1 ? 's' : ''}</Badge>
+                </div>
+                
+                <div className="grid gap-4">
+                  {filteredResults.map((result, index) => (
+                    <Card key={index} className="p-6 cursor-pointer hover:shadow-md transition-all" 
+                          onClick={() => {
+                            setSearchQuery("");
+                            setActiveCategory(result.category);
+                          }}>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">{result.title}</h3>
+                          <p className="text-muted-foreground text-sm mb-3">
+                            Found in: {categories.find(c => c.id === result.category)?.label}
+                          </p>
+                          <Badge variant="outline" className="text-xs">
+                            {result.category}
+                          </Badge>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+                
+                <div className="text-center py-8">
+                  <Button variant="outline" onClick={() => setSearchQuery("")}>
+                    Clear Search
+                  </Button>
+                </div>
+              </div>
+            ) : filteredResults && filteredResults.length === 0 ? (
+              <div className="text-center py-12">
+                <Search className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">No results found</h3>
+                <p className="text-muted-foreground mb-4">
+                  Try different keywords or browse categories below
+                </p>
+                <Button variant="outline" onClick={() => setSearchQuery("")}>
+                  Clear Search
+                </Button>
+              </div>
+            ) : (
+              <Tabs value={activeCategory} onValueChange={setActiveCategory}>
               {/* Getting Started */}
               <TabsContent value="getting-started" className="space-y-8">
                 <div>
@@ -1706,9 +1794,11 @@ const Documentation = () => {
                 </div>
               </TabsContent>
             </Tabs>
+            )}
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
 export default Documentation;
