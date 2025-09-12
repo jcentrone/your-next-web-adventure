@@ -381,6 +381,18 @@ const Header: React.FC = () => {
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
+                                        <Link to="/routes" className="flex items-center gap-2">
+                                            <Navigation className="h-4 w-4"/>
+                                            Routes
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/expenses" className="flex items-center gap-2">
+                                            <DollarSign className="h-4 w-4"/>
+                                            Expenses
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
                                         <Link to="/settings" className="flex items-center gap-2" data-onboarding="settings-menu">
                                             <Settings className="h-4 w-4"/>
                                             Settings
