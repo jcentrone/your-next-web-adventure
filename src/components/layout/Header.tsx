@@ -127,29 +127,6 @@ const Header: React.FC = () => {
                                  <CheckSquare className="h-4 w-4"/>
                                  Tasks
                              </Link>
-                             <DropdownMenu>
-                                 <DropdownMenuTrigger asChild>
-                                     <Button variant="ghost" className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary">
-                                         <MoreHorizontal className="h-4 w-4"/>
-                                         More
-                                         <ChevronDown className="h-3 w-3"/>
-                                     </Button>
-                                 </DropdownMenuTrigger>
-                                 <DropdownMenuContent align="end">
-                                     <DropdownMenuItem asChild>
-                                         <Link to="/routes" className="flex items-center gap-2 w-full">
-                                             <Navigation className="h-4 w-4"/>
-                                             Routes
-                                         </Link>
-                                     </DropdownMenuItem>
-                                     <DropdownMenuItem asChild>
-                                         <Link to="/expenses" className="flex items-center gap-2 w-full">
-                                             <DollarSign className="h-4 w-4"/>
-                                             Expenses
-                                         </Link>
-                                     </DropdownMenuItem>
-                                 </DropdownMenuContent>
-                             </DropdownMenu>
                              <Link to="/analytics"
                                    className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/analytics' ? 'text-primary' : ''}`}
                                    data-onboarding="analytics">
