@@ -8,7 +8,7 @@ import { ExpenseList } from "@/components/expenses/ExpenseList";
 const Expenses: React.FC = () => {
   const { user } = useAuth();
 
-  const { data: organization, isLoading } = useQuery<Organization | null>({
+  const { data: organization, isLoading, error } = useQuery<Organization | null>({
     queryKey: ["my-organization"],
     queryFn: getMyOrganization,
     enabled: !!user,
@@ -18,15 +18,18 @@ const Expenses: React.FC = () => {
     return <div>Loading...</div>;
   }
 
-  if (!organization) {
-    return <div>No organization found.</div>;
+  if (error) {
+    console.error("Error loading organization:", error);
   }
+
+  // For expenses, we can use a default organization ID or user ID if no org exists
+  const orgId = organization?.id || user.id;
 
   return (
     <>
       <Seo title="Expenses" />
       <div className="space-y-6">
-        <ExpenseList userId={user.id} organizationId={organization.id} />
+        <ExpenseList userId={user.id} organizationId={orgId} />
       </div>
     </>
   );

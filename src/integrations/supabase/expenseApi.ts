@@ -17,30 +17,35 @@ export const expenseApi = {
     startDate?: string;
     endDate?: string;
   } = {}): Promise<Expense[]> {
-    let query = supabase.from('expenses').select('*');
+    try {
+      let query = supabase.from('expenses').select('*');
 
-    if (search) {
-      query = query.ilike('description', `%${search}%`);
-    }
-    if (category) {
-      query = query.eq('category', category);
-    }
-    if (startDate) {
-      query = query.gte('expense_date', startDate);
-    }
-    if (endDate) {
-      query = query.lte('expense_date', endDate);
-    }
+      if (search) {
+        query = query.ilike('description', `%${search}%`);
+      }
+      if (category) {
+        query = query.eq('category', category);
+      }
+      if (startDate) {
+        query = query.gte('expense_date', startDate);
+      }
+      if (endDate) {
+        query = query.lte('expense_date', endDate);
+      }
 
-    query = query.order(sortBy, { ascending: sortDir === 'asc' });
+      query = query.order(sortBy, { ascending: sortDir === 'asc' });
 
-    const { data, error } = await query;
-    if (error) {
-      console.error('Error listing expenses:', error);
-      throw new Error(`Failed to fetch expenses: ${error.message}`);
+      const { data, error } = await query;
+      if (error) {
+        console.error('Error listing expenses:', error);
+        throw new Error(`Failed to fetch expenses: ${error.message}`);
+      }
+
+      return (data as Expense[]) || [];
+    } catch (error) {
+      console.error('Unexpected error in listExpenses:', error);
+      throw error;
     }
-
-    return (data as Expense[]) || [];
   },
 
   async createExpense(payload: Omit<Expense, 'id' | 'created_at'>): Promise<Expense> {
