@@ -20,7 +20,8 @@ const VoiceToTextTextarea = React.forwardRef<HTMLTextAreaElement, VoiceToTextTex
       isSupported,
       startListening,
       stopListening,
-      isRecording
+      isRecording,
+      audioLevel
     } = useVoiceToText({
       onResult: (transcript) => {
         console.log('Voice transcript received:', transcript);
@@ -31,13 +32,12 @@ const VoiceToTextTextarea = React.forwardRef<HTMLTextAreaElement, VoiceToTextTex
         
         console.log('New value will be:', newValue);
         
+        // Only call onValueChange, not both
         if (onValueChange) {
-          console.log('Calling onValueChange');
+          console.log('Calling onValueChange with:', newValue);
           onValueChange(newValue);
-        }
-        
-        if (onChange) {
-          console.log('Calling onChange');
+        } else if (onChange) {
+          console.log('Calling onChange as fallback');
           const syntheticEvent = {
             target: { value: newValue }
           } as React.ChangeEvent<HTMLTextAreaElement>;
@@ -49,6 +49,24 @@ const VoiceToTextTextarea = React.forwardRef<HTMLTextAreaElement, VoiceToTextTex
         setIsListening(false);
       }
     });
+
+    // Test function to verify data flow
+    const handleTestTranscript = () => {
+      const testText = "This is a test transcript";
+      console.log('Testing transcript with:', testText);
+      
+      const currentValue = (value as string) || '';
+      const newValue = currentValue ? `${currentValue} ${testText}` : testText;
+      
+      if (onValueChange) {
+        onValueChange(newValue);
+      } else if (onChange) {
+        const syntheticEvent = {
+          target: { value: newValue }
+        } as React.ChangeEvent<HTMLTextAreaElement>;
+        onChange(syntheticEvent);
+      }
+    };
 
     const handleVoiceToggle = () => {
       if (isRecording) {
@@ -76,36 +94,69 @@ const VoiceToTextTextarea = React.forwardRef<HTMLTextAreaElement, VoiceToTextTex
       <div className="relative">
         <Textarea
           ref={textareaRef}
-          className={cn("pr-12", className)}
+          className={cn("pr-20", className)}
           value={value}
           onChange={onChange}
           {...props}
         />
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "absolute bottom-2 right-2 h-8 w-8 p-0",
-                  isRecording && "text-destructive animate-pulse"
-                )}
-                onClick={handleVoiceToggle}
-              >
-                {isRecording ? (
-                  <MicOff className="h-4 w-4" />
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{isRecording ? "Stop recording" : "Start voice input"}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="absolute bottom-2 right-2 flex gap-1">
+          {/* Test button for debugging */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-muted-foreground"
+                  onClick={handleTestTranscript}
+                >
+                  T
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Test transcript (debug)</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Voice button with audio level indicator */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "relative h-8 w-8 p-0",
+                    isRecording && "text-destructive animate-pulse"
+                  )}
+                  onClick={handleVoiceToggle}
+                >
+                  {isRecording ? (
+                    <MicOff className="h-4 w-4" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                  {/* Audio level indicator */}
+                  {isRecording && audioLevel > 0 && (
+                    <div 
+                      className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
+                      style={{ opacity: Math.min(audioLevel / 100, 1) }}
+                    />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  {isRecording ? "Stop recording" : "Start voice input"}
+                  {isRecording && audioLevel > 0 && ` (${Math.round(audioLevel)}%)`}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
     );
   }
