@@ -1,5 +1,16 @@
 import { supabase } from './client';
-import type { Expense } from './types';
+
+export interface Expense {
+  id: string;
+  user_id: string;
+  organization_id: string;
+  expense_date: string;
+  category?: string;
+  description?: string;
+  amount: number;
+  receipt_url?: string;
+  created_at: string;
+}
 
 export const expenseApi = {
   async listExpenses({

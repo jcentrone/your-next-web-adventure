@@ -2,7 +2,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { ActionsMenu, ActionItem } from "@/components/ui/actions-menu";
 import { Pencil, Trash2 } from "lucide-react";
-import type { Expense } from "@/integrations/supabase/types";
+import type { Expense } from "@/integrations/supabase/expenseApi";
 
 interface ExpenseCardProps {
   expense: Expense;

@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { expenseApi } from "@/integrations/supabase/expenseApi";
-import type { Expense } from "@/integrations/supabase/types";
+import { expenseApi, type Expense } from "@/integrations/supabase/expenseApi";
+import { expenseCategoriesApi } from "@/integrations/supabase/expenseCategoriesApi";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,13 +26,17 @@ interface ExpenseListProps {
   organizationId: string;
 }
 
-const categories = [
-  { label: "All", value: "all" },
-  { label: "Travel", value: "travel" },
-  { label: "Supplies", value: "supplies" },
-  { label: "Meals", value: "meals" },
-  { label: "Other", value: "other" },
-];
+  // Fetch expense categories
+  const { data: categories = [] } = useQuery({
+    queryKey: ["expense-categories"],
+    queryFn: () => expenseCategoriesApi.listExpenseCategories(),
+  });
+
+  // Create categories list for filter
+  const categoryOptions = [
+    { label: "All", value: "all" },
+    ...categories.map(cat => ({ label: cat.name, value: cat.name }))
+  ];
 
 export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId }) => {
   const { toast } = useToast();
@@ -140,7 +144,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                {categories.map((cat) => (
+                {categoryOptions.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>
                     {cat.label}
                   </SelectItem>

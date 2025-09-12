@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { expenseApi } from "@/integrations/supabase/expenseApi";
-import type { Expense } from "@/integrations/supabase/types";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { expenseApi, type Expense } from "@/integrations/supabase/expenseApi";
+import { expenseCategoriesApi } from "@/integrations/supabase/expenseCategoriesApi";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Form,
   FormControl,
   FormField,
@@ -21,7 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Camera, Upload } from "lucide-react";
+import { Camera, Upload, Plus } from "lucide-react";
 import { CameraCapture } from "@/components/reports/CameraCapture";
 
 interface ExpenseFormProps {
@@ -40,13 +47,6 @@ interface FormValues {
   receipt: FileList | null;
 }
 
-const defaultCategories = [
-  { label: "Travel", value: "travel" },
-  { label: "Supplies", value: "supplies" },
-  { label: "Meals", value: "meals" },
-  { label: "Other", value: "other" },
-];
-
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   expense,
   userId,
@@ -58,6 +58,43 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const queryClient = useQueryClient();
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [isCameraOpen, setIsCameraOpen] = React.useState(false);
+  
+  // State for categories and adding new ones
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  
+  // Fetch expense categories
+  const { data: categories = [], refetch: refetchCategories } = useQuery({
+    queryKey: ["expense-categories"],
+    queryFn: () => expenseCategoriesApi.listExpenseCategories(),
+  });
+
+  // Create new category mutation
+  const createCategoryMutation = useMutation({
+    mutationFn: expenseCategoriesApi.createExpenseCategory,
+    onSuccess: () => {
+      refetchCategories();
+      setIsAddingCategory(false);
+      setNewCategoryName("");
+      toast({ title: "Category created successfully" });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error creating category",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleAddCategory = () => {
+    if (newCategoryName.trim()) {
+      createCategoryMutation.mutate({ 
+        name: newCategoryName.trim(),
+        organization_id: organizationId 
+      });
+    }
+  };
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -169,11 +206,53 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {defaultCategories.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
                     </SelectItem>
                   ))}
+                  <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
+                    <DialogTrigger asChild>
+                      <div className="flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-accent rounded-sm">
+                        <Plus className="h-4 w-4" />
+                        Add new category
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add New Category</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <Input
+                          placeholder="Category name"
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleAddCategory();
+                            }
+                          }}
+                        />
+                        <div className="flex gap-2 justify-end">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setIsAddingCategory(false);
+                              setNewCategoryName("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleAddCategory}
+                            disabled={!newCategoryName.trim() || createCategoryMutation.isPending}
+                          >
+                            Add Category
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </SelectContent>
               </Select>
               <FormMessage />
