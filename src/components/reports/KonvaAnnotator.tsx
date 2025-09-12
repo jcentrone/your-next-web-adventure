@@ -39,8 +39,8 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
   // adjust stage size to image with reasonable max size
   useEffect(() => {
     if (image) {
-      const MAX_WIDTH = 800;
-      const MAX_HEIGHT = 600;
+      const MAX_WIDTH = 600;
+      const MAX_HEIGHT = 400;
       
       let { width, height } = image;
       
