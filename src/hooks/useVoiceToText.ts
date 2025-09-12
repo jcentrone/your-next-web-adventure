@@ -52,6 +52,7 @@ export const useVoiceToText = ({
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyzerRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const audioMonitoringRef = useRef<boolean>(false);
 
   useEffect(() => {
     // Check if speech recognition is supported
@@ -67,6 +68,15 @@ export const useVoiceToText = ({
       recognition.continuous = continuous;
       recognition.interimResults = interimResults;
       recognition.lang = language;
+      
+      // Add better timeout settings
+      if ('maxAlternatives' in recognition) {
+        (recognition as any).maxAlternatives = 1;
+      }
+      if ('serviceURI' in recognition) {
+        // Some browsers support this for better performance
+        (recognition as any).serviceURI = '';
+      }
       
       console.log('Speech recognition settings:', { continuous, interimResults, language });
 
@@ -144,43 +154,65 @@ export const useVoiceToText = ({
   // Audio level monitoring
   const startAudioMonitoring = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('🎤 Starting audio monitoring...');
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
       streamRef.current = stream;
       
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = audioContext;
       
       const analyzer = audioContext.createAnalyser();
-      analyzer.fftSize = 256;
+      analyzer.fftSize = 512;
+      analyzer.smoothingTimeConstant = 0.8;
       analyzerRef.current = analyzer;
       
       const microphone = audioContext.createMediaStreamSource(stream);
       microphone.connect(analyzer);
       
       const dataArray = new Uint8Array(analyzer.frequencyBinCount);
+      audioMonitoringRef.current = true;
       
       const updateAudioLevel = () => {
-        if (analyzerRef.current && isRecording) {
+        if (analyzerRef.current && audioMonitoringRef.current) {
           analyzer.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+          console.log('🎤 Audio level:', average);
           setAudioLevel(average);
           requestAnimationFrame(updateAudioLevel);
+        } else {
+          console.log('🎤 Stopping audio level monitoring');
+          setAudioLevel(0);
         }
       };
       
       updateAudioLevel();
-      console.log('🎤 Audio monitoring started');
+      console.log('🎤 Audio monitoring started successfully');
     } catch (error) {
-      console.error('Failed to start audio monitoring:', error);
+      console.error('🎤 Failed to start audio monitoring:', error);
+      if (error.name === 'NotAllowedError') {
+        console.error('🎤 Microphone permission denied');
+      }
     }
-  }, [isRecording]);
+  }, []);
 
   const stopAudioMonitoring = useCallback(() => {
+    console.log('🎤 Stopping audio monitoring...');
+    audioMonitoringRef.current = false;
+    
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log('🎤 Stopped audio track:', track.kind);
+      });
       streamRef.current = null;
     }
-    if (audioContextRef.current) {
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
@@ -210,11 +242,19 @@ export const useVoiceToText = ({
       try {
         console.log('🎤 Starting speech recognition...');
         await startAudioMonitoring();
-        recognitionRef.current.start();
+        
+        // Add a small delay to ensure audio monitoring is fully set up
+        setTimeout(() => {
+          if (recognitionRef.current) {
+            console.log('🎤 Actually starting speech recognition now...');
+            recognitionRef.current.start();
+          }
+        }, 100);
       } catch (error) {
         console.error('🎤 Failed to start speech recognition:', error);
+        stopAudioMonitoring();
         if (onError) {
-          onError('Failed to start speech recognition: ' + error.message);
+          onError('Failed to start speech recognition: ' + (error as Error).message);
         }
       }
     }

@@ -139,13 +139,16 @@ const VoiceToTextTextarea = React.forwardRef<HTMLTextAreaElement, VoiceToTextTex
                   ) : (
                     <Mic className="h-4 w-4" />
                   )}
-                  {/* Audio level indicator */}
-                  {isRecording && audioLevel > 0 && (
-                    <div 
-                      className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"
-                      style={{ opacity: Math.min(audioLevel / 100, 1) }}
-                    />
-                  )}
+                   {/* Audio level indicator - more visible */}
+                   {isRecording && (
+                     <div 
+                       className={cn(
+                         "absolute -top-1 -right-1 w-3 h-3 rounded-full border border-white",
+                         audioLevel > 20 ? "bg-green-500 animate-pulse" : "bg-yellow-500"
+                       )}
+                       style={{ opacity: audioLevel > 5 ? 1 : 0.3 }}
+                     />
+                   )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
