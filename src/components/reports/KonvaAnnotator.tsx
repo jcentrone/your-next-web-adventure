@@ -36,6 +36,18 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
   const [editingText, setEditingText] = useState<Konva.Text | null>(null);
   const [tempText, setTempText] = useState("");
 
+  const saveHistory = useCallback(() => {
+    if (!layerRef.current) return;
+    const json = layerRef.current.toJSON();
+    setHistory((prev) => {
+      const next = prev.slice(0, historyIndex + 1);
+      next.push(json);
+      setHistoryIndex(next.length - 1);
+      return next;
+    });
+    console.log("Saved to history, index:", historyIndex + 1);
+  }, [historyIndex]);
+
   // Attach event handlers to all objects
   const attachEventHandlers = useCallback(() => {
     if (!layerRef.current) return;
@@ -51,20 +63,18 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
           setTempText(textNode.text());
         });
       }
+      
+      // Add transform event handlers for all draggable objects
+      if (child.draggable()) {
+        child.off('transformend');
+        child.on('transformend', () => {
+          console.log("Transform ended for:", child.getClassName());
+          saveHistory();
+        });
+      }
     });
-  }, []);
+  }, [saveHistory]);
 
-  const saveHistory = useCallback(() => {
-    if (!layerRef.current) return;
-    const json = layerRef.current.toJSON();
-    setHistory((prev) => {
-      const next = prev.slice(0, historyIndex + 1);
-      next.push(json);
-      setHistoryIndex(next.length - 1);
-      return next;
-    });
-    console.log("Saved to history, index:", historyIndex + 1);
-  }, [historyIndex]);
 
   useEffect(() => {
     if (image && layerRef.current && history.length === 0) {
@@ -207,11 +217,16 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         draggable: true,
       });
       
-      // Attach double-click handler immediately
+      // Attach event handlers immediately
       text.on('dblclick', () => {
         console.log("Double-clicked text:", text.text());
         setEditingText(text);
         setTempText(text.text());
+      });
+      
+      text.on('transformend', () => {
+        console.log("Transform ended for text");
+        saveHistory();
       });
       
       layerRef.current.add(text);
@@ -231,6 +246,13 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         strokeWidth: 2,
         draggable: true,
       });
+      
+      // Add transform event handler
+      rect.on('transformend', () => {
+        console.log("Transform ended for rectangle");
+        saveHistory();
+      });
+      
       layerRef.current.add(rect);
       setCurrentPath([pos.x, pos.y]);
     } else if (activeTool === "circle") {
@@ -243,6 +265,13 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         strokeWidth: 2,
         draggable: true,
       });
+      
+      // Add transform event handler
+      circle.on('transformend', () => {
+        console.log("Transform ended for circle");
+        saveHistory();
+      });
+      
       layerRef.current.add(circle);
       setCurrentPath([pos.x, pos.y]);
     } else if (activeTool === "arrow") {
@@ -255,6 +284,13 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         strokeWidth: 2,
         draggable: true,
       });
+      
+      // Add transform event handler
+      arrow.on('transformend', () => {
+        console.log("Transform ended for arrow");
+        saveHistory();
+      });
+      
       layerRef.current.add(arrow);
       setCurrentPath([pos.x, pos.y]);
     } else if (activeTool === "line") {
@@ -264,6 +300,13 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         strokeWidth: 2,
         draggable: true,
       });
+      
+      // Add transform event handler
+      line.on('transformend', () => {
+        console.log("Transform ended for line");
+        saveHistory();
+      });
+      
       layerRef.current.add(line);
       setCurrentPath([pos.x, pos.y]);
     }
@@ -292,6 +335,13 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
           strokeWidth: 2,
           draggable: true,
         });
+        
+        // Add transform event handler
+        line.on('transformend', () => {
+          console.log("Transform ended for drawn line");
+          saveHistory();
+        });
+        
         layerRef.current.add(line);
       }
     } else if (activeTool === "rectangle") {
@@ -456,26 +506,25 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
                 />
               )}
             </Layer>
-            <Layer ref={layerRef} />
-            <Layer>
+            <Layer ref={layerRef}>
               <Transformer 
                 ref={transformerRef} 
                 visible={selectedObjects.length > 0}
                 boundBoxFunc={(oldBox, newBox) => {
-                  // Prevent boxes that are too small
-                  if (newBox.width < 5 || newBox.height < 5) {
-                    return oldBox;
-                  }
-                  // Prevent boxes that exceed stage boundaries
-                  if (newBox.x < 0 || newBox.y < 0 || 
-                      newBox.x + newBox.width > imageWidth || 
-                      newBox.y + newBox.height > imageHeight) {
+                  // Relax bounds checking - only prevent extremely small boxes
+                  if (newBox.width < 3 || newBox.height < 3) {
                     return oldBox;
                   }
                   return newBox;
                 }}
                 enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right']}
                 rotateEnabled={false}
+                borderEnabled={true}
+                anchorFill="#4285f4"
+                anchorStroke="#1976d2"
+                anchorSize={8}
+                borderStroke="#4285f4"
+                borderStrokeWidth={2}
               />
             </Layer>
           </Stage>
