@@ -81,9 +81,9 @@ export function DateRangePicker({
     const range = getDateRangeFromPreset(preset);
     onChange(range);
   };
-  return <Select onValueChange={handlePresetChange}>
+  return <Select onValueChange={handlePresetChange} defaultValue="thisWeek">
                 <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Quick select" />
+                    <SelectValue placeholder="This Week" />
                 </SelectTrigger>
                 <SelectContent>
                     {datePresets.map(preset => <SelectItem key={preset.value} value={preset.value}>
