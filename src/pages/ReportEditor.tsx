@@ -936,7 +936,97 @@ const ReportEditor: React.FC = () => {
           </div>
         </div>
         <div className="md:flex md:flex-nowrap items-start gap-6">
-          <aside className="w-full md:w-64 shrink-0">
+          {/* Mobile Dropdown */}
+          <div className="md:hidden mb-4">
+            <Select
+              value={showDetails ? 'report_details' : activeSection?.id || ''}
+              onValueChange={(value) => {
+                if (value === 'report_details') {
+                  setShowDetails(true);
+                } else {
+                  setShowDetails(false);
+                  setActive(value);
+                }
+              }}
+            >
+              <SelectTrigger className="w-full bg-background border-input">
+                <SelectValue placeholder="Select a section" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-input shadow-md z-50">
+                {/* Report Details - Always first */}
+                {(() => {
+                  const reportDetailsSection = SOP_SECTIONS.find(s => s.key === 'report_details');
+                  if (reportDetailsSection) {
+                    return (
+                      <SelectItem key={reportDetailsSection.key} value="report_details" className="hover:bg-accent">
+                        {reportDetailsSection.name}
+                      </SelectItem>
+                    );
+                  }
+                  return null;
+                })()}
+                
+                {/* All other SOP sections */}
+                {SOP_SECTIONS.filter(s => s.key !== 'report_details').map((s) => {
+                  const sec = report.reportType === "home_inspection" ? report.sections.find((x) => x.key === s.key) : null;
+                  if (!sec) return null;
+                  const count = sec.findings.length;
+                  return (
+                    <SelectItem key={s.key} value={sec.id} className="hover:bg-accent">
+                      <div className="flex items-center justify-between w-full">
+                        <span className="truncate">{s.name}</span>
+                        {count > 0 && (
+                          <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-secondary text-[10px]">
+                            {count}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+                
+                {/* Custom Sections */}
+                {customSections.map((cs) => {
+                  // Find or create the section in the report
+                  let sec = report.reportType === "home_inspection" ? report.sections.find((x) => x.key === cs.section_key) : null;
+                  if (!sec) {
+                    // Auto-create the custom section if it doesn't exist
+                    sec = {
+                      id: `${cs.section_key}_${Date.now()}`,
+                      key: cs.section_key as SectionKey,
+                      title: cs.title,
+                      findings: [],
+                      info: {}
+                    };
+                    // Add it to the report
+                    setReport(prev => {
+                      if (!prev || prev.reportType !== "home_inspection") return prev;
+                      return {
+                        ...prev,
+                        sections: [...prev.sections, sec!]
+                      };
+                    });
+                  }
+                  const count = sec.findings.length;
+                  return (
+                    <SelectItem key={cs.id} value={sec.id} className="hover:bg-accent">
+                      <div className="flex items-center justify-between w-full">
+                        <span className="truncate">{cs.title}</span>
+                        {count > 0 && (
+                          <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-secondary text-[10px]">
+                            {count}
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Desktop Sidebar */}
+          <aside className="hidden md:block w-full md:w-64 shrink-0">
           <div className="rounded-lg border p-3">
             <h2 className="font-medium mb-3">Sections</h2>
             <nav className="space-y-1">
