@@ -285,14 +285,14 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
                                 ref={provided.innerRef}
                                 {...provided.droppableProps}
                                 className={cn(
-                                    "min-h-[100px] border border-border p-2 cursor-pointer transition-all duration-200 hover:bg-muted",
+                                    "h-[135px] border border-border p-2 cursor-pointer transition-all duration-200 hover:bg-muted",
                                     "relative", // make z-index work
                                     !isSameMonth(cloneDay, monthStart) && "bg-muted/20 text-muted-foreground",
                                     isToday(cloneDay) && "bg-accent/50",
                                     snapshot.isDraggingOver && "bg-primary/20",
                                     // >>> selected day pop-out:
                                     isSameDay(cloneDay, selectedDate) &&
-                                    "ring-2 ring-primary ring-offset-2 ring-offset-background transform-gpu scale-[1.02] bg-muted shadow-lg z-10"
+                                    "ring-2 ring-primary ring-offset-0 ring-offset-background transform-gpu bg-muted shadow-lg z-10"
                                 )}
                                 onClick={() => {
                                     onDateSelect(cloneDay);
