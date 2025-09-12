@@ -93,9 +93,15 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
   // Update transformer when selected objects change
   useEffect(() => {
     console.log("Selected objects changed:", selectedObjects.length, selectedObjects.map(obj => obj.getClassName()));
-    if (transformerRef.current) {
-      transformerRef.current.nodes(selectedObjects);
-      transformerRef.current.visible(selectedObjects.length > 0);
+    if (transformerRef.current && selectedObjects.length > 0) {
+      // Filter out any transformer nodes to prevent circular references
+      const validNodes = selectedObjects.filter(node => 
+        node.getClassName() !== 'Transformer' && node.getParent() !== transformerRef.current
+      );
+      transformerRef.current.nodes(validNodes);
+      transformerRef.current.getLayer()?.batchDraw();
+    } else if (transformerRef.current) {
+      transformerRef.current.nodes([]);
       transformerRef.current.getLayer()?.batchDraw();
     }
   }, [selectedObjects]);
@@ -170,6 +176,12 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       }
       
       const clickedNode = e.target;
+      
+      // Prevent selecting the transformer itself or stage
+      if (clickedNode.getClassName() === 'Transformer' || clickedNode === e.target.getStage()) {
+        return;
+      }
+      
       const isSelected = selectedObjects.includes(clickedNode);
       
       if (!isSelected) {
@@ -444,16 +456,26 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
                 />
               )}
             </Layer>
-            <Layer ref={layerRef}>
+            <Layer ref={layerRef} />
+            <Layer>
               <Transformer 
                 ref={transformerRef} 
                 visible={selectedObjects.length > 0}
                 boundBoxFunc={(oldBox, newBox) => {
+                  // Prevent boxes that are too small
                   if (newBox.width < 5 || newBox.height < 5) {
+                    return oldBox;
+                  }
+                  // Prevent boxes that exceed stage boundaries
+                  if (newBox.x < 0 || newBox.y < 0 || 
+                      newBox.x + newBox.width > imageWidth || 
+                      newBox.y + newBox.height > imageHeight) {
                     return oldBox;
                   }
                   return newBox;
                 }}
+                enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right']}
+                rotateEnabled={false}
               />
             </Layer>
           </Stage>
