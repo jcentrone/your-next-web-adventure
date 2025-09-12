@@ -7,7 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Plus, ChevronDown, ChevronUp } from "lucide-react";
 import ExpenseForm from "./ExpenseForm";
 import ExpenseItem from "./ExpenseItem";
 
@@ -16,15 +24,42 @@ interface ExpenseListProps {
   organizationId: string;
 }
 
+const categories = [
+  { label: "All", value: "" },
+  { label: "Travel", value: "travel" },
+  { label: "Supplies", value: "supplies" },
+  { label: "Meals", value: "meals" },
+  { label: "Other", value: "other" },
+];
+
 export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
+  const [searchInput, setSearchInput] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [selectedCategory, setSelectedCategory] = React.useState("");
+  const [sort, setSort] = React.useState<{ field: "expense_date" | "amount"; direction: "asc" | "desc" }>(
+    { field: "expense_date", direction: "desc" }
+  );
 
-  const queryParams = React.useMemo(() => ({}), []);
+  React.useEffect(() => {
+    const handler = setTimeout(() => setSearchTerm(searchInput), 300);
+    return () => clearTimeout(handler);
+  }, [searchInput]);
+
+  const queryParams = React.useMemo(
+    () => ({
+      search: searchTerm || undefined,
+      category: selectedCategory || undefined,
+      sortBy: sort.field,
+      sortDir: sort.direction,
+    }),
+    [searchTerm, selectedCategory, sort]
+  );
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ["expenses", queryParams],
+    queryKey: ["expenses", searchTerm, selectedCategory, sort],
     queryFn: () => expenseApi.listExpenses(queryParams),
   });
 
@@ -61,6 +96,14 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
     setEditingExpense(null);
   };
 
+  const handleSort = (field: "expense_date" | "amount") => {
+    setSort((prev) =>
+      prev.field === field
+        ? { field, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { field, direction: "asc" }
+    );
+  };
+
   return (
     <Dialog
       open={isDialogOpen}
@@ -79,14 +122,65 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
           </DialogTrigger>
         </CardHeader>
         <CardContent>
+          <div className="flex items-center gap-2 mb-4">
+            <Input
+              placeholder="Search expenses..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="max-w-xs"
+            />
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All categories" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
+                  <TableHead
+                    className="cursor-pointer select-none"
+                    onClick={() => handleSort("expense_date")}
+                  >
+                    <div className="flex items-center">
+                      Date
+                      {sort.field === "expense_date" && (
+                        sort.direction === "asc" ? (
+                          <ChevronUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        )
+                      )}
+                    </div>
+                  </TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead
+                    className="text-right cursor-pointer select-none"
+                    onClick={() => handleSort("amount")}
+                  >
+                    <div className="flex items-center justify-end">
+                      Amount
+                      {sort.field === "amount" && (
+                        sort.direction === "asc" ? (
+                          <ChevronUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        )
+                      )}
+                    </div>
+                  </TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
