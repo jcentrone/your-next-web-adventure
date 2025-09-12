@@ -205,6 +205,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       layerRef.current.add(text);
       layerRef.current.batchDraw();
       setIsDrawing(false);
+      setActiveTool("select"); // Reset to select tool
       saveHistory();
       console.log("Created text object");
     } else if (activeTool === "rectangle") {
@@ -317,6 +318,10 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     if (isDrawing && layerRef.current) {
       setIsDrawing(false);
       setCurrentPath([]);
+      // Reset to select tool after placing a shape (except for draw tool)
+      if (activeTool !== "draw" && activeTool !== "select") {
+        setActiveTool("select");
+      }
       saveHistory();
       // Attach event handlers to newly created objects
       attachEventHandlers();
@@ -368,11 +373,34 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       const blob = await response.blob();
       
       onSave(annotations, blob);
-      console.log("Annotations saved successfully");
+    console.log("Annotations saved successfully");
     } catch (error) {
       console.error("Failed to save annotations:", error);
     }
   };
+
+  // Calculate image dimensions that fit within the available space while maintaining aspect ratio
+  const getImageDimensions = () => {
+    if (!image) return { width: 800, height: 600 };
+    
+    const maxWidth = Math.min(1200, window.innerWidth - 200); // Leave some margin
+    const maxHeight = Math.min(800, window.innerHeight - 300); // Leave space for toolbar and buttons
+    
+    const aspectRatio = image.width / image.height;
+    
+    let width = maxWidth;
+    let height = width / aspectRatio;
+    
+    // If height exceeds max, scale by height instead
+    if (height > maxHeight) {
+      height = maxHeight;
+      width = height * aspectRatio;
+    }
+    
+    return { width, height };
+  };
+
+  const { width: imageWidth, height: imageHeight } = getImageDimensions();
 
   return (
     <div className="flex flex-col h-full">
@@ -390,11 +418,18 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       </div>
       
       <div className="flex-1 flex items-center justify-center overflow-hidden bg-muted/20 p-4">
-        <div className="max-w-full max-h-full border rounded-lg bg-background shadow-lg overflow-hidden">
+        <div 
+          className="border rounded-lg bg-background shadow-lg overflow-hidden"
+          style={{ 
+            cursor: activeTool === "select" ? "default" : "crosshair",
+            width: imageWidth,
+            height: imageHeight
+          }}
+        >
           <Stage
             ref={stageRef}
-            width={Math.min(window.innerWidth - 100, image?.width || 800)}
-            height={Math.min(window.innerHeight - 250, image?.height || 600)}
+            width={imageWidth}
+            height={imageHeight}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -404,8 +439,8 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
               {image && (
                 <KonvaImage
                   image={image}
-                  width={Math.min(window.innerWidth - 100, image.width)}
-                  height={Math.min(window.innerHeight - 250, image.height)}
+                  width={imageWidth}
+                  height={imageHeight}
                 />
               )}
             </Layer>
