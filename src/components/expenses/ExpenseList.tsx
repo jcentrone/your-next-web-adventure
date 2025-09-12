@@ -5,20 +5,15 @@ import { expenseCategoriesApi } from "@/integrations/supabase/expenseCategoriesA
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus } from "lucide-react";
+import { ExpensesListView } from "./ExpensesListView";
+import { ExpensesCardView } from "./ExpensesCardView";
+import { ExpensesViewToggle } from "./ExpensesViewToggle";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import ExpenseForm from "./ExpenseForm";
-import ExpenseItem from "./ExpenseItem";
-import ExpenseCard from "./ExpenseCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ExpenseListProps {
@@ -35,6 +30,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
   const [searchInput, setSearchInput] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("all");
+  const [view, setView] = React.useState<"list" | "card">("list");
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const effectiveView = isMobile ? "card" : view;
   const [sort, setSort] = React.useState<{ field: "expense_date" | "amount"; direction: "asc" | "desc" }>(
     { field: "expense_date", direction: "desc" }
   );
@@ -69,6 +68,17 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
     queryKey: ["expenses", searchTerm, selectedCategory, sort],
     queryFn: () => expenseApi.listExpenses(queryParams),
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(expenses.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentExpenses = expenses.slice(startIndex, endIndex);
+
+  // Reset pagination when expenses change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [expenses.length]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => expenseApi.deleteExpense(id),
@@ -122,11 +132,14 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Expenses</CardTitle>
-          <DialogTrigger asChild>
-            <Button size="sm" onClick={handleAdd}>
-              <Plus className="h-4 w-4 mr-2" /> Add Expense
-            </Button>
-          </DialogTrigger>
+          <div className="flex items-center gap-2">
+            {!isMobile && <ExpensesViewToggle view={view} onViewChange={setView} />}
+            <DialogTrigger asChild>
+              <Button size="sm" onClick={handleAdd}>
+                <Plus className="h-4 w-4 mr-2" /> Add Expense
+              </Button>
+            </DialogTrigger>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2 mb-4">
@@ -152,83 +165,34 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
               </SelectContent>
             </Select>
           </div>
-          {isMobile ? (
-            <div className="grid gap-4 sm:hidden">
-              {isLoading && <div>Loading...</div>}
-              {!isLoading && expenses && expenses.length === 0 && (
-                <div>No expenses found.</div>
-              )}
-              {expenses?.map((exp) => (
-                <ExpenseCard
-                  key={exp.id}
-                  expense={exp}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </div>
+          
+          {effectiveView === "list" ? (
+            <ExpensesListView
+              expenses={currentExpenses}
+              isLoading={isLoading}
+              sort={sort}
+              onSort={handleSort}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           ) : (
-            <div className="rounded-md border hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead
-                      className="cursor-pointer select-none"
-                      onClick={() => handleSort("expense_date")}
-                    >
-                      <div className="flex items-center">
-                        Date
-                        {sort.field === "expense_date" && (
-                          sort.direction === "asc" ? (
-                            <ChevronUp className="ml-1 h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="ml-1 h-4 w-4" />
-                          )
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead
-                      className="text-right cursor-pointer select-none"
-                      onClick={() => handleSort("amount")}
-                    >
-                      <div className="flex items-center justify-end">
-                        Amount
-                        {sort.field === "amount" && (
-                          sort.direction === "asc" ? (
-                            <ChevronUp className="ml-1 h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="ml-1 h-4 w-4" />
-                          )
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading && (
-                    <TableRow>
-                      <TableCell colSpan={5}>Loading...</TableCell>
-                    </TableRow>
-                  )}
-                  {!isLoading && expenses && expenses.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={5}>No expenses found.</TableCell>
-                    </TableRow>
-                  )}
-                  {expenses?.map((exp) => (
-                    <ExpenseItem
-                      key={exp.id}
-                      expense={exp}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <ExpensesCardView
+              expenses={currentExpenses}
+              isLoading={isLoading}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
+          
+          {/* Pagination */}
+          {expenses.length > 0 && (
+            <DataTablePagination
+              currentPage={currentPage}
+              totalItems={expenses.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
           )}
         </CardContent>
       </Card>

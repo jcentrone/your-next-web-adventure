@@ -583,10 +583,9 @@ const Tasks: React.FC = () => {
                             <FormMessage />
                           </FormItem>
                         )}
-                      />
-          </div>
-        </div>
-      </div>
+                       />
+                    </div>
+                  </div>
 
                   <div className="flex justify-end space-x-2">
                     <Button
@@ -604,6 +603,7 @@ const Tasks: React.FC = () => {
               </Form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         <Tabs defaultValue="all" className="space-y-6">
