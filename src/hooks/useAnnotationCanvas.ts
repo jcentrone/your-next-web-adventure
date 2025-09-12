@@ -33,16 +33,16 @@ export const useAnnotationCanvas = ({
     onBgFromJSON: () => {}, // We don't need background color changes
   });
 
-  // Track changes
+  // Track changes (avoid infinite loops by using setTimeout)
   useEffect(() => {
     if (!fabricCanvas || !canvasReady) return;
 
     const handleModified = () => {
       setHasUnsavedChanges(true);
-      // Save to history after a short delay to avoid too many snapshots
+      // Debounce history snapshots to avoid too many saves
       const timeoutId = setTimeout(() => {
         canvasHistory.snapshot();
-      }, 500);
+      }, 1000); // Increased delay to reduce frequency
 
       return () => clearTimeout(timeoutId);
     };
@@ -58,9 +58,9 @@ export const useAnnotationCanvas = ({
       fabricCanvas.off('object:removed', handleModified);
       fabricCanvas.off('path:created', handleModified);
     };
-  }, [fabricCanvas, canvasReady, canvasHistory]);
+  }, [fabricCanvas, canvasReady]); // Removed canvasHistory dependency
 
-  // Calculate responsive canvas dimensions
+  // Calculate responsive canvas dimensions (memoized to prevent rerenders)
   const getCanvasDimensions = useCallback(() => {
     if (!isMobile) {
       return {
@@ -86,6 +86,8 @@ export const useAnnotationCanvas = ({
   useEffect(() => {
     if (!canvasRef.current || !imageUrl) return;
 
+    console.log("Initializing canvas with imageUrl:", imageUrl);
+    
     setIsLoading(true);
     setError(null);
     setCanvasReady(false);
@@ -183,11 +185,9 @@ export const useAnnotationCanvas = ({
 
         canvas.renderAll();
 
-        // Initialize history
-        canvasHistory.snapshot();
         setCanvasReady(true);
         onCanvasReady?.(canvas);
-        toast.success("Canvas ready!");
+        console.log("Canvas ready!");
 
       } catch (imageError) {
         console.error("Failed to load image:", imageError);
@@ -215,7 +215,15 @@ export const useAnnotationCanvas = ({
       canvas.dispose();
       setCanvasReady(false);
     };
-  }, [imageUrl, existingAnnotations, activeColor, isMobile, getCanvasDimensions, canvasHistory, onCanvasReady]);
+  }, [imageUrl, existingAnnotations, activeColor, isMobile, getCanvasDimensions]); // Removed unstable deps
+
+  // Initialize history after canvas is ready
+  useEffect(() => {
+    if (!fabricCanvas || !canvasReady) return;
+    
+    console.log("Taking initial history snapshot");
+    canvasHistory.snapshot();
+  }, [fabricCanvas, canvasReady, canvasHistory]);
 
   // Handle tool and color changes
   useEffect(() => {
