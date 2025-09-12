@@ -13,6 +13,10 @@ import { AddressAutocomplete } from "@/components/maps/AddressAutocomplete";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Tabs, TabsList, TabsTrigger, TabsContent} from "@/components/ui/tabs";
 import {Calendar as CalendarIcon, Edit, Plus, Trash2, Settings} from "lucide-react";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { useAppointmentSearch } from "@/hooks/useAppointmentSearch";
+import { useAppointmentPagination } from "@/hooks/useAppointmentPagination";
+import { AppointmentSearchFilters } from "@/components/calendar/AppointmentSearchFilters";
 import {format} from "date-fns";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -109,6 +113,35 @@ const Calendar: React.FC = () => {
         queryFn: () => contactsApi.list(user!.id),
         enabled: !!user,
     });
+
+    // Search and pagination hooks (after data is loaded)
+    const { 
+        filters, 
+        filteredAppointments, 
+        updateFilters, 
+        clearFilters, 
+        hasActiveFilters 
+    } = useAppointmentSearch(appointments, contacts);
+    
+    const {
+        currentPage,
+        totalPages,
+        paginatedAppointments,
+        goToPage,
+        goToNextPage,
+        goToPreviousPage,
+        hasNextPage,
+        hasPreviousPage,
+        startIndex,
+        endIndex,
+        totalItems,
+        resetPagination
+    } = useAppointmentPagination(filteredAppointments, 12);
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        resetPagination();
+    }, [filteredAppointments.length, resetPagination]);
 
     const createMutation = useMutation({
         mutationFn: appointmentsApi.create,
@@ -479,9 +512,6 @@ const Calendar: React.FC = () => {
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" onClick={handleSync}>
-                                Refresh
-                            </Button>
                             <Button
                                 variant="outline"
                                 size="icon"
@@ -853,10 +883,9 @@ const Calendar: React.FC = () => {
                             <CardContent>
                                 {appointments.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                                        <p className="text-muted-foreground mb-4">
-                                            Your calendar is intentionally empty. Click refresh to sync the latest appointments.
+                                        <p className="text-muted-foreground">
+                                            No appointments found. Create your first appointment to get started.
                                         </p>
-                                        <Button onClick={handleSync}>Refresh</Button>
                                     </div>
                                 ) : (
                                     <DraggableCalendarGrid
@@ -880,11 +909,22 @@ const Calendar: React.FC = () => {
                 </CardContent>
             ) : (
                 <Tabs value={appointmentsView} onValueChange={(value) => setAppointmentsView(value as 'day' | 'all')} className="w-full">
-                                <CardHeader className="p-0">
+                                <CardHeader className="pb-2">
                                     <TabsList className="grid w-full grid-cols-2">
                                         <TabsTrigger value="day">{format(selectedDate, "MMMM d, yyyy")}</TabsTrigger>
                                         <TabsTrigger value="all">All Appointments</TabsTrigger>
                                     </TabsList>
+                                    {appointmentsView === 'all' && (
+                                        <div className="pt-4">
+                                            <AppointmentSearchFilters
+                                                filters={filters}
+                                                onFiltersChange={updateFilters}
+                                                onClearFilters={clearFilters}
+                                                hasActiveFilters={hasActiveFilters}
+                                                resultCount={filteredAppointments.length}
+                                            />
+                                        </div>
+                                    )}
                                 </CardHeader>
                                 <CardContent>
                                     <TabsContent value="day">
@@ -942,64 +982,130 @@ const Calendar: React.FC = () => {
                                             </div>
                                         )}
                                     </TabsContent>
-                                    <TabsContent value="all">
-                                        {appointments.length === 0 ? (
-                                            <p className="text-muted-foreground text-center py-8">
-                                                No appointments yet. Create your first appointment to get started.
-                                            </p>
-                                        ) : (
-                                            <div className="space-y-3">
-                                                {appointments.map((appointment) => (
-                                                    <div
-                                                        key={appointment.id}
-                                                        className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
-                                                        onClick={() => setPreviewAppointment(appointment)}
-                                                    >
-                                                        <div className="flex-1">
-                                                            <h4 className="font-medium">{appointment.title}</h4>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                {format(new Date(appointment.appointment_date), "MMM d, yyyy 'at' h:mm a")}
-                                                                {appointment.location && ` • ${appointment.location}`}
-                                                            </p>
-                                                            {(appointment as any).contacts && (
-                                                                <p className="text-sm text-muted-foreground">
-                                                                    {(appointment as any).contacts.first_name} {(appointment as any).contacts.last_name}
-                                                                </p>
-                                                            )}
-                                                            {appointment.description && (
-                                                                <p className="text-sm text-muted-foreground mt-1">
-                                                                    {appointment.description}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Badge className={getStatusColor(appointment.status)}>
-                                                                {appointment.status}
-                                                            </Badge>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleEdit(appointment);
-                                                                }}
-                                                            >
-                                                                <Edit className="w-4 h-4" />
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDelete(appointment);
-                                                                }}
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </Button>
-                                                        </div>
+                                    <TabsContent value="all" className="space-y-4">
+                                        {filteredAppointments.length === 0 ? (
+                                            <div className="text-center py-8">
+                                                {hasActiveFilters ? (
+                                                    <div className="space-y-2">
+                                                        <p className="text-muted-foreground">
+                                                            No appointments match your search criteria.
+                                                        </p>
+                                                        <Button variant="outline" size="sm" onClick={clearFilters}>
+                                                            Clear filters
+                                                        </Button>
                                                     </div>
-                                                ))}
+                                                ) : (
+                                                    <p className="text-muted-foreground">
+                                                        No appointments yet. Create your first appointment to get started.
+                                                    </p>
+                                                )}
                                             </div>
+                                        ) : (
+                                            <>
+                                                <div className="space-y-3">
+                                                    {paginatedAppointments.map((appointment) => (
+                                                        <div
+                                                            key={appointment.id}
+                                                            className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/30 transition-colors"
+                                                            onClick={() => setPreviewAppointment(appointment)}
+                                                        >
+                                                            <div className="flex-1">
+                                                                <h4 className="font-medium">{appointment.title}</h4>
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    {format(new Date(appointment.appointment_date), "MMM d, yyyy 'at' h:mm a")}
+                                                                    {appointment.location && ` • ${appointment.location}`}
+                                                                </p>
+                                                                {(appointment as any).contacts && (
+                                                                    <p className="text-sm text-muted-foreground">
+                                                                        {(appointment as any).contacts.first_name} {(appointment as any).contacts.last_name}
+                                                                    </p>
+                                                                )}
+                                                                {appointment.description && (
+                                                                    <p className="text-sm text-muted-foreground mt-1">
+                                                                        {appointment.description}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Badge className={getStatusColor(appointment.status)}>
+                                                                    {appointment.status}
+                                                                </Badge>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleEdit(appointment);
+                                                                    }}
+                                                                >
+                                                                    <Edit className="w-4 h-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleDelete(appointment);
+                                                                    }}
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {/* Pagination Controls */}
+                                                {totalPages > 1 && (
+                                                    <div className="flex flex-col items-center gap-4 pt-4 border-t">
+                                                        <div className="text-sm text-muted-foreground">
+                                                            Showing {startIndex}-{endIndex} of {totalItems} appointments
+                                                        </div>
+                                                        <Pagination>
+                                                            <PaginationContent className="flex items-center gap-1">
+                                                                {hasPreviousPage && (
+                                                                    <PaginationItem>
+                                                                        <PaginationPrevious 
+                                                                            href="#" 
+                                                                            onClick={(e) => {
+                                                                                e.preventDefault();
+                                                                                goToPreviousPage();
+                                                                            }}
+                                                                        />
+                                                                    </PaginationItem>
+                                                                )}
+                                                                
+                                                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                                                    <PaginationItem key={page}>
+                                                                        <PaginationLink
+                                                                            href="#"
+                                                                            isActive={page === currentPage}
+                                                                            onClick={(e) => {
+                                                                                e.preventDefault();
+                                                                                goToPage(page);
+                                                                            }}
+                                                                        >
+                                                                            {page}
+                                                                        </PaginationLink>
+                                                                    </PaginationItem>
+                                                                ))}
+                                                                
+                                                                {hasNextPage && (
+                                                                    <PaginationItem>
+                                                                        <PaginationNext 
+                                                                            href="#" 
+                                                                            onClick={(e) => {
+                                                                                e.preventDefault();
+                                                                                goToNextPage();
+                                                                            }}
+                                                                        />
+                                                                    </PaginationItem>
+                                                                )}
+                                                            </PaginationContent>
+                                                        </Pagination>
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                     </TabsContent>
                                 </CardContent>
