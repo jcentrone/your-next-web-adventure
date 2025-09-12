@@ -43,11 +43,11 @@ export default function Routes() {
 
   // Fetch routes based on date range
   const { data: routes = [], isLoading } = useQuery({
-    queryKey: ['daily-routes', dateRange?.from?.toISOString().split('T')[0], dateRange?.to?.toISOString().split('T')[0]],
+    queryKey: ['daily-routes', dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : null, dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : null],
     queryFn: () => {
       return routeOptimizationApi.getDailyRoutes(
-        dateRange?.from?.toISOString().split('T')[0],
-        dateRange?.to?.toISOString().split('T')[0]
+        dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : '',
+        dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : ''
       );
     },
     enabled: !!dateRange?.from && !!dateRange?.to,
