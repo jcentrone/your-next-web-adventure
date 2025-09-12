@@ -3,10 +3,11 @@ import Seo from '@/components/Seo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Link } from 'react-router-dom';
-import { 
-  Check, 
-  Star, 
+import {
+  Check,
+  Star,
   Zap,
   FileText,
   Users,
@@ -17,6 +18,8 @@ import {
 } from 'lucide-react';
 
 const Pricing = () => {
+  const [isAnnual, setIsAnnual] = React.useState(false);
+
   const features = [
     "Unlimited inspection reports",
     "Professional report templates",
@@ -33,6 +36,12 @@ const Pricing = () => {
     "Email report sharing",
     "Data export capabilities",
     "Priority customer support"
+  ];
+
+  const websiteFeatures = [
+    "Custom design tailored to your brand",
+    "Responsive and SEO-friendly",
+    "Content updates and support"
   ];
 
   const testimonials = [
@@ -55,9 +64,9 @@ const Pricing = () => {
 
   return (
     <>
-      <Seo 
+      <Seo
         title="Pricing - Home Report Pro"
-        description="Simple, affordable pricing for professional home inspection software. Get unlimited reports, mobile access, and premium features for just $25/month."
+        description="Simple, affordable pricing for professional home inspection software. Get unlimited reports, mobile access, and premium features for $50/month or $45/month when billed annually."
       />
 
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -71,15 +80,16 @@ const Pricing = () => {
               </h1>
             </div>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              One affordable plan with everything you need to run a successful home inspection business. 
-              Start with 5 free reports, then unlimited access for just $25/month.
+              One affordable plan with everything you need to run a successful home inspection business.
+              Start with 5 free reports, then unlimited access for $50/month or $45/month when billed annually.
             </p>
           </div>
         </section>
 
-        {/* Pricing Card */}
+        {/* Pricing Cards */}
         <section className="py-16 px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto grid gap-8 md:grid-cols-2">
+            {/* Professional Plan */}
             <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5">
               <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-6 py-2 rounded-bl-lg">
                 <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
@@ -87,15 +97,23 @@ const Pricing = () => {
                   Most Popular
                 </Badge>
               </div>
-              
+
               <CardHeader className="text-center pb-2">
                 <CardTitle className="text-3xl font-bold mb-2">Professional Plan</CardTitle>
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <span className={!isAnnual ? 'font-medium text-primary' : 'text-muted-foreground'}>Monthly</span>
+                  <Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
+                  <span className={isAnnual ? 'font-medium text-primary' : 'text-muted-foreground'}>Annual</span>
+                </div>
                 <div className="mb-4">
-                  <span className="text-5xl font-bold text-primary">$25</span>
+                  <span className="text-5xl font-bold text-primary">{isAnnual ? '$45' : '$50'}</span>
                   <span className="text-muted-foreground text-xl">/month</span>
                 </div>
                 <p className="text-muted-foreground text-lg">
                   Start with 5 free reports, then unlimited access
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {isAnnual ? 'Billed annually ($540/year)' : 'Billed monthly'}
                 </p>
               </CardHeader>
 
@@ -186,6 +204,35 @@ const Pricing = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Custom Website Option */}
+            <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5">
+              <CardHeader className="text-center pb-2">
+                <CardTitle className="text-3xl font-bold mb-2">Custom Website</CardTitle>
+                <div className="mb-4">
+                  <span className="text-5xl font-bold text-primary">$999</span>
+                  <span className="text-muted-foreground text-xl"> build</span>
+                </div>
+                <p className="text-muted-foreground text-lg">
+                  We'll build a professional website tailored to your brand
+                </p>
+              </CardHeader>
+
+              <CardContent className="pt-6 flex flex-col items-center">
+                <ul className="space-y-3 mb-6 self-stretch">
+                  {websiteFeatures.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                      <span className="text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-sm text-muted-foreground mb-4">$20/month hosting</p>
+                <Button asChild size="lg" className="text-lg px-8">
+                  <Link to="/contact">Request a Website</Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
@@ -234,7 +281,7 @@ const Pricing = () => {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">Is there a free trial?</h3>
                   <p className="text-muted-foreground">
-                    Yes! You get 5 free reports to try out all our features. After that, it's just $25/month for unlimited access.
+                    Yes! You get 5 free reports to try out all our features. After that, it's $50/month, or $45/month when billed annually, for unlimited access.
                   </p>
                 </CardContent>
               </Card>
@@ -252,7 +299,7 @@ const Pricing = () => {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">Is there a limit on reports?</h3>
                   <p className="text-muted-foreground">
-                    You start with 5 free reports, then get unlimited inspection reports, photos, and contacts for one flat monthly fee of $25.
+                    You start with 5 free reports, then get unlimited inspection reports, photos, and contacts for $50/month or $45/month when billed annually.
                   </p>
                 </CardContent>
               </Card>
