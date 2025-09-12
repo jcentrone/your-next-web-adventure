@@ -13,15 +13,22 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+    BarChart3,
     BookOpen,
+    Building2,
+    Calendar,
+    CheckSquare,
     ChevronDown,
+    DollarSign,
     Download,
     FileText,
     HelpCircle,
     Home,
     Menu,
     MoreHorizontal,
+    Navigation,
     Settings,
+    Users,
     X
 } from "lucide-react";
 import {useIsMobile} from "@/hooks/use-mobile";
