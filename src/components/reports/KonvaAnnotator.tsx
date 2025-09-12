@@ -71,34 +71,18 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         child.off('click');
         
         child.on('transformend', () => {
-          console.log("Transform ended for:", child.getClassName());
           saveHistory();
-          // Keep the transformer after transform
-          if (transformerRef.current) {
-            transformerRef.current.forceUpdate();
-          }
         });
 
         child.on('dragend', () => {
-          console.log("Drag ended for:", child.getClassName());
           saveHistory();
-          // Keep the transformer after drag
-          if (transformerRef.current) {
-            transformerRef.current.forceUpdate();
-          }
         });
 
         // Add click handler for selection
         child.on('click', (e) => {
           e.cancelBubble = true;
           if (activeTool === 'select') {
-            console.log("Object clicked:", child.getClassName());
             setSelectedObjects([child]);
-            if (transformerRef.current) {
-              transformerRef.current.nodes([child]);
-              transformerRef.current.moveToTop();
-              transformerRef.current.getLayer()?.batchDraw();
-            }
           }
         });
       }
@@ -132,7 +116,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
 
   // Update transformer when selected objects change
   useEffect(() => {
-    console.log("Selected objects changed:", selectedObjects.length, selectedObjects.map(obj => obj.getClassName()));
     if (transformerRef.current && selectedObjects.length > 0) {
       // Filter out any transformer nodes to prevent circular references
       const validNodes = selectedObjects.filter(
@@ -186,7 +169,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       }
       setSelectedObjects([]);
       transformerRef.current?.nodes([]);
-      console.log("Undo to index:", newIndex);
     }
   };
 
@@ -204,7 +186,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       }
       setSelectedObjects([]);
       transformerRef.current?.nodes([]);
-      console.log("Redo to index:", newIndex);
     }
   };
 
@@ -212,19 +193,15 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     // Check if we're clicking on a transformer handle/anchor - let transformer handle it
     const target = e.target;
     if (target.getClassName() === 'Transformer' || target.hasName('_anchor')) {
-      console.log("Clicked on transformer, skipping stage handling");
       return;
     }
 
     const pos = e.target.getStage()?.getPointerPosition();
     if (!pos || !layerRef.current) return;
-    
-    console.log("Mouse down - Tool:", activeTool, "Target:", target.getClassName(), "Position:", pos);
 
     if (activeTool === "select") {
       const clickedOnEmpty = e.target === e.target.getStage() || e.target.getClassName() === 'Image';
       if (clickedOnEmpty) {
-        console.log("Clicked on empty area, clearing selection");
         setSelectedObjects([]);
         if (transformerRef.current) {
           transformerRef.current.nodes([]);
@@ -241,12 +218,10 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         return;
       }
       
-      console.log("Selecting object:", clickedNode.getClassName());
       setSelectedObjects([clickedNode]);
       return;
     }
 
-    console.log("Starting drawing with tool:", activeTool);
     setIsDrawing(true);
     const stage = e.target.getStage();
     if (!stage) return;
@@ -264,15 +239,21 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       });
       
       // Attach event handlers immediately
-      text.on('dblclick', () => {
-        console.log("Double-clicked text:", text.text());
+      text.on('dblclick', (e) => {
+        e.cancelBubble = true; // Prevent event from reaching stage
         setEditingText(text);
         setTempText(text.text());
       });
       
       text.on('transformend', () => {
-        console.log("Transform ended for text");
         saveHistory();
+      });
+      
+      text.on('click', (e) => {
+        e.cancelBubble = true;
+        // Check current tool state when clicked, not at creation time
+        const currentTool = e.target.getStage()?.find('.annotator-toolbar')?.[0]?.attrs?.activeTool || 'select';
+        setSelectedObjects([text]);
       });
       
       layerRef.current.add(text);
@@ -281,7 +262,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       setIsDrawing(false);
       setActiveTool("select"); // Reset to select tool
       saveHistory();
-      console.log("Created text object");
     } else if (activeTool === "rectangle") {
       const rect = new Konva.Rect({
         x: pos.x,
@@ -294,16 +274,19 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         draggable: true,
       });
       
-      // Add transform event handler
+      // Add event handlers
       rect.on('transformend', () => {
-        console.log("Transform ended for rectangle");
         saveHistory();
+      });
+      
+      rect.on('click', (e) => {
+        e.cancelBubble = true;
+        setSelectedObjects([rect]);
       });
       
       layerRef.current.add(rect);
       transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
-      console.log("Created rectangle, isDrawing:", true);
     } else if (activeTool === "circle") {
       const circle = new Konva.Circle({
         x: pos.x,
@@ -315,16 +298,19 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         draggable: true,
       });
       
-      // Add transform event handler
+      // Add event handlers
       circle.on('transformend', () => {
-        console.log("Transform ended for circle");
         saveHistory();
+      });
+      
+      circle.on('click', (e) => {
+        e.cancelBubble = true;
+        setSelectedObjects([circle]);
       });
       
       layerRef.current.add(circle);
       transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
-      console.log("Created circle, isDrawing:", true);
     } else if (activeTool === "arrow") {
       const arrow = new Konva.Arrow({
         points: [pos.x, pos.y, pos.x, pos.y],
@@ -336,16 +322,19 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         draggable: true,
       });
       
-      // Add transform event handler
+      // Add event handlers
       arrow.on('transformend', () => {
-        console.log("Transform ended for arrow");
         saveHistory();
+      });
+      
+      arrow.on('click', (e) => {
+        e.cancelBubble = true;
+        setSelectedObjects([arrow]);
       });
       
       layerRef.current.add(arrow);
       transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
-      console.log("Created arrow, isDrawing:", true);
     } else if (activeTool === "line") {
       const line = new Konva.Line({
         points: [pos.x, pos.y, pos.x, pos.y],
@@ -354,16 +343,19 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         draggable: true,
       });
       
-      // Add transform event handler
+      // Add event handlers
       line.on('transformend', () => {
-        console.log("Transform ended for line");
         saveHistory();
+      });
+      
+      line.on('click', (e) => {
+        e.cancelBubble = true;
+        setSelectedObjects([line]);
       });
       
       layerRef.current.add(line);
       transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
-      console.log("Created line, isDrawing:", true);
     }
   };
 
@@ -376,7 +368,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     const point = stage?.getPointerPosition();
     if (!point) return;
     
-    console.log("Mouse move - Tool:", activeTool, "isDrawing:", isDrawing, "Point:", point);
+    
 
     if (activeTool === "draw") {
       const newPath = [...currentPath, point.x, point.y];
@@ -395,10 +387,14 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
           draggable: true,
         });
         
-        // Add transform event handler
+        // Add event handlers
         line.on('transformend', () => {
-          console.log("Transform ended for drawn line");
           saveHistory();
+        });
+        
+        line.on('click', (e) => {
+          e.cancelBubble = true;
+          setSelectedObjects([line]);
         });
         
         layerRef.current.add(line);
@@ -448,7 +444,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       // Attach event handlers to newly created objects
       attachEventHandlers();
       transformerRef.current?.moveToTop();
-      console.log("Finished drawing, saved to history");
     }
   };
 
@@ -474,7 +469,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       saveHistory();
       setEditingText(null);
       setTempText("");
-      console.log("Text edited and saved");
     }
   };
 
@@ -489,7 +483,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       const blob = await response.blob();
       
       onSave(annotations, blob);
-    console.log("Annotations saved successfully");
     } catch (error) {
       console.error("Failed to save annotations:", error);
     }
@@ -596,7 +589,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
                 shouldOverdrawWholeArea={true}
                 listening={true}
                 onTransformEnd={() => {
-                  console.log("Transform ended");
                   saveHistory();
                 }}
               />
