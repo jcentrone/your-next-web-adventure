@@ -2,15 +2,37 @@ import { supabase } from './client';
 import type { Expense } from './types';
 
 export const expenseApi = {
-  async listExpenses(startDate?: string, endDate?: string): Promise<Expense[]> {
-    let query = supabase.from('expenses').select('*').order('expense_date', { ascending: false });
+  async listExpenses({
+    search,
+    category,
+    sortBy = 'expense_date',
+    sortDir = 'desc',
+    startDate,
+    endDate,
+  }: {
+    search?: string;
+    category?: string;
+    sortBy?: string;
+    sortDir?: 'asc' | 'desc';
+    startDate?: string;
+    endDate?: string;
+  } = {}): Promise<Expense[]> {
+    let query = supabase.from('expenses').select('*');
 
+    if (search) {
+      query = query.ilike('description', `%${search}%`);
+    }
+    if (category) {
+      query = query.eq('category', category);
+    }
     if (startDate) {
       query = query.gte('expense_date', startDate);
     }
     if (endDate) {
       query = query.lte('expense_date', endDate);
     }
+
+    query = query.order(sortBy, { ascending: sortDir === 'asc' });
 
     const { data, error } = await query;
     if (error) {

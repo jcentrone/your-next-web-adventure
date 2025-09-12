@@ -22,9 +22,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
 
+  const queryParams = React.useMemo(() => ({}), []);
   const { data: expenses = [], isLoading } = useQuery({
-    queryKey: ["expenses"],
-    queryFn: () => expenseApi.listExpenses(),
+    queryKey: ["expenses", queryParams],
+    queryFn: () => expenseApi.listExpenses(queryParams),
   });
 
   const deleteMutation = useMutation({
