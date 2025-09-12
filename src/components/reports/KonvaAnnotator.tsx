@@ -67,13 +67,41 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       // Add transform event handlers for all draggable objects
       if (child.draggable()) {
         child.off('transformend');
+        child.off('dragend');
+        child.off('click');
+        
         child.on('transformend', () => {
           console.log("Transform ended for:", child.getClassName());
           saveHistory();
+          // Keep the transformer after transform
+          if (transformerRef.current) {
+            transformerRef.current.forceUpdate();
+          }
+        });
+
+        child.on('dragend', () => {
+          console.log("Drag ended for:", child.getClassName());
+          saveHistory();
+          // Keep the transformer after drag
+          if (transformerRef.current) {
+            transformerRef.current.forceUpdate();
+          }
+        });
+
+        // Add click handler for selection
+        child.on('click', (e) => {
+          e.cancelBubble = true;
+          if (activeTool === 'select') {
+            setSelectedObjects([child]);
+            if (transformerRef.current) {
+              transformerRef.current.nodes([child]);
+              transformerRef.current.moveToTop();
+            }
+          }
         });
       }
     });
-  }, [saveHistory]);
+  }, [saveHistory, activeTool]);
 
 
   useEffect(() => {
@@ -405,9 +433,12 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
   const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (activeTool !== "select") return;
     
-    const clickedOnEmpty = e.target === e.target.getStage();
+    const clickedOnEmpty = e.target === e.target.getStage() || e.target.getClassName() === 'Image';
     if (clickedOnEmpty) {
       setSelectedObjects([]);
+      if (transformerRef.current) {
+        transformerRef.current.nodes([]);
+      }
       return;
     }
   };
@@ -514,6 +545,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
                   image={image}
                   width={imageWidth}
                   height={imageHeight}
+                  listening={false}
                 />
               )}
             </Layer>
@@ -522,20 +554,34 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
                 ref={transformerRef} 
                 visible={selectedObjects.length > 0}
                 boundBoxFunc={(oldBox, newBox) => {
-                  // Relax bounds checking - only prevent extremely small boxes
-                  if (newBox.width < 3 || newBox.height < 3) {
-                    return oldBox;
+                  // Allow more flexible bounds - just ensure minimum size
+                  const minWidth = 20;
+                  const minHeight = 20;
+                  
+                  if (newBox.width < minWidth) {
+                    newBox.width = minWidth;
                   }
+                  if (newBox.height < minHeight) {
+                    newBox.height = minHeight;
+                  }
+                  
                   return newBox;
                 }}
-                enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right', 'middle-left', 'middle-right']}
+                enabledAnchors={[
+                  'top-left', 'top-center', 'top-right',
+                  'middle-left', 'middle-right',
+                  'bottom-left', 'bottom-center', 'bottom-right'
+                ]}
                 rotateEnabled={false}
                 borderEnabled={true}
                 anchorFill="#4285f4"
                 anchorStroke="#1976d2"
-                anchorSize={8}
+                anchorSize={10}
+                anchorCornerRadius={2}
                 borderStroke="#4285f4"
                 borderStrokeWidth={2}
+                keepRatio={false}
+                centeredScaling={false}
               />
             </Layer>
           </Stage>

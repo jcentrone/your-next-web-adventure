@@ -1,6 +1,6 @@
 // ReportEditor.tsx
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import Seo from "@/components/Seo";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -71,6 +71,7 @@ async function convertBlobUrlToDataUrl(blobUrl: string): Promise<string> {
 const ReportEditor: React.FC = () => {
   const { id } = useParams();
   const nav = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { guidance } = useEnhancedSectionGuidance();
   const [report, setReport] = React.useState<Report | null>(null);
@@ -231,6 +232,46 @@ const ReportEditor: React.FC = () => {
       toast({ title: "Failed to create appointment", description: e?.message || "Please try again." });
     }
   };
+
+  // Handle returning from annotation editor
+  React.useEffect(() => {
+    const state = location.state as any;
+    if (state?.action === 'saveAnnotations' && state?.annotations && state?.findingId && state?.mediaIndex) {
+      const { annotations, imageBlob, findingId, mediaIndex } = state;
+      
+      setReport((prev) => {
+        if (!prev || prev.reportType !== "home_inspection") return prev;
+        
+        const next = { ...prev };
+        const section = (next as any).sections.find((s: any) => 
+          s.findings.some((f: any) => f.id === findingId)
+        );
+        
+        if (section) {
+          const finding = section.findings.find((f: any) => f.id === findingId);
+          if (finding) {
+            const mediaItem = finding.media.find((m: any) => m.id === mediaIndex);
+            if (mediaItem) {
+              mediaItem.annotations = annotations;
+              mediaItem.isAnnotated = true;
+              
+              // If imageBlob is provided, update the media URL
+              if (imageBlob) {
+                const newUrl = URL.createObjectURL(imageBlob);
+                mediaItem.url = newUrl;
+                setMediaUrlMap(prev => ({ ...prev, [mediaIndex]: newUrl }));
+              }
+            }
+          }
+        }
+        
+        return next;
+      });
+      
+      // Clear the location state to prevent re-processing
+      nav(location.pathname, { replace: true });
+    }
+  }, [location.state, nav, location.pathname]);
 
   React.useEffect(() => {
     if (!id) return;
