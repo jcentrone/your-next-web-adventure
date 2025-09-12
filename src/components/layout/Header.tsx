@@ -18,12 +18,14 @@ import {
     Building2,
     Calendar,
     CheckSquare,
+    ChevronDown,
     DollarSign,
     Download,
     HelpCircle,
     FileText,
     Home,
     Menu,
+    MoreHorizontal,
     Navigation,
     Settings,
     Users,
@@ -119,29 +121,41 @@ const Header: React.FC = () => {
                                 <Calendar className="h-4 w-4"/>
                                 Calendar
                             </Link>
-                            <Link to="/routes"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/routes' ? 'text-primary' : ''}`}>
-                                <Navigation className="h-4 w-4"/>
-                                Routes
-                            </Link>
                             <Link to="/tasks"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : ''}`}
-                                  data-onboarding="tasks">
-                                <CheckSquare className="h-4 w-4"/>
-                                Tasks
-                            </Link>
-                            <Link to="/expenses"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname.startsWith('/expenses') ? 'text-primary' : ''}`}
-                                  data-onboarding="expenses">
-                                <DollarSign className="h-4 w-4"/>
-                                Expenses
-                            </Link>
-                            <Link to="/analytics"
-                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/analytics' ? 'text-primary' : ''}`}
-                                  data-onboarding="analytics">
-                                <BarChart3 className="h-4 w-4"/>
-                                Analytics
-                            </Link>
+                                   className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : ''}`}
+                                   data-onboarding="tasks">
+                                 <CheckSquare className="h-4 w-4"/>
+                                 Tasks
+                             </Link>
+                             <DropdownMenu>
+                                 <DropdownMenuTrigger asChild>
+                                     <Button variant="ghost" className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary">
+                                         <MoreHorizontal className="h-4 w-4"/>
+                                         More
+                                         <ChevronDown className="h-3 w-3"/>
+                                     </Button>
+                                 </DropdownMenuTrigger>
+                                 <DropdownMenuContent align="end">
+                                     <DropdownMenuItem asChild>
+                                         <Link to="/routes" className="flex items-center gap-2 w-full">
+                                             <Navigation className="h-4 w-4"/>
+                                             Routes
+                                         </Link>
+                                     </DropdownMenuItem>
+                                     <DropdownMenuItem asChild>
+                                         <Link to="/expenses" className="flex items-center gap-2 w-full">
+                                             <DollarSign className="h-4 w-4"/>
+                                             Expenses
+                                         </Link>
+                                     </DropdownMenuItem>
+                                 </DropdownMenuContent>
+                             </DropdownMenu>
+                             <Link to="/analytics"
+                                   className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/analytics' ? 'text-primary' : ''}`}
+                                   data-onboarding="analytics">
+                                 <BarChart3 className="h-4 w-4"/>
+                                 Analytics
+                             </Link>
                         </>
                     ) : (
                         <>
