@@ -218,12 +218,17 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
 
     const pos = e.target.getStage()?.getPointerPosition();
     if (!pos || !layerRef.current) return;
+    
+    console.log("Mouse down - Tool:", activeTool, "Target:", target.getClassName(), "Position:", pos);
 
     if (activeTool === "select") {
       const clickedOnEmpty = e.target === e.target.getStage() || e.target.getClassName() === 'Image';
       if (clickedOnEmpty) {
         console.log("Clicked on empty area, clearing selection");
         setSelectedObjects([]);
+        if (transformerRef.current) {
+          transformerRef.current.nodes([]);
+        }
         return;
       }
       
@@ -241,6 +246,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       return;
     }
 
+    console.log("Starting drawing with tool:", activeTool);
     setIsDrawing(true);
     const stage = e.target.getStage();
     if (!stage) return;
@@ -297,6 +303,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       layerRef.current.add(rect);
       transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
+      console.log("Created rectangle, isDrawing:", true);
     } else if (activeTool === "circle") {
       const circle = new Konva.Circle({
         x: pos.x,
@@ -317,6 +324,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       layerRef.current.add(circle);
       transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
+      console.log("Created circle, isDrawing:", true);
     } else if (activeTool === "arrow") {
       const arrow = new Konva.Arrow({
         points: [pos.x, pos.y, pos.x, pos.y],
@@ -337,6 +345,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       layerRef.current.add(arrow);
       transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
+      console.log("Created arrow, isDrawing:", true);
     } else if (activeTool === "line") {
       const line = new Konva.Line({
         points: [pos.x, pos.y, pos.x, pos.y],
@@ -354,15 +363,20 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       layerRef.current.add(line);
       transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
+      console.log("Created line, isDrawing:", true);
     }
   };
 
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (!isDrawing || !layerRef.current) return;
+    if (!isDrawing || !layerRef.current) {
+      return;
+    }
 
     const stage = e.target.getStage();
     const point = stage?.getPointerPosition();
     if (!point) return;
+    
+    console.log("Mouse move - Tool:", activeTool, "isDrawing:", isDrawing, "Point:", point);
 
     if (activeTool === "draw") {
       const newPath = [...currentPath, point.x, point.y];
@@ -438,25 +452,8 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     }
   };
 
-  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    // Only handle stage clicks for clearing selection when in select mode
-    if (activeTool !== "select") return;
-    
-    // Check if we clicked on transformer or anchor
-    const target = e.target;
-    if (target.getClassName() === 'Transformer' || target.hasName('_anchor')) {
-      return;
-    }
-    
-    const clickedOnEmpty = e.target === e.target.getStage() || e.target.getClassName() === 'Image';
-    if (clickedOnEmpty) {
-      console.log("Stage click - clearing selection");
-      setSelectedObjects([]);
-      if (transformerRef.current) {
-        transformerRef.current.nodes([]);
-      }
-    }
-  };
+  // Removed handleStageClick - it was redundant and interfering with drawing
+  // Selection clearing is already handled in handleMouseDown
 
   const bringToFront = () => {
     selectedObjects.forEach(obj => obj.moveToTop());
@@ -552,7 +549,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
-            onClick={handleStageClick}
           >
             <Layer>
               {image && (
