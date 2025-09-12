@@ -927,12 +927,12 @@ const ReportEditor: React.FC = () => {
     <>
       <Seo title={`${report.title} | Report Editor`} />
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{report.title}</h1>
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={() => nav("/reports")}>Back to Reports</Button>
-            <Button variant="outline" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
-            <Button onClick={handleSave}>Save Report</Button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-2xl font-bold truncate">{report.title}</h1>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button variant="secondary" size="sm" onClick={() => nav("/reports")}>Back to Reports</Button>
+            <Button variant="outline" size="sm" onClick={() => nav(`/reports/${report.id}/preview`)}>Preview</Button>
+            <Button size="sm" onClick={handleSave}>Save Report</Button>
           </div>
         </div>
         <div className="md:flex md:flex-nowrap items-start gap-6">
