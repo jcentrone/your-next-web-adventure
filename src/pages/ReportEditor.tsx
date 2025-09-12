@@ -25,6 +25,7 @@ import { contactsApi, appointmentsApi } from "@/integrations/supabase/crmApi";
 import { useQuery } from "@tanstack/react-query";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
+import { KonvaAnnotator } from "@/components/reports/KonvaAnnotator";
 import { CategoryAwareReportEditor } from "@/components/reports/CategoryAwareReportEditor";
 import { getReportCategory, isDefectBasedReport } from "@/constants/reportCategories";
 import { useReportTemplates } from "@/hooks/useReportTemplates";
@@ -1797,6 +1798,23 @@ const ReportEditor: React.FC = () => {
               setCurrentFindingId(null);
             }}
             onCapture={handleCameraCapture}
+          />
+
+          <KonvaAnnotator
+            isOpen={annotatorOpen}
+            onClose={() => {
+              setAnnotatorOpen(false);
+              setAnnotatorImage(null);
+            }}
+            imageUrl={annotatorImage?.url || ""}
+            initialAnnotations={
+              annotatorImage
+                ? activeSection?.findings
+                    .find((f) => f.id === annotatorImage.findingId)?.media
+                    .find((m) => m.id === annotatorImage.mediaId)?.annotations || ""
+                : ""
+            }
+            onSave={handleAnnotationSave}
           />
 
           
