@@ -11,6 +11,8 @@ import { Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import PersonalDefectForm from "./PersonalDefectForm";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export type LibrarySeverity = "Minor" | "Moderate" | "Major";
 
@@ -105,6 +107,7 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
   const [showCreate, setShowCreate] = React.useState(false);
   const [justAddedBlank, setJustAddedBlank] = React.useState(false);
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const sectionName = sectionNameForKey(sectionKey);
 
@@ -201,165 +204,329 @@ const DefectPicker: React.FC<Props> = ({ open, onOpenChange, sectionKey, onInser
         <DialogHeader>
           <DialogTitle>Add from Defect Library – {sectionName}</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-12 md:col-span-5">
-            <Input
-              placeholder="Search defects..."
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              aria-label="Search defects"
-            />
-            <Button
-              className="mt-2 w-full"
-              variant="secondary"
-              onClick={() => {
-                onInsert({
-                  title: "New observation",
-                  narrative: "",
-                  severity: "Info",
-                  recommendation: "",
-                  mediaGuidance: "",
-                  defectId: null,
-                });
-                // Keep dialog open and prompt user to save this as a template
-                setJustAddedBlank(true);
-                setShowCreate(false);
-              }}
-            >
-              Insert blank observation
-            </Button>
-
-            {justAddedBlank && (
-              <Button
-                className="mt-2 w-full"
-                onClick={() => {
-                  if (!user) {
-                    window.location.href = `/auth?redirectTo=${encodeURIComponent(window.location.pathname)}`;
-                    return;
-                  }
-                  setShowCreate(true);
-                }}
-              >
-                Save as template
-              </Button>
-            )}
-
-            <div className="mt-3 max-h-80 overflow-auto rounded border divide-y">
-              {list.length === 0 && (
-                <div className="p-3 text-sm text-muted-foreground">No defects found for this section.</div>
-              )}
-              {list.map((d) => (
-                <button
-                  key={toId(d)}
-                  onClick={() => setSelected(d)}
-                  className={`w-full text-left p-3 hover:bg-accent ${selected?.title === d.title ? "bg-accent" : ""}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium">{d.title}</div>
-                    {d.source === "mine" && <Badge variant="secondary">My</Badge>}
-                  </div>
-                  <div className="text-xs text-muted-foreground">Severity: {d.severity}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="col-span-12 md:col-span-7">
-            {showCreate && user && (
-              <div className="mb-4">
-                <PersonalDefectForm
-                  sectionKey={sectionKey}
-                  onSaved={(defect) => {
-                    const mapped: DefectTemplate = {
-                      id: defect.id,
-                      section: sectionName,
-                      title: defect.title,
-                      description: defect.description,
-                      severity: defect.severity,
-                      recommendation: defect.recommendation,
-                      media_guidance: defect.media_guidance,
-                      source: "mine",
-                    };
-                    setMyLibrary((prev) => [mapped, ...prev]);
-                    setSelected(mapped);
-                    setShowCreate(false);
-                    setJustAddedBlank(false);
+        <div className={isMobile ? "space-y-4" : "grid grid-cols-12 gap-4"}>
+          {isMobile ? (
+            // Mobile layout with dropdowns
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Select 
+                  value={selected ? toId(selected) : ""} 
+                  onValueChange={(value) => {
+                    const defect = list.find(d => toId(d) === value);
+                    setSelected(defect || null);
                   }}
-                  onCancel={() => setShowCreate(false)}
-                />
-              </div>
-            )}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a defect template" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background">
+                    {list.map((d) => (
+                      <SelectItem key={toId(d)} value={toId(d)}>
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-sm font-medium">{d.title}</span>
+                          {d.source === "mine" && <Badge variant="secondary" className="ml-2">My</Badge>}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Button
+                  className="w-full"
+                  variant="secondary"
+                  onClick={() => {
+                    onInsert({
+                      title: "New observation",
+                      narrative: "",
+                      severity: "Info",
+                      recommendation: "",
+                      mediaGuidance: "",
+                      defectId: null,
+                    });
+                    setJustAddedBlank(true);
+                    setShowCreate(false);
+                  }}
+                >
+                  Insert blank observation
+                </Button>
 
-            {!selected ? (
-              <p className="text-sm text-muted-foreground">Select a defect on the left to preview and insert.</p>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <div className="text-sm font-medium mb-1">Description</div>
-                  <Textarea value={selected.description} readOnly className="min-h-24" />
-                </div>
-                {extractPlaceholders(selected.description).length > 0 && (
-                  <div>
-                    <div className="text-sm font-medium flex items-center gap-2">
-                      Fill Description Placeholders
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              className="inline-flex items-center justify-center"
-                              aria-label="What are description placeholders?"
-                            >
-                              <Info className="h-4 w-4 text-muted-foreground" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Replace bracketed tokens like [location] before inserting the narrative.
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <div className="mt-2 grid grid-cols-2 gap-2">
-                      {extractPlaceholders(selected.description).map((k) => (
-                        <Input
-                          key={k}
-                          placeholder={k}
-                          value={values[k] || ""}
-                          onChange={(e) => setValues((p) => ({ ...p, [k]: e.target.value }))}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {selected.recommendation && (
-                  <div>
-                    <div className="text-sm font-medium mb-1">Recommendation</div>
-                    <Textarea value={selected.recommendation} readOnly className="min-h-20" />
-                  </div>
-                )}
-                {selected.media_guidance && (
-                  <p className="text-xs text-muted-foreground">Media guidance: {selected.media_guidance}</p>
-                )}
-                <div className="pt-2">
+                {justAddedBlank && (
                   <Button
+                    className="w-full"
                     onClick={() => {
-                      const narrative = applyPlaceholders(selected.description, values);
-                      onInsert({
-                        title: selected.title,
-                        narrative,
-                        severity: mapSeverity(selected.severity),
-                        recommendation: selected.recommendation,
-                        mediaGuidance: selected.media_guidance,
-                        defectId: toId(selected),
-                      });
-                      onOpenChange(false);
+                      if (!user) {
+                        window.location.href = `/auth?redirectTo=${encodeURIComponent(window.location.pathname)}`;
+                        return;
+                      }
+                      setShowCreate(true);
                     }}
                   >
-                    Insert into section
+                    Save as template
                   </Button>
+                )}
+              </div>
+
+              {showCreate && user && (
+                <div className="mb-4">
+                  <PersonalDefectForm
+                    sectionKey={sectionKey}
+                    onSaved={(defect) => {
+                      const mapped: DefectTemplate = {
+                        id: defect.id,
+                        section: sectionName,
+                        title: defect.title,
+                        description: defect.description,
+                        severity: defect.severity,
+                        recommendation: defect.recommendation,
+                        media_guidance: defect.media_guidance,
+                        source: "mine",
+                      };
+                      setMyLibrary((prev) => [mapped, ...prev]);
+                      setSelected(mapped);
+                      setShowCreate(false);
+                      setJustAddedBlank(false);
+                    }}
+                    onCancel={() => setShowCreate(false)}
+                  />
+                </div>
+              )}
+
+              {!selected ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Select a defect template above to preview and insert.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-sm font-medium mb-1">Description</div>
+                    <Textarea value={selected.description} readOnly className="min-h-24" />
+                  </div>
+                  {extractPlaceholders(selected.description).length > 0 && (
+                    <div>
+                      <div className="text-sm font-medium flex items-center gap-2">
+                        Fill Description Placeholders
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex items-center justify-center"
+                                aria-label="What are description placeholders?"
+                              >
+                                <Info className="h-4 w-4 text-muted-foreground" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Replace bracketed tokens like [location] before inserting the narrative.
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <div className="mt-2 space-y-2">
+                        {extractPlaceholders(selected.description).map((k) => (
+                          <Input
+                            key={k}
+                            placeholder={k}
+                            value={values[k] || ""}
+                            onChange={(e) => setValues((p) => ({ ...p, [k]: e.target.value }))}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {selected.recommendation && (
+                    <div>
+                      <div className="text-sm font-medium mb-1">Recommendation</div>
+                      <Textarea value={selected.recommendation} readOnly className="min-h-20" />
+                    </div>
+                  )}
+                  {selected.media_guidance && (
+                    <p className="text-xs text-muted-foreground">Media guidance: {selected.media_guidance}</p>
+                  )}
+                  <div className="pt-2">
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        const narrative = applyPlaceholders(selected.description, values);
+                        onInsert({
+                          title: selected.title,
+                          narrative,
+                          severity: mapSeverity(selected.severity),
+                          recommendation: selected.recommendation,
+                          mediaGuidance: selected.media_guidance,
+                          defectId: toId(selected),
+                        });
+                        onOpenChange(false);
+                      }}
+                    >
+                      Insert into section
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Desktop layout with grid
+            <>
+              <div className="col-span-12 md:col-span-5">
+                <Input
+                  placeholder="Search defects..."
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  aria-label="Search defects"
+                />
+                <Button
+                  className="mt-2 w-full"
+                  variant="secondary"
+                  onClick={() => {
+                    onInsert({
+                      title: "New observation",
+                      narrative: "",
+                      severity: "Info",
+                      recommendation: "",
+                      mediaGuidance: "",
+                      defectId: null,
+                    });
+                    setJustAddedBlank(true);
+                    setShowCreate(false);
+                  }}
+                >
+                  Insert blank observation
+                </Button>
+
+                {justAddedBlank && (
+                  <Button
+                    className="mt-2 w-full"
+                    onClick={() => {
+                      if (!user) {
+                        window.location.href = `/auth?redirectTo=${encodeURIComponent(window.location.pathname)}`;
+                        return;
+                      }
+                      setShowCreate(true);
+                    }}
+                  >
+                    Save as template
+                  </Button>
+                )}
+
+                <div className="mt-3 max-h-80 overflow-auto rounded border divide-y">
+                  {list.length === 0 && (
+                    <div className="p-3 text-sm text-muted-foreground">No defects found for this section.</div>
+                  )}
+                  {list.map((d) => (
+                    <button
+                      key={toId(d)}
+                      onClick={() => setSelected(d)}
+                      className={`w-full text-left p-3 hover:bg-accent ${selected?.title === d.title ? "bg-accent" : ""}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium">{d.title}</div>
+                        {d.source === "mine" && <Badge variant="secondary">My</Badge>}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Severity: {d.severity}</div>
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
+              <div className="col-span-12 md:col-span-7">
+                {showCreate && user && (
+                  <div className="mb-4">
+                    <PersonalDefectForm
+                      sectionKey={sectionKey}
+                      onSaved={(defect) => {
+                        const mapped: DefectTemplate = {
+                          id: defect.id,
+                          section: sectionName,
+                          title: defect.title,
+                          description: defect.description,
+                          severity: defect.severity,
+                          recommendation: defect.recommendation,
+                          media_guidance: defect.media_guidance,
+                          source: "mine",
+                        };
+                        setMyLibrary((prev) => [mapped, ...prev]);
+                        setSelected(mapped);
+                        setShowCreate(false);
+                        setJustAddedBlank(false);
+                      }}
+                      onCancel={() => setShowCreate(false)}
+                    />
+                  </div>
+                )}
+
+                {!selected ? (
+                  <p className="text-sm text-muted-foreground">Select a defect on the left to preview and insert.</p>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-sm font-medium mb-1">Description</div>
+                      <Textarea value={selected.description} readOnly className="min-h-24" />
+                    </div>
+                    {extractPlaceholders(selected.description).length > 0 && (
+                      <div>
+                        <div className="text-sm font-medium flex items-center gap-2">
+                          Fill Description Placeholders
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center justify-center"
+                                  aria-label="What are description placeholders?"
+                                >
+                                  <Info className="h-4 w-4 text-muted-foreground" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                Replace bracketed tokens like [location] before inserting the narrative.
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          {extractPlaceholders(selected.description).map((k) => (
+                            <Input
+                              key={k}
+                              placeholder={k}
+                              value={values[k] || ""}
+                              onChange={(e) => setValues((p) => ({ ...p, [k]: e.target.value }))}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selected.recommendation && (
+                      <div>
+                        <div className="text-sm font-medium mb-1">Recommendation</div>
+                        <Textarea value={selected.recommendation} readOnly className="min-h-20" />
+                      </div>
+                    )}
+                    {selected.media_guidance && (
+                      <p className="text-xs text-muted-foreground">Media guidance: {selected.media_guidance}</p>
+                    )}
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => {
+                          const narrative = applyPlaceholders(selected.description, values);
+                          onInsert({
+                            title: selected.title,
+                            narrative,
+                            severity: mapSeverity(selected.severity),
+                            recommendation: selected.recommendation,
+                            mediaGuidance: selected.media_guidance,
+                            defectId: toId(selected),
+                          });
+                          onOpenChange(false);
+                        }}
+                      >
+                        Insert into section
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
