@@ -32,6 +32,7 @@ interface DraggableCalendarGridProps {
   onAppointmentDrop: (appointmentId: string, newDate: Date) => void;
   calendarSettings: CalendarSettings;
   contacts: Contact[];
+  onViewModeChange?: (mode: ViewMode) => void;
 }
 
 export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
@@ -41,6 +42,7 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
   onAppointmentDrop,
   calendarSettings,
   contacts,
+  onViewModeChange,
 }) => {
   const [currentMonth, setCurrentMonth] = React.useState(selectedDate);
   const [viewMode, setViewMode] = React.useState<ViewMode>("month");
@@ -111,8 +113,8 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
 
     return (
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="space-y-2">
-          <div className="grid grid-cols-1 gap-1 max-h-[600px] overflow-y-auto">
+        <div className="space-y-1">
+          <div className="grid grid-cols-1 gap-0 max-h-[400px] overflow-y-auto border border-border rounded-lg">
             {timeSlots.map((hour) => {
               const slotAppointments = getAppointmentsForTimeSlot(selectedDate, hour);
               const slotDate = new Date(selectedDate);
@@ -125,14 +127,14 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={cn(
-                        "flex border-b border-border",
+                        "flex border-b border-border last:border-b-0",
                         snapshot.isDraggingOver && "bg-primary/10"
                       )}
                     >
-                      <div className="w-16 p-2 text-sm text-muted-foreground border-r border-border">
+                      <div className="w-14 py-1 px-2 text-xs text-muted-foreground border-r border-border bg-muted/50">
                         {format(new Date().setHours(hour), "ha")}
                       </div>
-                      <div className="flex-1 p-2 min-h-[60px]">
+                      <div className="flex-1 py-1 px-2 min-h-[32px]">
                         {slotAppointments.map((appointment, index) => (
                           <Draggable
                             key={appointment.id}
@@ -145,7 +147,7 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                                 className={cn(
-                                  "p-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-all text-xs border",
+                                  "py-1 px-2 rounded mb-1 cursor-pointer hover:opacity-80 transition-all text-xs border",
                                   getAppointmentBadgeClass(appointment),
                                   snapshot.isDragging && "rotate-3 shadow-lg scale-105"
                                 )}
@@ -289,7 +291,10 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
                   isToday(day) && "bg-accent/50",
                   snapshot.isDraggingOver && "bg-primary/20"
                 )}
-                onClick={() => onDateSelect(cloneDay)}
+                onClick={() => {
+                  onDateSelect(cloneDay);
+                  onViewModeChange?.("day");
+                }}
               >
                 <div className="flex flex-col h-full">
                   <div className={cn(
