@@ -12,6 +12,7 @@ import { Finding, Report, Media } from "@/lib/reportSchemas";
 import { REPORT_TYPE_LABELS } from "@/constants/reportTypes";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InfoFieldWidget } from "@/components/reports/InfoFieldWidget";
 import { toast } from "@/hooks/use-toast";
 import DefectPicker from "@/components/reports/DefectPicker";
@@ -38,7 +39,6 @@ import { Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import ContactMultiSelect from "@/components/contacts/ContactMultiSelect";
 import FEATURE_FLAGS from "@/constants/featureFlags";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Lazy load wind mitigation editor at module level
 const WindMitigationEditor = React.lazy(() => import("@/components/reports/WindMitigationEditor"));
@@ -1207,15 +1207,19 @@ const ReportEditor: React.FC = () => {
                             value={f.title}
                             onChange={(e) => updateFinding(f.id, { title: e.target.value })}
                           />
-                          <select
-                            className="border rounded-md h-10 px-2 text-sm"
+                          <Select
                             value={f.severity}
-                            onChange={(e) => updateFinding(f.id, { severity: e.target.value as any })}
+                            onValueChange={(value) => updateFinding(f.id, { severity: value as any })}
                           >
-                            {SEVERITIES.map((s) => (
-                              <option key={s} value={s}>{s}</option>
-                            ))}
-                          </select>
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background">
+                              {SEVERITIES.map((s) => (
+                                <SelectItem key={s} value={s}>{s}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <Button
                             variant="ghost"
                             size="icon"
