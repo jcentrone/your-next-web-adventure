@@ -866,6 +866,7 @@ const Calendar: React.FC = () => {
                                         onAppointmentDrop={handleAppointmentDrop}
                                         calendarSettings={calendarSettings}
                                         contacts={contacts}
+                                        onViewModeChange={() => {}}
                                     />
                                 )}
                             </CardContent>
