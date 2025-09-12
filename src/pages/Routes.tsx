@@ -5,15 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { 
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import { DataTablePagination } from '@/components/ui/data-table-pagination';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
@@ -97,82 +89,6 @@ export default function Routes() {
     navigate(`/route/${routeId}`);
   };
 
-  const renderPagination = () => {
-    if (totalPages <= 1) return null;
-
-    const getVisiblePages = () => {
-      const pages = [];
-      const startPage = Math.max(1, currentPage - 2);
-      const endPage = Math.min(totalPages, currentPage + 2);
-
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
-      return pages;
-    };
-
-    return (
-      <Pagination className="mt-6">
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious 
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-            />
-          </PaginationItem>
-          
-          {currentPage > 3 && (
-            <>
-              <PaginationItem>
-                <PaginationLink onClick={() => setCurrentPage(1)} className="cursor-pointer">
-                  1
-                </PaginationLink>
-              </PaginationItem>
-              {currentPage > 4 && (
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              )}
-            </>
-          )}
-          
-          {getVisiblePages().map((page) => (
-            <PaginationItem key={page}>
-              <PaginationLink
-                onClick={() => setCurrentPage(page)}
-                isActive={currentPage === page}
-                className="cursor-pointer"
-              >
-                {page}
-              </PaginationLink>
-            </PaginationItem>
-          ))}
-          
-          {currentPage < totalPages - 2 && (
-            <>
-              {currentPage < totalPages - 3 && (
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              )}
-              <PaginationItem>
-                <PaginationLink onClick={() => setCurrentPage(totalPages)} className="cursor-pointer">
-                  {totalPages}
-                </PaginationLink>
-              </PaginationItem>
-            </>
-          )}
-          
-          <PaginationItem>
-            <PaginationNext 
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-    );
-  };
 
   if (isLoading) {
     return (
@@ -310,15 +226,6 @@ export default function Routes() {
 
       {/* Routes List */}
       <div className="space-y-4">
-        {/* Pagination Info */}
-        {filteredRoutes.length > 0 && (
-          <div className="flex justify-between items-center text-sm text-muted-foreground">
-            <span>
-              Showing {startIndex + 1}-{Math.min(endIndex, filteredRoutes.length)} of {filteredRoutes.length} routes
-            </span>
-            <span>Page {currentPage} of {totalPages}</span>
-          </div>
-        )}
 
         {currentRoutes.length === 0 ? (
           <Card>
@@ -416,7 +323,16 @@ export default function Routes() {
         )}
         
         {/* Pagination */}
-        {renderPagination()}
+        {filteredRoutes.length > 0 && (
+          <DataTablePagination
+            currentPage={currentPage}
+            totalItems={filteredRoutes.length}
+            itemsPerPage={routesPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={() => {}} // Routes per page is fixed at 10
+            showItemsPerPage={false}
+          />
+        )}
       </div>
     </div>
   );

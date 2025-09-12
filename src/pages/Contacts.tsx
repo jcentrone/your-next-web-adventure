@@ -28,14 +28,7 @@ import { ContactsFilter } from "@/components/contacts/ContactsFilter";
 import { TagInput } from "@/components/ui/TagInput";
 import { ManageTagsDialog } from "@/components/modals/ManageTagsDialog";
 import { contactsTagsApi } from "@/integrations/supabase/contactsTagsApi";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
 
 const Contacts: React.FC = () => {
   const { user } = useAuth();
@@ -445,62 +438,13 @@ const Contacts: React.FC = () => {
         )}
 
         {filteredAndSortedContacts.length > 0 && (
-          <div className="flex items-center justify-between mt-4">
-            <div className="flex items-center gap-2 ps-2">
-              <span className="text-sm w-[100px]">Rows per page:</span>
-              <Select
-                value={itemsPerPage.toString()}
-                onValueChange={(value) => setItemsPerPage(Number(value))}
-              >
-                <SelectTrigger className="h-8 w-[70px]">
-                  <SelectValue/>
-                </SelectTrigger>
-                <SelectContent side="top">
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Pagination className="justify-end">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCurrentPage((p) => Math.max(1, p - 1));
-                    }}
-                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-                {Array.from({length: totalPages}).map((_, i) => (
-                  <PaginationItem key={i}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === i + 1}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(i + 1);
-                      }}
-                    >
-                      {i + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setCurrentPage((p) => Math.min(totalPages, p + 1));
-                    }}
-                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
+          <DataTablePagination
+            currentPage={currentPage}
+            totalItems={filteredAndSortedContacts.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+          />
         )}
       </div>
       {selectedContact && (

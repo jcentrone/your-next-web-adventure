@@ -4,14 +4,7 @@ import Seo from "@/components/Seo";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
 import {deleteReport as deleteLocalReport, listReports as listLocalReports} from "@/hooks/useLocalDraft";
 import {toast} from "@/components/ui/use-toast";
 import {useAuth} from "@/contexts/AuthContext";
@@ -293,62 +286,13 @@ const ReportsList: React.FC = () => {
                                              onManageTags={handleManageTags}/>
                         )}
                         {filteredItems.length > 0 && (
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4">
-                                <div className="flex items-center gap-2 ps-2">
-                                    <span className="text-sm whitespace-nowrap">Rows per page:</span>
-                                    <Select
-                                        value={itemsPerPage.toString()}
-                                        onValueChange={(value) => setItemsPerPage(Number(value))}
-                                    >
-                                        <SelectTrigger className="h-8 w-[70px]">
-                                            <SelectValue/>
-                                        </SelectTrigger>
-                                        <SelectContent side="top">
-                                            <SelectItem value="10">10</SelectItem>
-                                            <SelectItem value="20">20</SelectItem>
-                                            <SelectItem value="50">50</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <Pagination className="justify-center sm:justify-end">
-                                    <PaginationContent>
-                                        <PaginationItem>
-                                            <PaginationPrevious
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    setCurrentPage((p) => Math.max(1, p - 1));
-                                                }}
-                                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                                            />
-                                        </PaginationItem>
-                                        {Array.from({length: totalPages}).map((_, i) => (
-                                            <PaginationItem key={i}>
-                                                <PaginationLink
-                                                    href="#"
-                                                    isActive={currentPage === i + 1}
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        setCurrentPage(i + 1);
-                                                    }}
-                                                >
-                                                    {i + 1}
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                        ))}
-                                        <PaginationItem>
-                                            <PaginationNext
-                                                href="#"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    setCurrentPage((p) => Math.min(totalPages, p + 1));
-                                                }}
-                                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                                            />
-                                        </PaginationItem>
-                                    </PaginationContent>
-                                </Pagination>
-                            </div>
+                            <DataTablePagination
+                                currentPage={currentPage}
+                                totalItems={filteredItems.length}
+                                itemsPerPage={itemsPerPage}
+                                onPageChange={setCurrentPage}
+                                onItemsPerPageChange={setItemsPerPage}
+                            />
                         )}
                     </>
                 )}
