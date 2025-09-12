@@ -871,6 +871,17 @@ const Calendar: React.FC = () => {
                         </DialogContent>
                     </Dialog>
 
+                    {/* Search Filters - Always Visible */}
+                    <div className="w-full mb-6">
+                        <AppointmentSearchFilters
+                            filters={filters}
+                            onFiltersChange={updateFilters}
+                            onClearFilters={clearFilters}
+                            hasActiveFilters={hasActiveFilters}
+                            resultCount={filteredAppointments.length}
+                        />
+                    </div>
+
                     <div className="flex w-full gap-6">
                         {/* Calendar View */}
                         <Card className="w-full">
@@ -909,32 +920,86 @@ const Calendar: React.FC = () => {
                 </CardContent>
             ) : (
                 <Tabs value={appointmentsView} onValueChange={(value) => setAppointmentsView(value as 'day' | 'all')} className="w-full">
-                                <CardHeader className="pb-2">
+                                <CardHeader className="p-0">
                                     <TabsList className="grid w-full grid-cols-2">
                                         <TabsTrigger value="day">{format(selectedDate, "MMMM d, yyyy")}</TabsTrigger>
                                         <TabsTrigger value="all">All Appointments</TabsTrigger>
                                     </TabsList>
-                                    {appointmentsView === 'all' && (
-                                        <div className="pt-4">
-                                            <AppointmentSearchFilters
-                                                filters={filters}
-                                                onFiltersChange={updateFilters}
-                                                onClearFilters={clearFilters}
-                                                hasActiveFilters={hasActiveFilters}
-                                                resultCount={filteredAppointments.length}
-                                            />
-                                        </div>
-                                    )}
                                 </CardHeader>
                                 <CardContent>
                                     <TabsContent value="day">
-                                        {selectedDateAppointments.length === 0 ? (
-                                            <p className="text-muted-foreground text-center py-4">
-                                                No appointments for this date
-                                            </p>
+                                        {selectedDateAppointments.filter(appointment => {
+                                            // Apply search filters to day view as well
+                                            if (filters.query) {
+                                                const query = filters.query.toLowerCase();
+                                                const contact = contacts.find(c => c.id === appointment.contact_id);
+                                                const contactName = contact ? `${contact.first_name} ${contact.last_name}`.trim() : '';
+                                                
+                                                const searchableText = [
+                                                    appointment.title,
+                                                    appointment.description,
+                                                    appointment.location,
+                                                    contactName,
+                                                    contact?.company,
+                                                    contact?.email,
+                                                ].filter(Boolean).join(' ').toLowerCase();
+
+                                                if (!searchableText.includes(query)) {
+                                                    return false;
+                                                }
+                                            }
+                                            
+                                            if (filters.status !== 'all' && appointment.status !== filters.status) {
+                                                return false;
+                                            }
+                                            
+                                            return true;
+                                        }).length === 0 ? (
+                                            <div className="text-center py-4">
+                                                {hasActiveFilters ? (
+                                                    <div className="space-y-2">
+                                                        <p className="text-muted-foreground">
+                                                            No appointments match your search criteria for this date.
+                                                        </p>
+                                                        <Button variant="outline" size="sm" onClick={clearFilters}>
+                                                            Clear filters
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-muted-foreground">
+                                                        No appointments for this date
+                                                    </p>
+                                                )}
+                                            </div>
                                         ) : (
                                             <div className="space-y-3">
-                                                {selectedDateAppointments.map((appointment) => (
+                                                {selectedDateAppointments.filter(appointment => {
+                                                    // Apply search filters to day view as well
+                                                    if (filters.query) {
+                                                        const query = filters.query.toLowerCase();
+                                                        const contact = contacts.find(c => c.id === appointment.contact_id);
+                                                        const contactName = contact ? `${contact.first_name} ${contact.last_name}`.trim() : '';
+                                                        
+                                                        const searchableText = [
+                                                            appointment.title,
+                                                            appointment.description,
+                                                            appointment.location,
+                                                            contactName,
+                                                            contact?.company,
+                                                            contact?.email,
+                                                        ].filter(Boolean).join(' ').toLowerCase();
+
+                                                        if (!searchableText.includes(query)) {
+                                                            return false;
+                                                        }
+                                                    }
+                                                    
+                                                    if (filters.status !== 'all' && appointment.status !== filters.status) {
+                                                        return false;
+                                                    }
+                                                    
+                                                    return true;
+                                                }).map((appointment) => (
                                                     <div
                                                         key={appointment.id}
                                                         className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
