@@ -178,6 +178,10 @@ export const appointmentsApi = {
   },
 
   async getUpcoming(userId: string, limit: number = 5): Promise<Appointment[]> {
+    // Get appointments from 30 days ago to 30 days in the future to include recent ones
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
     const { data, error } = await supabase
       .from('appointments')
       .select(`
@@ -185,9 +189,9 @@ export const appointmentsApi = {
         contact:contacts(first_name, last_name, email, phone)
       `)
       .eq('user_id', userId)
-      .gte('appointment_date', new Date().toISOString())
+      .gte('appointment_date', thirtyDaysAgo.toISOString())
       .in('status', ['scheduled', 'confirmed'])
-      .order('appointment_date', { ascending: true })
+      .order('appointment_date', { ascending: false })
       .limit(limit);
     
     if (error) throw error;
