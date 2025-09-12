@@ -36,12 +36,36 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
   const [drawLine, setDrawLine] = useState<Konva.Line | null>(null);
   const startPoint = useRef<{ x: number; y: number } | null>(null);
 
-  // adjust stage size to image
+  // adjust stage size to image with reasonable max size
   useEffect(() => {
     if (image) {
-      setStageSize({ width: image.width, height: image.height });
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 600;
+      
+      let { width, height } = image;
+      
+      // Scale down if image is too large
+      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+        const aspectRatio = width / height;
+        
+        if (width > height) {
+          width = Math.min(width, MAX_WIDTH);
+          height = width / aspectRatio;
+        } else {
+          height = Math.min(height, MAX_HEIGHT);
+          width = height * aspectRatio;
+        }
+      }
+      
+      setStageSize({ width, height });
     }
   }, [image]);
+
+  // Calculate image scale for display
+  const imageScale = image ? {
+    x: stageSize.width / image.width,
+    y: stageSize.height / image.height
+  } : { x: 1, y: 1 };
 
   // load initial annotations
   useEffect(() => {
@@ -229,7 +253,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
             onMouseup={handleMouseUp}
           >
             <Layer listening={false}>
-              {image && <KonvaImage image={image} />}
+              {image && <KonvaImage image={image} scaleX={imageScale.x} scaleY={imageScale.y} />}
             </Layer>
             <Layer ref={layerRef} />
           </Stage>
