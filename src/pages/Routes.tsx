@@ -53,7 +53,12 @@ export default function Routes() {
 
   // Filter routes by selected date if one is selected
   const filteredRoutes = selectedDate 
-    ? routes.filter(route => route.route_date === format(selectedDate, 'yyyy-MM-dd'))
+    ? routes.filter(route => {
+        // Ensure robust date comparison by normalizing both dates to YYYY-MM-DD format
+        const routeDate = route.route_date?.split('T')[0]; // Handle ISO date strings
+        const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
+        return routeDate === selectedDateStr;
+      })
     : routes;
 
   // Pagination calculations
@@ -69,6 +74,16 @@ export default function Routes() {
 
   const handleDateRangeChange = (range: DateRange | undefined) => {
     setDateRange(range);
+    setSelectedDate(undefined); // Clear single date when range is selected
+    setCurrentPage(1);
+  };
+
+  const handleSingleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) {
+      // When a single date is selected, clear the date range to avoid conflicts
+      setDateRange(undefined);
+    }
     setCurrentPage(1);
   };
 
@@ -208,7 +223,7 @@ export default function Routes() {
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={setSelectedDate}
+                  onSelect={handleSingleDateSelect}
                   initialFocus
                   className={cn("p-3 pointer-events-auto")}
                 />
@@ -217,7 +232,7 @@ export default function Routes() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => setSelectedDate(undefined)}
+                      onClick={() => handleSingleDateSelect(undefined)}
                       className="w-full"
                     >
                       Clear Filter
