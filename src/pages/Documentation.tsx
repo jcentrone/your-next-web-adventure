@@ -34,24 +34,126 @@ const Documentation = () => {
     const query = searchQuery.trim();
     const results: any[] = [];
     
-    // Search through all documentation content
+    // Enhanced searchable content with detailed subsections
     const searchableContent = [
-      { category: "getting-started", title: "Account Registration", content: "sign up email password verification profile setup inspector certification business information branding logo signature" },
-      { category: "getting-started", title: "PWA Installation", content: "mobile app install android ios chrome safari home screen offline functionality" },
-      { category: "getting-started", title: "First Report", content: "create report home inspection wind mitigation property details sections observations photos" },
-      { category: "contacts", title: "Contact Management", content: "clients realtors vendors contractors add contact information relationships" },
-      { category: "reports", title: "Report Creation", content: "home inspection reports wind mitigation 4-point roof certification manufactured home templates" },
-      { category: "calendar", title: "Calendar & Booking", content: "appointments scheduling booking widget calendar integration time slots" },
-      { category: "integrations", title: "Integrations", content: "google calendar outlook showing time acuity calendly third party apps" },
-      { category: "settings", title: "Settings", content: "account settings organization branding email templates notifications preferences" },
-      { category: "analytics", title: "Analytics", content: "reports analytics dashboard performance metrics expenses tracking" },
-      { category: "advanced", title: "Advanced Features", content: "custom sections templates automation workflows bulk operations" },
-      { category: "troubleshooting", title: "Troubleshooting", content: "login problems sync issues pdf generation performance help support" }
+      { 
+        category: "getting-started", 
+        title: "Getting Started", 
+        subsections: [
+          { title: "Account Registration", content: "sign up email password verification profile setup inspector certification business information", sectionId: "account-setup" },
+          { title: "PWA Installation", content: "mobile app install android ios chrome safari home screen offline functionality progressive web app", sectionId: "pwa-install" },
+          { title: "First Report", content: "create new report home inspection wind mitigation property details sections observations photos templates", sectionId: "first-report" },
+          { title: "Navigation & Dashboard", content: "main menu dashboard reports calendar contacts settings analytics overview", sectionId: "navigation" }
+        ]
+      },
+      { 
+        category: "contacts", 
+        title: "Contact Management", 
+        subsections: [
+          { title: "Adding New Contacts", content: "clients realtors vendors contractors add contact information form quick add method", sectionId: "adding-contacts" },
+          { title: "Contact Organization & Filtering", content: "contact types categories search filter tags smart groups agent client relationships", sectionId: "contact-organization" },
+          { title: "Contact History & Notes", content: "activity tracking reports appointments communications manual notes follow-ups", sectionId: "contact-history" },
+          { title: "Contact Relationships", content: "link contacts agent client vendor partnerships referral sources team connections", sectionId: "contact-relationships" }
+        ]
+      },
+      { 
+        category: "reports", 
+        title: "Report Creation", 
+        subsections: [
+          { title: "Home Inspection Reports", content: "internachi sop compliance structural exterior roofing plumbing electrical heating cooling interior", sectionId: "home-inspections" },
+          { title: "Wind Mitigation Reports", content: "florida oir b1 1802 wind mitigation inspections roof covering opening protection", sectionId: "wind-mitigation" },
+          { title: "4-Point Inspections", content: "florida insurance 4-point hvac electrical plumbing roof systems age condition", sectionId: "four-point" },
+          { title: "Report Templates & Customization", content: "custom templates branding logo signatures defect templates observations photos", sectionId: "report-templates" },
+          { title: "PDF Generation & Export", content: "professional pdf generation custom formatting export share email delivery", sectionId: "pdf-generation" }
+        ]
+      },
+      { 
+        category: "calendar", 
+        title: "Calendar & Booking", 
+        subsections: [
+          { title: "Appointment Management", content: "schedule appointments calendar view drag drop reschedule time slots availability", sectionId: "appointments" },
+          { title: "Booking Widget Setup", content: "online booking widget embed website client self scheduling templates", sectionId: "booking-widget" },
+          { title: "Route Optimization", content: "optimize routes driving directions google maps waze integration travel time", sectionId: "route-optimization" },
+          { title: "Calendar Integration", content: "sync google calendar outlook apple calendar external calendars two-way sync", sectionId: "calendar-sync" }
+        ]
+      },
+      { 
+        category: "integrations", 
+        title: "Integrations", 
+        subsections: [
+          { title: "Calendar Integrations", content: "google calendar outlook apple calendar sync appointments scheduling", sectionId: "calendar-integrations" },
+          { title: "Third Party Apps", content: "showing time acuity calendly booking platforms zapier automation", sectionId: "third-party" },
+          { title: "API & Webhooks", content: "api access webhooks automation custom integrations developer tools", sectionId: "api-webhooks" },
+          { title: "Accounting Software", content: "quickbooks xero freshbooks accounting integration expense tracking invoicing", sectionId: "accounting" }
+        ]
+      },
+      { 
+        category: "settings", 
+        title: "Settings", 
+        subsections: [
+          { title: "Account Settings", content: "profile information password security preferences personal settings", sectionId: "account" },
+          { title: "Organization Settings", content: "company information branding logo colors themes organization preferences", sectionId: "organization" },
+          { title: "Email Templates", content: "custom email templates report delivery appointment confirmations branding", sectionId: "email-templates" },
+          { title: "Notification Preferences", content: "push notifications email alerts appointment reminders system notifications", sectionId: "notifications" },
+          { title: "Advanced Settings", content: "data export import backup security advanced configuration options", sectionId: "advanced" }
+        ]
+      },
+      { 
+        category: "analytics", 
+        title: "Analytics", 
+        subsections: [
+          { title: "Performance Metrics", content: "reports created contacts added appointments scheduled revenue tracking kpis", sectionId: "performance" },
+          { title: "Visual Charts & Reports", content: "monthly trends revenue progression report distribution charts graphs analytics", sectionId: "charts" },
+          { title: "Route & Mileage Analytics", content: "track mileage fuel costs efficiency route optimization driving analytics", sectionId: "mileage" },
+          { title: "Expense Tracking", content: "record expenses categories tax reporting csv export financial analytics", sectionId: "expenses" },
+          { title: "Date Range & Filtering", content: "control data timeframes filter by date range sources analytics filtering", sectionId: "filtering" }
+        ]
+      },
+      { 
+        category: "advanced", 
+        title: "Advanced Features", 
+        subsections: [
+          { title: "Custom Sections & Templates", content: "create custom report sections templates defect libraries observations", sectionId: "custom-sections" },
+          { title: "Automation & Workflows", content: "automate tasks workflows batch operations bulk updates efficiency", sectionId: "automation" },
+          { title: "Image Annotation", content: "photo editing annotation tools arrows text callouts markup images", sectionId: "image-annotation" },
+          { title: "Offline Mode", content: "work offline sync data pwa functionality mobile offline capabilities", sectionId: "offline-mode" }
+        ]
+      },
+      { 
+        category: "troubleshooting", 
+        title: "Troubleshooting", 
+        subsections: [
+          { title: "Login & Authentication", content: "login problems password reset authentication issues account access", sectionId: "login-issues" },
+          { title: "Sync & Performance", content: "data sync issues slow performance loading problems connectivity issues", sectionId: "sync-performance" },
+          { title: "PDF & Report Issues", content: "pdf generation problems report formatting export issues printing problems", sectionId: "pdf-issues" },
+          { title: "Mobile & PWA Issues", content: "mobile app problems pwa installation offline mode mobile compatibility", sectionId: "mobile-issues" },
+          { title: "Getting Help", content: "contact support help documentation community resources technical support", sectionId: "getting-help" }
+        ]
+      }
     ];
 
-    searchableContent.forEach(item => {
-      if (searchInText(item.title, query) || searchInText(item.content, query)) {
-        results.push(item);
+    // Search through categories and subsections
+    searchableContent.forEach(category => {
+      const matchingSubsections: any[] = [];
+      
+      // Check if category title matches
+      const categoryMatches = searchInText(category.title, query);
+      
+      // Check each subsection
+      category.subsections.forEach(subsection => {
+        if (searchInText(subsection.title, query) || searchInText(subsection.content, query)) {
+          matchingSubsections.push(subsection);
+        }
+      });
+      
+      // If category matches or has matching subsections, add to results
+      if (categoryMatches || matchingSubsections.length > 0) {
+        results.push({
+          category: category.category,
+          title: category.title,
+          matchingSubsections: matchingSubsections,
+          categoryMatch: categoryMatches
+        });
       }
     });
 
@@ -154,18 +256,60 @@ const Documentation = () => {
                           onClick={() => {
                             setSearchQuery("");
                             setActiveCategory(result.category);
+                            // Auto-expand matching subsections
+                            if (result.matchingSubsections.length > 0) {
+                              const sectionIds = result.matchingSubsections.map((s: any) => s.sectionId);
+                              setOpenSections(sectionIds);
+                            }
                           }}>
                       <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold mb-2">{result.title}</h3>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                            {result.title}
+                            {result.categoryMatch && (
+                              <Badge variant="default" className="text-xs">Category Match</Badge>
+                            )}
+                          </h3>
                           <p className="text-muted-foreground text-sm mb-3">
                             Found in: {categories.find(c => c.id === result.category)?.label}
                           </p>
-                          <Badge variant="outline" className="text-xs">
-                            {result.category}
-                          </Badge>
+                          
+                          {/* Show matching subsections */}
+                          {result.matchingSubsections.length > 0 && (
+                            <div className="space-y-2 mb-4">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Relevant sections found:
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {result.matchingSubsections.slice(0, 4).map((subsection: any, idx: number) => (
+                                  <Badge 
+                                    key={idx} 
+                                    variant="outline" 
+                                    className="text-xs flex items-center gap-1"
+                                  >
+                                    <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                                    {subsection.title}
+                                  </Badge>
+                                ))}
+                                {result.matchingSubsections.length > 4 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{result.matchingSubsections.length - 4} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {result.category}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {result.matchingSubsections.length} section{result.matchingSubsections.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                        <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0 ml-4" />
                       </div>
                     </Card>
                   ))}
