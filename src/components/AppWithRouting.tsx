@@ -74,6 +74,7 @@ const AppWithRouting: React.FC = () => {
     <Route path="/accounts/:id" element={lazyLoad(() => import("@/pages/AccountDetail"))} />
     <Route path="/analytics" element={lazyLoad(() => import("@/pages/Analytics"))} />
           <Route path="/calendar" element={lazyLoad(() => import("@/components/calendar/CalendarWrapper"))} />
+          <Route path="/routes" element={lazyLoad(() => import("@/pages/Routes"))} />
           <Route path="/route/:routeId" element={lazyLoad(() => import("@/pages/RouteView"))} />
           <Route path="/tasks" element={lazyLoad(() => import("@/pages/Tasks"))} />
           <Route path="/expenses" element={lazyLoad(() => import("@/pages/Expenses"))} />
