@@ -26,18 +26,6 @@ interface ExpenseListProps {
   organizationId: string;
 }
 
-  // Fetch expense categories
-  const { data: categories = [] } = useQuery({
-    queryKey: ["expense-categories"],
-    queryFn: () => expenseCategoriesApi.listExpenseCategories(),
-  });
-
-  // Create categories list for filter
-  const categoryOptions = [
-    { label: "All", value: "all" },
-    ...categories.map(cat => ({ label: cat.name, value: cat.name }))
-  ];
-
 export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -50,6 +38,18 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
   const [sort, setSort] = React.useState<{ field: "expense_date" | "amount"; direction: "asc" | "desc" }>(
     { field: "expense_date", direction: "desc" }
   );
+
+  // Fetch expense categories
+  const { data: categories = [] } = useQuery({
+    queryKey: ["expense-categories"],
+    queryFn: () => expenseCategoriesApi.listExpenseCategories(),
+  });
+
+  // Create categories list for filter
+  const categoryOptions = [
+    { label: "All", value: "all" },
+    ...categories.map(cat => ({ label: cat.name, value: cat.name }))
+  ];
 
   React.useEffect(() => {
     const handler = setTimeout(() => setSearchTerm(searchInput), 300);
