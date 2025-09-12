@@ -81,10 +81,7 @@ export function DateRangePicker({
     const range = getDateRangeFromPreset(preset);
     onChange(range);
   };
-  return <div className="space-y-3">
-            <Label className="text-sm font-medium">Date Range</Label>
-            
-            <div className="flex gap-2">
+  return <div className="flex gap-2">
                 <Select onValueChange={handlePresetChange}>
                     <SelectTrigger className="w-[140px]">
                         <SelectValue placeholder="Quick select" />
@@ -97,7 +94,27 @@ export function DateRangePicker({
                 </Select>
                 <Popover>
                     <PopoverTrigger asChild>
-                        
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-[240px] justify-start text-left font-normal",
+                            !value && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {value?.from ? (
+                            value.to ? (
+                              <>
+                                {format(value.from, "LLL dd, y")} -{" "}
+                                {format(value.to, "LLL dd, y")}
+                              </>
+                            ) : (
+                              format(value.from, "LLL dd, y")
+                            )
+                          ) : (
+                            <span>Pick a date range</span>
+                          )}
+                        </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                     <div className="p-3 border-b">
@@ -109,7 +126,6 @@ export function DateRangePicker({
                     <Calendar initialFocus mode="range" defaultMonth={value?.from} selected={value} onSelect={onChange} numberOfMonths={2} className="pointer-events-auto" />
                 </PopoverContent>
                 </Popover>
-            </div>
-        </div>;
+            </div>;
 }
 export default DateRangePicker;

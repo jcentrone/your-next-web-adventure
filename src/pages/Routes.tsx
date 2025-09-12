@@ -27,6 +27,7 @@ import {
   Route as RouteIcon,
   Eye
 } from 'lucide-react';
+import { startOfWeek, endOfWeek } from 'date-fns';
 import { routeOptimizationApi } from '@/integrations/supabase/routeOptimizationApi';
 import { useQuery } from '@tanstack/react-query';
 
@@ -34,8 +35,8 @@ export default function Routes() {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(new Date().setDate(new Date().getDate() - 30)),
-    to: new Date()
+    from: startOfWeek(new Date()),
+    to: endOfWeek(new Date())
   });
   const [currentPage, setCurrentPage] = useState(1);
   const routesPerPage = 10;
