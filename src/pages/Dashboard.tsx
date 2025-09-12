@@ -117,6 +117,24 @@ const Dashboard: React.FC = () => {
                   New Task
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/accounts/new" className="flex items-center">
+                  <Users className="w-4 h-4 mr-2" />
+                  New Account
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/contacts/new" className="flex items-center">
+                  <Users className="w-4 h-4 mr-2" />
+                  New Contact
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/expenses" className="flex items-center">
+                  <CheckSquare className="w-4 h-4 mr-2" />
+                  New Expense
+                </Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
