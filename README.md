@@ -97,6 +97,17 @@ the legacy editor:
 Once these are implemented, set `ENABLE_CATEGORY_REPORT_EDITOR` to `true` in
 `src/constants/featureFlags.ts` to turn on the new editor.
 
+## Expense Tracking & CSV Export
+
+Use the Expenses page to record business purchases, organize them by category, and download your records for accounting or tax filing.
+
+### Best practices
+
+- Create clear, consistent categories such as Supplies, Marketing, and Travel.
+- Keep personal and business expenses separate to avoid commingling.
+- Export a CSV report at least monthly and share it with your accountant.
+- Retain receipts and notes to support deductions during tax preparation.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/069944d1-052a-41dd-b482-c41df0da3591) and click on Share -> Publish.
