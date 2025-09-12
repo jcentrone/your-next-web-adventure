@@ -105,10 +105,14 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     console.log("Selected objects changed:", selectedObjects.length, selectedObjects.map(obj => obj.getClassName()));
     if (transformerRef.current && selectedObjects.length > 0) {
       // Filter out any transformer nodes to prevent circular references
-      const validNodes = selectedObjects.filter(node => 
-        node.getClassName() !== 'Transformer' && node.getParent() !== transformerRef.current
+      const validNodes = selectedObjects.filter(
+        (node) =>
+          node.getClassName() !== "Transformer" &&
+          node.getParent() !== transformerRef.current
       );
       transformerRef.current.nodes(validNodes);
+      // Ensure transformer stays above selected shapes so resize handles are visible
+      transformerRef.current.moveToTop();
       transformerRef.current.getLayer()?.batchDraw();
     } else if (transformerRef.current) {
       transformerRef.current.nodes([]);
@@ -230,6 +234,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       });
       
       layerRef.current.add(text);
+      transformerRef.current?.moveToTop();
       layerRef.current.batchDraw();
       setIsDrawing(false);
       setActiveTool("select"); // Reset to select tool
@@ -254,6 +259,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       });
       
       layerRef.current.add(rect);
+      transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
     } else if (activeTool === "circle") {
       const circle = new Konva.Circle({
@@ -273,6 +279,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       });
       
       layerRef.current.add(circle);
+      transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
     } else if (activeTool === "arrow") {
       const arrow = new Konva.Arrow({
@@ -292,6 +299,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       });
       
       layerRef.current.add(arrow);
+      transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
     } else if (activeTool === "line") {
       const line = new Konva.Line({
@@ -308,6 +316,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       });
       
       layerRef.current.add(line);
+      transformerRef.current?.moveToTop();
       setCurrentPath([pos.x, pos.y]);
     }
   };
@@ -343,6 +352,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         });
         
         layerRef.current.add(line);
+        transformerRef.current?.moveToTop();
       }
     } else if (activeTool === "rectangle") {
       const children = layerRef.current.children;
@@ -387,6 +397,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       saveHistory();
       // Attach event handlers to newly created objects
       attachEventHandlers();
+      transformerRef.current?.moveToTop();
       console.log("Finished drawing, saved to history");
     }
   };
