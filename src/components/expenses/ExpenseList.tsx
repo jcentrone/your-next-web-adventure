@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { Plus, ChevronDown, ChevronUp } from "lucide-react";
 import ExpenseForm from "./ExpenseForm";
 import ExpenseItem from "./ExpenseItem";
+import ExpenseCard from "./ExpenseCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ExpenseListProps {
   userId: string;
@@ -35,6 +37,7 @@ const categories = [
 export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
   const [searchInput, setSearchInput] = React.useState("");
@@ -145,67 +148,84 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ userId, organizationId
               </SelectContent>
             </Select>
           </div>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead
-                    className="cursor-pointer select-none"
-                    onClick={() => handleSort("expense_date")}
-                  >
-                    <div className="flex items-center">
-                      Date
-                      {sort.field === "expense_date" && (
-                        sort.direction === "asc" ? (
-                          <ChevronUp className="ml-1 h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="ml-1 h-4 w-4" />
-                        )
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead
-                    className="text-right cursor-pointer select-none"
-                    onClick={() => handleSort("amount")}
-                  >
-                    <div className="flex items-center justify-end">
-                      Amount
-                      {sort.field === "amount" && (
-                        sort.direction === "asc" ? (
-                          <ChevronUp className="ml-1 h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="ml-1 h-4 w-4" />
-                        )
-                      )}
-                    </div>
-                  </TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading && (
+          {isMobile ? (
+            <div className="grid gap-4 sm:hidden">
+              {isLoading && <div>Loading...</div>}
+              {!isLoading && expenses && expenses.length === 0 && (
+                <div>No expenses found.</div>
+              )}
+              {expenses?.map((exp) => (
+                <ExpenseCard
+                  key={exp.id}
+                  expense={exp}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-md border hidden md:block">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5}>Loading...</TableCell>
+                    <TableHead
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort("expense_date")}
+                    >
+                      <div className="flex items-center">
+                        Date
+                        {sort.field === "expense_date" && (
+                          sort.direction === "asc" ? (
+                            <ChevronUp className="ml-1 h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="ml-1 h-4 w-4" />
+                          )
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead
+                      className="text-right cursor-pointer select-none"
+                      onClick={() => handleSort("amount")}
+                    >
+                      <div className="flex items-center justify-end">
+                        Amount
+                        {sort.field === "amount" && (
+                          sort.direction === "asc" ? (
+                            <ChevronUp className="ml-1 h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="ml-1 h-4 w-4" />
+                          )
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                )}
-                {!isLoading && expenses && expenses.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5}>No expenses found.</TableCell>
-                  </TableRow>
-                )}
-                {expenses?.map((exp) => (
-                  <ExpenseItem
-                    key={exp.id}
-                    expense={exp}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={5}>Loading...</TableCell>
+                    </TableRow>
+                  )}
+                  {!isLoading && expenses && expenses.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5}>No expenses found.</TableCell>
+                    </TableRow>
+                  )}
+                  {expenses?.map((exp) => (
+                    <ExpenseItem
+                      key={exp.id}
+                      expense={exp}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
       <DialogContent>
