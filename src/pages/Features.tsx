@@ -3,99 +3,26 @@ import Seo from '@/components/Seo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { 
-  FileText, 
-  Camera, 
-  Shield, 
-  Users, 
-  Calendar, 
-  BarChart3,
-  CheckCircle,
-  Smartphone,
-  Cloud,
-  Settings,
-  Download,
-  Zap,
-  Navigation,
-  TrendingUp,
-  DollarSign
-} from 'lucide-react';
+import { marketingFeatures } from '@/constants/marketingFeatures';
+import { CheckCircle, Zap } from 'lucide-react';
 
 const Features = () => {
-  const features = [
-    {
-      icon: FileText,
-      title: "Professional Reports",
-      description: "Create comprehensive inspection reports with customizable templates that follow InterNACHI standards.",
-      highlights: ["Multiple report types", "Custom templates", "Digital signatures"]
-    },
-    {
-      icon: Camera,
-      title: "Photo & Media Management",
-      description: "Capture, annotate, and organize photos directly within your reports with advanced media tools.",
-      highlights: ["Photo annotation", "Video recording", "Audio notes"]
-    },
-    {
-      icon: Smartphone,
-      title: "Mobile-First Design",
-      description: "Work seamlessly across devices with our responsive web app and PWA capabilities.",
-      highlights: ["Offline functionality", "Cross-platform", "Touch-optimized"]
-    },
-    {
-      icon: Cloud,
-      title: "Cloud Synchronization",
-      description: "Your data is always backed up and synchronized across all your devices automatically.",
-      highlights: ["Real-time sync", "Data backup", "Multi-device access"]
-    },
-    {
-      icon: Users,
-      title: "Contact & Account Management",
-      description: "Organize your clients and business relationships with comprehensive CRM features.",
-      highlights: ["Contact database", "Relationship tracking", "Communication history"]
-    },
-    {
-      icon: Calendar,
-      title: "Scheduling & Tasks",
-      description: "Manage appointments, deadlines, and follow-ups with integrated calendar and task management.",
-      highlights: ["Calendar integration", "Task reminders", "Appointment booking"]
-    },
-    {
-      icon: BarChart3,
-      title: "Analytics & Insights",
-      description: "Track your business performance with detailed analytics and reporting dashboards.",
-      highlights: ["Revenue tracking", "Performance metrics", "Business insights"]
-    },
-    {
-      icon: Shield,
-      title: "Security & Compliance",
-      description: "Enterprise-grade security with data encryption and compliance with industry standards.",
-      highlights: ["Data encryption", "Secure sharing", "Compliance ready"]
-    },
-    {
-      icon: Settings,
-      title: "Customization Options",
-      description: "Tailor the platform to your business needs with extensive customization capabilities.",
-      highlights: ["Custom branding", "Report templates", "Workflow settings"]
-    },
-    {
-      icon: Navigation,
-      title: "Route Optimization",
-      description: "Plan efficient routes between job sites to save time and reduce travel costs.",
-      highlights: ["Smart directions", "Multi-stop planning", "Time-saving navigation"]
-    },
-    {
-      icon: TrendingUp,
-      title: "Mileage Tracking",
-      description: "Automatically log mileage to simplify reimbursements and tax deductions.",
-      highlights: ["Automatic logs", "GPS-based tracking", "Tax-ready records"]
-    },
-    {
-      icon: DollarSign,
-      title: "Expense Reporting",
-      description: "Track expenses and generate accountant-ready exports for seamless bookkeeping.",
-      highlights: ["Receipt capture", "Categorized expenses", "CSV exports"]
-    }
-  ];
+  const features = marketingFeatures.filter((feature) =>
+    [
+      'Professional Reports',
+      'Photo & Media Management',
+      'Mobile-First Design',
+      'Cloud Synchronization',
+      'Contact & Account Management',
+      'Scheduling & Tasks',
+      'Analytics & Insights',
+      'Security & Compliance',
+      'Customization Options',
+      'Route Optimization',
+      'Mileage Tracking',
+      'Expense Reporting'
+    ].includes(feature.title)
+  );
 
   return (
     <>
@@ -141,7 +68,10 @@ const Features = () => {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {features.map((feature, index) => (
-                <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-muted/50 hover:border-primary/20">
+                <Card
+                  key={index}
+                  className="group hover:shadow-lg transition-all duration-300 border-muted/50 hover:border-primary/20"
+                >
                   <CardHeader>
                     <div className="flex items-center gap-4">
                       <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
@@ -155,10 +85,10 @@ const Features = () => {
                       {feature.description}
                     </p>
                     <ul className="space-y-2">
-                      {feature.highlights.map((highlight, idx) => (
+                      {feature.bullets.map((bullet, idx) => (
                         <li key={idx} className="flex items-center gap-2 text-sm">
                           <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                          <span>{highlight}</span>
+                          <span>{bullet}</span>
                         </li>
                       ))}
                     </ul>

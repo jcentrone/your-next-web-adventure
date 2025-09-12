@@ -1,146 +1,53 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Seo from "@/components/Seo";
-import type { LucideIcon } from "lucide-react";
+import { marketingFeatures, type MarketingFeature } from "@/constants/marketingFeatures";
 import {
   ArrowRight,
   Globe,
   Smartphone,
-  Wind,
-  Image as ImageIcon,
-  Users,
-  FileText,
-  Layers,
   CheckCircle,
   Clock,
   Star,
-  Route,
-  Gauge,
-  ReceiptText
+  Layers,
+  FileText
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
-type Feature = {
-  title: string;
-  description: string;
-  bullets: string[];
-  Icon: LucideIcon;
-  color: string;
+
+type Feature = MarketingFeature & { color: string };
+
+const colorMap: Record<string, string> = {
+  "Progressive Web App": "from-blue-500 to-indigo-500",
+  "Wind Mitigation Specialist": "from-amber-500 to-orange-600",
+  "Photo & Media Management": "from-purple-500 to-pink-500",
+  "Contact & Account Management": "from-blue-500 to-indigo-500",
+  "Professional Templates": "from-purple-500 to-violet-500",
+  "Seamless Integrations": "from-slate-500 to-gray-600",
+  "Route Optimization": "from-green-500 to-emerald-600",
+  "Mileage Tracking": "from-teal-500 to-cyan-600",
+  "Expense Reporting": "from-rose-500 to-red-600",
 };
 
-const features: Feature[] = [
-  {
-    title: "Progressive Web App",
-    description:
-      "Install as native app on any device. Works offline with automatic sync when connected.",
-    bullets: [
-      "One-click installation",
-      "Full offline functionality",
-      "Cross-platform compatibility"
-    ],
-    Icon: Smartphone,
-    color: "from-blue-500 to-indigo-500"
-  },
-  {
-    title: "Wind Mitigation Specialist",
-    description:
-      "Florida Form 1802 compliant inspections. Help clients save thousands on insurance premiums.",
-    bullets: [
-      "OIR-B1-1802 form compliance",
-      "All 7 inspection questions",
-      "Insurance discount calculations"
-    ],
-    Icon: Wind,
-    color: "from-amber-500 to-orange-600"
-  },
-  {
-    title: "Advanced Image Annotation",
-    description:
-      "Professional canvas tools for image markup. Draw, highlight, and annotate photos directly in your reports.",
-    bullets: [
-      "Drawing and markup tools",
-      "Shape and text annotations",
-      "Undo/redo capabilities"
-    ],
-    Icon: ImageIcon,
-    color: "from-purple-500 to-pink-500"
-  },
-  {
-    title: "Simple CRM",
-    description:
-      "Straightforward contact management. Keep track of your clients and key contacts without the complexity.",
-    bullets: [
-      "Contact information storage",
-      "Basic note taking",
-      "Easy search and filtering"
-    ],
-    Icon: Users,
-    color: "from-blue-500 to-indigo-500"
-  },
-  {
-    title: "Professional Templates",
-    description:
-      "Attorney-vetted narrative templates for each SOP section with custom branding options.",
-    bullets: [
-      "Pre-written defect narratives",
-      "Custom logos, colors, signatures",
-      "Professional PDF generation"
-    ],
-    Icon: FileText,
-    color: "from-purple-500 to-violet-500"
-  },
-  {
-    title: "Seamless Integrations",
-    description:
-      "Works with your existing tools and services to keep data flowing effortlessly.",
-    bullets: [
-      "Supabase backend",
-      "Email & SMS notifications",
-      "Flexible API architecture"
-    ],
-    Icon: Layers,
-    color: "from-slate-500 to-gray-600"
-  },
-  {
-    title: "Route Optimization",
-    description:
-      "Plan efficient inspection routes to save time and fuel.",
-    bullets: [
-      "Automatic route planning",
-      "Optimized for multiple stops",
-      "Time-saving directions"
-    ],
-    Icon: Route,
-    color: "from-green-500 to-emerald-600"
-  },
-  {
-    title: "Mileage Tracking",
-    description:
-      "Log travel miles automatically for accurate reimbursements.",
-    bullets: [
-      "Automatic mileage capture",
-      "Trip history dashboard",
-      "Exportable logs"
-    ],
-    Icon: Gauge,
-    color: "from-teal-500 to-cyan-600"
-  },
-  {
-    title: "Expense Reporting",
-    description:
-      "Track and report business expenses with ease.",
-    bullets: [
-      "Receipt photo capture",
-      "Category-based tracking",
-      "One-click report export"
-    ],
-    Icon: ReceiptText,
-    color: "from-rose-500 to-red-600"
-  }
-];
+const features: Feature[] = marketingFeatures
+  .filter((feature) =>
+    [
+      "Progressive Web App",
+      "Wind Mitigation Specialist",
+      "Photo & Media Management",
+      "Contact & Account Management",
+      "Professional Templates",
+      "Seamless Integrations",
+      "Route Optimization",
+      "Mileage Tracking",
+      "Expense Reporting",
+    ].includes(feature.title)
+  )
+  .map((feature) => ({ ...feature, color: colorMap[feature.title] }));
 
-const FeatureCard = ({ Icon, title, description, bullets, color }: Feature) => (
+
+const FeatureCard = ({ icon: Icon, title, description, bullets, color }: Feature) => (
   <Card className="p-8 rounded-3xl border bg-card backdrop-blur-sm hover:shadow-lg transition">
     <div className="flex flex-col h-full">
       <div
@@ -175,20 +82,19 @@ const Index = () => {
     operatingSystem: "Web",
     description,
     url: "/",
-    features: [
-      "Progressive Web App (PWA)",
-      "Uniform Mitigation Inspections",
-      "Advanced Image Annotation",
-      "Offline Functionality",
-      "InterNACHI SOP Compliant Reports",
-      "CRM & Contact Management",
-      "Smart Scheduling",
-      "Task Management",
-      "Route Optimization",
-      "Mileage Tracking",
-      "Expense Reporting"
-    ]
-  };
+      features: [
+        "Progressive Web App (PWA)",
+        "Uniform Mitigation Inspections",
+        "Photo & Media Management",
+        "Offline Functionality",
+        "InterNACHI SOP Compliant Reports",
+        "Contact & Account Management",
+        "Scheduling & Tasks",
+        "Route Optimization",
+        "Mileage Tracking",
+        "Expense Reporting"
+      ]
+    };
 
   return (
     <div className="bg-background">
