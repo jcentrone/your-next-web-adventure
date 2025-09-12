@@ -2052,6 +2052,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_section_order: {
         Row: {
           created_at: string | null
@@ -2121,6 +2148,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["organization_role"]
       }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       halfvec_avg: {
         Args: { "": number[] }
         Returns: unknown
@@ -2136,6 +2167,13 @@ export type Database = {
       halfvec_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      has_app_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       has_organization_role: {
         Args: {
@@ -2159,6 +2197,10 @@ export type Database = {
       hnswhandler: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      is_master_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
       }
       is_organization_member: {
         Args: { org_id: string }
@@ -2245,6 +2287,7 @@ export type Database = {
         | "report_delivered"
         | "report_created"
         | "contact_created"
+      app_role: "master_admin" | "admin" | "inspector" | "user"
       appointment_status:
         | "scheduled"
         | "confirmed"
@@ -2422,6 +2465,7 @@ export const Constants = {
         "report_created",
         "contact_created",
       ],
+      app_role: ["master_admin", "admin", "inspector", "user"],
       appointment_status: [
         "scheduled",
         "confirmed",
