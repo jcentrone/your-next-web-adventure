@@ -24,6 +24,7 @@ import {
     FileText,
     Home,
     Menu,
+    Navigation,
     Settings,
     Users,
     X
@@ -118,6 +119,11 @@ const Header: React.FC = () => {
                                 <Calendar className="h-4 w-4"/>
                                 Calendar
                             </Link>
+                            <Link to="/routes"
+                                  className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/routes' ? 'text-primary' : ''}`}>
+                                <Navigation className="h-4 w-4"/>
+                                Routes
+                            </Link>
                             <Link to="/tasks"
                                   className={`flex items-center gap-2 transition-colors hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : ''}`}
                                   data-onboarding="tasks">
@@ -206,6 +212,11 @@ const Header: React.FC = () => {
                                               className={`transition-colors py-2 hover:text-primary ${location.pathname === '/calendar' ? 'text-primary' : 'text-foreground'}`}
                                               onClick={() => setMobileMenuOpen(false)}>
                                             Calendar
+                                        </Link>
+                                        <Link to="/routes"
+                                              className={`transition-colors py-2 hover:text-primary ${location.pathname === '/routes' ? 'text-primary' : 'text-foreground'}`}
+                                              onClick={() => setMobileMenuOpen(false)}>
+                                            Routes
                                         </Link>
                                         <Link to="/tasks"
                                               className={`transition-colors py-2 hover:text-primary ${location.pathname === '/tasks' ? 'text-primary' : 'text-foreground'}`}

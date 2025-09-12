@@ -120,9 +120,9 @@ export default function RouteView() {
       <div className="container mx-auto p-6">
         <div className="text-center space-y-4">
           <h1 className="text-2xl font-bold">Route not found</h1>
-          <Button onClick={() => navigate('/calendar')}>
+          <Button onClick={() => navigate('/routes')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Calendar
+            Back to Routes
           </Button>
         </div>
       </div>
@@ -139,10 +139,10 @@ export default function RouteView() {
           <Button 
             variant="outline" 
             size="sm"
-            onClick={() => navigate('/calendar')}
+            onClick={() => navigate('/routes')}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            Back to Routes
           </Button>
           <div>
             <h1 className="text-2xl font-bold">Route Overview</h1>
