@@ -14,6 +14,7 @@ declare global {
           options?: any
         ) => any;
         Geocoder: new () => any;
+        OverlayView: new () => any;
         SymbolPath: {
           CIRCLE: any;
           BACKWARD_CLOSED_ARROW: any;
@@ -71,6 +72,7 @@ declare global {
         options?: any
       ) => any;
       Geocoder: new () => any;
+      OverlayView: new () => any;
       SymbolPath: {
         CIRCLE: any;
         BACKWARD_CLOSED_ARROW: any;
@@ -112,6 +114,33 @@ declare global {
       importLibrary: (library: string) => Promise<any>;
     };
   };
+
+  namespace google.maps {
+    class LatLng {
+      constructor(lat: number, lng: number);
+      lat(): number;
+      lng(): number;
+    }
+
+    interface MapPanes {
+      floatPane?: HTMLElement;
+      mapPane?: HTMLElement;
+      markerLayer?: HTMLElement;
+      overlayLayer?: HTMLElement;
+      overlayMouseTarget?: HTMLElement;
+    }
+
+    class OverlayView {
+      constructor();
+      onAdd(): void;
+      draw(): void;
+      onRemove(): void;
+      setMap(map: any): void;
+      getMap(): any;
+      getPanes(): MapPanes | null;
+      getProjection(): any;
+    }
+  }
 
   namespace JSX {
     interface IntrinsicElements {

@@ -33,16 +33,18 @@ const TooltipMarker = ({ address }: { address: string }) => (
 );
 
 // Custom overlay class for Google Maps
-class CustomOverlay {
+class CustomOverlay extends (window.google?.maps?.OverlayView || class {}) {
   private position: any;
   private containerDiv: HTMLDivElement;
   private address: string;
   private root: any;
-  private map: any;
 
   constructor(position: any, address: string) {
+    super();
     this.position = position;
     this.address = address;
+
+    // Create container div
     this.containerDiv = document.createElement('div');
     this.containerDiv.style.position = 'absolute';
     this.containerDiv.style.transform = 'translate(-50%, -100%)';
@@ -50,42 +52,46 @@ class CustomOverlay {
     this.containerDiv.style.pointerEvents = 'none';
   }
 
-  setMap(map: any) {
-    this.map = map;
-    if (map) {
-      this.onAdd();
-    } else {
-      this.onRemove();
-    }
-  }
-
   onAdd() {
-    if (this.map) {
-      const mapDiv = this.map.getDiv();
-      mapDiv.appendChild(this.containerDiv);
-      this.root = createRoot(this.containerDiv);
-      this.root.render(<TooltipMarker address={this.address} />);
-      this.draw();
+    try {
+      // Add the element to the "overlayLayer" pane
+      const panes = (this as any).getPanes?.();
+      if (panes?.overlayLayer) {
+        panes.overlayLayer.appendChild(this.containerDiv);
+        
+        // Render React component
+        this.root = createRoot(this.containerDiv);
+        this.root.render(<TooltipMarker address={this.address} />);
+      }
+    } catch (error) {
+      console.error('Error in CustomOverlay onAdd:', error);
     }
   }
 
   draw() {
-    if (this.map) {
-      const projection = this.map.getProjection();
-      if (projection) {
-        const position = projection.fromLatLngToDivPixel(this.position);
-        if (position) {
-          this.containerDiv.style.left = position.x + 'px';
-          this.containerDiv.style.top = position.y + 'px';
+    try {
+      // Position the overlay using the projection
+      const overlayProjection = (this as any).getProjection?.();
+      if (overlayProjection) {
+        const pixelPosition = overlayProjection.fromLatLngToDivPixel(this.position);
+        if (pixelPosition) {
+          this.containerDiv.style.left = pixelPosition.x + 'px';
+          this.containerDiv.style.top = pixelPosition.y + 'px';
         }
       }
+    } catch (error) {
+      console.error('Error in CustomOverlay draw:', error);
     }
   }
 
   onRemove() {
-    if (this.containerDiv.parentNode) {
-      this.root?.unmount();
-      this.containerDiv.parentNode.removeChild(this.containerDiv);
+    try {
+      if (this.containerDiv.parentNode) {
+        this.root?.unmount();
+        this.containerDiv.parentNode.removeChild(this.containerDiv);
+      }
+    } catch (error) {
+      console.error('Error in CustomOverlay onRemove:', error);
     }
   }
 }
@@ -247,6 +253,8 @@ export default function EmbeddedRouteMap({
         customMarkers.current.forEach(marker => {
           if (marker.setMap) {
             marker.setMap(null);
+          } else if (marker instanceof CustomOverlay) {
+            marker.setMap(null);
           }
         });
         customMarkers.current = [];
@@ -318,12 +326,31 @@ export default function EmbeddedRouteMap({
 
     if (isRoundTrip) {
       // Create a custom tooltip overlay for home base
-      const homeOverlay = new CustomOverlay(
-        leg.start_location, 
-        route.start_address || 'Home Base'
-      );
-      homeOverlay.setMap(mapInstance.current);
-      customMarkers.current.push(homeOverlay);
+      try {
+        const homeOverlay = new CustomOverlay(
+          leg.start_location, 
+          route.start_address || 'Home Base'
+        );
+        homeOverlay.setMap(mapInstance.current);
+        customMarkers.current.push(homeOverlay);
+      } catch (error) {
+        console.error('Error creating home overlay:', error);
+        // Fallback to standard marker
+        const homeMarker = new google.maps.Marker({
+          position: leg.start_location,
+          map: mapInstance.current,
+          title: `Home Base - ${route.start_address || ''}`,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 12,
+            fillColor: '#8B5CF6',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2,
+          },
+        });
+        customMarkers.current.push(homeMarker);
+      }
     } else {
       // Separate start and end markers for non-round trips
       const startMarker = new google.maps.Marker({
