@@ -1,44 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Canvas as FabricCanvas, FabricImage, Line, IText, Rect, Circle as FabricCircle, Group, PencilBrush } from "fabric";
-import { Button } from "@/components/ui/button";
-import { 
-  MousePointer, 
-  ArrowUpRight, 
-  Type, 
-  Square, 
-  Circle, 
-  Minus, 
-  Pencil, 
-  Undo, 
-  Redo, 
-  Save,
-  Palette,
-  Loader2,
-  AlertTriangle,
-  ArrowLeft,
-  X
-} from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { reportsApi } from "@/integrations/supabase/reportsApi";
-import { uploadFindingFiles, getSignedUrlFromSupabaseUrl, isSupabaseUrl } from "@/integrations/supabase/storage";
-
-const COLORS = [
-  "#ef4444", // red
-  "#f97316", // orange
-  "#eab308", // yellow
-  "#22c55e", // green
-  "#3b82f6", // blue
-  "#a855f7", // purple
-  "#ec4899", // pink
-  "#000000", // black
-  "#ffffff", // white
-];
+import { getSignedUrlFromSupabaseUrl, isSupabaseUrl } from "@/integrations/supabase/storage";
+import { useAnnotationCanvas } from "@/hooks/useAnnotationCanvas";
+import { ResponsiveAnnotationHeader } from "@/components/annotation/ResponsiveAnnotationHeader";
+import { AnnotationToolbar } from "@/components/annotation/AnnotationToolbar";
 
 export default function ImageAnnotation() {
   const { reportId, findingId, mediaId } = useParams<{ 
@@ -48,17 +18,7 @@ export default function ImageAnnotation() {
   }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
-  const [activeTool, setActiveTool] = useState<"select" | "arrow" | "text" | "rectangle" | "circle" | "line" | "draw">("select");
-  const [activeColor, setActiveColor] = useState("#ef4444");
-  const [history, setHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [canvasReady, setCanvasReady] = useState(false);
 
   // Fetch report data
   const { data: report } = useQuery({
@@ -67,46 +27,22 @@ export default function ImageAnnotation() {
     enabled: !!reportId,
   });
 
-  // Find the specific media item
-  const mediaItem = React.useMemo(() => {
-    console.log("ImageAnnotation - Looking for media item:", { 
-      reportId, 
-      findingId, 
-      mediaId, 
-      reportType: report?.reportType,
-      sectionsCount: report?.reportType === "home_inspection" ? (report as any).sections?.length || 0 : 0
-    });
+  // Find the specific media item with improved error handling
+  const mediaItem = useMemo(() => {
+    if (!report || !findingId || !mediaId) return null;
     
-    if (!report || !findingId || !mediaId) {
-      console.log("ImageAnnotation - Missing required parameters:", { report: !!report, findingId, mediaId });
-      return null;
-    }
-    
-    // Support both home_inspection and wind_mitigation reports
     if (report.reportType === "home_inspection") {
       const homeReport = report as any;
       for (const section of homeReport.sections || []) {
-        console.log("ImageAnnotation - Checking section:", section.key, "with", section.findings?.length || 0, "findings");
-        const finding = section.findings.find(f => f.id === findingId);
+        const finding = section.findings?.find((f: any) => f.id === findingId);
         if (finding) {
-          console.log("ImageAnnotation - Found finding:", finding.id, "with", finding.media?.length || 0, "media items");
-          const media = finding.media.find(m => m.id === mediaId);
-          if (media) {
-            console.log("ImageAnnotation - Found media item:", media.id, media.url);
-            return media;
-          }
+          const media = finding.media?.find((m: any) => m.id === mediaId);
+          if (media) return media;
         }
       }
-    } else if (report.reportType === "wind_mitigation") {
-      // Handle wind mitigation reports - they might have media in different structure
-      console.log("ImageAnnotation - Wind mitigation report detected, checking media structure");
-      // For now, return null but log that we need to handle this case
-      console.log("ImageAnnotation - Wind mitigation media annotation not yet supported");
     }
-    
-    console.log("ImageAnnotation - Media item not found in any section");
     return null;
-  }, [report, findingId, mediaId, reportId]);
+  }, [report, findingId, mediaId]);
 
   // Get signed URL for the image
   const [imageUrl, setImageUrl] = useState<string>("");
@@ -130,6 +66,12 @@ export default function ImageAnnotation() {
     
     getImageUrl();
   }, [mediaItem?.url]);
+
+  // Use the custom canvas hook
+  const canvas = useAnnotationCanvas({
+    imageUrl,
+    existingAnnotations: mediaItem?.annotations,
+  });
 
   // Initialize canvas and load image
   useEffect(() => {
@@ -462,53 +404,41 @@ export default function ImageAnnotation() {
   };
 
   const handleSave = async () => {
-    if (!fabricCanvas || !canvasReady || !report || !findingId || !mediaId) {
+    if (!canvas.canvasReady || !report || !findingId || !mediaId) {
       toast.error("Cannot save: missing required data");
       return;
     }
 
     setIsSaving(true);
     try {
-      // Remove background image from annotations
-      const objects = fabricCanvas.getObjects().filter(obj => (obj as any).name !== 'background-image');
-      const tempCanvas = new FabricCanvas();
-      objects.forEach(obj => tempCanvas.add(obj));
-      
-      const annotations = JSON.stringify(tempCanvas.toJSON());
-      
-      // Create annotated image blob
-      const blob = await new Promise<Blob>((resolve) => {
-        fabricCanvas.toCanvasElement().toBlob((blob) => {
-          resolve(blob!);
-        }, 'image/png', 1.0);
-      });
+      const annotationData = canvas.getAnnotationsJson();
+      if (!annotationData) {
+        toast.error("Failed to get annotation data");
+        return;
+      }
 
       // Update the media item
       const updatedReport = { ...report };
       if (updatedReport.reportType === "home_inspection") {
         const homeReport = updatedReport as any;
         for (const section of homeReport.sections || []) {
-          const finding = section.findings.find(f => f.id === findingId);
+          const finding = section.findings.find((f: any) => f.id === findingId);
           if (finding) {
-            const media = finding.media.find(m => m.id === mediaId);
+            const media = finding.media.find((m: any) => m.id === mediaId);
             if (media) {
-              media.annotations = annotations;
-              media.isAnnotated = true;
+              media.annotations = annotationData.json;
+              media.isAnnotated = annotationData.hasAnnotations;
               break;
             }
           }
         }
       }
 
-      // Save to database
       await reportsApi.dbUpdateReport(updatedReport);
-      
-      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ["report", reportId] });
       
+      canvas.resetUnsavedChanges();
       toast.success("Annotations saved successfully!");
-      
-      // Navigate back to report editor
       navigate(`/reports/${reportId}`);
       
     } catch (error) {
@@ -556,243 +486,41 @@ export default function ImageAnnotation() {
     );
   }
 
+  const hasAnnotations = mediaItem?.annotations && mediaItem.annotations !== '{}';
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCancel}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Report
-            </Button>
-            <h1 className="text-lg font-semibold">Annotate Image</h1>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isSaving}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={!canvasReady || isSaving}
-              className="gap-2"
-            >
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-              Save Annotations
-            </Button>
-          </div>
-        </div>
-      </div>
+      <ResponsiveAnnotationHeader
+        onCancel={handleCancel}
+        onSave={handleSave}
+        isSaving={isSaving}
+        canSave={canvas.canvasReady}
+        hasAnnotations={hasAnnotations}
+        isModified={canvas.hasUnsavedChanges}
+      />
 
-        {/* Toolbar */}
-        <div className="flex items-center gap-2 p-4 border-b bg-muted/50">
-          <TooltipProvider>
-            {/* Tool selection */}
-            <div className="flex items-center gap-1 mr-4">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={activeTool === "select" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleToolClick("select")}
-                  >
-                    <MousePointer className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Select and move objects</p>
-                </TooltipContent>
-              </Tooltip>
+      <AnnotationToolbar
+        activeTool={canvas.activeTool}
+        activeColor={canvas.activeColor}
+        onToolClick={canvas.handleToolClick}
+        onColorChange={canvas.setActiveColor}
+        onUndo={canvas.undo}
+        onRedo={canvas.redo}
+        canUndo={canvas.canUndo}
+        canRedo={canvas.canRedo}
+        disabled={!canvas.canvasReady}
+      />
 
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={activeTool === "draw" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleToolClick("draw")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Free drawing tool</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={activeTool === "arrow" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleToolClick("arrow")}
-                  >
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Add arrow</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={activeTool === "text" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleToolClick("text")}
-                  >
-                    <Type className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Add text (double-click to edit)</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={activeTool === "rectangle" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleToolClick("rectangle")}
-                  >
-                    <Square className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Add rectangle</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={activeTool === "circle" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleToolClick("circle")}
-                  >
-                    <Circle className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Add circle</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={activeTool === "line" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleToolClick("line")}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Add line</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-
-            {/* Color picker */}
-            <Popover>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="w-12 h-8 p-1">
-                      <div className="flex items-center gap-1">
-                        <div 
-                          className="w-4 h-4 rounded border"
-                          style={{ backgroundColor: activeColor }}
-                        />
-                        <Palette className="h-3 w-3" />
-                      </div>
-                    </Button>
-                  </PopoverTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Choose color</p>
-                </TooltipContent>
-              </Tooltip>
-              <PopoverContent className="w-48 p-2">
-                <div className="grid grid-cols-3 gap-1">
-                  {COLORS.map((color) => (
-                    <button
-                      key={color}
-                      className={`w-8 h-8 rounded border-2 transition-all hover:scale-110 ${
-                        activeColor === color ? "border-primary" : "border-gray-300"
-                      }`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setActiveColor(color)}
-                    />
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {/* Undo/Redo */}
-            <div className="flex items-center gap-1 ml-4">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={undo}
-                    disabled={historyIndex <= 0}
-                  >
-                    <Undo className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Undo</p>
-                </TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={redo}
-                    disabled={historyIndex >= history.length - 1}
-                  >
-                    <Redo className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Redo</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </TooltipProvider>
-        </div>
-
-      {/* Canvas */}
       <div className="p-4">
-        {error && (
+        {canvas.error && (
           <Alert className="mb-4">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{canvas.error}</AlertDescription>
           </Alert>
         )}
 
         <div className="relative flex justify-center">
-          {isLoading && (
+          {canvas.isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10">
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -802,7 +530,7 @@ export default function ImageAnnotation() {
           )}
           
           <div className="border rounded-lg shadow-lg overflow-hidden bg-white">
-            <canvas ref={canvasRef} className="max-w-full" />
+            <canvas ref={canvas.canvasRef} className="max-w-full touch-none" />
           </div>
         </div>
       </div>
