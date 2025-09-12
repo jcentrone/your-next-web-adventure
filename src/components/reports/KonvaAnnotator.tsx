@@ -298,6 +298,8 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       setDrawLine(null);
       saveHistory();
       startPoint.current = null;
+      // Auto-switch back to select tool after drawing
+      setActiveTool("select");
       return;
     }
 
@@ -306,6 +308,8 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       if (shape) {
         layerRef.current.draw();
         saveHistory();
+        // Auto-switch back to select tool after placing annotation
+        setActiveTool("select");
       }
     }
 
@@ -333,6 +337,24 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     selectedObjects.forEach(node => node.moveToBottom());
     layerRef.current?.batchDraw();
     saveHistory();
+  };
+
+  const getCursor = () => {
+    switch (activeTool) {
+      case "select":
+        return "default";
+      case "draw":
+        return "crosshair";
+      case "text":
+        return "text";
+      case "arrow":
+      case "line":
+      case "rectangle":
+      case "circle":
+        return "crosshair";
+      default:
+        return "default";
+    }
   };
 
   const handleSave = async () => {
@@ -383,6 +405,7 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
             onMousemove={handleMouseMove}
             onMouseup={handleMouseUp}
             onClick={handleStageClick}
+            style={{ cursor: getCursor() }}
           >
             <Layer listening={false}>
               {image && <KonvaImage image={image} scaleX={imageScale.x} scaleY={imageScale.y} />}
