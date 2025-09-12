@@ -68,21 +68,31 @@ export const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
 
   const ToolButton = ({ config }: { config: typeof TOOL_CONFIGS[0] }) => {
     const Icon = config.icon;
+    const isActive = activeTool === config.tool;
+    
     return (
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant={activeTool === config.tool ? "default" : "outline"}
+            variant={isActive ? "default" : "outline"}
             size={isMobile ? "sm" : "sm"}
-            onClick={() => onToolClick(config.tool)}
+            onClick={() => {
+              console.log("🎯 Toolbar button clicked:", config.tool);
+              onToolClick(config.tool);
+            }}
             disabled={disabled}
-            className={isMobile ? "min-w-[2.5rem]" : ""}
+            className={`
+              ${isMobile ? "min-w-[2.5rem]" : ""}
+              ${isActive ? "ring-2 ring-primary/50" : ""}
+              transition-all duration-200
+            `}
           >
             <Icon className="h-4 w-4" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
           <p>{config.label}</p>
+          {disabled && <p className="text-xs text-muted-foreground">Canvas loading...</p>}
         </TooltipContent>
       </Tooltip>
     );

@@ -229,11 +229,36 @@ export const useAnnotationCanvas = ({
   useEffect(() => {
     if (!fabricCanvas || !canvasReady) return;
 
+    console.log("🔧 Tool/Color change:", { activeTool, activeColor });
+
     fabricCanvas.isDrawingMode = activeTool === "draw";
     
     if (fabricCanvas.freeDrawingBrush) {
       fabricCanvas.freeDrawingBrush.color = activeColor;
       fabricCanvas.freeDrawingBrush.width = isMobile ? 4 : 3;
+    }
+
+    // Set cursor based on active tool
+    switch (activeTool) {
+      case "select":
+        fabricCanvas.defaultCursor = "default";
+        fabricCanvas.hoverCursor = "move";
+        break;
+      case "draw":
+        fabricCanvas.defaultCursor = "crosshair";
+        fabricCanvas.hoverCursor = "crosshair";
+        break;
+      case "text":
+        fabricCanvas.defaultCursor = "text";
+        fabricCanvas.hoverCursor = "text";
+        break;
+      case "arrow":
+      case "rectangle":
+      case "circle":
+      case "line":
+        fabricCanvas.defaultCursor = "crosshair";
+        fabricCanvas.hoverCursor = "crosshair";
+        break;
     }
 
     // Enable text editing on double click
@@ -303,84 +328,148 @@ export const useAnnotationCanvas = ({
   }, [activeColor, isMobile]);
 
   const handleToolClick = useCallback((tool: ToolType) => {
+    console.log("🎯 Tool clicked:", tool, {
+      canvasExists: !!fabricCanvas,
+      canvasReady,
+      currentTool: activeTool
+    });
+
     if (!fabricCanvas || !canvasReady) {
-      toast.error("Canvas not ready yet");
+      console.error("❌ Canvas not ready:", {
+        fabricCanvas: !!fabricCanvas,
+        canvasReady,
+        tool
+      });
       return;
     }
 
+    console.log("✅ Setting active tool:", tool);
     setActiveTool(tool);
 
-    // Clear any existing event handlers
-    fabricCanvas.off("mouse:down");
+    try {
+      // Clear any existing event handlers
+      fabricCanvas.off("mouse:down");
 
-    if (tool === "arrow") {
-      const handler = (e: any) => {
-        const pointer = fabricCanvas.getPointer(e.e);
-        const arrow = createArrow(pointer.x, pointer.y, pointer.x + 50, pointer.y - 50);
-        fabricCanvas.add(arrow);
-        fabricCanvas.off("mouse:down", handler);
-        setActiveTool("select");
-        toast.success("Arrow added");
-      };
-      fabricCanvas.on("mouse:down", handler);
-    } else if (tool === "text") {
-      const handler = (e: any) => {
-        const pointer = fabricCanvas.getPointer(e.e);
-        const text = new IText("Double click to edit", {
-          left: pointer.x,
-          top: pointer.y,
-          fill: activeColor,
-          fontSize: isMobile ? 18 : 16,
-          fontFamily: "Arial",
-        });
-        fabricCanvas.add(text);
-        fabricCanvas.setActiveObject(text);
-        
-        // Enter editing mode immediately
-        setTimeout(() => {
-          text.enterEditing();
-          text.selectAll();
-        }, 100);
-        
-        fabricCanvas.renderAll();
-        fabricCanvas.off("mouse:down", handler);
-        setActiveTool("select");
-        toast.success("Text added");
-      };
-      fabricCanvas.on("mouse:down", handler);
-    } else if (tool === "rectangle") {
-      const rect = new Rect({
-        left: 100,
-        top: 100,
-        fill: "transparent",
-        stroke: activeColor,
-        strokeWidth: isMobile ? 3 : 2,
-        width: 100,
-        height: 80,
-      });
-      fabricCanvas.add(rect);
-      setActiveTool("select");
-      toast.success("Rectangle added");
-    } else if (tool === "circle") {
-      const circle = new FabricCircle({
-        left: 100,
-        top: 100,
-        fill: "transparent",
-        stroke: activeColor,
-        strokeWidth: isMobile ? 3 : 2,
-        radius: 50,
-      });
-      fabricCanvas.add(circle);
-      setActiveTool("select");
-      toast.success("Circle added");
-    } else if (tool === "line") {
-      const line = new Line([100, 100, 200, 100], {
-        stroke: activeColor,
-        strokeWidth: isMobile ? 3 : 2,
-      });
-      fabricCanvas.add(line);
-      setActiveTool("select");
-      toast.success("Line added");
+      if (tool === "select") {
+        console.log("🎯 Select tool activated");
+        fabricCanvas.isDrawingMode = false;
+        fabricCanvas.defaultCursor = "default";
+        return;
+      }
+
+      if (tool === "draw") {
+        console.log("✏️ Draw tool activated");
+        fabricCanvas.isDrawingMode = true;
+        fabricCanvas.defaultCursor = "crosshair";
+        return;
+      }
+
+      if (tool === "arrow") {
+        console.log("🏹 Arrow tool activated - click to add arrow");
+        fabricCanvas.defaultCursor = "crosshair";
+        const handler = (e: any) => {
+          try {
+            console.log("🏹 Adding arrow at click position");
+            const pointer = fabricCanvas.getPointer(e.e);
+            const arrow = createArrow(pointer.x, pointer.y, pointer.x + 50, pointer.y - 50);
+            fabricCanvas.add(arrow);
+            fabricCanvas.renderAll();
+            fabricCanvas.off("mouse:down", handler);
+            setActiveTool("select");
+            fabricCanvas.defaultCursor = "default";
+            console.log("✅ Arrow added successfully");
+          } catch (error) {
+            console.error("❌ Error adding arrow:", error);
+          }
+        };
+        fabricCanvas.on("mouse:down", handler);
+      } else if (tool === "text") {
+        console.log("📝 Text tool activated - click to add text");
+        fabricCanvas.defaultCursor = "text";
+        const handler = (e: any) => {
+          try {
+            console.log("📝 Adding text at click position");
+            const pointer = fabricCanvas.getPointer(e.e);
+            const text = new IText("Double click to edit", {
+              left: pointer.x,
+              top: pointer.y,
+              fill: activeColor,
+              fontSize: isMobile ? 18 : 16,
+              fontFamily: "Arial",
+            });
+            fabricCanvas.add(text);
+            fabricCanvas.setActiveObject(text);
+            
+            // Enter editing mode immediately
+            setTimeout(() => {
+              text.enterEditing();
+              text.selectAll();
+            }, 100);
+            
+            fabricCanvas.renderAll();
+            fabricCanvas.off("mouse:down", handler);
+            setActiveTool("select");
+            fabricCanvas.defaultCursor = "default";
+            console.log("✅ Text added successfully");
+          } catch (error) {
+            console.error("❌ Error adding text:", error);
+          }
+        };
+        fabricCanvas.on("mouse:down", handler);
+      } else if (tool === "rectangle") {
+        try {
+          console.log("⬛ Adding rectangle");
+          const rect = new Rect({
+            left: 100,
+            top: 100,
+            fill: "transparent",
+            stroke: activeColor,
+            strokeWidth: isMobile ? 3 : 2,
+            width: 100,
+            height: 80,
+          });
+          fabricCanvas.add(rect);
+          fabricCanvas.renderAll();
+          setActiveTool("select");
+          console.log("✅ Rectangle added successfully");
+        } catch (error) {
+          console.error("❌ Error adding rectangle:", error);
+        }
+      } else if (tool === "circle") {
+        try {
+          console.log("⭕ Adding circle");
+          const circle = new FabricCircle({
+            left: 100,
+            top: 100,
+            fill: "transparent",
+            stroke: activeColor,
+            strokeWidth: isMobile ? 3 : 2,
+            radius: 50,
+          });
+          fabricCanvas.add(circle);
+          fabricCanvas.renderAll();
+          setActiveTool("select");
+          console.log("✅ Circle added successfully");
+        } catch (error) {
+          console.error("❌ Error adding circle:", error);
+        }
+      } else if (tool === "line") {
+        try {
+          console.log("📏 Adding line");
+          const line = new Line([100, 100, 200, 100], {
+            stroke: activeColor,
+            strokeWidth: isMobile ? 3 : 2,
+          });
+          fabricCanvas.add(line);
+          fabricCanvas.renderAll();
+          setActiveTool("select");
+          console.log("✅ Line added successfully");
+        } catch (error) {
+          console.error("❌ Error adding line:", error);
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error in handleToolClick:", error);
     }
   }, [fabricCanvas, canvasReady, activeColor, createArrow, isMobile]);
 
