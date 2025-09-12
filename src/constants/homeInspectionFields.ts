@@ -4,7 +4,7 @@ export const HOME_INSPECTION_FIELDS = {
     {
       name: "roof",
       fields: [
-        { name: "roof_material", label: "Roof Material", widget: "select", required: true, options: ["Asphalt Shingles", "Clay Tile", "Concrete Tile", "Metal", "Wood Shingles", "Slate", "Built-up", "Modified Bitumen", "EPDM", "TPO", "Other"] },
+        { name: "roof_material", label: "Roof Material", widget: "multiselect", required: true, options: ["Asphalt Shingles", "Clay Tile", "Concrete Tile", "Metal", "Wood Shingles", "Slate", "Built-up", "Modified Bitumen", "EPDM", "TPO", "Other"] },
         { name: "roof_condition", label: "Overall Roof Condition", widget: "select", required: true, options: ["Good", "Fair", "Poor", "Unable to Inspect"] },
         { name: "gutters_downspouts", label: "Gutters & Downspouts", widget: "select", required: false, options: ["Present and Functional", "Present with Issues", "Not Present", "Unable to Inspect"] },
         { name: "inspection_method", label: "Inspection Method", widget: "select", required: true, options: ["Walked on Roof", "Visual from Ground", "Visual from Ladder", "Drone/Remote"] }
