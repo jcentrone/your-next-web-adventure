@@ -285,9 +285,9 @@ export const DraggableCalendarGrid: React.FC<DraggableCalendarGridProps> = ({
                 ref={provided.innerRef}
                 {...provided.droppableProps}
                 className={cn(
-                  "min-h-[100px] border border-border p-2 cursor-pointer transition-colors hover:bg-muted/50",
+                  "min-h-[100px] border border-border p-2 cursor-pointer transition-all duration-200 hover:bg-muted/50",
                   !isSameMonth(day, monthStart) && "bg-muted/20 text-muted-foreground",
-                  isSameDay(day, selectedDate) && "bg-primary/40 border-primary font-semibold",
+                  isSameDay(day, selectedDate) && "bg-primary/20 border-primary font-semibold transform scale-105 shadow-lg z-10 relative border-2",
                   isToday(day) && "bg-accent/50",
                   snapshot.isDraggingOver && "bg-primary/20"
                 )}
