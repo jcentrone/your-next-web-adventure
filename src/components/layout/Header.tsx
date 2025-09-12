@@ -1,5 +1,5 @@
 import React from "react";
-import {Link, useNavigate, useLocation} from "react-router-dom";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button";
 import {useAuth} from "@/contexts/AuthContext";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
@@ -13,22 +13,15 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-    BarChart3,
     BookOpen,
-    Building2,
-    Calendar,
-    CheckSquare,
     ChevronDown,
-    DollarSign,
     Download,
-    HelpCircle,
     FileText,
+    HelpCircle,
     Home,
     Menu,
     MoreHorizontal,
-    Navigation,
     Settings,
-    Users,
     X
 } from "lucide-react";
 import {useIsMobile} from "@/hooks/use-mobile";
@@ -45,12 +38,18 @@ const Header: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
     const {isInstallable, install} = usePWAInstall();
     const {isActive, currentStep} = useOnboarding();
-    const {visibleItems, hiddenItems, hasMoreItems, shouldShowResponsiveNav, isActive: isItemActive} = useResponsiveNavigation();
+    const {
+        visibleItems,
+        hiddenItems,
+        hasMoreItems,
+        shouldShowResponsiveNav,
+        isActive: isItemActive
+    } = useResponsiveNavigation();
     const userMetadata = user?.user_metadata as { avatar_url?: string; picture?: string } | undefined;
-    
+
     // Auto-open user menu during settings onboarding step
     const [userMenuOpen, setUserMenuOpen] = React.useState(false);
-    
+
     React.useEffect(() => {
         if (isActive && currentStep === 8) { // Settings step is index 8
             setUserMenuOpen(true);
@@ -105,17 +104,18 @@ const Header: React.FC = () => {
                                         }`}
                                         data-onboarding={item.id}
                                     >
-                                        <IconComponent className="h-4 w-4" />
+                                        <IconComponent className="h-4 w-4"/>
                                         {item.label}
                                     </Link>
                                 );
                             })}
-                            
+
                             {/* More menu for hidden items */}
                             {hasMoreItems && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary">
+                                        <Button variant="ghost"
+                                                className="flex items-center gap-2 text-sm font-medium transition-colors hover:text-primary">
                                             <MoreHorizontal className="h-4 w-4"/>
                                             More
                                             <ChevronDown className="h-3 w-3"/>
@@ -126,8 +126,8 @@ const Header: React.FC = () => {
                                             const IconComponent = item.icon;
                                             return (
                                                 <DropdownMenuItem key={item.id} asChild>
-                                                    <Link 
-                                                        to={item.to} 
+                                                    <Link
+                                                        to={item.to}
                                                         className={`flex items-center gap-2 w-full ${
                                                             isItemActive(item) ? 'text-primary' : ''
                                                         }`}
@@ -334,7 +334,7 @@ const Header: React.FC = () => {
                                     Install App
                                 </Button>
                             )}
-                            <NotificationCenter />
+                            <NotificationCenter/>
                             <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
                                 <DropdownMenuTrigger asChild>
                                     <button
@@ -348,37 +348,65 @@ const Header: React.FC = () => {
                                         </Avatar>
                                     </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align={isActive && currentStep === 8 ? "start" : "end"} className="w-56 z-[80]">
+                                <DropdownMenuContent align={isActive && currentStep === 8 ? "start" : "end"}
+                                                     className="w-56 z-[80]">
                                     <DropdownMenuLabel className="max-w-[200px] truncate">
                                         {user.user_metadata?.full_name || user.user_metadata?.name || user.email}
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator/>
+                                    {isMobile && (
+                                        <>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/dashboard" className="flex items-center gap-2">
+                                                    <Home className="h-4 w-4"/> Dashboard
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/reports" className="flex items-center gap-2">
+                                                    <FileText className="h-4 w-4"/> Reports
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/accounts" className="flex items-center gap-2">
+                                                    <Building2 className="h-4 w-4"/> Accounts
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/contacts" className="flex items-center gap-2">
+                                                    <Users className="h-4 w-4"/> Contacts
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/calendar" className="flex items-center gap-2">
+                                                    <Calendar className="h-4 w-4"/> Calendar
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/tasks" className="flex items-center gap-2">
+                                                    <CheckSquare className="h-4 w-4"/> Tasks
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/routes" className="flex items-center gap-2">
+                                                    <Navigation className="h-4 w-4"/> Routes
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/expenses" className="flex items-center gap-2">
+                                                    <DollarSign className="h-4 w-4"/> Expenses
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem asChild>
+                                                <Link to="/analytics" className="flex items-center gap-2">
+                                                    <BarChart3 className="h-4 w-4"/> Analytics
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        </>
+                                    )}
+
                                     <DropdownMenuItem asChild>
-                                        <Link to="/dashboard" className="flex items-center gap-2">
-                                            <Home className="h-4 w-4"/>
-                                            Dashboard
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link to="/reports" className="flex items-center gap-2">
-                                            <FileText className="h-4 w-4"/>
-                                            My Reports
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link to="/routes" className="flex items-center gap-2">
-                                            <Navigation className="h-4 w-4"/>
-                                            Routes
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link to="/expenses" className="flex items-center gap-2">
-                                            <DollarSign className="h-4 w-4"/>
-                                            Expenses
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link to="/settings" className="flex items-center gap-2" data-onboarding="settings-menu">
+                                        <Link to="/settings" className="flex items-center gap-2"
+                                              data-onboarding="settings-menu">
                                             <Settings className="h-4 w-4"/>
                                             Settings
                                         </Link>
