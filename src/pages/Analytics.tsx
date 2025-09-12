@@ -41,26 +41,41 @@ type AnalyticsResponse = Omit<AnalyticsData, "totalRevenue" | "averageRevenue">;
 const chartConfig = {
   count: {
     label: "Count",
-    color: "hsl(var(--primary))",
+    color: "hsl(var(--chart-1))",
   },
   revenue: {
     label: "Revenue",
-    color: "hsl(var(--secondary))",
+    color: "hsl(var(--chart-2))",
   },
 };
 
 const activityTypes = ["Report", "Contact", "Appointment"] as const;
 
 const activityColors: Record<(typeof activityTypes)[number], string> = {
-  Report: "hsl(var(--primary))",
-  Contact: "hsl(var(--secondary))",
-  Appointment: "hsl(var(--accent))",
+  Report: "hsl(var(--chart-1))",
+  Contact: "hsl(var(--chart-2))",
+  Appointment: "hsl(var(--chart-3))",
 };
 
 const activityChartConfig = {
   Report: { label: "Reports", color: activityColors.Report },
   Contact: { label: "Contacts", color: activityColors.Contact },
   Appointment: { label: "Appointments", color: activityColors.Appointment },
+};
+
+// Define colors for report types (pie chart)
+const getReportTypeColor = (index: number) => {
+  const colors = [
+    "hsl(var(--chart-1))",
+    "hsl(var(--chart-2))",
+    "hsl(var(--chart-3))",
+    "hsl(var(--chart-4))",
+    "hsl(var(--chart-5))",
+    "hsl(var(--chart-6))",
+    "hsl(var(--chart-7))",
+    "hsl(var(--chart-8))",
+  ];
+  return colors[index % colors.length];
 };
 
 export default function Analytics() {
@@ -352,7 +367,7 @@ export default function Analytics() {
                       <XAxis dataKey="month" />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Bar dataKey="count" fill="hsl(var(--primary))" />
+                      <Bar dataKey="count" fill="hsl(var(--chart-1))" />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
@@ -370,7 +385,7 @@ export default function Analytics() {
                       <XAxis dataKey="month" />
                       <YAxis />
                       <ChartTooltip content={<ChartTooltipContent />} />
-                      <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} />
+                      <Line type="monotone" dataKey="revenue" stroke="hsl(var(--chart-2))" strokeWidth={2} />
                     </LineChart>
                   </ResponsiveContainer>
                 </ChartContainer>
@@ -395,11 +410,11 @@ export default function Analytics() {
                       labelLine={false}
                       label={({ type, value }) => `${type}: ${value.toFixed(0)}%`}
                       outerRadius={80}
-                      fill="#8884d8"
+                      fill="hsl(var(--chart-1))"
                       dataKey="count"
                     >
                       {analytics.reportsByType.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                        <Cell key={`cell-${index}`} fill={getReportTypeColor(index)} />
                       ))}
                     </Pie>
                     <ChartTooltip content={<ChartTooltipContent />} />

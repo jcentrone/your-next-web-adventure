@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  Cell,
 } from 'recharts';
 import { expenseApi } from '@/integrations/supabase/expenseApi';
 import { format, differenceInCalendarDays } from 'date-fns';
@@ -199,7 +200,7 @@ export function ExpenseAnalytics({ dateRange }: ExpenseAnalyticsProps) {
                     <Line
                       type="monotone"
                       dataKey="amount"
-                      stroke="hsl(var(--primary))"
+                      stroke="hsl(var(--chart-1))"
                       strokeWidth={2}
                       name="Amount"
                     />
@@ -225,10 +226,13 @@ export function ExpenseAnalytics({ dateRange }: ExpenseAnalyticsProps) {
                     />
                     <Bar
                       dataKey="amount"
-                      fill="hsl(var(--primary))"
                       name="Amount"
                       radius={[4, 4, 0, 0]}
-                    />
+                    >
+                      {analytics.categoryTotals.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 8) + 1}))`} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>

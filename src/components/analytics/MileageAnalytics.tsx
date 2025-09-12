@@ -170,7 +170,7 @@ export function MileageAnalytics({ dateRange }: MileageAnalyticsProps) {
                   <Line 
                     type="monotone" 
                     dataKey="miles" 
-                    stroke="hsl(var(--primary))" 
+                    stroke="hsl(var(--chart-1))" 
                     strokeWidth={2}
                     name="Miles" 
                   />
@@ -192,7 +192,7 @@ export function MileageAnalytics({ dateRange }: MileageAnalyticsProps) {
                   <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Cost']} />
                   <Bar 
                     dataKey="cost" 
-                    fill="hsl(var(--primary))" 
+                    fill="hsl(var(--chart-2))" 
                     name="Cost"
                     radius={[4, 4, 0, 0]}
                   />
