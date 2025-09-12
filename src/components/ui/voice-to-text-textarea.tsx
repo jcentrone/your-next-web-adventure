@@ -23,14 +23,21 @@ const VoiceToTextTextarea = React.forwardRef<HTMLTextAreaElement, VoiceToTextTex
       isRecording
     } = useVoiceToText({
       onResult: (transcript) => {
-        const currentValue = value as string;
+        console.log('Voice transcript received:', transcript);
+        console.log('Current value:', value);
+        
+        const currentValue = (value as string) || '';
         const newValue = currentValue ? `${currentValue} ${transcript}` : transcript;
         
+        console.log('New value will be:', newValue);
+        
         if (onValueChange) {
+          console.log('Calling onValueChange');
           onValueChange(newValue);
         }
         
         if (onChange) {
+          console.log('Calling onChange');
           const syntheticEvent = {
             target: { value: newValue }
           } as React.ChangeEvent<HTMLTextAreaElement>;

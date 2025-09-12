@@ -42,7 +42,7 @@ export const useVoiceToText = ({
   onResult,
   onError,
   continuous = true,
-  interimResults = false,
+  interimResults = true,
   language = 'en-US'
 }: UseVoiceToTextOptions) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -68,15 +68,23 @@ export const useVoiceToText = ({
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         let finalTranscript = '';
+        let interimTranscript = '';
         
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
+          const transcript = result[0].transcript;
+          
           if (result.isFinal) {
-            finalTranscript += result[0].transcript;
+            finalTranscript += transcript;
+            console.log('Voice final result:', transcript);
+          } else {
+            interimTranscript += transcript;
+            console.log('Voice interim result:', transcript);
           }
         }
 
         if (finalTranscript) {
+          console.log('Calling onResult with:', finalTranscript.trim());
           onResult(finalTranscript.trim());
         }
       };
