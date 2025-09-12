@@ -41,7 +41,7 @@ declare global {
 export const useVoiceToText = ({
   onResult,
   onError,
-  continuous = true,
+  continuous = false,
   interimResults = true,
   language = 'en-US'
 }: UseVoiceToTextOptions) => {
@@ -106,6 +106,19 @@ export const useVoiceToText = ({
       recognition.onend = () => {
         console.log('Speech recognition ended');
         setIsRecording(false);
+        // Auto-restart if continuous mode is enabled and we're still supposed to be recording
+        if (continuous && isRecording) {
+          console.log('Auto-restarting speech recognition...');
+          setTimeout(() => {
+            if (recognitionRef.current && isRecording) {
+              try {
+                recognitionRef.current.start();
+              } catch (error) {
+                console.error('Failed to restart speech recognition:', error);
+              }
+            }
+          }, 100);
+        }
       };
     }
 
@@ -116,8 +129,24 @@ export const useVoiceToText = ({
     };
   }, [onResult, onError, continuous, interimResults, language]);
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     console.log('startListening called, isRecording:', isRecording);
+    
+    // Check microphone permissions first
+    try {
+      const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      console.log('Microphone permission status:', permission.state);
+      
+      if (permission.state === 'denied') {
+        if (onError) {
+          onError('Microphone permission denied. Please allow microphone access in your browser settings.');
+        }
+        return;
+      }
+    } catch (error) {
+      console.warn('Could not check microphone permissions:', error);
+    }
+    
     if (recognitionRef.current && !isRecording) {
       try {
         console.log('Starting speech recognition...');
@@ -125,7 +154,7 @@ export const useVoiceToText = ({
       } catch (error) {
         console.error('Failed to start speech recognition:', error);
         if (onError) {
-          onError('Failed to start speech recognition');
+          onError('Failed to start speech recognition: ' + error.message);
         }
       }
     }
