@@ -444,6 +444,8 @@ const ReportEditor: React.FC = () => {
       } as Finding);
       return { ...next };
     });
+    // Set new finding as collapsed by default
+    setCollapsed((prev) => ({ ...prev, [fid]: true }));
   };
 
   const removeFinding = (fid: string) => {
@@ -1756,6 +1758,8 @@ const ReportEditor: React.FC = () => {
                 } as Finding);
                 return { ...next };
               });
+              // Set new finding as collapsed by default
+              setCollapsed((prev) => ({ ...prev, [fid]: true }));
               if (tpl.defectId) setPickerOpen(false);
             }}
           />
