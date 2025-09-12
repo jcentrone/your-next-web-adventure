@@ -14,7 +14,10 @@ import {
   Calendar,
   BarChart3,
   Shield,
-  Headphones
+  Headphones,
+  Route,
+  Car,
+  FileSpreadsheet
 } from 'lucide-react';
 
 const Pricing = () => {
@@ -35,7 +38,10 @@ const Pricing = () => {
     "Multi-device synchronization",
     "Email report sharing",
     "Data export capabilities",
-    "Priority customer support"
+    "Priority customer support",
+    "Route optimization",
+    "Mileage logging",
+    "Expense reporting & CSV export"
   ];
 
   const websiteFeatures = [
@@ -80,8 +86,9 @@ const Pricing = () => {
               </h1>
             </div>
             <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              One affordable plan with everything you need to run a successful home inspection business.
-              Start with 5 free reports, then unlimited access for $50/month or $45/month when billed annually.
+              One affordable plan with everything you need to run a successful home inspection business, including
+              route optimization, mileage logging, and expense reporting with CSV export. Start with 5 free reports,
+              then unlimited access for $50/month or $45/month when billed annually.
             </p>
           </div>
         </section>
@@ -110,7 +117,8 @@ const Pricing = () => {
                   <span className="text-muted-foreground text-xl">/month</span>
                 </div>
                 <p className="text-muted-foreground text-lg">
-                  Start with 5 free reports, then unlimited access
+                  Start with 5 free reports, then unlimited access to route optimization, mileage logging, and
+                  expense reporting
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {isAnnual ? 'Billed annually ($540/year)' : 'Billed monthly'}
@@ -168,6 +176,27 @@ const Pricing = () => {
                         <div>
                           <p className="font-medium">Business Analytics</p>
                           <p className="text-sm text-muted-foreground">Track performance and growth metrics</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Route className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium">Route Optimization</p>
+                          <p className="text-sm text-muted-foreground">Plan efficient routes between inspections</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Car className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium">Mileage Logging</p>
+                          <p className="text-sm text-muted-foreground">Automatically record mileage for taxes and reimbursement</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <FileSpreadsheet className="h-5 w-5 text-primary mt-0.5" />
+                        <div>
+                          <p className="font-medium">Expense Reporting</p>
+                          <p className="text-sm text-muted-foreground">Export expenses to CSV for easy accounting</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
@@ -332,8 +361,9 @@ const Pricing = () => {
               <CardContent className="p-12">
                 <h2 className="text-3xl font-bold mb-4">Ready to Streamline Your Business?</h2>
                 <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-                  Join thousands of home inspectors who have transformed their business with Home Report Pro. 
-                  Get started with 5 free reports today!
+                  Join thousands of home inspectors who have transformed their business with Home Report Pro's
+                  route optimization, mileage logging, and expense reporting with CSV export. Get started with 5
+                  free reports today!
                 </p>
                 <Button asChild size="lg" className="text-lg px-8">
                   <Link to="/auth?mode=signup">Get 5 Free Reports - No Credit Card Required</Link>
