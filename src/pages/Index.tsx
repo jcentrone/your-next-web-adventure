@@ -13,7 +13,10 @@ import {
   Layers,
   CheckCircle,
   Clock,
-  Star
+  Star,
+  Route,
+  Gauge,
+  ReceiptText
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,6 +101,42 @@ const features: Feature[] = [
     ],
     Icon: Layers,
     color: "from-slate-500 to-gray-600"
+  },
+  {
+    title: "Route Optimization",
+    description:
+      "Plan efficient inspection routes to save time and fuel.",
+    bullets: [
+      "Automatic route planning",
+      "Optimized for multiple stops",
+      "Time-saving directions"
+    ],
+    Icon: Route,
+    color: "from-green-500 to-emerald-600"
+  },
+  {
+    title: "Mileage Tracking",
+    description:
+      "Log travel miles automatically for accurate reimbursements.",
+    bullets: [
+      "Automatic mileage capture",
+      "Trip history dashboard",
+      "Exportable logs"
+    ],
+    Icon: Gauge,
+    color: "from-teal-500 to-cyan-600"
+  },
+  {
+    title: "Expense Reporting",
+    description:
+      "Track and report business expenses with ease.",
+    bullets: [
+      "Receipt photo capture",
+      "Category-based tracking",
+      "One-click report export"
+    ],
+    Icon: ReceiptText,
+    color: "from-rose-500 to-red-600"
   }
 ];
 
@@ -144,7 +183,10 @@ const Index = () => {
       "InterNACHI SOP Compliant Reports",
       "CRM & Contact Management",
       "Smart Scheduling",
-      "Task Management"
+      "Task Management",
+      "Route Optimization",
+      "Mileage Tracking",
+      "Expense Reporting"
     ]
   };
 
@@ -186,7 +228,7 @@ const Index = () => {
           </h1>
           
           <p className="text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed max-w-2xl mx-auto">
-            Create comprehensive, professional inspection reports with our modern platform. 
+            Create comprehensive, professional inspection reports with built-in route optimization, mileage tracking, and expense reporting.
             Built for inspectors who demand quality and efficiency.
           </p>
           
