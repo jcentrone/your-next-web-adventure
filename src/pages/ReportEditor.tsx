@@ -1239,6 +1239,7 @@ const ReportEditor: React.FC = () => {
                                 placeholder="Narrative"
                                 value={f.narrative || ""}
                                 onChange={(e) => updateFinding(f.id, { narrative: e.target.value })}
+                                className="min-h-32"
                               />
                             </div>
                             <div className="mt-3">
@@ -1246,6 +1247,7 @@ const ReportEditor: React.FC = () => {
                                 placeholder="Recommendation"
                                 value={f.recommendation || ""}
                                 onChange={(e) => updateFinding(f.id, { recommendation: e.target.value })}
+                                className="min-h-28"
                               />
                             </div>
                             <div className="mt-3">
