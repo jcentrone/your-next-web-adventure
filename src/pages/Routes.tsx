@@ -44,22 +44,41 @@ export default function Routes() {
   // Fetch routes based on date range
   const { data: routes = [], isLoading } = useQuery({
     queryKey: ['daily-routes', dateRange?.from?.toISOString().split('T')[0], dateRange?.to?.toISOString().split('T')[0]],
-    queryFn: () => routeOptimizationApi.getDailyRoutes(
-      dateRange?.from?.toISOString().split('T')[0],
-      dateRange?.to?.toISOString().split('T')[0]
-    ),
+    queryFn: () => {
+      console.log('Fetching routes with date range:', {
+        from: dateRange?.from?.toISOString().split('T')[0],
+        to: dateRange?.to?.toISOString().split('T')[0]
+      });
+      return routeOptimizationApi.getDailyRoutes(
+        dateRange?.from?.toISOString().split('T')[0],
+        dateRange?.to?.toISOString().split('T')[0]
+      );
+    },
     enabled: !!dateRange?.from && !!dateRange?.to,
   });
 
   // Filter routes by selected date if one is selected
   const filteredRoutes = selectedDate 
     ? routes.filter(route => {
-        // Ensure robust date comparison by normalizing both dates to YYYY-MM-DD format
-        const routeDate = route.route_date?.split('T')[0]; // Handle ISO date strings
+        // Direct comparison since route_date is already in YYYY-MM-DD format
         const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-        return routeDate === selectedDateStr;
+        const match = route.route_date === selectedDateStr;
+        console.log('Filtering routes:', {
+          routeDate: route.route_date,
+          selectedDateStr,
+          match,
+          routeId: route.id
+        });
+        return match;
       })
     : routes;
+
+  console.log('Route filtering summary:', {
+    totalRoutes: routes.length,
+    selectedDate: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null,
+    filteredRoutes: filteredRoutes.length,
+    availableDates: routes.map(r => r.route_date)
+  });
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredRoutes.length / routesPerPage);
