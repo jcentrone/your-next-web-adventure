@@ -15,7 +15,10 @@ import {
   Cloud,
   Settings,
   Download,
-  Zap
+  Zap,
+  Navigation,
+  TrendingUp,
+  DollarSign
 } from 'lucide-react';
 
 const Features = () => {
@@ -73,6 +76,24 @@ const Features = () => {
       title: "Customization Options",
       description: "Tailor the platform to your business needs with extensive customization capabilities.",
       highlights: ["Custom branding", "Report templates", "Workflow settings"]
+    },
+    {
+      icon: Navigation,
+      title: "Route Optimization",
+      description: "Plan efficient routes between job sites to save time and reduce travel costs.",
+      highlights: ["Smart directions", "Multi-stop planning", "Time-saving navigation"]
+    },
+    {
+      icon: TrendingUp,
+      title: "Mileage Tracking",
+      description: "Automatically log mileage to simplify reimbursements and tax deductions.",
+      highlights: ["Automatic logs", "GPS-based tracking", "Tax-ready records"]
+    },
+    {
+      icon: DollarSign,
+      title: "Expense Reporting",
+      description: "Track expenses and generate accountant-ready exports for seamless bookkeeping.",
+      highlights: ["Receipt capture", "Categorized expenses", "CSV exports"]
     }
   ];
 
