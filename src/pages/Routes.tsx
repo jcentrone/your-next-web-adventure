@@ -10,6 +10,10 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { DateRangePicker } from '@/components/DateRangePicker';
+import { RoutesListView } from '@/components/routes/RoutesListView';
+import { RoutesCardView } from '@/components/routes/RoutesCardView';
+import { RoutesViewToggle } from '@/components/routes/RoutesViewToggle';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { 
   CalendarIcon, 
   MapPin, 
@@ -25,12 +29,15 @@ import { useQuery } from '@tanstack/react-query';
 
 export default function Routes() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfWeek(new Date()),
     to: endOfWeek(new Date())
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [view, setView] = useState<"list" | "card">("card");
+  const effectiveView = isMobile ? "card" : view;
   const routesPerPage = 10;
 
   // Fetch routes based on date range
@@ -164,6 +171,8 @@ export default function Routes() {
               </PopoverContent>
             </Popover>
           </div>
+          
+          {!isMobile && <RoutesViewToggle view={view} onViewChange={setView} />}
         </div>
       </div>
 
@@ -243,83 +252,10 @@ export default function Routes() {
               </Button>
             </CardContent>
           </Card>
+        ) : effectiveView === "list" ? (
+          <RoutesListView routes={currentRoutes} onViewRoute={handleViewRoute} />
         ) : (
-          <>
-            {currentRoutes.map((route) => (
-              <Card key={route.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">
-                      {new Date(route.route_date).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={route.is_optimized ? "default" : "secondary"}>
-                        {route.is_optimized ? "Optimized" : "Manual"}
-                      </Badge>
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleViewRoute(route.id!)}
-                        className="gap-2"
-                      >
-                        <Eye className="h-4 w-4" />
-                        View Route
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-muted-foreground">Distance</p>
-                        <p className="font-medium">{route.total_distance_miles?.toFixed(1)} mi</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-muted-foreground">Duration</p>
-                        <p className="font-medium">{Math.round(route.total_duration_minutes || 0)} min</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-muted-foreground">Estimated Cost</p>
-                        <p className="font-medium">${route.estimated_fuel_cost?.toFixed(2)}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Navigation className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-muted-foreground">Stops</p>
-                        <p className="font-medium">
-                          {Array.isArray(route.waypoints) ? route.waypoints.length : 0} stops
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {route.start_address && (
-                    <div className="mt-3 pt-3 border-t">
-                      <p className="text-sm text-muted-foreground">Starting from:</p>
-                      <p className="text-sm font-medium truncate">{route.start_address}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </>
+          <RoutesCardView routes={currentRoutes} onViewRoute={handleViewRoute} />
         )}
         
         {/* Pagination */}

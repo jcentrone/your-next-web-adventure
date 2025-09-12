@@ -11,7 +11,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TasksListView } from "@/components/tasks/TasksListView";
+import { TasksCardView } from "@/components/tasks/TasksCardView";
+import { TasksViewToggle } from "@/components/tasks/TasksViewToggle";
+import { DataTablePagination } from "@/components/ui/data-table-pagination";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Plus, Edit, Trash2, CheckSquare, Check, ArrowUpDown, Filter, Calendar, User, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
@@ -28,6 +32,7 @@ type SortOrder = "asc" | "desc";
 const Tasks: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteTask, setDeleteTask] = useState<Task | null>(null);
@@ -38,6 +43,10 @@ const Tasks: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [customTaskType, setCustomTaskType] = useState("");
   const [showCustomTaskType, setShowCustomTaskType] = useState(false);
+  const [view, setView] = useState<"list" | "card">("list");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const effectiveView = isMobile ? "card" : view;
 
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks", user?.id],
@@ -303,180 +312,16 @@ const Tasks: React.FC = () => {
     return filteredAndSortedTasks.filter(task => task.status === status);
   };
 
-  const TaskListView = ({ tasks }: { tasks: Task[] }) => (
-    <div className="space-y-4">
-      {/* Controls Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex gap-2 flex-wrap">
-          <div className="relative">
-            <Input
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64"
-            />
-          </div>
-          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-            <SelectTrigger className="w-32">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Priority</SelectItem>
-              <SelectItem value="urgent">Urgent</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="in_progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAndSortedTasks.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTasks = filteredAndSortedTasks.slice(startIndex, endIndex);
 
-      {/* Task Table */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12"></TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort("title")}
-              >
-                <div className="flex items-center gap-2">
-                  Title
-                  <ArrowUpDown className="w-4 h-4" />
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort("priority")}
-              >
-                <div className="flex items-center gap-2">
-                  Priority
-                  <ArrowUpDown className="w-4 h-4" />
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort("status")}
-              >
-                <div className="flex items-center gap-2">
-                  Status
-                  <ArrowUpDown className="w-4 h-4" />
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort("due_date")}
-              >
-                <div className="flex items-center gap-2">
-                  Due Date
-                  <ArrowUpDown className="w-4 h-4" />
-                </div>
-              </TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead className="w-32">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tasks.map((task) => (
-              <TableRow key={task.id} className="hover:bg-muted/50">
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleToggleComplete(task)}
-                    className="p-1"
-                  >
-                    {task.status === "completed" ? (
-                      <CheckSquare className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <div className="w-4 h-4 border-2 border-muted-foreground rounded" />
-                    )}
-                  </Button>
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">{task.title}</div>
-                    {task.description && (
-                      <div className="text-sm text-muted-foreground truncate max-w-[200px]">
-                        {task.description}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getPriorityColor(task.priority)}>
-                    {task.priority}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(task.status)}>
-                    {task.status.replace("_", " ")}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {task.due_date ? (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {format(new Date(task.due_date), "MMM d, yyyy")}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">No due date</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {(task as any).contacts ? (
-                    <div className="flex items-center gap-1">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {(task as any).contacts.first_name} {(task as any).contacts.last_name}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">No contact</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(task)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(task)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
+  // Reset pagination when tasks change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredAndSortedTasks.length]);
 
   return (
     <>
@@ -493,8 +338,10 @@ const Tasks: React.FC = () => {
               Manage your tasks and stay organized
             </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
+          <div className="flex items-center gap-2">
+            {!isMobile && <TasksViewToggle view={view} onViewChange={setView} />}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
               <Button onClick={() => {
                 setEditingTask(null);
                 setShowCustomTaskType(false);
@@ -737,8 +584,9 @@ const Tasks: React.FC = () => {
                           </FormItem>
                         )}
                       />
-                    </div>
-                  </div>
+          </div>
+        </div>
+      </div>
 
                   <div className="flex justify-end space-x-2">
                     <Button
@@ -784,24 +632,70 @@ const Tasks: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <TaskListView tasks={filteredAndSortedTasks} />
+              effectiveView === "list" ? (
+                <TasksListView 
+                  tasks={currentTasks}
+                  onToggleComplete={handleToggleComplete}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  sortField={sortField}
+                  sortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+              ) : (
+                <TasksCardView
+                  tasks={currentTasks}
+                  onToggleComplete={handleToggleComplete}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              )
+            )}
+            
+            {/* Pagination */}
+            {currentTasks.length > 0 && (
+              <DataTablePagination
+                currentPage={currentPage}
+                totalItems={filteredAndSortedTasks.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+              />
             )}
           </TabsContent>
 
-          {["pending", "in_progress", "completed"].map((status) => (
-            <TabsContent key={status} value={status}>
-              {filterTasksByStatus(status).length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckSquare className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">
-                    No {status.replace("_", " ")} tasks
-                  </h3>
-                </div>
-              ) : (
-                <TaskListView tasks={filterTasksByStatus(status)} />
-              )}
-            </TabsContent>
-          ))}
+          {["pending", "in_progress", "completed"].map((status) => {
+            const statusTasks = filterTasksByStatus(status);
+            return (
+              <TabsContent key={status} value={status}>
+                {statusTasks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckSquare className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">
+                      No {status.replace("_", " ")} tasks
+                    </h3>
+                  </div>
+                ) : effectiveView === "list" ? (
+                  <TasksListView 
+                    tasks={statusTasks}
+                    onToggleComplete={handleToggleComplete}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={handleSort}
+                  />
+                ) : (
+                  <TasksCardView
+                    tasks={statusTasks}
+                    onToggleComplete={handleToggleComplete}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                )}
+              </TabsContent>
+            );
+          })}
         </Tabs>
 
         {/* Delete Confirmation Dialog */}
