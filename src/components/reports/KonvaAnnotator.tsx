@@ -80,6 +80,14 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
       if (initialAnnotations) {
         try {
           Konva.Node.create(initialAnnotations, layerRef.current);
+          // Attach click handlers to loaded annotations
+          layerRef.current.children?.forEach((child) => {
+            if (child instanceof Konva.Shape) {
+              child.on('click', handleObjectClick);
+              child.on('dblclick', handleObjectDoubleClick);
+              child.draggable(true);
+            }
+          });
         } catch (err) {
           console.warn("Failed to load annotations", err);
         }
@@ -89,6 +97,14 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialAnnotations, isOpen]);
+
+  // Update transformer when selected objects change
+  useEffect(() => {
+    if (transformerRef.current) {
+      transformerRef.current.nodes(selectedObjects);
+      transformerRef.current.getLayer()?.batchDraw();
+    }
+  }, [selectedObjects]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -159,14 +175,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
     if (activeTool === "select") {
       const node = e.target as Konva.Group | Konva.Shape;
       
-      // Double click on text to edit
-      if (node instanceof Konva.Text && e.evt.detail === 2) {
-        setEditingTextNode(node);
-        setEditingText(node.text());
-        setIsTextEditing(true);
-        return;
-      }
-      
       // Single click to select
       const isSelected = selectedObjects.includes(node);
       if (e.evt.ctrlKey || e.evt.metaKey) {
@@ -174,17 +182,26 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
         if (isSelected) {
           const newSelection = selectedObjects.filter(obj => obj !== node);
           setSelectedObjects(newSelection);
-          transformerRef.current?.nodes(newSelection);
         } else {
           const newSelection = [...selectedObjects, node];
           setSelectedObjects(newSelection);
-          transformerRef.current?.nodes(newSelection);
         }
       } else {
         // Single select
         setSelectedObjects([node]);
-        transformerRef.current?.nodes([node]);
       }
+      e.cancelBubble = true;
+    }
+  };
+
+  const handleObjectDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    const node = e.target as Konva.Shape;
+    
+    // Double click on text to edit
+    if (node instanceof Konva.Text && activeTool === "select") {
+      setEditingTextNode(node);
+      setEditingText(node.text());
+      setIsTextEditing(true);
       e.cancelBubble = true;
     }
   };
@@ -247,6 +264,9 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
 
     if (shape) {
       shape.on('click', handleObjectClick);
+      if (shape instanceof Konva.Text) {
+        shape.on('dblclick', handleObjectDoubleClick);
+      }
       layerRef.current.add(shape);
       return shape;
     }
@@ -414,6 +434,24 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
             <Layer>
               <Transformer
                 ref={transformerRef}
+                borderEnabled={true}
+                borderStroke="#4A90E2"
+                borderStrokeWidth={1}
+                anchorStroke="#4A90E2"
+                anchorFill="white"
+                anchorSize={8}
+                anchorStrokeWidth={1}
+                keepRatio={false}
+                enabledAnchors={[
+                  'top-left',
+                  'top-center',
+                  'top-right',
+                  'middle-right',
+                  'bottom-right',
+                  'bottom-center',
+                  'bottom-left',
+                  'middle-left'
+                ]}
                 boundBoxFunc={(oldBox, newBox) => {
                   // Limit resize to positive dimensions
                   if (newBox.width < 5 || newBox.height < 5) {
