@@ -96,7 +96,8 @@ const Documentation = () => {
     label: "Troubleshooting",
     icon: AlertCircle
   }];
-  return <div className="min-h-screen bg-background">
+  return (
+    <div className="min-h-screen bg-background">
       <Seo title={title} description={description} canonical="/documentation" />
       
       {/* Header */}
@@ -1796,9 +1797,10 @@ const Documentation = () => {
             </Tabs>
             )}
           </div>
-        </div>
+        </div>  
       </div>
     </div>
   );
 };
+
 export default Documentation;
