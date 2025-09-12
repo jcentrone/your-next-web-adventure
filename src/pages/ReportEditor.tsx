@@ -1202,39 +1202,44 @@ const ReportEditor: React.FC = () => {
                     )}
                     {activeSection.findings.map((f) => (
                       <article key={f.id} className="rounded-lg border p-4">
-                        <div className="flex items-center gap-2">
-                          <Input
-                            value={f.title}
-                            onChange={(e) => updateFinding(f.id, { title: e.target.value })}
-                          />
-                          <Select
-                            value={f.severity}
-                            onValueChange={(value) => updateFinding(f.id, { severity: value as any })}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-background">
-                              {SEVERITIES.map((s) => (
-                                <SelectItem key={s} value={s}>{s}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setCollapsed((prev) => ({ ...prev, [f.id]: !prev[f.id] }))}
-                          >
-                            {collapsed[f.id] ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeFinding(f.id)}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="flex flex-col md:flex-row md:items-center gap-2">
+                          <div className="flex-1">
+                            <Input
+                              value={f.title}
+                              onChange={(e) => updateFinding(f.id, { title: e.target.value })}
+                              placeholder="Finding title"
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Select
+                              value={f.severity}
+                              onValueChange={(value) => updateFinding(f.id, { severity: value as any })}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background">
+                                {SEVERITIES.map((s) => (
+                                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setCollapsed((prev) => ({ ...prev, [f.id]: !prev[f.id] }))}
+                            >
+                              {collapsed[f.id] ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeFinding(f.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                         {!collapsed[f.id] && (
                           <>
