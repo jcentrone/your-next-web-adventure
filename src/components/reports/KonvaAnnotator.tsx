@@ -1,15 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnnotationToolbar } from "@/components/annotation/AnnotationToolbar";
 import { Stage, Layer, Image as KonvaImage, Transformer } from "react-konva";
 import Konva from "konva";
 import useImage from "use-image";
+import { Save } from "lucide-react";
 
 interface KonvaAnnotatorProps {
-  isOpen: boolean;
-  onClose: () => void;
   imageUrl: string;
   initialAnnotations?: string;
   onSave: (annotations: string, imageBlob: Blob) => void;
@@ -19,8 +17,6 @@ const TOOL_TYPES = ["select", "arrow", "text", "rectangle", "circle", "line", "d
 type ToolType = typeof TOOL_TYPES[number];
 
 export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
-  isOpen,
-  onClose,
   imageUrl,
   initialAnnotations,
   onSave,
@@ -28,85 +24,71 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
   const stageRef = useRef<Konva.Stage | null>(null);
   const layerRef = useRef<Konva.Layer | null>(null);
   const transformerRef = useRef<Konva.Transformer | null>(null);
+
   const [image] = useImage(imageUrl);
-  const [stageSize, setStageSize] = useState({ width: 500, height: 300 });
   const [activeTool, setActiveTool] = useState<ToolType>("select");
-  const [activeColor, setActiveColor] = useState("#ef4444");
+  const [activeColor, setActiveColor] = useState("#ff0000");
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [currentPath, setCurrentPath] = useState<number[]>([]);
+  const [selectedObjects, setSelectedObjects] = useState<Konva.Node[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [drawLine, setDrawLine] = useState<Konva.Line | null>(null);
-  const [selectedObjects, setSelectedObjects] = useState<(Konva.Group | Konva.Shape)[]>([]);
-  const [isTextEditing, setIsTextEditing] = useState(false);
-  const [editingText, setEditingText] = useState("");
-  const [editingTextNode, setEditingTextNode] = useState<Konva.Text | null>(null);
-  const startPoint = useRef<{ x: number; y: number } | null>(null);
+  const [editingText, setEditingText] = useState<Konva.Text | null>(null);
+  const [tempText, setTempText] = useState("");
 
-  // Adjust stage size to image with smaller max size
-  useEffect(() => {
-    if (image) {
-      const MAX_WIDTH = 500;
-      const MAX_HEIGHT = 300;
-      
-      let { width, height } = image;
-      
-      // Scale down if image is too large
-      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
-        const aspectRatio = width / height;
-        
-        if (width > height) {
-          width = Math.min(width, MAX_WIDTH);
-          height = width / aspectRatio;
-        } else {
-          height = Math.min(height, MAX_HEIGHT);
-          width = height * aspectRatio;
-        }
-      }
-      
-      setStageSize({ width, height });
-    }
-  }, [image]);
-
-  // Calculate image scale for display
-  const imageScale = image ? {
-    x: stageSize.width / image.width,
-    y: stageSize.height / image.height
-  } : { x: 1, y: 1 };
-
-  // Attach event handlers to all objects in layer
-  const attachEventHandlers = useCallback((layer: Konva.Layer) => {
-    console.log("Attaching event handlers to", layer.children?.length, "objects");
-    layer.children?.forEach((child) => {
-      if (child instanceof Konva.Shape || child instanceof Konva.Group) {
-        child.off('click');
-        child.off('dblclick');
-        child.on('click', handleObjectClick);
-        if (child instanceof Konva.Text) {
-          child.on('dblclick', handleObjectDoubleClick);
-        }
-        child.draggable(true);
-        console.log("Attached handlers to", child.getClassName(), child.id());
+  // Attach event handlers to all objects
+  const attachEventHandlers = useCallback(() => {
+    if (!layerRef.current) return;
+    
+    console.log("Attaching event handlers to all objects");
+    layerRef.current.children.forEach((child) => {
+      if (child.getClassName() === "Text") {
+        const textNode = child as Konva.Text;
+        textNode.off('dblclick');
+        textNode.on('dblclick', () => {
+          console.log("Double-clicked text:", textNode.text());
+          setEditingText(textNode);
+          setTempText(textNode.text());
+        });
       }
     });
   }, []);
 
-  // Load initial annotations
+  const saveHistory = useCallback(() => {
+    if (!layerRef.current) return;
+    const json = layerRef.current.toJSON();
+    setHistory((prev) => {
+      const next = prev.slice(0, historyIndex + 1);
+      next.push(json);
+      setHistoryIndex(next.length - 1);
+      return next;
+    });
+    console.log("Saved to history, index:", historyIndex + 1);
+  }, [historyIndex]);
+
   useEffect(() => {
-    if (layerRef.current) {
-      layerRef.current.destroyChildren();
-      if (initialAnnotations) {
-        try {
-          Konva.Node.create(initialAnnotations, layerRef.current);
-          attachEventHandlers(layerRef.current);
-        } catch (err) {
-          console.warn("Failed to load annotations", err);
-        }
-      }
-      layerRef.current.draw();
+    if (image && layerRef.current && history.length === 0) {
       saveHistory();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialAnnotations, isOpen]);
+  }, [image, saveHistory, history.length]);
+
+  useEffect(() => {
+    if (initialAnnotations) {
+      try {
+        const parsed = JSON.parse(initialAnnotations);
+        if (layerRef.current) {
+          layerRef.current.destroyChildren();
+          Konva.Node.create(parsed, layerRef.current);
+          layerRef.current.batchDraw();
+          saveHistory();
+          // Reattach event handlers after loading from JSON
+          attachEventHandlers();
+        }
+      } catch (error) {
+        console.error("Failed to load annotations:", error);
+      }
+    }
+  }, [initialAnnotations, saveHistory, attachEventHandlers]);
 
   // Update transformer when selected objects change
   useEffect(() => {
@@ -121,8 +103,6 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
-      
       if (e.key === 'Delete' && selectedObjects.length > 0) {
         selectedObjects.forEach(node => node.destroy());
         setSelectedObjects([]);
@@ -140,392 +120,345 @@ export const KonvaAnnotator: React.FC<KonvaAnnotatorProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedObjects]);
-
-  const saveHistory = useCallback(() => {
-    if (!layerRef.current) return;
-    const json = layerRef.current.toJSON();
-    setHistory((prev) => {
-      const next = prev.slice(0, historyIndex + 1);
-      next.push(json);
-      setHistoryIndex(next.length - 1);
-      return next;
-    });
-  }, [historyIndex]);
+  }, [selectedObjects, saveHistory]);
 
   const handleUndo = () => {
-    if (historyIndex <= 0 || !layerRef.current) return;
-    const prev = history[historyIndex - 1];
-    layerRef.current.destroyChildren();
-    Konva.Node.create(prev, layerRef.current);
-    attachEventHandlers(layerRef.current);
-    layerRef.current.draw();
-    setSelectedObjects([]);
-    transformerRef.current?.nodes([]);
-    setHistoryIndex(historyIndex - 1);
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      const json = history[newIndex];
+      if (layerRef.current) {
+        layerRef.current.destroyChildren();
+        Konva.Node.create(json, layerRef.current);
+        layerRef.current.batchDraw();
+        // Reattach event handlers after undo
+        attachEventHandlers();
+      }
+      setSelectedObjects([]);
+      transformerRef.current?.nodes([]);
+      console.log("Undo to index:", newIndex);
+    }
   };
 
   const handleRedo = () => {
-    if (historyIndex >= history.length - 1 || !layerRef.current) return;
-    const next = history[historyIndex + 1];
-    layerRef.current.destroyChildren();
-    Konva.Node.create(next, layerRef.current);
-    attachEventHandlers(layerRef.current);
-    layerRef.current.draw();
-    setSelectedObjects([]);
-    transformerRef.current?.nodes([]);
-    setHistoryIndex(historyIndex + 1);
-  };
-
-  const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    // If clicking on stage background, deselect all
-    if (e.target === e.target.getStage()) {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      const json = history[newIndex];
+      if (layerRef.current) {
+        layerRef.current.destroyChildren();
+        Konva.Node.create(json, layerRef.current);
+        layerRef.current.batchDraw();
+        // Reattach event handlers after redo
+        attachEventHandlers();
+      }
       setSelectedObjects([]);
       transformerRef.current?.nodes([]);
+      console.log("Redo to index:", newIndex);
     }
-  };
-
-  const handleObjectClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    console.log("Object clicked:", e.target.getClassName(), "Tool:", activeTool);
-    if (activeTool === "select") {
-      const node = e.target as Konva.Group | Konva.Shape;
-      
-      // Single click to select
-      const isSelected = selectedObjects.includes(node);
-      console.log("Object is selected:", isSelected);
-      
-      if (e.evt.ctrlKey || e.evt.metaKey) {
-        // Multi-select
-        if (isSelected) {
-          const newSelection = selectedObjects.filter(obj => obj !== node);
-          setSelectedObjects(newSelection);
-        } else {
-          const newSelection = [...selectedObjects, node];
-          setSelectedObjects(newSelection);
-        }
-      } else {
-        // Single select
-        setSelectedObjects([node]);
-      }
-      e.cancelBubble = true;
-    }
-  };
-
-  const handleObjectDoubleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    const node = e.target as Konva.Shape;
-    console.log("Object double-clicked:", node.getClassName(), "Is text:", node instanceof Konva.Text);
-    
-    // Double click on text to edit
-    if (node instanceof Konva.Text && activeTool === "select") {
-      console.log("Opening text editor for:", node.text());
-      setEditingTextNode(node);
-      setEditingText(node.text());
-      setIsTextEditing(true);
-      e.cancelBubble = true;
-    }
-  };
-
-  const createAnnotationShape = (type: ToolType, startPos: { x: number; y: number }, endPos: { x: number; y: number }) => {
-    if (!layerRef.current) return null;
-
-    let shape: Konva.Shape | null = null;
-
-    switch (type) {
-      case "arrow":
-        shape = new Konva.Arrow({
-          points: [startPos.x, startPos.y, endPos.x, endPos.y],
-          stroke: activeColor,
-          fill: activeColor,
-          strokeWidth: 3,
-          draggable: true,
-        });
-        break;
-      case "line":
-        shape = new Konva.Line({
-          points: [startPos.x, startPos.y, endPos.x, endPos.y],
-          stroke: activeColor,
-          strokeWidth: 3,
-          draggable: true,
-        });
-        break;
-      case "rectangle":
-        shape = new Konva.Rect({
-          x: Math.min(startPos.x, endPos.x),
-          y: Math.min(startPos.y, endPos.y),
-          width: Math.abs(endPos.x - startPos.x),
-          height: Math.abs(endPos.y - startPos.y),
-          stroke: activeColor,
-          strokeWidth: 3,
-          draggable: true,
-        });
-        break;
-      case "circle":
-        shape = new Konva.Circle({
-          x: startPos.x,
-          y: startPos.y,
-          radius: Math.hypot(endPos.x - startPos.x, endPos.y - startPos.y),
-          stroke: activeColor,
-          strokeWidth: 3,
-          draggable: true,
-        });
-        break;
-      case "text":
-        shape = new Konva.Text({
-          x: endPos.x,
-          y: endPos.y,
-          text: "Double-click to edit",
-          fill: activeColor,
-          fontSize: 24,
-          draggable: true,
-        });
-        break;
-    }
-
-    if (shape) {
-      console.log("Creating shape:", shape.getClassName());
-      shape.on('click', handleObjectClick);
-      if (shape instanceof Konva.Text) {
-        shape.on('dblclick', handleObjectDoubleClick);
-        console.log("Added double-click handler to text:", shape.text());
-      }
-      layerRef.current.add(shape);
-      return shape;
-    }
-
-    return null;
   };
 
   const handleMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (activeTool === "select") return;
-    
     const pos = e.target.getStage()?.getPointerPosition();
     if (!pos || !layerRef.current) return;
-    startPoint.current = pos;
+
+    if (activeTool === "select") {
+      const clickedOnEmpty = e.target === e.target.getStage();
+      if (clickedOnEmpty) {
+        setSelectedObjects([]);
+        return;
+      }
+      
+      const clickedNode = e.target;
+      const isSelected = selectedObjects.includes(clickedNode);
+      
+      if (!isSelected) {
+        console.log("Selecting object:", clickedNode.getClassName());
+        setSelectedObjects([clickedNode]);
+      }
+      return;
+    }
+
+    setIsDrawing(true);
+    const stage = e.target.getStage();
+    if (!stage) return;
 
     if (activeTool === "draw") {
-      setIsDrawing(true);
-      const line = new Konva.Line({
-        points: [pos.x, pos.y],
-        stroke: activeColor,
-        strokeWidth: 3,
-        lineCap: "round",
-        lineJoin: "round",
-        globalCompositeOperation: "source-over",
+      setCurrentPath([pos.x, pos.y]);
+    } else if (activeTool === "text") {
+      const text = new Konva.Text({
+        x: pos.x,
+        y: pos.y,
+        text: "Double-click to edit",
+        fontSize: 16,
+        fill: activeColor,
         draggable: true,
       });
-      line.on('click', handleObjectClick);
+      
+      // Attach double-click handler immediately
+      text.on('dblclick', () => {
+        console.log("Double-clicked text:", text.text());
+        setEditingText(text);
+        setTempText(text.text());
+      });
+      
+      layerRef.current.add(text);
+      layerRef.current.batchDraw();
+      setIsDrawing(false);
+      saveHistory();
+      console.log("Created text object");
+    } else if (activeTool === "rectangle") {
+      const rect = new Konva.Rect({
+        x: pos.x,
+        y: pos.y,
+        width: 0,
+        height: 0,
+        fill: 'transparent',
+        stroke: activeColor,
+        strokeWidth: 2,
+        draggable: true,
+      });
+      layerRef.current.add(rect);
+      setCurrentPath([pos.x, pos.y]);
+    } else if (activeTool === "circle") {
+      const circle = new Konva.Circle({
+        x: pos.x,
+        y: pos.y,
+        radius: 0,
+        fill: 'transparent',
+        stroke: activeColor,
+        strokeWidth: 2,
+        draggable: true,
+      });
+      layerRef.current.add(circle);
+      setCurrentPath([pos.x, pos.y]);
+    } else if (activeTool === "arrow") {
+      const arrow = new Konva.Arrow({
+        points: [pos.x, pos.y, pos.x, pos.y],
+        pointerLength: 10,
+        pointerWidth: 10,
+        fill: activeColor,
+        stroke: activeColor,
+        strokeWidth: 2,
+        draggable: true,
+      });
+      layerRef.current.add(arrow);
+      setCurrentPath([pos.x, pos.y]);
+    } else if (activeTool === "line") {
+      const line = new Konva.Line({
+        points: [pos.x, pos.y, pos.x, pos.y],
+        stroke: activeColor,
+        strokeWidth: 2,
+        draggable: true,
+      });
       layerRef.current.add(line);
-      setDrawLine(line);
-      console.log("Created draw line");
+      setCurrentPath([pos.x, pos.y]);
     }
   };
 
   const handleMouseMove = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (!isDrawing || activeTool !== "draw" || !drawLine) return;
+    if (!isDrawing || !layerRef.current) return;
+
     const stage = e.target.getStage();
     const point = stage?.getPointerPosition();
     if (!point) return;
-    const newPoints = drawLine.points().concat([point.x, point.y]);
-    drawLine.points(newPoints);
-    layerRef.current?.batchDraw();
-  };
-
-  const handleMouseUp = (e: Konva.KonvaEventObject<MouseEvent>) => {
-    if (!startPoint.current || !layerRef.current) return;
-    const pos = e.target.getStage()?.getPointerPosition();
-    if (!pos) return;
 
     if (activeTool === "draw") {
-      setIsDrawing(false);
-      setDrawLine(null);
-      saveHistory();
-      startPoint.current = null;
-      // Auto-switch back to select tool after drawing
-      setActiveTool("select");
-      return;
-    }
-
-    if (activeTool !== "select") {
-      const shape = createAnnotationShape(activeTool, startPoint.current, pos);
-      if (shape) {
-        layerRef.current.draw();
-        saveHistory();
-        // Auto-switch back to select tool after placing annotation
-        setActiveTool("select");
+      const newPath = [...currentPath, point.x, point.y];
+      setCurrentPath(newPath);
+      
+      const children = layerRef.current.children;
+      const lastLine = children[children.length - 1] as Konva.Line;
+      if (lastLine && lastLine.getClassName() === 'Line') {
+        lastLine.points(newPath);
+        layerRef.current.batchDraw();
+      } else {
+        const line = new Konva.Line({
+          points: newPath,
+          stroke: activeColor,
+          strokeWidth: 2,
+          draggable: true,
+        });
+        layerRef.current.add(line);
+      }
+    } else if (activeTool === "rectangle") {
+      const children = layerRef.current.children;
+      const rect = children[children.length - 1] as Konva.Rect;
+      if (rect && rect.getClassName() === 'Rect') {
+        const width = point.x - currentPath[0];
+        const height = point.y - currentPath[1];
+        rect.width(Math.abs(width));
+        rect.height(Math.abs(height));
+        if (width < 0) rect.x(point.x);
+        if (height < 0) rect.y(point.y);
+        layerRef.current.batchDraw();
+      }
+    } else if (activeTool === "circle") {
+      const children = layerRef.current.children;
+      const circle = children[children.length - 1] as Konva.Circle;
+      if (circle && circle.getClassName() === 'Circle') {
+        const radius = Math.sqrt(
+          Math.pow(point.x - currentPath[0], 2) + Math.pow(point.y - currentPath[1], 2)
+        );
+        circle.radius(radius);
+        layerRef.current.batchDraw();
+      }
+    } else if (activeTool === "arrow" || activeTool === "line") {
+      const children = layerRef.current.children;
+      const shape = children[children.length - 1] as Konva.Arrow | Konva.Line;
+      if (shape && (shape.getClassName() === 'Arrow' || shape.getClassName() === 'Line')) {
+        shape.points([currentPath[0], currentPath[1], point.x, point.y]);
+        layerRef.current.batchDraw();
       }
     }
-
-    startPoint.current = null;
   };
 
-  const handleTextEdit = () => {
-    if (editingTextNode && editingText.trim()) {
-      editingTextNode.text(editingText);
+  const handleMouseUp = () => {
+    if (isDrawing && layerRef.current) {
+      setIsDrawing(false);
+      setCurrentPath([]);
+      saveHistory();
+      // Attach event handlers to newly created objects
+      attachEventHandlers();
+      console.log("Finished drawing, saved to history");
+    }
+  };
+
+  const handleClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (activeTool !== "select") return;
+    
+    const clickedOnEmpty = e.target === e.target.getStage();
+    if (clickedOnEmpty) {
+      setSelectedObjects([]);
+      return;
+    }
+  };
+
+  const bringToFront = () => {
+    selectedObjects.forEach(obj => obj.moveToTop());
+    layerRef.current?.batchDraw();
+    saveHistory();
+  };
+
+  const sendToBack = () => {
+    selectedObjects.forEach(obj => obj.moveToBottom());
+    layerRef.current?.batchDraw();
+    saveHistory();
+  };
+
+  const saveTextEdit = () => {
+    if (editingText) {
+      editingText.text(tempText);
       layerRef.current?.batchDraw();
       saveHistory();
-    }
-    setIsTextEditing(false);
-    setEditingTextNode(null);
-    setEditingText("");
-  };
-
-  const handleBringToFront = () => {
-    selectedObjects.forEach(node => node.moveToTop());
-    layerRef.current?.batchDraw();
-    saveHistory();
-  };
-
-  const handleSendToBack = () => {
-    selectedObjects.forEach(node => node.moveToBottom());
-    layerRef.current?.batchDraw();
-    saveHistory();
-  };
-
-  const getCursor = () => {
-    switch (activeTool) {
-      case "select":
-        return "default";
-      case "draw":
-        return "crosshair";
-      case "text":
-        return "text";
-      case "arrow":
-      case "line":
-      case "rectangle":
-      case "circle":
-        return "crosshair";
-      default:
-        return "default";
+      setEditingText(null);
+      setTempText("");
+      console.log("Text edited and saved");
     }
   };
 
   const handleSave = async () => {
     if (!stageRef.current || !layerRef.current) return;
-    const annotations = layerRef.current.toJSON();
-    const dataUrl = stageRef.current.toDataURL({ mimeType: "image/png" });
-    const blob = await (await fetch(dataUrl)).blob();
-    onSave(annotations, blob);
+
+    try {
+      const annotations = layerRef.current.toJSON();
+      const dataURL = stageRef.current.toDataURL({ quality: 1 });
+      
+      const response = await fetch(dataURL);
+      const blob = await response.blob();
+      
+      onSave(annotations, blob);
+      console.log("Annotations saved successfully");
+    } catch (error) {
+      console.error("Failed to save annotations:", error);
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-fit">
-        <DialogHeader>
-          <DialogTitle>Annotate Image</DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col gap-2">
-          <AnnotationToolbar
-            activeTool={activeTool}
-            activeColor={activeColor}
-            onToolClick={(tool) => setActiveTool(tool as ToolType)}
-            onColorChange={setActiveColor}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            canUndo={historyIndex > 0}
-            canRedo={historyIndex < history.length - 1}
-          />
-          
-          {selectedObjects.length > 0 && (
-            <div className="flex gap-2 p-2 bg-muted rounded">
-              <Button size="sm" variant="outline" onClick={handleBringToFront}>
-                Bring to Front
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleSendToBack}>
-                Send to Back
-              </Button>
-              <span className="text-sm text-muted-foreground self-center">
-                {selectedObjects.length} selected • Press Delete to remove
-              </span>
-            </div>
-          )}
-
+    <div className="flex flex-col h-full">
+      <div className="flex-shrink-0 p-4 border-b bg-card">
+        <AnnotationToolbar
+          activeTool={activeTool}
+          onToolClick={setActiveTool}
+          activeColor={activeColor}
+          onColorChange={setActiveColor}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+        />
+      </div>
+      
+      <div className="flex-1 flex items-center justify-center overflow-hidden bg-muted/20 p-4">
+        <div className="max-w-full max-h-full border rounded-lg bg-background shadow-lg overflow-hidden">
           <Stage
-            width={stageSize.width}
-            height={stageSize.height}
             ref={stageRef}
+            width={Math.min(window.innerWidth - 100, image?.width || 800)}
+            height={Math.min(window.innerHeight - 250, image?.height || 600)}
             onMouseDown={handleMouseDown}
-            onMousemove={handleMouseMove}
-            onMouseup={handleMouseUp}
-            onClick={handleStageClick}
-            style={{ cursor: getCursor() }}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onClick={handleClick}
           >
-            <Layer listening={false}>
-              {image && <KonvaImage image={image} scaleX={imageScale.x} scaleY={imageScale.y} />}
+            <Layer>
+              {image && (
+                <KonvaImage
+                  image={image}
+                  width={Math.min(window.innerWidth - 100, image.width)}
+                  height={Math.min(window.innerHeight - 250, image.height)}
+                />
+              )}
             </Layer>
             <Layer ref={layerRef}>
-              <Transformer
-                ref={transformerRef}
-                borderEnabled={true}
-                borderStroke="#3b82f6"
-                borderStrokeWidth={2}
-                anchorStroke="#3b82f6"
-                anchorFill="#ffffff"
-                anchorSize={10}
-                anchorStrokeWidth={2}
-                keepRatio={false}
+              <Transformer 
+                ref={transformerRef} 
                 visible={selectedObjects.length > 0}
-                enabledAnchors={[
-                  'top-left',
-                  'top-center',
-                  'top-right',
-                  'middle-right',
-                  'bottom-right',
-                  'bottom-center',
-                  'bottom-left',
-                  'middle-left'
-                ]}
                 boundBoxFunc={(oldBox, newBox) => {
-                  // Limit resize to positive dimensions
                   if (newBox.width < 5 || newBox.height < 5) {
                     return oldBox;
                   }
                   return newBox;
                 }}
-                onTransformEnd={(e) => {
-                  console.log("Transform ended for:", e.target.getClassName());
-                  saveHistory();
-                }}
               />
             </Layer>
           </Stage>
-          
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleSave}>Save</Button>
-          </div>
         </div>
+      </div>
+      
+      <div className="flex-shrink-0 p-4 border-t bg-card">
+        <div className="flex justify-end">
+          <Button onClick={handleSave} className="gap-2">
+            <Save className="h-4 w-4" />
+            Save Annotations
+          </Button>
+        </div>
+      </div>
 
-        {/* Text editing dialog */}
-        {isTextEditing && (
-          <Dialog open={isTextEditing} onOpenChange={setIsTextEditing}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Text</DialogTitle>
-              </DialogHeader>
+      {editingText && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Edit Text</h3>
+            <div className="space-y-4">
               <Input
-                value={editingText}
-                onChange={(e) => setEditingText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleTextEdit();
-                  }
-                }}
-                autoFocus
+                value={tempText}
+                onChange={(e) => setTempText(e.target.value)}
                 placeholder="Enter text..."
+                autoFocus
               />
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsTextEditing(false)}>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setEditingText(null)}>
                   Cancel
                 </Button>
-                <Button onClick={handleTextEdit}>Save</Button>
+                <Button onClick={saveTextEdit}>
+                  Save
+                </Button>
               </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </DialogContent>
-    </Dialog>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
 export default KonvaAnnotator;
-

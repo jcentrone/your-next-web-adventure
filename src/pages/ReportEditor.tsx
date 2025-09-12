@@ -25,7 +25,6 @@ import { contactsApi, appointmentsApi } from "@/integrations/supabase/crmApi";
 import { useQuery } from "@tanstack/react-query";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
 import { CameraCapture } from "@/components/reports/CameraCapture";
-import { KonvaAnnotator } from "@/components/reports/KonvaAnnotator";
 import { CategoryAwareReportEditor } from "@/components/reports/CategoryAwareReportEditor";
 import { getReportCategory, isDefectBasedReport } from "@/constants/reportCategories";
 import { useReportTemplates } from "@/hooks/useReportTemplates";
@@ -88,8 +87,6 @@ const ReportEditor: React.FC = () => {
   const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>("");
   const [showDetails, setShowDetails] = React.useState(false);
   const [cameraOpen, setCameraOpen] = React.useState(false);
-  const [annotatorOpen, setAnnotatorOpen] = React.useState(false);
-  const [annotatorImage, setAnnotatorImage] = React.useState<{ url: string; mediaId: string; findingId: string } | null>(null);
   const [currentFindingId, setCurrentFindingId] = React.useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = React.useState<string>("");
   const [customSectionDialogOpen, setCustomSectionDialogOpen] = React.useState(false);
@@ -371,12 +368,17 @@ const ReportEditor: React.FC = () => {
   }, [user, report?.coverImage]);
 
   const handleAnnotateImage = (findingId: string, mediaId: string, mediaUrl: string) => {
-    setAnnotatorImage({
-      url: mediaUrl,
-      mediaId,
-      findingId
+    // Navigate to annotation page with necessary data
+    nav(`/reports/${id}/annotate`, {
+      state: {
+        imageUrl: mediaUrl,
+        findingId,
+        mediaIndex: mediaId,
+        initialAnnotations: activeSection?.findings
+          .find((f) => f.id === findingId)?.media
+          .find((m) => m.id === mediaId)?.annotations || ""
+      }
     });
-    setAnnotatorOpen(true);
   };
 
   if (!report) return null;
@@ -635,87 +637,6 @@ const ReportEditor: React.FC = () => {
   };
 
 
-  const handleAnnotationSave = async (annotations: string, imageBlob: Blob) => {
-    if (!annotatorImage) return;
-
-    const { findingId, mediaId } = annotatorImage;
-    
-    // Create new annotated file
-    const annotatedFile = new File([imageBlob], `annotated-${Date.now()}.jpg`, {
-      type: "image/jpeg",
-    });
-    
-    const tempId = crypto.randomUUID();
-    const localUrl = URL.createObjectURL(imageBlob);
-
-    // Add annotated version
-    updateFinding(findingId, {
-      media: [
-        ...activeSection.findings.find(f => f.id === findingId)?.media || [],
-        { 
-          id: tempId, 
-          url: localUrl, 
-          caption: "Annotated image",
-          type: "image",
-          annotations,
-          isAnnotated: true
-        }
-      ],
-    });
-
-    setMediaUrlMap((prev) => ({
-      ...prev,
-      [tempId]: localUrl,
-    }));
-
-    // Upload annotated version if authenticated
-    if (user) {
-      try {
-        const uploadedMedia = await uploadFindingFiles({
-          userId: user.id,
-          reportId: report.id,
-          findingId,
-          files: [annotatedFile]
-        });
-        
-        if (uploadedMedia && uploadedMedia.length > 0) {
-          const media = uploadedMedia[0];
-          const signedUrl = await getSignedUrlFromSupabaseUrl(media.url);
-
-          setReport((prev) => {
-            if (!prev || prev.reportType !== "home_inspection" || !activeSection) return prev;
-            const next = { ...prev };
-            const sIdx = next.sections.findIndex((s) => s.id === activeSection.id);
-            const finding = next.sections[sIdx].findings.find((x) => x.id === findingId);
-            if (finding) {
-              const mediaItem = finding.media.find((m) => m.id === tempId);
-              if (mediaItem) {
-                mediaItem.url = media.url;
-                mediaItem.type = media.type;
-              }
-            }
-            return next;
-          });
-
-          setMediaUrlMap((prev) => ({
-            ...prev,
-            [tempId]: signedUrl,
-          }));
-        }
-      } catch (error) {
-        console.error('Upload error:', error);
-        toast({
-          title: "Upload failed", 
-          description: "Could not upload annotated image.",
-          variant: "destructive",
-        });
-      }
-    }
-
-    setAnnotatorOpen(false);
-    setAnnotatorImage(null);
-    toast({ title: "Annotation saved successfully" });
-  };
 
   const generateShareLink = async (expiresAt?: Date) => {
     if (!report) return;
@@ -1339,13 +1260,8 @@ const ReportEditor: React.FC = () => {
                                                 return;
                                               }
                                               
-                                              // Open annotation modal
-                                              setAnnotatorImage({
-                                                url: mediaUrlMap[m.id] || m.url,
-                                                mediaId: m.id,
-                                                findingId: f.id
-                                              });
-                                              setAnnotatorOpen(true);
+                                              // Navigate to annotation page
+                                              handleAnnotateImage(f.id, m.id, mediaUrlMap[m.id] || m.url);
                                             }}
                                           >
                                             <Edit3 className="w-4 h-4 text-orange-500" />
@@ -1816,22 +1732,6 @@ const ReportEditor: React.FC = () => {
             onCapture={handleCameraCapture}
           />
 
-          <KonvaAnnotator
-            isOpen={annotatorOpen}
-            onClose={() => {
-              setAnnotatorOpen(false);
-              setAnnotatorImage(null);
-            }}
-            imageUrl={annotatorImage?.url || ""}
-            initialAnnotations={
-              annotatorImage
-                ? activeSection?.findings
-                    .find((f) => f.id === annotatorImage.findingId)?.media
-                    .find((m) => m.id === annotatorImage.mediaId)?.annotations || ""
-                : ""
-            }
-            onSave={handleAnnotationSave}
-          />
 
           
           <CustomSectionDialog
