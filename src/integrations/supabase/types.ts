@@ -1749,6 +1749,83 @@ export type Database = {
           },
         ]
       }
+      support_ticket_responses: {
+        Row: {
+          created_at: string
+          id: string
+          is_internal: boolean
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          message: string
+          ticket_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_internal?: boolean
+          message?: string
+          ticket_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_responses_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          resolved_at: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           appointment_id: string | null
@@ -2007,6 +2084,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_messages: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          is_read: boolean
+          message: string
+          message_type: string
+          priority: string
+          read_at: string | null
+          subject: string
+          to_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          is_read?: boolean
+          message: string
+          message_type?: string
+          priority?: string
+          read_at?: string | null
+          subject: string
+          to_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          message_type?: string
+          priority?: string
+          read_at?: string | null
+          subject?: string
+          to_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_report_templates: {
         Row: {
           created_at: string | null
@@ -2139,6 +2258,10 @@ export type Database = {
       get_contact_with_related_data: {
         Args: { contact_uuid: string }
         Returns: Json
+      }
+      get_unread_message_count: {
+        Args: { _user_id: string }
+        Returns: number
       }
       get_user_organization_id: {
         Args: { user_uuid: string }
