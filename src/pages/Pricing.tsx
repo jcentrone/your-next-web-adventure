@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Link } from 'react-router-dom';
 import { marketingFeatures } from '@/constants/marketingFeatures';
 import {
@@ -19,11 +20,44 @@ import {
   Headphones,
   Route,
   Car,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ExternalLink
 } from 'lucide-react';
 
 const Pricing = () => {
   const [isAnnual, setIsAnnual] = React.useState(false);
+  const [previewModal, setPreviewModal] = React.useState<{ isOpen: boolean; url: string; title: string }>({
+    isOpen: false,
+    url: '',
+    title: ''
+  });
+
+  const exampleWebsites = [
+    {
+      url: 'https://inspect-home-hub.lovable.app',
+      title: 'Modern Clean Design',
+      description: 'Professional layout with clean typography'
+    },
+    {
+      url: 'https://inspect-home-hub-1.lovable.app/',
+      title: 'Business Focus',
+      description: 'Service-oriented design approach'
+    },
+    {
+      url: 'https://inspect-home-hub-2.lovable.app/',
+      title: 'Visual Impact',
+      description: 'Image-forward design style'
+    },
+    {
+      url: 'https://buildwiseinspections.com/',
+      title: 'Live Production Site',
+      description: 'Real business in operation'
+    }
+  ];
+
+  const openPreview = (url: string, title: string) => {
+    setPreviewModal({ isOpen: true, url, title });
+  };
 
   const features = marketingFeatures.map((f) => f.title);
 
@@ -266,61 +300,34 @@ const Pricing = () => {
                 <div className="w-full mb-6">
                   <h4 className="font-semibold text-center mb-4">Example Websites</h4>
                   <div className="grid grid-cols-2 gap-3">
-                    <a 
-                      href="https://inspect-home-hub.lovable.app" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors"
-                    >
-                      <div className="aspect-video bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-medium text-primary">Preview 1</span>
-                      </div>
-                      <div className="p-2 bg-background">
-                        <p className="text-xs truncate group-hover:text-primary transition-colors">inspect-home-hub.lovable.app</p>
-                      </div>
-                    </a>
-                    
-                    <a 
-                      href="https://inspect-home-hub-1.lovable.app/" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors"
-                    >
-                      <div className="aspect-video bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-medium text-primary">Preview 2</span>
-                      </div>
-                      <div className="p-2 bg-background">
-                        <p className="text-xs truncate group-hover:text-primary transition-colors">inspect-home-hub-1.lovable.app</p>
-                      </div>
-                    </a>
-                    
-                    <a 
-                      href="https://inspect-home-hub-2.lovable.app/" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors"
-                    >
-                      <div className="aspect-video bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-medium text-primary">Preview 3</span>
-                      </div>
-                      <div className="p-2 bg-background">
-                        <p className="text-xs truncate group-hover:text-primary transition-colors">inspect-home-hub-2.lovable.app</p>
-                      </div>
-                    </a>
-                    
-                    <a 
-                      href="https://buildwiseinspections.com/" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors"
-                    >
-                      <div className="aspect-video bg-gradient-to-br from-accent/5 to-accent/10 flex items-center justify-center">
-                        <span className="text-xs font-medium text-accent-foreground">Live Site</span>
-                      </div>
-                      <div className="p-2 bg-background">
-                        <p className="text-xs truncate group-hover:text-primary transition-colors">buildwiseinspections.com</p>
-                      </div>
-                    </a>
+                    {exampleWebsites.map((website, index) => (
+                      <button
+                        key={index}
+                        onClick={() => openPreview(website.url, website.title)}
+                        className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <div className="aspect-video bg-muted relative overflow-hidden">
+                          <iframe
+                            src={website.url}
+                            className="w-full h-full pointer-events-none scale-[0.25] origin-top-left transform"
+                            style={{ width: '400%', height: '400%' }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                          <div className="absolute bottom-2 left-2 right-2">
+                            <p className="text-xs font-medium text-foreground truncate">{website.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">{website.description}</p>
+                          </div>
+                        </div>
+                        <div className="p-2 bg-background border-t">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs truncate group-hover:text-primary transition-colors flex-1">
+                              {website.url.replace('https://', '')}
+                            </p>
+                            <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors ml-1" />
+                          </div>
+                        </div>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -447,6 +454,40 @@ const Pricing = () => {
             </Card>
           </div>
         </section>
+
+        {/* Website Preview Modal */}
+        <Dialog open={previewModal.isOpen} onOpenChange={(open) => setPreviewModal(prev => ({ ...prev, isOpen: open }))}>
+          <DialogContent className="max-w-6xl h-[80vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {previewModal.title}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="ml-auto"
+                >
+                  <a
+                    href={previewModal.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Visit Site
+                  </a>
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden rounded-lg border">
+              <iframe
+                src={previewModal.url}
+                className="w-full h-full"
+                title={previewModal.title}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </>
   );
