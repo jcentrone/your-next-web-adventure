@@ -34,29 +34,29 @@ const Pricing = () => {
 
   const exampleWebsites = [
     {
-      url: 'https://inspect-home-hub.lovable.app',
-      title: 'Modern Clean Design',
-      description: 'Professional layout with clean typography'
+      image: "/demo-site-preview-0.png",
+      title: "Modern Clean Design",
+      description: "Professional layout with clean typography"
     },
     {
-      url: 'https://inspect-home-hub-1.lovable.app/',
-      title: 'Business Focus',
-      description: 'Service-oriented design approach'
+      image: "/demo-site-preview-1.png",
+      title: "Business Focus",
+      description: "Service-oriented design approach"
     },
     {
-      url: 'https://inspect-home-hub-2.lovable.app/',
-      title: 'Visual Impact',
-      description: 'Image-forward design style'
+      image: "/demo-site-preview-2.png",
+      title: "Visual Impact",
+      description: "Image-forward design style"
     },
     {
-      url: 'https://buildwiseinspections.com/',
-      title: 'Live Production Site',
-      description: 'Real business in operation'
+      image: "/buildwise-inspections.png",
+      title: "Live Production Site",
+      description: "Real business in operation"
     }
   ];
 
-  const openPreview = (url: string, title: string) => {
-    setPreviewModal({ isOpen: true, url, title });
+  const openPreview = (image: string, title: string) => {
+    setPreviewModal({ isOpen: true, url: image, title });
   };
 
   const features = marketingFeatures.map((f) => f.title);
@@ -303,14 +303,14 @@ const Pricing = () => {
                     {exampleWebsites.map((website, index) => (
                       <button
                         key={index}
-                        onClick={() => openPreview(website.url, website.title)}
+                        onClick={() => openPreview(website.image, website.title)}
                         className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         <div className="aspect-video bg-muted relative overflow-hidden">
-                          <iframe
-                            src={website.url}
-                            className="w-full h-full pointer-events-none scale-[0.25] origin-top-left transform"
-                            style={{ width: "400%", height: "400%" }}
+                          <img
+                            src={website.image}
+                            alt={website.title}
+                            className="w-full h-full object-cover"
                           />
                         </div>
                         <div className="p-3 bg-background border-t">
@@ -460,33 +460,17 @@ const Pricing = () => {
 
         {/* Website Preview Modal */}
         <Dialog open={previewModal.isOpen} onOpenChange={(open) => setPreviewModal(prev => ({ ...prev, isOpen: open }))}>
-          <DialogContent className="max-w-6xl h-[80vh]">
+          <DialogContent className="max-w-4xl h-[80vh]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {previewModal.title}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="ml-auto"
-                >
-                  <a
-                    href={previewModal.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    Visit Site
-                  </a>
-                </Button>
               </DialogTitle>
             </DialogHeader>
-            <div className="flex-1 overflow-hidden rounded-lg border">
-              <iframe
+            <div className="flex-1 overflow-hidden rounded-lg border bg-background">
+              <img
                 src={previewModal.url}
-                className="w-full h-full"
-                title={previewModal.title}
+                alt={previewModal.title}
+                className="w-full h-full object-contain"
               />
             </div>
           </DialogContent>
