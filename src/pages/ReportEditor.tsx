@@ -19,7 +19,7 @@ import DefectPicker from "@/components/reports/DefectPicker";
 import { useEnhancedSectionGuidance } from "@/hooks/useEnhancedSectionGuidance";
 import { useAuth } from "@/contexts/AuthContext";
 import { dbGetReport, dbUpdateReport } from "@/integrations/supabase/reportsApi";
-import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
+import { uploadFindingFiles, isSupabaseUrl, getSignedUrlFromSupabaseUrl, REPORT_MEDIA_BUCKET } from "@/integrations/supabase/storage";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { contactsApi, appointmentsApi } from "@/integrations/supabase/crmApi";
 import { useQuery } from "@tanstack/react-query";
@@ -243,47 +243,92 @@ const ReportEditor: React.FC = () => {
   // Handle returning from annotation editor
   React.useEffect(() => {
     const state = location.state as any;
-    if (state?.action === 'saveAnnotations' && state?.annotations && state?.findingId && state?.mediaIndex) {
+    if (
+      state?.action === "saveAnnotations" &&
+      state?.annotations &&
+      state?.findingId &&
+      state?.mediaIndex
+    ) {
       const { annotations, imageBlob, findingId, mediaIndex } = state;
-      
-      setReport((prev) => {
-        if (!prev || prev.reportType !== "home_inspection") return prev;
-        
-        const next = { ...prev };
-        const section = (next as any).sections.find((s: any) => 
-          s.findings.some((f: any) => f.id === findingId)
-        );
-        
-        if (section) {
-          const finding = section.findings.find((f: any) => f.id === findingId);
-          if (finding) {
-            const mediaItem = finding.media.find((m: any) => m.id === mediaIndex);
-            if (mediaItem) {
-              mediaItem.annotations = annotations;
-              mediaItem.isAnnotated = true;
-              
-              // If imageBlob is provided, update the media URL
-              if (imageBlob) {
-                const newUrl = URL.createObjectURL(imageBlob);
-                mediaItem.url = newUrl;
-                setMediaUrlMap(prev => ({ ...prev, [mediaIndex]: newUrl }));
+
+      (async () => {
+        let uploadedUrl: string | undefined;
+
+        if (imageBlob) {
+          if (user) {
+            try {
+              const ext = imageBlob.type.split("/").pop() || "png";
+              const path = `${user.id}/${report?.id}/${findingId}/${mediaIndex}-${Date.now()}.${ext}`;
+              const { error: uploadError } = await supabase.storage
+                .from(REPORT_MEDIA_BUCKET)
+                .upload(path, imageBlob, {
+                  upsert: true,
+                  contentType: imageBlob.type,
+                });
+
+              if (uploadError) throw uploadError;
+
+              const {
+                data: { publicUrl },
+              } = supabase.storage
+                .from(REPORT_MEDIA_BUCKET)
+                .getPublicUrl(path);
+
+              uploadedUrl = publicUrl;
+            } catch (err) {
+              console.error("Upload annotated image failed", err);
+              uploadedUrl = URL.createObjectURL(imageBlob);
+            }
+          } else {
+            uploadedUrl = URL.createObjectURL(imageBlob);
+          }
+        }
+
+        let updatedReport: Report | null = null;
+
+        setReport((prev) => {
+          if (!prev || prev.reportType !== "home_inspection") return prev;
+
+          const next = { ...prev };
+          const section = (next as any).sections.find((s: any) =>
+            s.findings.some((f: any) => f.id === findingId)
+          );
+
+          if (section) {
+            const finding = section.findings.find((f: any) => f.id === findingId);
+            if (finding) {
+              const mediaItem = finding.media.find((m: any) => m.id === mediaIndex);
+              if (mediaItem) {
+                mediaItem.annotations = annotations;
+                mediaItem.isAnnotated = true;
+                if (uploadedUrl) {
+                  mediaItem.url = uploadedUrl;
+                }
               }
             }
           }
+
+          updatedReport = next;
+          return next;
+        });
+
+        if (uploadedUrl) {
+          setMediaUrlMap((prev) => ({ ...prev, [mediaIndex]: uploadedUrl! }));
         }
-        
-        // Save to database
-        if (user) {
-          dbUpdateReport(next).catch(console.error);
+
+        if (user && updatedReport) {
+          try {
+            await dbUpdateReport(updatedReport);
+          } catch (err) {
+            console.error(err);
+          }
         }
-        
-        return next;
-      });
-      
-      // Clear the location state to prevent re-processing
-      nav(location.pathname, { replace: true });
+
+        // Clear the location state to prevent re-processing
+        nav(location.pathname, { replace: true });
+      })();
     }
-  }, [location.state, nav, location.pathname, user]);
+  }, [location.state, nav, location.pathname, user, report]);
 
   React.useEffect(() => {
     if (!id) return;
@@ -420,16 +465,21 @@ const ReportEditor: React.FC = () => {
     };
   }, [user, report?.coverImage]);
 
-  const handleAnnotateImage = (findingId: string, mediaId: string, mediaUrl: string) => {
-    // Navigate to annotation page with necessary data
+  const handleAnnotateImage = (
+    findingId: string,
+    mediaId: string,
+    mediaUrl: string
+  ) => {
+    const mediaItem = activeSection?.findings
+      .find((f) => f.id === findingId)?.media
+      .find((m) => m.id === mediaId);
+
     nav(`/reports/${id}/annotate`, {
       state: {
         imageUrl: mediaUrl,
         findingId,
         mediaIndex: mediaId,
-        initialAnnotations: activeSection?.findings
-          .find((f) => f.id === findingId)?.media
-          .find((m) => m.id === mediaId)?.annotations || ""
+        initialAnnotations: mediaItem?.annotations || ""
       }
     });
   };
