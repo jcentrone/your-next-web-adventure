@@ -3,7 +3,7 @@
 
 export const FEATURE_FLAGS = {
   // AI functionality - defect detection, report writing
-  SHOW_AI_FEATURES: false,
+  SHOW_AI_FEATURES: true,
 
   // Use the new category-aware report editor when all required features are ready
   ENABLE_CATEGORY_REPORT_EDITOR: false,
