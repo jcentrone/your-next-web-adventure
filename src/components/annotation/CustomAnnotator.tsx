@@ -529,7 +529,7 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
             ref={canvasRef}
             width={canvasSize.width}
             height={canvasSize.height}
-            className="border border-border cursor-crosshair"
+            className={`border border-border ${activeTool === 'select' ? 'cursor-default' : 'cursor-crosshair'}`}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
