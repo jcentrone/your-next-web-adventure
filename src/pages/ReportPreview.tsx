@@ -15,6 +15,7 @@ import {useReactToPrint} from "react-to-print";
 import SpecializedReportPreview from "@/components/reports/SpecializedReportPreview";
 import PDFDocument from "@/components/reports/PDFDocument";
 import PreviewThumbnailNav from "@/components/reports/PreviewThumbnailNav";
+import MobileThumbnailGrid from "@/components/reports/MobileThumbnailGrid";
 import "../styles/pdf.css";
 import {fillWindMitigationPDF} from "@/utils/fillWindMitigationPDF";
 import {calculatePageLayout} from "@/utils/paginationUtils";
@@ -517,23 +518,25 @@ const ReportPreview: React.FC = () => {
     const TOPBAR_HEIGHT = 129;
 
     const topBar = (
-        <div className="fixed top-0 right-0 left-0 h-[80px] z-50">
+        <div className="fixed top-0 right-0 left-0 h-[60px] lg:h-[80px] z-50">
             <div
                 className="bg-background shadow print-hidden relative z-50"
                 style={{height: TOPBAR_HEIGHT}}
             >
-                <div className="mx-auto px-4 py-4 flex items-end justify-between gap-2 h-full">
-                    <div className="flex items-center gap-2">
+                <div className="mx-auto px-2 lg:px-4 py-2 lg:py-4 flex items-end justify-between gap-1 lg:gap-2 h-full">
+                    <div className="flex items-center gap-1 lg:gap-2">
                         <Button
                             variant="outline"
+                            size="sm"
                             onClick={() => nav(`/reports/${report.id}`)}
                             aria-label="Close preview and return to editor"
                         >
-                            Close Preview
+                            <span className="hidden sm:inline">Close Preview</span>
+                            <span className="sm:hidden">Close</span>
                         </Button>
                         
-                        {/* Page Navigation */}
-                        <div className="flex items-center gap-1 border rounded-md">
+                        {/* Page Navigation - Hidden on mobile */}
+                        <div className="hidden lg:flex items-center gap-1 border rounded-md">
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -560,7 +563,8 @@ const ReportPreview: React.FC = () => {
                         </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
+                    {/* Template selectors - Hidden on mobile */}
+                    <div className="hidden lg:flex items-center gap-2">
                         <CoverTemplateSelector
                             value={report.coverTemplate}
                             onChange={handleCoverTemplateChange}
@@ -580,8 +584,18 @@ const ReportPreview: React.FC = () => {
                         />
                     </div>
                     
-                    <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
-                        {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+                    <Button 
+                        onClick={onPrintClick} 
+                        disabled={isGeneratingPDF} 
+                        aria-label="Download PDF"
+                        size="sm"
+                    >
+                        <span className="hidden sm:inline">
+                            {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+                        </span>
+                        <span className="sm:hidden">
+                            {isGeneratingPDF ? "Gen..." : "PDF"}
+                        </span>
                     </Button>
                 </div>
             </div>
@@ -603,7 +617,8 @@ const ReportPreview: React.FC = () => {
                     }}
                 />
                 {topBar}
-            <div className="flex print:mt-0">
+            {/* Desktop layout */}
+            <div className="hidden lg:flex print:mt-0">
                 <PreviewThumbnailNav 
                     containerRef={pdfContainerRef}
                     currentPage={currentPage}
@@ -613,20 +628,47 @@ const ReportPreview: React.FC = () => {
                 />
                 <div className="flex-1 ml-80 pt-[129px] flex justify-center">
                     <div className="w-full max-w-4xl px-4 py-10">
-                            <div ref={pdfContainerRef} style={colorVars}>
-                                <SpecializedReportPreview
-                                    report={report}
-                                    inspector={inspector}
-                                    organization={organization}
-                                    mediaUrlMap={mediaUrlMap}
-                                    coverUrl={coverUrl}
-                                    className={tpl.cover}
-                                    termsHtml={termsHtml}
-                                />
-                            </div>
+                        <div ref={pdfContainerRef} style={colorVars}>
+                            <SpecializedReportPreview
+                                report={report}
+                                inspector={inspector}
+                                organization={organization}
+                                mediaUrlMap={mediaUrlMap}
+                                coverUrl={coverUrl}
+                                className={tpl.cover}
+                                termsHtml={termsHtml}
+                            />
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Mobile layout */}
+            <div className="lg:hidden">
+                {/* Mobile thumbnail grid */}
+                <div className="pt-[80px] p-4">
+                    <MobileThumbnailGrid
+                        containerRef={pdfContainerRef}
+                        report={report}
+                        pageGroups={[]}
+                    />
+                </div>
+
+                {/* Hidden content for thumbnail generation */}
+                <div className="sr-only">
+                    <div ref={pdfContainerRef} style={colorVars}>
+                        <SpecializedReportPreview
+                            report={report}
+                            inspector={inspector}
+                            organization={organization}
+                            mediaUrlMap={mediaUrlMap}
+                            coverUrl={coverUrl}
+                            className={tpl.cover}
+                            termsHtml={termsHtml}
+                        />
+                    </div>
+                </div>
+            </div>
             </>
         );
     }
@@ -648,7 +690,8 @@ const ReportPreview: React.FC = () => {
             {/* Top bar */}
             {topBar}
 
-            <div className="flex print:mt-0">
+            {/* Desktop layout */}
+            <div className="hidden lg:flex print:mt-0">
                 <PreviewThumbnailNav 
                     containerRef={pdfContainerRef}
                     currentPage={currentPage}
@@ -669,6 +712,32 @@ const ReportPreview: React.FC = () => {
                             organization={organization}
                         />
                     </div>
+                </div>
+            </div>
+
+            {/* Mobile layout */}
+            <div className="lg:hidden">
+                {/* Mobile thumbnail grid */}
+                <div className="pt-[80px] p-4">
+                    <MobileThumbnailGrid
+                        containerRef={pdfContainerRef}
+                        report={report}
+                        pageGroups={pageGroups}
+                    />
+                </div>
+
+                {/* Hidden content for thumbnail generation */}
+                <div className="sr-only">
+                    <PDFDocument
+                        ref={pdfContainerRef}
+                        report={report}
+                        mediaUrlMap={mediaUrlMap}
+                        coverUrl={coverUrl}
+                        company={organization?.name || ""}
+                        termsHtml={termsHtml || undefined}
+                        inspector={inspector}
+                        organization={organization}
+                    />
                 </div>
             </div>
         </>
