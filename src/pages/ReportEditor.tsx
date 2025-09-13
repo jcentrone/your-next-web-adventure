@@ -85,6 +85,13 @@ const ReportEditor: React.FC = () => {
   const [aiDialogImages, setAiDialogImages] = React.useState<{ id: string; url: string; caption?: string }[]>([]);
   const [aiDialogFindingId, setAiDialogFindingId] = React.useState<string | null>(null);
   const [aiLoading, setAiLoading] = React.useState(false);
+  const [aiAnalysisResult, setAiAnalysisResult] = React.useState<{
+    title?: string;
+    observation?: string;
+    implications?: string;
+    severity?: string;
+    recommendation?: string;
+  } | null>(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>("");
   const [showDetails, setShowDetails] = React.useState(false);
   const [cameraOpen, setCameraOpen] = React.useState(false);
@@ -552,46 +559,10 @@ const ReportEditor: React.FC = () => {
     const structured = (data?.structured ?? null) as
       | { title?: string; observation?: string; implications?: string; severity?: string; recommendation?: string }
       | null;
-    const raw: string = data?.analysis || "";
 
-    // Decide title: only overwrite if currently empty or default
-    let nextTitle = f.title;
-    if (!nextTitle || nextTitle.trim() === "" || nextTitle.trim().toLowerCase() === "new observation") {
-      if (structured?.title) nextTitle = structured.title;
-    }
-
-    // Build narrative from observation + implications (or fall back to raw)
-    const combined = structured
-      ? [structured.observation, structured.implications].filter(Boolean).join("\n\n")
-      : raw || "No analysis returned.";
-    const divider = f.narrative?.trim() ? "\n\n" : "";
-    const nextNarrative = `${f.narrative || ""}${divider}${combined}`;
-
-    // Map severity if provided
-    let nextSeverity = f.severity as Severity;
-    if (structured?.severity) {
-      const found = (SEVERITIES as readonly string[]).find(
-        (s) => s.toLowerCase() === String(structured.severity).toLowerCase()
-      );
-      if (found) nextSeverity = found as Severity;
-    }
-
-    // Put recommendation in its field; append if something already exists
-    let nextRecommendation = f.recommendation || "";
-    if (structured?.recommendation) {
-      nextRecommendation = nextRecommendation?.trim()
-        ? `${nextRecommendation}\n\n${structured.recommendation}`
-        : structured.recommendation;
-    }
-
-    updateFinding(f.id, {
-      title: nextTitle,
-      narrative: nextNarrative,
-      severity: nextSeverity,
-      recommendation: nextRecommendation,
-    });
-    toast({ title: "AI analysis applied", description: "Title, severity, narrative and recommendation updated." });
-    setAiDialogOpen(false);
+    // Show results in dialog for approval
+    setAiAnalysisResult(structured);
+    setAiLoading(false);
   } catch (e) {
     console.error("AI analysis failed", e);
     const message = (e as any)?.message || "";
@@ -605,6 +576,61 @@ const ReportEditor: React.FC = () => {
   } finally {
     setAiLoading(false);
   }
+};
+
+const handleAIApprove = (result: any) => {
+  if (!result) {
+    // User clicked "Back to Images" - clear result
+    setAiAnalysisResult(null);
+    return;
+  }
+
+  if (!aiDialogFindingId) return;
+  const section = activeSection;
+  if (!section) return;
+  const f = section.findings.find((x) => x.id === aiDialogFindingId);
+  if (!f) return;
+
+  // Decide title: only overwrite if currently empty or default
+  let nextTitle = f.title;
+  if (!nextTitle || nextTitle.trim() === "" || nextTitle.trim().toLowerCase() === "new observation") {
+    if (result?.title) nextTitle = result.title;
+  }
+
+  // Build narrative from observation + implications
+  const combined = result
+    ? [result.observation, result.implications].filter(Boolean).join("\n\n")
+    : "No analysis returned.";
+  const divider = f.narrative?.trim() ? "\n\n" : "";
+  const nextNarrative = `${f.narrative || ""}${divider}${combined}`;
+
+  // Map severity if provided
+  let nextSeverity = f.severity as Severity;
+  if (result?.severity) {
+    const found = (SEVERITIES as readonly string[]).find(
+      (s) => s.toLowerCase() === String(result.severity).toLowerCase()
+    );
+    if (found) nextSeverity = found as Severity;
+  }
+
+  // Put recommendation in its field; append if something already exists
+  let nextRecommendation = f.recommendation || "";
+  if (result?.recommendation) {
+    nextRecommendation = nextRecommendation?.trim()
+      ? `${nextRecommendation}\n\n${result.recommendation}`
+      : result.recommendation;
+  }
+
+  updateFinding(f.id, {
+    title: nextTitle,
+    narrative: nextNarrative,
+    severity: nextSeverity,
+    recommendation: nextRecommendation,
+  });
+  
+  toast({ title: "AI analysis applied", description: "Defect updated with AI findings." });
+  setAiAnalysisResult(null);
+  setAiDialogOpen(false);
 };
 
 
@@ -1763,10 +1789,17 @@ const ReportEditor: React.FC = () => {
 
           <AIAnalyzeDialog
             open={aiDialogOpen}
-            onOpenChange={setAiDialogOpen}
+            onOpenChange={(open) => {
+              setAiDialogOpen(open);
+              if (!open) {
+                setAiAnalysisResult(null);
+              }
+            }}
             images={aiDialogImages}
             loading={aiLoading}
             onConfirm={handleAIAnalyze}
+            onApprove={handleAIApprove}
+            analysisResult={aiAnalysisResult}
           />
 
           <CameraCapture
