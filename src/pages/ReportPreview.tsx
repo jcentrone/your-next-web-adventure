@@ -657,7 +657,7 @@ const ReportPreview: React.FC = () => {
                     pageGroups={pageGroups}
                 />
                 <div className="flex-1 ml-80 pt-[129px] flex justify-center">
-                    <div className="w-full max-w-4xl px-4 py-10 hidden md:block">
+                    <div className="w-full max-w-4xl px-4 py-10">
                         <PDFDocument
                             ref={pdfContainerRef}
                             report={report}
