@@ -531,7 +531,7 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       <AnnotationToolbar
         activeTool={activeTool}
         activeColor={activeColor}
@@ -554,7 +554,7 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
         canRedo={historyIndex < history.length - 1}
       />
       
-      <div className="flex-1 flex items-center justify-center p-4" ref={containerRef}>
+      <div className="flex-1 flex items-center justify-center p-4 min-h-0 overflow-hidden" ref={containerRef}>
         <div className="relative">
           <canvas
             ref={canvasRef}
@@ -611,7 +611,7 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
         </div>
       </div>
       
-      <div className="border-t bg-card p-4">
+      <div className="border-t bg-card p-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button
