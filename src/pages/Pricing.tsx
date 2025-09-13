@@ -261,6 +261,69 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
+
+                {/* Example Websites */}
+                <div className="w-full mb-6">
+                  <h4 className="font-semibold text-center mb-4">Example Websites</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <a 
+                      href="https://inspect-home-hub.lovable.app" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors"
+                    >
+                      <div className="aspect-video bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary">Preview 1</span>
+                      </div>
+                      <div className="p-2 bg-background">
+                        <p className="text-xs truncate group-hover:text-primary transition-colors">inspect-home-hub.lovable.app</p>
+                      </div>
+                    </a>
+                    
+                    <a 
+                      href="https://inspect-home-hub-1.lovable.app/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors"
+                    >
+                      <div className="aspect-video bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary">Preview 2</span>
+                      </div>
+                      <div className="p-2 bg-background">
+                        <p className="text-xs truncate group-hover:text-primary transition-colors">inspect-home-hub-1.lovable.app</p>
+                      </div>
+                    </a>
+                    
+                    <a 
+                      href="https://inspect-home-hub-2.lovable.app/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors"
+                    >
+                      <div className="aspect-video bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary">Preview 3</span>
+                      </div>
+                      <div className="p-2 bg-background">
+                        <p className="text-xs truncate group-hover:text-primary transition-colors">inspect-home-hub-2.lovable.app</p>
+                      </div>
+                    </a>
+                    
+                    <a 
+                      href="https://buildwiseinspections.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="group relative overflow-hidden rounded-lg border border-muted hover:border-primary/50 transition-colors"
+                    >
+                      <div className="aspect-video bg-gradient-to-br from-accent/5 to-accent/10 flex items-center justify-center">
+                        <span className="text-xs font-medium text-accent-foreground">Live Site</span>
+                      </div>
+                      <div className="p-2 bg-background">
+                        <p className="text-xs truncate group-hover:text-primary transition-colors">buildwiseinspections.com</p>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+
                 <p className="text-sm text-muted-foreground mb-4">$20/month hosting</p>
                 <Button asChild size="lg" className="text-lg px-8">
                   <Link to="/contact">Request a Website</Link>
