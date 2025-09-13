@@ -116,6 +116,8 @@ function fromDbRow(row: any): Report {
             url: media.url || "",
             caption: media.caption || "",
             type: media.type || inferMediaType(media.url) || "image",
+            annotations: media.annotations || "",
+            isAnnotated: media.isAnnotated || false,
           };
           return cleanMedia;
         }),
