@@ -565,36 +565,44 @@ const ReportPreview: React.FC = () => {
                         </div>
                         
                         {/* Style Controls - Mobile: Second row */}
-                        <div className="flex items-center gap-1 md:gap-2 w-full md:w-auto overflow-x-auto">
-                            <CoverTemplateSelector
-                                value={report.coverTemplate}
-                                onChange={handleCoverTemplateChange}
-                                disabled={savingCoverTpl}
-                                data={coverPreviewData}
-                            />
-                            <StyleSelector
-                                value={report.previewTemplate}
-                                onChange={handleStyleTemplateChange}
-                                disabled={savingStyleTpl}
-                            />
-                            <ColorSchemePicker
-                                value={report.colorScheme || "default"}
-                                customColors={report.customColors}
-                                onChange={handleColorSchemeChange}
-                                disabled={savingColorScheme}
-                            />
+                        <div className="flex items-center gap-1 md:gap-2 w-full md:w-auto overflow-x-auto min-w-0">
+                            <div className="flex-shrink-0">
+                                <CoverTemplateSelector
+                                    value={report.coverTemplate}
+                                    onChange={handleCoverTemplateChange}
+                                    disabled={savingCoverTpl}
+                                    data={coverPreviewData}
+                                />
+                            </div>
+                            <div className="flex-shrink-0">
+                                <StyleSelector
+                                    value={report.previewTemplate}
+                                    onChange={handleStyleTemplateChange}
+                                    disabled={savingStyleTpl}
+                                />
+                            </div>
+                            <div className="flex-shrink-0">
+                                <ColorSchemePicker
+                                    value={report.colorScheme || "default"}
+                                    customColors={report.customColors}
+                                    onChange={handleColorSchemeChange}
+                                    disabled={savingColorScheme}
+                                />
+                            </div>
                         </div>
                     </div>
                     
-                    <Button 
-                        onClick={onPrintClick} 
-                        disabled={isGeneratingPDF} 
-                        aria-label="Download PDF"
-                        size="sm"
-                        className="text-xs md:text-sm w-full md:w-auto"
-                    >
-                        {isGeneratingPDF ? "Generating..." : "Download PDF"}
-                    </Button>
+                    <div className="flex-shrink-0">
+                        <Button 
+                            onClick={onPrintClick} 
+                            disabled={isGeneratingPDF} 
+                            aria-label="Download PDF"
+                            size="sm"
+                            className="text-xs md:text-sm w-full md:w-auto px-4 py-2 h-8 md:h-9"
+                        >
+                            {isGeneratingPDF ? "Generating..." : "Download PDF"}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
