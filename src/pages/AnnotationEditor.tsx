@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save, X } from "lucide-react";
-import { KonvaAnnotator } from "@/components/reports/KonvaAnnotator";
+import { CustomAnnotator } from "@/components/annotation/CustomAnnotator";
 import { toast } from "sonner";
 
 const AnnotationEditor: React.FC = () => {
@@ -76,7 +76,7 @@ const AnnotationEditor: React.FC = () => {
 
       {/* Annotation Area */}
       <div className="flex-1 overflow-hidden">
-        <KonvaAnnotator
+        <CustomAnnotator
           imageUrl={imageUrl}
           initialAnnotations={initialAnnotations}
           onSave={handleSave}
