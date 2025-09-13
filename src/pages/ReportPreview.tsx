@@ -522,87 +522,67 @@ const ReportPreview: React.FC = () => {
                 className="bg-background shadow print-hidden relative z-50"
                 style={{height: TOPBAR_HEIGHT}}
             >
-                <div className="mx-auto px-2 md:px-4 py-2 md:py-4 flex flex-col md:flex-row md:items-end justify-between gap-2 h-full">
-                    {/* Mobile: Stack vertically */}
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-                        <div className="flex items-center gap-2 w-full md:w-auto">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => nav(`/reports/${report.id}`)}
-                                aria-label="Close preview and return to editor"
-                                className="text-xs md:text-sm"
-                            >
-                                Close
-                            </Button>
-                            
-                            {/* Page Navigation */}
-                            <div className="flex items-center gap-1 border rounded-md">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handlePrevPage}
-                                    disabled={currentPage === 0}
-                                    aria-label="Previous page"
-                                    className="h-7 w-7 md:h-8 md:w-8 p-0"
-                                >
-                                    <ChevronLeft className="h-3 w-3 md:h-4 md:w-4" />
-                                </Button>
-                                <span className="px-1 md:px-2 text-xs md:text-sm text-muted-foreground whitespace-nowrap">
-                                    {currentPage + 1}/{totalPages}
-                                </span>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleNextPage}
-                                    disabled={currentPage >= totalPages - 1}
-                                    aria-label="Next page"
-                                    className="h-7 w-7 md:h-8 md:w-8 p-0"
-                                >
-                                    <ChevronRight className="h-3 w-3 md:h-4 md:w-4" />
-                                </Button>
-                            </div>
-                        </div>
+                <div className="mx-auto px-4 py-4 flex items-end justify-between gap-2 h-full">
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => nav(`/reports/${report.id}`)}
+                            aria-label="Close preview and return to editor"
+                        >
+                            Close Preview
+                        </Button>
                         
-                        {/* Style Controls - Mobile: Second row */}
-                        <div className="flex items-center gap-1 md:gap-2 w-full md:w-auto overflow-x-auto min-w-0">
-                            <div className="flex-shrink-0">
-                                <CoverTemplateSelector
-                                    value={report.coverTemplate}
-                                    onChange={handleCoverTemplateChange}
-                                    disabled={savingCoverTpl}
-                                    data={coverPreviewData}
-                                />
-                            </div>
-                            <div className="flex-shrink-0">
-                                <StyleSelector
-                                    value={report.previewTemplate}
-                                    onChange={handleStyleTemplateChange}
-                                    disabled={savingStyleTpl}
-                                />
-                            </div>
-                            <div className="flex-shrink-0">
-                                <ColorSchemePicker
-                                    value={report.colorScheme || "default"}
-                                    customColors={report.customColors}
-                                    onChange={handleColorSchemeChange}
-                                    disabled={savingColorScheme}
-                                />
-                            </div>
+                        {/* Page Navigation */}
+                        <div className="flex items-center gap-1 border rounded-md">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handlePrevPage}
+                                disabled={currentPage === 0}
+                                aria-label="Previous page"
+                                className="h-8 w-8 p-0"
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <span className="px-2 text-sm text-muted-foreground whitespace-nowrap">
+                                Page {currentPage + 1} of {totalPages}
+                            </span>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleNextPage}
+                                disabled={currentPage >= totalPages - 1}
+                                aria-label="Next page"
+                                className="h-8 w-8 p-0"
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
                         </div>
                     </div>
                     
-                    <div className="flex-shrink-0">
-                        <Button 
-                            onClick={onPrintClick} 
-                            disabled={isGeneratingPDF} 
-                            aria-label="Download PDF"
-                            size="sm"
-                            className="text-xs md:text-sm w-full md:w-auto px-4 py-2 h-8 md:h-9"
-                        >
-                            {isGeneratingPDF ? "Generating..." : "Download PDF"}
-                        </Button>
+                    <div className="flex items-center gap-2">
+                        <CoverTemplateSelector
+                            value={report.coverTemplate}
+                            onChange={handleCoverTemplateChange}
+                            disabled={savingCoverTpl}
+                            data={coverPreviewData}
+                        />
+                        <StyleSelector
+                            value={report.previewTemplate}
+                            onChange={handleStyleTemplateChange}
+                            disabled={savingStyleTpl}
+                        />
+                        <ColorSchemePicker
+                            value={report.colorScheme || "default"}
+                            customColors={report.customColors}
+                            onChange={handleColorSchemeChange}
+                            disabled={savingColorScheme}
+                        />
                     </div>
+                    
+                    <Button onClick={onPrintClick} disabled={isGeneratingPDF} aria-label="Download PDF">
+                        {isGeneratingPDF ? "Generating PDF..." : "Download PDF"}
+                    </Button>
                 </div>
             </div>
         </div>
