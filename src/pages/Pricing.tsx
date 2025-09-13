@@ -310,20 +310,23 @@ const Pricing = () => {
                           <iframe
                             src={website.url}
                             className="w-full h-full pointer-events-none scale-[0.25] origin-top-left transform"
-                            style={{ width: '400%', height: '400%' }}
+                            style={{ width: "400%", height: "400%" }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                          <div className="absolute bottom-2 left-2 right-2">
-                            <p className="text-xs font-medium text-foreground truncate">{website.title}</p>
-                            <p className="text-xs text-muted-foreground truncate">{website.description}</p>
-                          </div>
                         </div>
-                        <div className="p-2 bg-background border-t">
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs truncate group-hover:text-primary transition-colors flex-1">
-                              {website.url.replace('https://', '')}
+                        <div className="p-3 bg-background border-t">
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                              {website.title}
                             </p>
-                            <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors ml-1" />
+                            <p className="text-xs text-muted-foreground">
+                              {website.description}
+                            </p>
+                            <div className="flex items-center justify-between pt-1">
+                              <p className="text-xs text-muted-foreground">
+                                Click to preview
+                              </p>
+                              <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
                           </div>
                         </div>
                       </button>
