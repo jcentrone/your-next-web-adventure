@@ -180,28 +180,22 @@ export const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
     return (
       <div className="border-b bg-muted/50">
         <TooltipProvider>
-          <ScrollArea className="w-full">
-            <div className="flex items-center gap-1 p-2 min-w-max">
-              {/* Tools */}
-              <div className="flex items-center gap-1">
+          <div className="p-2 space-y-2">
+            {/* First row - Tools */}
+            <ScrollArea className="w-full">
+              <div className="flex items-center gap-1 min-w-max">
                 {TOOL_CONFIGS.map((config) => (
                   <ToolButton key={config.tool} config={config} />
                 ))}
               </div>
-              
-              {/* Separator */}
-              <div className="h-6 w-px bg-border mx-2" />
-              
-              {/* Color picker */}
+            </ScrollArea>
+            
+            {/* Second row - Color picker and Undo/Redo */}
+            <div className="flex items-center justify-between">
               <ColorPicker />
-              
-              {/* Separator */}
-              <div className="h-6 w-px bg-border mx-2" />
-              
-              {/* Undo/Redo */}
               <UndoRedoButtons />
             </div>
-          </ScrollArea>
+          </div>
         </TooltipProvider>
       </div>
     );
