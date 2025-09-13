@@ -299,7 +299,7 @@ const Pricing = () => {
                 {/* Example Websites */}
                 <div className="w-full mb-6">
                   <h4 className="font-semibold text-center mb-4">Example Websites</h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3 overflow-hidden">
                     {exampleWebsites.map((website, index) => (
                       <button
                         key={index}
