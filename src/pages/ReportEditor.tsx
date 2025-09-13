@@ -265,13 +265,18 @@ const ReportEditor: React.FC = () => {
           }
         }
         
+        // Save to database
+        if (user) {
+          dbUpdateReport(next).catch(console.error);
+        }
+        
         return next;
       });
       
       // Clear the location state to prevent re-processing
       nav(location.pathname, { replace: true });
     }
-  }, [location.state, nav, location.pathname]);
+  }, [location.state, nav, location.pathname, user]);
 
   React.useEffect(() => {
     if (!id) return;
