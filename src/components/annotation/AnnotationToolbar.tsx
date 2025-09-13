@@ -106,7 +106,7 @@ export const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
             <Button 
               variant="outline" 
               size="sm" 
-              className={`${isMobile ? 'w-10 h-8' : 'w-12 h-8'} p-1`}
+              className={`${isMobile ? 'min-w-[2.5rem]' : 'w-12 h-8'} p-1`}
               disabled={disabled}
             >
               <div className="flex items-center gap-1">
@@ -183,7 +183,7 @@ export const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
           <div className="p-2 space-y-2">
             {/* First row: Tools and Color picker */}
             <ScrollArea className="w-full">
-              <div className="flex items-center gap-1 min-w-max">
+              <div className="flex items-center gap-1 px-1">
                 {/* Tools */}
                 {TOOL_CONFIGS.map((config) => (
                   <ToolButton key={config.tool} config={config} />
