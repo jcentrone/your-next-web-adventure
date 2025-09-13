@@ -185,16 +185,12 @@ export const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
             <ScrollArea className="w-full">
               <div className="flex items-center gap-1 min-w-max">
                 {/* Tools */}
-                <div className="flex items-center gap-1">
-                  {TOOL_CONFIGS.map((config) => (
-                    <ToolButton key={config.tool} config={config} />
-                  ))}
-                </div>
+                {TOOL_CONFIGS.map((config) => (
+                  <ToolButton key={config.tool} config={config} />
+                ))}
                 
                 {/* Color picker */}
-                <div className="ml-2">
-                  <ColorPicker />
-                </div>
+                <ColorPicker />
               </div>
             </ScrollArea>
             
