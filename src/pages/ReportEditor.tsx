@@ -24,6 +24,8 @@ import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { contactsApi, appointmentsApi } from "@/integrations/supabase/crmApi";
 import { useQuery } from "@tanstack/react-query";
 import AIAnalyzeDialog from "@/components/reports/AIAnalyzeDialog";
+import NoAPIKeyDialog from "@/components/reports/NoAPIKeyDialog";
+import openAI from "@/integrations/openAI";
 import { CameraCapture } from "@/components/reports/CameraCapture";
 import { CategoryAwareReportEditor } from "@/components/reports/CategoryAwareReportEditor";
 import { getReportCategory, isDefectBasedReport } from "@/constants/reportCategories";
@@ -92,6 +94,7 @@ const ReportEditor: React.FC = () => {
     severity?: string;
     recommendation?: string;
   } | null>(null);
+  const [noApiKeyDialogOpen, setNoApiKeyDialogOpen] = React.useState(false);
   const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>("");
   const [showDetails, setShowDetails] = React.useState(false);
   const [cameraOpen, setCameraOpen] = React.useState(false);
@@ -1394,8 +1397,16 @@ const handleAIApprove = (result: any) => {
                                         <button
                                           type="button"
                                           className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow"
-                                          onClick={() => {
+                                          onClick={async () => {
                                             if (!hasSignedUrl) return;
+                                            
+                                            // Check if API key is present
+                                            const hasApiKey = await openAI.isConnected(user?.id || '');
+                                            if (!hasApiKey) {
+                                              setNoApiKeyDialogOpen(true);
+                                              return;
+                                            }
+                                            
                                             setAiDialogFindingId(f.id);
                                             setAiDialogImages([{ id: m.id, url: resolvedUrl!, caption: m.caption }]);
                                             setAiDialogOpen(true);
@@ -1871,6 +1882,11 @@ const handleAIApprove = (result: any) => {
               loadCustomSections();
               setCustomSectionDialogOpen(false);
             }}
+          />
+
+          <NoAPIKeyDialog 
+            open={noApiKeyDialogOpen} 
+            onOpenChange={setNoApiKeyDialogOpen} 
           />
           </main>
         </div>
