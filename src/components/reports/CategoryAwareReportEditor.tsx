@@ -13,6 +13,7 @@ import type { ReportTemplate } from "@/integrations/supabase/reportTemplatesApi"
 import { isSupabaseUrl, getSignedUrlFromSupabaseUrl } from "@/integrations/supabase/storage";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AIAnalyzeDialog from "./AIAnalyzeDialog";
 
 interface CategoryAwareReportEditorProps {
@@ -387,39 +388,57 @@ return (
                                       <Trash2 className="w-4 h-4 text-red-500" />
                                     </button>
 
-                                    {m.type === "image" && (
-                                      <button
-                                        type="button"
-                                        className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow"
-                                        onClick={() => {
-                                          if (!report.id || !finding.id || !m.id) {
-                                            toast({
-                                              title: "Navigation Error",
-                                              description: "Missing required IDs for annotation",
-                                              variant: "destructive",
-                                            });
-                                            return;
-                                          }
-                                          // Open annotation modal - need to pass these props from parent
-                                          onAnnotate?.(finding.id, m.id, m.url);
-                                        }}
-                                      >
-                                        <Edit3 className="w-4 h-4 text-orange-500" />
-                                      </button>
-                                    )}
+                                     {m.type === "image" && (
+                                       <TooltipProvider>
+                                         <Tooltip>
+                                           <TooltipTrigger asChild>
+                                             <button
+                                               type="button"
+                                               className="absolute bottom-1 left-1 bg-white rounded-full p-1 shadow hover:shadow-md transition-shadow"
+                                               onClick={() => {
+                                                 if (!report.id || !finding.id || !m.id) {
+                                                   toast({
+                                                     title: "Navigation Error",
+                                                     description: "Missing required IDs for annotation",
+                                                     variant: "destructive",
+                                                   });
+                                                   return;
+                                                 }
+                                                 // Open annotation modal - need to pass these props from parent
+                                                 onAnnotate?.(finding.id, m.id, m.url);
+                                               }}
+                                             >
+                                               <Edit3 className="w-4 h-4 text-orange-500" />
+                                             </button>
+                                           </TooltipTrigger>
+                                           <TooltipContent>
+                                             <p>Annotate image with drawings and markups</p>
+                                           </TooltipContent>
+                                         </Tooltip>
+                                       </TooltipProvider>
+                                     )}
 
-                                    <button
-                                      type="button"
-                                      className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow"
-                                      onClick={() => {
-                                        if (!hasSignedUrl) return;
-                                        setAiDialogFindingId(finding.id);
-                                        setAiDialogImages([{ id: m.id, url: resolvedUrl!, caption: m.caption }]);
-                                        setAiDialogOpen(true);
-                                      }}
-                                    >
-                                      <Wand2 className="w-4 h-4 text-blue-500" />
-                                    </button>
+                                     <TooltipProvider>
+                                       <Tooltip>
+                                         <TooltipTrigger asChild>
+                                           <button
+                                             type="button"
+                                             className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow hover:shadow-md transition-shadow"
+                                             onClick={() => {
+                                               if (!hasSignedUrl) return;
+                                               setAiDialogFindingId(finding.id);
+                                               setAiDialogImages([{ id: m.id, url: resolvedUrl!, caption: m.caption }]);
+                                               setAiDialogOpen(true);
+                                             }}
+                                           >
+                                             <Wand2 className="w-4 h-4 text-blue-500" />
+                                           </button>
+                                         </TooltipTrigger>
+                                         <TooltipContent>
+                                           <p>AI analysis to generate defect descriptions</p>
+                                         </TooltipContent>
+                                       </Tooltip>
+                                     </TooltipProvider>
                                   </div>
                                 );
                               })}
