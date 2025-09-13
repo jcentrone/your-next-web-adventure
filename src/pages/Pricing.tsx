@@ -130,14 +130,14 @@ const Pricing = () => {
           <div className="max-w-6xl mx-auto grid gap-8 md:grid-cols-2">
             {/* Professional Plan */}
             <Card className="relative overflow-hidden border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5">
-              <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-6 py-2 rounded-bl-lg">
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              <div className="absolute top-4 right-4 z-10">
+                <Badge className="bg-primary text-primary-foreground border-0 shadow-lg">
                   <Zap className="h-3 w-3 mr-1" />
                   Most Popular
                 </Badge>
               </div>
 
-              <CardHeader className="text-center pb-2">
+              <CardHeader className="text-center pb-2 pt-8">
                 <CardTitle className="text-3xl font-bold mb-2">Professional Plan</CardTitle>
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <span className={!isAnnual ? 'font-medium text-primary' : 'text-muted-foreground'}>Monthly</span>
