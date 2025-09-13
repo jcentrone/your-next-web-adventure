@@ -191,6 +191,7 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
       
       if (clickedObject) {
         setSelectedObject(clickedObject);
+        setActiveColor(clickedObject.color); // Update active color to match selected object
         setDragOffset({
           x: point.x - (clickedObject.x || clickedObject.points[0]?.x || 0),
           y: point.y - (clickedObject.y || clickedObject.points[0]?.y || 0)
@@ -516,7 +517,18 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
         activeTool={activeTool}
         activeColor={activeColor}
         onToolClick={setActiveTool}
-        onColorChange={setActiveColor}
+        onColorChange={(color) => {
+          setActiveColor(color);
+          // Update selected object color if one is selected
+          if (selectedObject) {
+            const updatedObjects = objects.map(obj => 
+              obj.id === selectedObject.id ? { ...obj, color } : obj
+            );
+            setObjects(updatedObjects);
+            setSelectedObject({ ...selectedObject, color });
+            saveToHistory(updatedObjects);
+          }
+        }}
         onUndo={handleUndo}
         onRedo={handleRedo}
         canUndo={historyIndex > 0}
