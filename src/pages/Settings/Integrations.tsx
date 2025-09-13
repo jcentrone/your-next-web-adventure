@@ -9,9 +9,12 @@ import {Calendar, Navigation} from "lucide-react";
 import {RouteOptimizationSettings} from "@/components/settings/RouteOptimizationSettings";
 import * as googleCalendar from "@/integrations/googleCalendar";
 import * as openAI from "@/integrations/openAI";
+import {supabase} from "@/integrations/supabase/client";
+import {useToast} from "@/components/ui/use-toast";
 
 const Integrations: React.FC = () => {
     const {user} = useAuth();
+    const {toast} = useToast();
     const [filterType, setFilterType] = useState<string>("all");
     const [openAiKey, setOpenAiKey] = useState("");
 
@@ -29,6 +32,31 @@ const Integrations: React.FC = () => {
         queryKey: ["openai-connected", user?.id],
         queryFn: () => openAI.isConnected(user!.id),
         enabled: !!user,
+    });
+
+    // Fetch the stored API key to display masked version
+    const {data: openAiKeyMasked} = useQuery({
+        queryKey: ["openai-key-masked", user?.id],
+        queryFn: async () => {
+            if (!user?.id || !openAiConnected) return null;
+            // Get the stored key and mask it
+            const {data} = await supabase
+                .from("ai_tokens")
+                .select("api_key")
+                .eq("user_id", user.id)
+                .maybeSingle();
+            
+            if (data?.api_key) {
+                const key = data.api_key;
+                // Show first 7 chars + masked middle + last 4 chars
+                if (key.length > 11) {
+                    return `${key.substring(0, 7)}${'*'.repeat(key.length - 11)}${key.substring(key.length - 4)}`;
+                }
+                return '*'.repeat(key.length);
+            }
+            return null;
+        },
+        enabled: !!user && !!openAiConnected,
     });
 
     const integrations = useMemo(() => [
@@ -97,15 +125,33 @@ const Integrations: React.FC = () => {
                             <p className="text-sm text-muted-foreground">
                                 {openAiConnected ? "API key saved" : "Add your OpenAI API key to enable AI analysis."}
                             </p>
-                            <p>
-                                <Input
-                                    type="password"
-                                    placeholder="OpenAI API key"
-                                    value={openAiKey}
-                                    onChange={(e) => setOpenAiKey(e.target.value)}
-                                    className="w-[400px] mt-3"
-                                />
-                            </p>
+                            {openAiConnected ? (
+                                <div className="mt-3">
+                                    <Input
+                                        type="text"
+                                        value={openAiKeyMasked || "Loading..."}
+                                        readOnly
+                                        className="w-[400px] bg-muted"
+                                        placeholder="API key masked for security"
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Your API key is stored securely in the database
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="mt-3">
+                                    <Input
+                                        type="password"
+                                        placeholder="Enter your OpenAI API key (sk-...)"
+                                        value={openAiKey}
+                                        onChange={(e) => setOpenAiKey(e.target.value)}
+                                        className="w-[400px]"
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        Your API key will be encrypted and stored securely
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                     {openAiConnected ? (
@@ -120,16 +166,28 @@ const Integrations: React.FC = () => {
                         </Button>
                     ) : (
                         <div className="flex items-center gap-2">
-
                             <Button
                                 onClick={async () => {
-                                    await openAI.connect(user!.id, openAiKey);
-                                    setOpenAiKey("");
-                                    refetchOpenAi();
+                                    try {
+                                        await openAI.connect(user!.id, openAiKey);
+                                        setOpenAiKey("");
+                                        refetchOpenAi();
+                                        toast({
+                                            title: "Success",
+                                            description: "OpenAI API key saved successfully",
+                                        });
+                                    } catch (error) {
+                                        console.error("Failed to save API key:", error);
+                                        toast({
+                                            title: "Error",
+                                            description: "Failed to save API key. Please try again.",
+                                            variant: "destructive",
+                                        });
+                                    }
                                 }}
-                                disabled={!openAiKey}
+                                disabled={!openAiKey || !openAiKey.startsWith('sk-')}
                             >
-                                Save
+                                Save API Key
                             </Button>
                         </div>
                     )}
@@ -142,6 +200,7 @@ const Integrations: React.FC = () => {
         refetchGoogle,
         openAiConnected,
         refetchOpenAi,
+        openAiKeyMasked,
         user,
         openAiKey,
     ]);
