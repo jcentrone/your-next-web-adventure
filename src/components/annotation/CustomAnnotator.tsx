@@ -53,6 +53,7 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [showTextInput, setShowTextInput] = useState(false);
   const [textInputPos, setTextInputPos] = useState<Point>({ x: 0, y: 0 });
+  const [editingText, setEditingText] = useState<AnnotationObject | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
 
@@ -201,9 +202,15 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
         setSelectedObject(null);
       }
     } else if (activeTool === 'text') {
+      setEditingText(null);
       setTextInputPos(point);
       setShowTextInput(true);
-      setTimeout(() => textInputRef.current?.focus(), 0);
+      setTimeout(() => {
+        if (textInputRef.current) {
+          textInputRef.current.value = '';
+          textInputRef.current.focus();
+        }
+      }, 0);
     } else {
       // Start drawing
       setIsDrawing(true);
@@ -319,24 +326,36 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
 
   const handleTextSubmit = (text: string) => {
     if (text.trim()) {
-      const newObject: AnnotationObject = {
-        id: generateId(),
-        type: 'text',
-        points: [],
-        color: activeColor,
-        strokeWidth: 2,
-        text: text.trim(),
-        fontSize: 16,
-        x: textInputPos.x,
-        y: textInputPos.y
-      };
-      
-      const newObjects = [...objects, newObject];
-      setObjects(newObjects);
-      saveToHistory(newObjects);
+      if (editingText) {
+        // Update existing text object
+        const updatedObjects = objects.map(obj => 
+          obj.id === editingText.id ? { ...obj, text: text.trim() } : obj
+        );
+        setObjects(updatedObjects);
+        saveToHistory(updatedObjects);
+        setSelectedObject(updatedObjects.find(obj => obj.id === editingText.id) || null);
+      } else {
+        // Create new text object
+        const newObject: AnnotationObject = {
+          id: generateId(),
+          type: 'text',
+          points: [],
+          color: activeColor,
+          strokeWidth: 2,
+          text: text.trim(),
+          fontSize: 16,
+          x: textInputPos.x,
+          y: textInputPos.y
+        };
+        
+        const newObjects = [...objects, newObject];
+        setObjects(newObjects);
+        saveToHistory(newObjects);
+      }
     }
     
     setShowTextInput(false);
+    setEditingText(null);
     setActiveTool('select');
   };
 
@@ -546,12 +565,30 @@ export const CustomAnnotator: React.FC<CustomAnnotatorProps> = ({
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onDoubleClick={(event) => {
+              if (activeTool === 'select') {
+                const point = getCanvasCoordinates(event);
+                const clickedObject = objects.slice().reverse().find(obj => isPointInObject(point, obj));
+                if (clickedObject && clickedObject.type === 'text') {
+                  setEditingText(clickedObject);
+                  setTextInputPos({ x: clickedObject.x!, y: clickedObject.y! });
+                  setShowTextInput(true);
+                  setTimeout(() => {
+                    if (textInputRef.current) {
+                      textInputRef.current.value = clickedObject.text || '';
+                      textInputRef.current.focus();
+                    }
+                  }, 0);
+                }
+              }
+            }}
           />
           
           {showTextInput && (
             <input
               ref={textInputRef}
               type="text"
+              placeholder="Add text..."
               className="absolute bg-white border border-gray-300 px-2 py-1 text-sm"
               style={{
                 left: textInputPos.x,
