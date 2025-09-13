@@ -309,8 +309,8 @@ const Pricing = () => {
                         <div className="aspect-video bg-muted relative overflow-hidden">
                           <iframe
                             src={website.url}
-                            className="w-full h-full pointer-events-none scale-[0.25] origin-top-left transform absolute top-0 left-0"
-                            style={{ width: "400%", height: "400%", marginTop: "-20px" }}
+                            className="w-full h-full pointer-events-none scale-[0.25] origin-top-left transform"
+                            style={{ width: "400%", height: "400%" }}
                           />
                         </div>
                         <div className="p-3 bg-background border-t">
