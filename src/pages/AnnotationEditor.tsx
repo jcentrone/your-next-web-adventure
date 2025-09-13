@@ -46,29 +46,30 @@ const AnnotationEditor: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <div className="border-b bg-card px-6 py-4">
+      <div className="border-b bg-card px-3 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleCancel}
-              className="gap-2"
+              className="gap-1 sm:gap-2 flex-shrink-0"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Report
+              <span className="hidden sm:inline">Back to Report</span>
+              <span className="sm:hidden">Back</span>
             </Button>
-            <div>
-              <h1 className="text-xl font-semibold">Image Annotation</h1>
-              <p className="text-sm text-muted-foreground">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-xl font-semibold truncate">Image Annotation</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                 Add annotations, arrows, and text to highlight important details
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleCancel}>
-              <X className="h-4 w-4 mr-2" />
-              Cancel
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <Button variant="outline" onClick={handleCancel} size="sm" className="gap-1">
+              <X className="h-4 w-4" />
+              <span className="hidden sm:inline">Cancel</span>
             </Button>
           </div>
         </div>
