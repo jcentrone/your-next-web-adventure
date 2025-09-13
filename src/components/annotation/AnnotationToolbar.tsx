@@ -181,7 +181,7 @@ export const AnnotationToolbar: React.FC<AnnotationToolbarProps> = ({
       <div className="border-b bg-muted/50">
         <TooltipProvider>
           <ScrollArea className="w-full">
-            <div className="flex items-center gap-2 p-4 min-w-max">
+            <div className="flex items-center gap-1 p-2 min-w-max">
               {/* Tools */}
               <div className="flex items-center gap-1">
                 {TOOL_CONFIGS.map((config) => (
